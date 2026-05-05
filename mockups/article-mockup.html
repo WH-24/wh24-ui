@@ -782,6 +782,13 @@
       .combo.image-left .combo-text,
       .combo.image-right .combo-text { order: 2; }
     }
+  
+    /* === Dark theme tokens (matched with styleguide) === */
+    html[data-theme="dark"]{color-scheme:dark;--bg:#0f1110;--surf:#161816;--surf-2:#1c1f1c;--surf-3:#272b27;--ink:#f2f2ef;--ink-2:#d8d8d1;--ink-3:#a9aa9f;--ink-4:#7b7d74;--ink-5:#5d5f58;--bd:rgba(255,255,255,0.10);--bd-soft:rgba(255,255,255,0.07);--bd-strong:rgba(255,255,255,0.16);--terra-bg:rgba(221,103,49,0.20);--terra-bd:rgba(221,103,49,0.36);--good-bg:rgba(74,138,31,0.18);--good-bd:rgba(185,212,145,0.30);--warn-bg:rgba(168,106,22,0.20);--warn-bd:rgba(226,191,128,0.30);--info-bg:rgba(44,86,135,0.20);--info-bd:rgba(196,211,230,0.28);--bad-bg:rgba(163,45,45,0.18);--bad-bd:rgba(230,168,168,0.30)}
+    html[data-theme="dark"] .topbar,html[data-theme="dark"] .edit-toolbar{background:rgba(15,17,16,0.85)}
+    html[data-theme="dark"] .behind{background:linear-gradient(135deg,#15110d 0%,#1c1f1c 35%,#0f1110 65%,#272b27 100%);filter:blur(2px) saturate(0.9)}
+    html[data-theme="dark"] .behind-bar,html[data-theme="dark"] .behind-card,html[data-theme="dark"] .behind-grid > div{background:var(--surf)}
+
   </style>
 </head>
 <body>
@@ -795,14 +802,14 @@
       <span class="blogo" aria-hidden="true"></span>
       <span class="bname">Wowhaus</span>
     </a>
-    <button class="pill" aria-label="Открыть палитру команд">
+    <a href="cmdk-mockup.html" class="pill" aria-label="Открыть палитру команд">
       <span class="pill-i" aria-hidden="true">⌕</span>
       <span>Поиск, навигация, действия</span>
       <kbd>⌘ K</kbd>
-    </button>
+    </a>
     <div class="tr">
-      <button class="icon-btn" aria-label="Переключить тему">◐</button>
-      <button class="av" aria-label="Профиль">АМ</button>
+      <button class="icon-btn" aria-label="Переключить тему" data-theme-toggle>◐</button>
+      <a class="icon-btn" href="admin-mockup.html" aria-label="Админ-панель" title="Админ-панель">⚙</a><button class="av" aria-label="Профиль">АМ</button>
     </div>
   </header>
 
@@ -814,6 +821,7 @@
         <span>Браузер</span>
       </a>
       <div class="cover-actions">
+        <a class="cover-action" href="article-edit-mockup.html" aria-label="Редактировать" title="Редактировать">✎</a>
         <button class="cover-action" id="bookmarkBtn" aria-label="Закладка">★</button>
         <button class="cover-action" aria-label="Поделиться">⤴</button>
         <button class="cover-action" aria-label="Ещё">⋯</button>
@@ -895,7 +903,7 @@
           До начала проектирования мы провели три выезда на площадку — в апреле, июле и октябре. Это позволило увидеть, как площадка живёт в разных световых режимах. <strong>Северная сторона</strong> большую часть года остаётся в синеватой тени; южный фасад наоборот — открыт прямому солнцу с раннего утра.
         </p>
         <p>
-          Мы остановились на материале, который умеет работать с обоими режимами: <em>терракотовых панелях</em> производителя <a class="wikilink" href="#">Argeton</a>. В тени они дают спокойный охровый тон, на солнце уходят в более тёплый, почти кирпичный. Конкурентами были <a class="wikilink" href="#">HPL</a>, <a class="wikilink" href="#">фиброцемент</a> и <a class="wikilink" href="#">керамогранит</a> — все проиграли по тактильности.
+          Мы остановились на материале, который умеет работать с обоими режимами: <em>терракотовых панелях</em> производителя <a class="wikilink" href="article-mockup.html">Argeton</a>. В тени они дают спокойный охровый тон, на солнце уходят в более тёплый, почти кирпичный. Конкурентами были <a class="wikilink" href="article-mockup.html">HPL</a>, <a class="wikilink" href="article-mockup.html">фиброцемент</a> и <a class="wikilink" href="article-mockup.html">керамогранит</a> — все проиграли по тактильности.
         </p>
       </div>
 
@@ -911,7 +919,7 @@
 
       <div class="text-block">
         <p>
-          Фасад строится на трёх вертикальных ритмах: <strong>опоры</strong> (бетонные пилоны), <strong>наполнение</strong> (терракотовые панели на скрытой подсистеме) и <strong>проёмы</strong> (двойное остекление с тонкой алюминиевой подсистемой). Все три ритма синхронизированы по сетке 600 мм. Подробнее о подсистеме — в <a class="wikilink" href="#">стандарте по фасадным системам v1.4</a>.
+          Фасад строится на трёх вертикальных ритмах: <strong>опоры</strong> (бетонные пилоны), <strong>наполнение</strong> (терракотовые панели на скрытой подсистеме) и <strong>проёмы</strong> (двойное остекление с тонкой алюминиевой подсистемой). Все три ритма синхронизированы по сетке 600 мм. Подробнее о подсистеме — в <a class="wikilink" href="article-std-mockup.html">стандарте по фасадным системам v1.4</a>.
         </p>
       </div>
 
@@ -938,7 +946,7 @@
 
       <div class="text-block">
         <p>
-          Подсистему мы прорабатывали совместно с конструкторами <a class="wikilink" href="#">Schüco</a> — два круга совещаний, протоколы по типовым узлам. Все решения зафиксированы в отдельной статье, см. ниже.
+          Подсистему мы прорабатывали совместно с конструкторами <a class="wikilink" href="article-mockup.html">Schüco</a> — два круга совещаний, протоколы по типовым узлам. Все решения зафиксированы в отдельной статье, см. ниже.
         </p>
       </div>
 
@@ -974,7 +982,7 @@
         </div>
       </div>
 
-      <a class="embed">
+      <a class="embed" href="article-mockup.html">
         <span class="embed-icon sol" aria-hidden="true">◇</span>
         <div class="embed-body">
           <span class="embed-tag">Решение · Wowhaus база</span>
@@ -988,7 +996,7 @@
         <span class="callout-icon" aria-hidden="true">!</span>
         <div class="callout-body">
           <div class="callout-title">Внимание при монтаже</div>
-          <div class="callout-text">Подсистема рассчитана на смещение ±15 мм. На участках, где предполагаются температурные деформации больше указанного, обязательно использовать дополнительный <a class="wikilink" href="#">деформационный шов</a> с нащельником из нержавейки 304.</div>
+          <div class="callout-text">Подсистема рассчитана на смещение ±15 мм. На участках, где предполагаются температурные деформации больше указанного, обязательно использовать дополнительный <a class="wikilink" href="article-mockup.html">деформационный шов</a> с нащельником из нержавейки 304.</div>
         </div>
       </div>
 
@@ -1026,7 +1034,7 @@
 
       <div class="text-block">
         <p>
-          Прецеденты, к которым мы возвращались на разных этапах: фасад в <a class="wikilink" href="#">Реновация Нагатино</a>, павильоны в <a class="wikilink" href="#">Парке Мещерский</a>, и внешние референсы — из заметок к концепции:
+          Прецеденты, к которым мы возвращались на разных этапах: фасад в <a class="wikilink" href="article-mockup.html">Реновация Нагатино</a>, павильоны в <a class="wikilink" href="article-mockup.html">Парке Мещерский</a>, и внешние референсы — из заметок к концепции:
         </p>
       </div>
 
@@ -1055,7 +1063,7 @@
 
       <div class="text-block">
         <p>
-          <a class="wikilink" href="#">Стандарт по фасадным системам v1.4</a> включил это решение как референсное. Решение и узлы — в отдельных статьях базы.
+          <a class="wikilink" href="article-std-mockup.html">Стандарт по фасадным системам v1.4</a> включил это решение как референсное. Решение и узлы — в отдельных статьях базы.
         </p>
       </div>
 
@@ -1091,7 +1099,7 @@
             <span class="backlinks-h-c">5 материалов</span>
           </header>
           <div class="backlinks-list">
-            <a class="backlink">
+            <a class="backlink" href="article-std-mockup.html">
               <span class="backlink-icon std" aria-hidden="true">⬚</span>
               <div class="backlink-body">
                 <span class="backlink-tag std">Стандарт</span>
@@ -1099,7 +1107,7 @@
               </div>
               <span class="backlink-via">/ standards / facades-v1.4</span>
             </a>
-            <a class="backlink">
+            <a class="backlink" href="article-mockup.html">
               <span class="backlink-icon sol" aria-hidden="true">◇</span>
               <div class="backlink-body">
                 <span class="backlink-tag sol">Решение</span>
@@ -1107,7 +1115,7 @@
               </div>
               <span class="backlink-via">/ solutions / alucobond-nodes</span>
             </a>
-            <a class="backlink">
+            <a class="backlink" href="article-mockup.html">
               <span class="backlink-icon art" aria-hidden="true">¶</span>
               <div class="backlink-body">
                 <span class="backlink-tag art">Статья</span>
@@ -1115,7 +1123,7 @@
               </div>
               <span class="backlink-via">/ articles / curtain-wall-comparison</span>
             </a>
-            <a class="backlink">
+            <a class="backlink" href="article-mockup.html">
               <span class="backlink-icon proj" aria-hidden="true">▤</span>
               <div class="backlink-body">
                 <span class="backlink-tag proj">Проект</span>
@@ -1123,7 +1131,7 @@
               </div>
               <span class="backlink-via">/ projects / nagatino-renovation</span>
             </a>
-            <a class="backlink">
+            <a class="backlink" href="article-mockup.html">
               <span class="backlink-icon proj" aria-hidden="true">▤</span>
               <div class="backlink-body">
                 <span class="backlink-tag proj">Проект</span>
@@ -1230,6 +1238,25 @@
     if (bookmarkBtn) {
       bookmarkBtn.addEventListener('click', () => bookmarkBtn.classList.toggle('bookmarked'));
     }
+  
+    // === Dark theme toggle (shared key: wh-theme) ===
+    (function(){
+      var KEY='wh-theme', root=document.documentElement;
+      function applyTheme(t){
+        if(t==='dark') root.setAttribute('data-theme','dark');
+        else root.removeAttribute('data-theme');
+        document.querySelectorAll('[data-theme-toggle], .icon-btn[aria-label="Переключить тему"]').forEach(function(b){b.classList.toggle('on', t==='dark')});
+      }
+      applyTheme(localStorage.getItem(KEY) || 'light');
+      document.querySelectorAll('[data-theme-toggle], .icon-btn[aria-label="Переключить тему"]').forEach(function(b){
+        b.addEventListener('click', function(){
+          var next = root.getAttribute('data-theme')==='dark' ? 'light' : 'dark';
+          localStorage.setItem(KEY, next);
+          applyTheme(next);
+        });
+      });
+    })();
+
   </script>
 </body>
 </html>

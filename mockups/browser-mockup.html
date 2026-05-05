@@ -491,6 +491,22 @@
       .search-bar { flex-direction: column; align-items: stretch; }
       .seg { align-self: flex-start; }
     }
+    @media (max-width: 540px) {
+      .topbar { padding: 10px 14px; }
+      .pill { display: none; }
+      .page { padding: 14px 14px 24px; }
+      .mega-cols { grid-template-columns: 1fr !important; }
+      .mega { left: 8px !important; right: 8px !important; max-width: calc(100vw - 16px); }
+      .seg { flex-wrap: wrap; }
+      .seg-btn { flex: 1; min-width: 80px; text-align: center; }
+    }
+  
+    /* === Dark theme tokens (matched with styleguide) === */
+    html[data-theme="dark"]{color-scheme:dark;--bg:#0f1110;--surf:#161816;--surf-2:#1c1f1c;--surf-3:#272b27;--ink:#f2f2ef;--ink-2:#d8d8d1;--ink-3:#a9aa9f;--ink-4:#7b7d74;--ink-5:#5d5f58;--bd:rgba(255,255,255,0.10);--bd-soft:rgba(255,255,255,0.07);--bd-strong:rgba(255,255,255,0.16);--terra-bg:rgba(221,103,49,0.20);--terra-bd:rgba(221,103,49,0.36);--good-bg:rgba(74,138,31,0.18);--good-bd:rgba(185,212,145,0.30);--warn-bg:rgba(168,106,22,0.20);--warn-bd:rgba(226,191,128,0.30);--info-bg:rgba(44,86,135,0.20);--info-bd:rgba(196,211,230,0.28);--bad-bg:rgba(163,45,45,0.18);--bad-bd:rgba(230,168,168,0.30)}
+    html[data-theme="dark"] .topbar,html[data-theme="dark"] .edit-toolbar{background:rgba(15,17,16,0.85)}
+    html[data-theme="dark"] .behind{background:linear-gradient(135deg,#15110d 0%,#1c1f1c 35%,#0f1110 65%,#272b27 100%);filter:blur(2px) saturate(0.9)}
+    html[data-theme="dark"] .behind-bar,html[data-theme="dark"] .behind-card,html[data-theme="dark"] .behind-grid > div{background:var(--surf)}
+
   </style>
 </head>
 <body>
@@ -499,14 +515,14 @@
       <span class="blogo" aria-hidden="true"></span>
       <span class="bname">Wowhaus</span>
     </a>
-    <button class="pill" aria-label="Открыть палитру команд">
+    <a href="cmdk-mockup.html" class="pill" aria-label="Открыть палитру команд">
       <span class="pill-i" aria-hidden="true">⌕</span>
       <span>Поиск, навигация, действия</span>
       <kbd>⌘ K</kbd>
-    </button>
+    </a>
     <div class="tr">
-      <button class="icon-btn" aria-label="Переключить тему">◐</button>
-      <button class="av" aria-label="Профиль">АМ</button>
+      <button class="icon-btn" aria-label="Переключить тему" data-theme-toggle>◐</button>
+      <a class="icon-btn" href="admin-mockup.html" aria-label="Админ-панель" title="Админ-панель">⚙</a><button class="av" aria-label="Профиль">АМ</button>
     </div>
   </header>
 
@@ -531,7 +547,7 @@
       </div>
       <div class="seg" role="tablist">
         <button class="seg-btn on" role="tab" aria-selected="true">Статьи</button>
-        <button class="seg-btn" role="tab" aria-selected="false">Изображения</button>
+        <a class="seg-btn" href="images-mockup.html" role="tab" aria-selected="false">Изображения</a>
       </div>
     </div>
 
@@ -555,7 +571,7 @@
     </div>
 
     <div class="grid" id="grid">
-      <article class="card bp" data-type="proj" data-bp="1">
+      <a class="card bp" data-type="proj" data-bp="1" href="article-mockup.html">
         <div class="card-cv proj">
           <span class="card-cv-tag proj">● Проект</span>
           <span class="card-bp">BP</span>
@@ -569,9 +585,9 @@
             <span class="card-d">28 апр</span>
           </div>
         </div>
-      </article>
+      </a>
 
-      <article class="card" data-type="std">
+      <a class="card" data-type="std" href="article-std-mockup.html">
         <div class="card-body no-cv">
           <span class="card-tag std">Стандарт</span>
           <div class="card-t">Стандарт BIM-моделирования v2.1</div>
@@ -582,9 +598,9 @@
             <span class="card-d">апр</span>
           </div>
         </div>
-      </article>
+      </a>
 
-      <article class="card bp" data-type="sol" data-bp="1">
+      <a class="card bp" data-type="sol" data-bp="1" href="article-mockup.html">
         <div class="card-cv sol">
           <span class="card-cv-tag sol">● Решение</span>
           <span class="card-bp">BP</span>
@@ -598,9 +614,9 @@
             <span class="card-d">5 дн</span>
           </div>
         </div>
-      </article>
+      </a>
 
-      <article class="card" data-type="sol">
+      <a class="card" data-type="sol" href="article-mockup.html">
         <div class="card-cv sol">
           <span class="card-cv-tag sol">● Решение</span>
         </div>
@@ -613,9 +629,9 @@
             <span class="card-d">2 нед</span>
           </div>
         </div>
-      </article>
+      </a>
 
-      <article class="card" data-type="art">
+      <a class="card" data-type="art" href="article-mockup.html">
         <div class="card-body no-cv">
           <span class="card-tag art">Статья</span>
           <div class="card-t">Параметрическое моделирование оболочек</div>
@@ -626,9 +642,9 @@
             <span class="card-d">3 дн</span>
           </div>
         </div>
-      </article>
+      </a>
 
-      <article class="card" data-type="proj">
+      <a class="card" data-type="proj" href="article-mockup.html">
         <div class="card-cv proj">
           <span class="card-cv-tag proj">● Проект</span>
         </div>
@@ -641,9 +657,9 @@
             <span class="card-d">2 ч</span>
           </div>
         </div>
-      </article>
+      </a>
 
-      <article class="card bp" data-type="sol" data-bp="1">
+      <a class="card bp" data-type="sol" data-bp="1" href="article-mockup.html">
         <div class="card-cv sol">
           <span class="card-cv-tag sol">● Решение</span>
           <span class="card-bp">BP</span>
@@ -657,9 +673,9 @@
             <span class="card-d">1 нед</span>
           </div>
         </div>
-      </article>
+      </a>
 
-      <article class="card" data-type="std">
+      <a class="card" data-type="std" href="article-std-mockup.html">
         <div class="card-body no-cv">
           <span class="card-tag std">Стандарт</span>
           <div class="card-t">Стандарт пожарных эвакуаций v3</div>
@@ -670,9 +686,9 @@
             <span class="card-d">март</span>
           </div>
         </div>
-      </article>
+      </a>
 
-      <article class="card" data-type="proj">
+      <a class="card" data-type="proj" href="article-mockup.html">
         <div class="card-cv proj">
           <span class="card-cv-tag proj">● Проект</span>
         </div>
@@ -685,9 +701,9 @@
             <span class="card-d">3 нед</span>
           </div>
         </div>
-      </article>
+      </a>
 
-      <article class="card" data-type="art">
+      <a class="card" data-type="art" href="article-mockup.html">
         <div class="card-body no-cv">
           <span class="card-tag art">Статья</span>
           <div class="card-t">Curtain wall — сравнение систем</div>
@@ -698,9 +714,9 @@
             <span class="card-d">1 мес</span>
           </div>
         </div>
-      </article>
+      </a>
 
-      <article class="card" data-type="sol">
+      <a class="card" data-type="sol" href="article-mockup.html">
         <div class="card-cv sol">
           <span class="card-cv-tag sol">● Решение</span>
         </div>
@@ -713,9 +729,9 @@
             <span class="card-d">2 мес</span>
           </div>
         </div>
-      </article>
+      </a>
 
-      <article class="card" data-type="std">
+      <a class="card" data-type="std" href="article-std-mockup.html">
         <div class="card-body no-cv">
           <span class="card-tag std">Стандарт</span>
           <div class="card-t">Ограждения у воды (WH-014)</div>
@@ -726,7 +742,7 @@
             <span class="card-d">апр</span>
           </div>
         </div>
-      </article>
+      </a>
     </div>
 
     <div class="empty" id="empty">
@@ -979,6 +995,25 @@
     // Init
     renderFB();
     applyFilters();
+  
+    // === Dark theme toggle (shared key: wh-theme) ===
+    (function(){
+      var KEY='wh-theme', root=document.documentElement;
+      function applyTheme(t){
+        if(t==='dark') root.setAttribute('data-theme','dark');
+        else root.removeAttribute('data-theme');
+        document.querySelectorAll('[data-theme-toggle], .icon-btn[aria-label="Переключить тему"]').forEach(function(b){b.classList.toggle('on', t==='dark')});
+      }
+      applyTheme(localStorage.getItem(KEY) || 'light');
+      document.querySelectorAll('[data-theme-toggle], .icon-btn[aria-label="Переключить тему"]').forEach(function(b){
+        b.addEventListener('click', function(){
+          var next = root.getAttribute('data-theme')==='dark' ? 'light' : 'dark';
+          localStorage.setItem(KEY, next);
+          applyTheme(next);
+        });
+      });
+    })();
+
   </script>
 </body>
 </html>

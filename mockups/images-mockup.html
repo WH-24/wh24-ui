@@ -532,6 +532,13 @@
       .masonry.dense { column-count: 3; }
       .masonry.cozy { column-count: 2; }
     }
+  
+    /* === Dark theme tokens (matched with styleguide) === */
+    html[data-theme="dark"]{color-scheme:dark;--bg:#0f1110;--surf:#161816;--surf-2:#1c1f1c;--surf-3:#272b27;--ink:#f2f2ef;--ink-2:#d8d8d1;--ink-3:#a9aa9f;--ink-4:#7b7d74;--ink-5:#5d5f58;--bd:rgba(255,255,255,0.10);--bd-soft:rgba(255,255,255,0.07);--bd-strong:rgba(255,255,255,0.16);--terra-bg:rgba(221,103,49,0.20);--terra-bd:rgba(221,103,49,0.36);--good-bg:rgba(74,138,31,0.18);--good-bd:rgba(185,212,145,0.30);--warn-bg:rgba(168,106,22,0.20);--warn-bd:rgba(226,191,128,0.30);--info-bg:rgba(44,86,135,0.20);--info-bd:rgba(196,211,230,0.28);--bad-bg:rgba(163,45,45,0.18);--bad-bd:rgba(230,168,168,0.30)}
+    html[data-theme="dark"] .topbar,html[data-theme="dark"] .edit-toolbar{background:rgba(15,17,16,0.85)}
+    html[data-theme="dark"] .behind{background:linear-gradient(135deg,#15110d 0%,#1c1f1c 35%,#0f1110 65%,#272b27 100%);filter:blur(2px) saturate(0.9)}
+    html[data-theme="dark"] .behind-bar,html[data-theme="dark"] .behind-card,html[data-theme="dark"] .behind-grid > div{background:var(--surf)}
+
   </style>
 </head>
 <body>
@@ -540,14 +547,14 @@
       <span class="blogo" aria-hidden="true"></span>
       <span class="bname">Wowhaus</span>
     </a>
-    <button class="pill" aria-label="Открыть палитру команд">
+    <a href="cmdk-mockup.html" class="pill" aria-label="Открыть палитру команд">
       <span class="pill-i" aria-hidden="true">⌕</span>
       <span>Поиск, навигация, действия</span>
       <kbd>⌘ K</kbd>
-    </button>
+    </a>
     <div class="tr">
-      <button class="icon-btn" aria-label="Переключить тему">◐</button>
-      <button class="av" aria-label="Профиль">АМ</button>
+      <button class="icon-btn" aria-label="Переключить тему" data-theme-toggle>◐</button>
+      <a class="icon-btn" href="admin-mockup.html" aria-label="Админ-панель" title="Админ-панель">⚙</a><button class="av" aria-label="Профиль">АМ</button>
     </div>
   </header>
 
@@ -637,7 +644,7 @@
 
         <div class="drawer-section">
           <div class="drawer-sec-h">Источник</div>
-          <a class="drawer-source" id="drawerSource">
+          <a class="drawer-source" id="drawerSource" href="article-mockup.html">
             <span class="drawer-source-icon" id="drawerSrcIcon">▤</span>
             <span class="drawer-source-text">
               <span class="drawer-source-tag" id="drawerSrcTag">—</span>
@@ -901,6 +908,25 @@
     // Init
     renderMasonry();
     applySearch();
+  
+    // === Dark theme toggle (shared key: wh-theme) ===
+    (function(){
+      var KEY='wh-theme', root=document.documentElement;
+      function applyTheme(t){
+        if(t==='dark') root.setAttribute('data-theme','dark');
+        else root.removeAttribute('data-theme');
+        document.querySelectorAll('[data-theme-toggle], .icon-btn[aria-label="Переключить тему"]').forEach(function(b){b.classList.toggle('on', t==='dark')});
+      }
+      applyTheme(localStorage.getItem(KEY) || 'light');
+      document.querySelectorAll('[data-theme-toggle], .icon-btn[aria-label="Переключить тему"]').forEach(function(b){
+        b.addEventListener('click', function(){
+          var next = root.getAttribute('data-theme')==='dark' ? 'light' : 'dark';
+          localStorage.setItem(KEY, next);
+          applyTheme(next);
+        });
+      });
+    })();
+
   </script>
 </body>
 </html>

@@ -438,6 +438,23 @@
       .filters { gap: 10px; }
       .sort-menu { right: 0; left: auto; }
     }
+    @media (max-width: 540px) {
+      .topbar { padding: 10px 14px; }
+      .pill { display: none; }
+      .page { padding: 14px 14px 24px; }
+      .img-row { grid-template-columns: repeat(2, 1fr); }
+      .filters { flex-direction: column; align-items: stretch; }
+      .filters > * { width: 100%; }
+      .seg { flex-wrap: wrap; }
+      .seg-btn { flex: 1; min-width: 70px; text-align: center; }
+    }
+  
+    /* === Dark theme tokens (matched with styleguide) === */
+    html[data-theme="dark"]{color-scheme:dark;--bg:#0f1110;--surf:#161816;--surf-2:#1c1f1c;--surf-3:#272b27;--ink:#f2f2ef;--ink-2:#d8d8d1;--ink-3:#a9aa9f;--ink-4:#7b7d74;--ink-5:#5d5f58;--bd:rgba(255,255,255,0.10);--bd-soft:rgba(255,255,255,0.07);--bd-strong:rgba(255,255,255,0.16);--terra-bg:rgba(221,103,49,0.20);--terra-bd:rgba(221,103,49,0.36);--good-bg:rgba(74,138,31,0.18);--good-bd:rgba(185,212,145,0.30);--warn-bg:rgba(168,106,22,0.20);--warn-bd:rgba(226,191,128,0.30);--info-bg:rgba(44,86,135,0.20);--info-bd:rgba(196,211,230,0.28);--bad-bg:rgba(163,45,45,0.18);--bad-bd:rgba(230,168,168,0.30)}
+    html[data-theme="dark"] .topbar,html[data-theme="dark"] .edit-toolbar{background:rgba(15,17,16,0.85)}
+    html[data-theme="dark"] .behind{background:linear-gradient(135deg,#15110d 0%,#1c1f1c 35%,#0f1110 65%,#272b27 100%);filter:blur(2px) saturate(0.9)}
+    html[data-theme="dark"] .behind-bar,html[data-theme="dark"] .behind-card,html[data-theme="dark"] .behind-grid > div{background:var(--surf)}
+
   </style>
 </head>
 <body>
@@ -446,14 +463,14 @@
       <span class="blogo" aria-hidden="true"></span>
       <span class="bname">Wowhaus</span>
     </a>
-    <button class="pill" aria-label="Открыть палитру команд">
+    <a href="cmdk-mockup.html" class="pill" aria-label="Открыть палитру команд">
       <span class="pill-i" aria-hidden="true">⌕</span>
       <span>Поиск, навигация, действия</span>
       <kbd>⌘ K</kbd>
-    </button>
+    </a>
     <div class="tr">
-      <button class="icon-btn" aria-label="Переключить тему">◐</button>
-      <button class="av" aria-label="Профиль">АМ</button>
+      <button class="icon-btn" aria-label="Переключить тему" data-theme-toggle>◐</button>
+      <a class="icon-btn" href="admin-mockup.html" aria-label="Админ-панель" title="Админ-панель">⚙</a><button class="av" aria-label="Профиль">АМ</button>
     </div>
   </header>
 
@@ -528,7 +545,7 @@
     <!-- =================== RELEVANCE (mixed feed) =================== -->
     <div class="results on" data-mode="relevance">
 
-      <a class="res-row">
+      <a class="res-row" href="article-mockup.html">
         <span class="res-icon proj" aria-hidden="true">▤</span>
         <div class="res-body">
           <div class="res-row-top">
@@ -555,7 +572,7 @@
         </div>
       </a>
 
-      <a class="res-row">
+      <a class="res-row" href="article-mockup.html">
         <span class="res-icon block" aria-hidden="true">¶</span>
         <div class="res-body">
           <div class="res-row-top">
@@ -577,7 +594,7 @@
         </div>
       </a>
 
-      <a class="res-row">
+      <a class="res-row" href="article-mockup.html">
         <span class="res-icon sol" aria-hidden="true">◇</span>
         <div class="res-body">
           <div class="res-row-top">
@@ -604,7 +621,7 @@
         </div>
       </a>
 
-      <a class="res-row">
+      <a class="res-row" href="article-mockup.html">
         <span class="res-icon image" aria-hidden="true">▣</span>
         <div class="res-body">
           <div class="res-row-top">
@@ -626,7 +643,7 @@
         </div>
       </a>
 
-      <a class="res-row">
+      <a class="res-row" href="article-mockup.html">
         <span class="res-icon art" aria-hidden="true">¶</span>
         <div class="res-body">
           <div class="res-row-top">
@@ -652,7 +669,7 @@
         </div>
       </a>
 
-      <a class="res-row">
+      <a class="res-row" href="article-mockup.html">
         <span class="res-icon block" aria-hidden="true">¶</span>
         <div class="res-body">
           <div class="res-row-top">
@@ -671,7 +688,7 @@
         </div>
       </a>
 
-      <a class="res-row">
+      <a class="res-row" href="article-mockup.html">
         <span class="res-icon image" aria-hidden="true">▣</span>
         <div class="res-body">
           <div class="res-row-top">
@@ -690,7 +707,7 @@
         </div>
       </a>
 
-      <a class="res-row">
+      <a class="res-row" href="article-mockup.html">
         <span class="res-icon std" aria-hidden="true">⬚</span>
         <div class="res-body">
           <div class="res-row-top">
@@ -710,7 +727,7 @@
         </div>
       </a>
 
-      <a class="res-row">
+      <a class="res-row" href="article-mockup.html">
         <span class="res-icon block" aria-hidden="true">¶</span>
         <div class="res-body">
           <div class="res-row-top">
@@ -738,7 +755,7 @@
         </header>
         <div class="sec-body">
 
-          <a class="res-row">
+          <a class="res-row" href="article-mockup.html">
             <span class="res-icon proj" aria-hidden="true">▤</span>
             <div class="res-body">
               <div class="res-row-top">
@@ -764,7 +781,7 @@
             </div>
           </a>
 
-          <a class="res-row">
+          <a class="res-row" href="article-mockup.html">
             <span class="res-icon sol" aria-hidden="true">◇</span>
             <div class="res-body">
               <div class="res-row-top">
@@ -789,7 +806,7 @@
             </div>
           </a>
 
-          <a class="res-row">
+          <a class="res-row" href="article-mockup.html">
             <span class="res-icon art" aria-hidden="true">¶</span>
             <div class="res-body">
               <div class="res-row-top">
@@ -808,7 +825,7 @@
             </div>
           </a>
 
-          <a class="res-row">
+          <a class="res-row" href="article-mockup.html">
             <span class="res-icon std" aria-hidden="true">⬚</span>
             <div class="res-body">
               <div class="res-row-top">
@@ -838,7 +855,7 @@
         </header>
         <div class="sec-body">
 
-          <a class="res-row">
+          <a class="res-row" href="article-mockup.html">
             <span class="res-icon block" aria-hidden="true">¶</span>
             <div class="res-body">
               <div class="res-row-top">
@@ -859,7 +876,7 @@
             </div>
           </a>
 
-          <a class="res-row">
+          <a class="res-row" href="article-mockup.html">
             <span class="res-icon block" aria-hidden="true">¶</span>
             <div class="res-body">
               <div class="res-row-top">
@@ -877,7 +894,7 @@
             </div>
           </a>
 
-          <a class="res-row">
+          <a class="res-row" href="article-mockup.html">
             <span class="res-icon block" aria-hidden="true">¶</span>
             <div class="res-body">
               <div class="res-row-top">
@@ -916,7 +933,7 @@
     <!-- =================== UPDATED (mixed by date) =================== -->
     <div class="results" data-mode="updated">
 
-      <a class="res-row">
+      <a class="res-row" href="article-mockup.html">
         <span class="res-icon proj" aria-hidden="true">▤</span>
         <div class="res-body">
           <div class="res-row-top">
@@ -934,7 +951,7 @@
         </div>
       </a>
 
-      <a class="res-row">
+      <a class="res-row" href="article-mockup.html">
         <span class="res-icon std" aria-hidden="true">⬚</span>
         <div class="res-body">
           <div class="res-row-top">
@@ -951,7 +968,7 @@
         </div>
       </a>
 
-      <a class="res-row">
+      <a class="res-row" href="article-mockup.html">
         <span class="res-icon sol" aria-hidden="true">◇</span>
         <div class="res-body">
           <div class="res-row-top">
@@ -969,7 +986,7 @@
         </div>
       </a>
 
-      <a class="res-row">
+      <a class="res-row" href="article-mockup.html">
         <span class="res-icon block" aria-hidden="true">¶</span>
         <div class="res-body">
           <div class="res-row-top">
@@ -985,7 +1002,7 @@
         </div>
       </a>
 
-      <a class="res-row">
+      <a class="res-row" href="article-mockup.html">
         <span class="res-icon art" aria-hidden="true">¶</span>
         <div class="res-body">
           <div class="res-row-top">
@@ -1033,7 +1050,7 @@
         lines.push(`<line x1="${x1}" y1="${y}" x2="${x2}" y2="${y}" stroke="rgba(255,255,255,0.06)" stroke-width="0.4"/>`);
       }
       return `
-        <a class="img-thumb" aria-label="Изображение ${idx + 1}">
+        <a class="img-thumb" href="images-mockup.html" aria-label="Изображение ${idx + 1}">
           <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
             <defs>
               <linearGradient id="ig${idx}" x1="0" y1="0" x2="1" y2="1">
@@ -1128,6 +1145,25 @@
     searchIn.addEventListener('input', syncClear);
     clearBtn.addEventListener('click', () => { searchIn.value = ''; searchIn.focus(); syncClear(); });
     syncClear();
+  
+    // === Dark theme toggle (shared key: wh-theme) ===
+    (function(){
+      var KEY='wh-theme', root=document.documentElement;
+      function applyTheme(t){
+        if(t==='dark') root.setAttribute('data-theme','dark');
+        else root.removeAttribute('data-theme');
+        document.querySelectorAll('[data-theme-toggle], .icon-btn[aria-label="Переключить тему"]').forEach(function(b){b.classList.toggle('on', t==='dark')});
+      }
+      applyTheme(localStorage.getItem(KEY) || 'light');
+      document.querySelectorAll('[data-theme-toggle], .icon-btn[aria-label="Переключить тему"]').forEach(function(b){
+        b.addEventListener('click', function(){
+          var next = root.getAttribute('data-theme')==='dark' ? 'light' : 'dark';
+          localStorage.setItem(KEY, next);
+          applyTheme(next);
+        });
+      });
+    })();
+
   </script>
 </body>
 </html>

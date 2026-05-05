@@ -1,0 +1,776 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Wowhaus Wiki — Стандарт</title>
+  <meta name="description" content="UI mockup of the standard-type article (no cover, no project summary). Example: fire safety standard v3." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root{
+      --terra:#dd6731;--terra-d:#b8501f;--terra-bg:#fbeee5;--terra-bd:#e89971;
+      --ink:#1a1a1a;--ink-2:#3d3d3d;--ink-3:#7a7a7a;--ink-4:#b4b2a9;--ink-5:#c0bdb3;
+      --bd:rgba(0,0,0,0.08);--bd-soft:rgba(0,0,0,0.05);--bd-strong:rgba(0,0,0,0.12);
+      --bg:#fafaf7;--surf:#ffffff;--surf-2:#f7f5f0;--surf-3:#efece4;
+      --tp-proj:#8e3a14;--tp-std:#444441;--tp-sol:#0c447c;--tp-art:#3c3489;
+      --good:#4a8a1f;--good-bg:#eef6e3;--good-bd:#b9d491;
+      --warn:#a86a16;--warn-bg:#faecd6;--warn-bd:#e2bf80;
+      --info-bg:#eef3f9;--info-bd:#c4d3e6;--info:#2c5687;
+      --bad:#a32d2d;--bad-bg:#fceaea;--bad-bd:#e6a8a8;
+      --font-sans:'Manrope',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+      --font-mono:ui-monospace,'SF Mono',Monaco,Consolas,monospace;
+      --r-sm:5px;--r-md:7px;--r-lg:10px;--r-xl:12px;--r-pill:999px;
+      --content-w:680px;
+    }
+    *,*::before,*::after{box-sizing:border-box}
+    html,body{margin:0;padding:0}
+    body{font-family:var(--font-sans);font-size:14px;line-height:1.5;color:var(--ink);background:var(--bg);-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+    a{color:inherit;text-decoration:none}
+    button{font-family:inherit;font-size:inherit;color:inherit;background:none;border:none;padding:0;cursor:pointer}
+    :focus-visible{outline:2px solid var(--terra);outline-offset:2px;border-radius:2px}
+
+    /* Top bar */
+    .topbar{
+      display:flex;align-items:center;justify-content:space-between;
+      padding:16px 32px;border-bottom:0.5px solid var(--bd);
+      background:rgba(250,250,247,0.85);
+      backdrop-filter:saturate(180%) blur(8px);
+      position:sticky;top:0;z-index:20;
+    }
+    .brand{display:flex;align-items:center;gap:10px}
+    .blogo{width:24px;height:24px;border-radius:6px;background:var(--terra);position:relative;flex-shrink:0}
+    .blogo::after{content:'';position:absolute;inset:5px 5px 9px 5px;border:1.5px solid #fff;border-bottom:none;border-radius:1px 1px 0 0}
+    .blogo::before{content:'';position:absolute;bottom:5px;left:5px;right:5px;height:1.5px;background:#fff;border-radius:1px}
+    .bname{font-weight:600;font-size:14px;color:var(--ink);letter-spacing:-0.01em}
+    .pill{
+      display:inline-flex;align-items:center;gap:9px;
+      padding:8px 14px;background:var(--surf);
+      border:0.5px solid var(--bd-strong);border-radius:var(--r-pill);
+      font-size:13px;color:var(--ink-3);min-width:280px;cursor:pointer;
+      transition:border-color .15s;
+    }
+    .pill:hover{border-color:var(--terra-bd)}
+    .pill .pill-i{color:var(--terra)}
+    .pill kbd{
+      margin-left:auto;font-family:var(--font-mono);font-size:11px;
+      background:var(--surf-2);border:0.5px solid var(--bd);
+      border-radius:4px;padding:1px 6px;color:var(--ink-2);
+    }
+    .tr{display:flex;align-items:center;gap:10px}
+    .icon-btn{
+      width:32px;height:32px;border-radius:6px;
+      display:inline-flex;align-items:center;justify-content:center;
+      color:var(--ink-3);font-size:14px;cursor:pointer;
+      transition:background .15s,color .15s;
+    }
+    .icon-btn:hover{background:var(--surf-2);color:var(--ink)}
+    .av{
+      width:32px;height:32px;border-radius:50%;
+      background:var(--surf-3);display:flex;align-items:center;justify-content:center;
+      font-size:12px;font-weight:500;color:var(--ink-2);cursor:pointer;
+    }
+
+    /* Reading progress bar */
+    .progress{position:fixed;top:0;left:0;right:0;height:2px;background:transparent;z-index:30;pointer-events:none}
+    .progress-fill{height:100%;background:var(--terra);width:0;transition:width 0.05s linear}
+
+    /* === Layout === */
+    .article-shell{
+      display:grid;grid-template-columns:1fr;
+      max-width:1140px;margin:0 auto;padding:0 32px;
+      position:relative;
+    }
+    .article-body{
+      max-width:var(--content-w);margin:0 auto;
+      padding:30px 0 60px;width:100%;
+    }
+
+    /* === Article header (no cover, no project summary) === */
+    .std-h{
+      max-width:var(--content-w);margin:0 auto;width:100%;
+      padding:36px 0 22px;
+      border-bottom:0.5px solid var(--bd-soft);
+    }
+    .std-back{
+      display:inline-flex;align-items:center;gap:7px;
+      font-size:12px;color:var(--ink-3);font-weight:500;
+      padding:5px 11px;margin-left:-11px;
+      border-radius:var(--r-sm);
+      transition:background .12s,color .12s;
+    }
+    .std-back:hover{background:var(--surf-2);color:var(--ink)}
+    .std-crumb{
+      display:flex;align-items:center;gap:8px;
+      margin:18px 0 12px;
+      font-size:11px;letter-spacing:.06em;text-transform:uppercase;
+      color:var(--ink-3);font-weight:600;
+    }
+    .std-crumb-dot{
+      width:8px;height:8px;border-radius:50%;background:var(--tp-std);
+      flex-shrink:0;
+    }
+    .std-crumb-type{color:var(--tp-std);font-weight:700;letter-spacing:.06em}
+    .std-crumb-sep{color:var(--ink-5);font-weight:400}
+    .std-crumb-cat{color:var(--ink-3);font-weight:500}
+    .std-status{
+      display:inline-flex;align-items:center;gap:5px;
+      font-size:10px;padding:2px 8px;
+      background:var(--warn-bg);color:var(--warn);
+      border:0.5px solid var(--warn-bd);border-radius:var(--r-pill);
+      font-weight:600;letter-spacing:.04em;text-transform:uppercase;margin-left:auto;
+    }
+    .std-h-t{
+      font-size:30px;font-weight:600;letter-spacing:-0.02em;
+      line-height:1.2;color:var(--ink);
+      margin:0;max-width:760px;
+    }
+    .std-meta{
+      display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+      margin-top:14px;font-size:13px;color:var(--ink-3);
+    }
+    .std-meta-author{display:inline-flex;align-items:center;gap:7px;color:var(--ink-2);font-weight:500}
+    .std-meta-av{
+      width:22px;height:22px;border-radius:50%;
+      background:var(--surf-3);color:var(--ink-2);
+      display:inline-flex;align-items:center;justify-content:center;
+      font-size:10px;font-weight:600;
+    }
+    .std-meta-sep{opacity:.5}
+    .std-actions{
+      display:flex;align-items:center;gap:6px;margin-top:14px;flex-wrap:wrap;
+    }
+    .std-act-btn{
+      display:inline-flex;align-items:center;gap:6px;
+      padding:6px 12px;background:var(--surf);
+      border:0.5px solid var(--bd-strong);border-radius:var(--r-sm);
+      font-size:12px;color:var(--ink-2);font-weight:500;
+      cursor:pointer;transition:border-color .12s,color .12s;
+    }
+    .std-act-btn:hover{border-color:var(--terra-bd);color:var(--ink)}
+    .std-act-btn.bookmarked{background:var(--terra);color:#fff;border-color:var(--terra)}
+
+    /* === Compliance ack panel (specific to standards) === */
+    .compl-ack{
+      display:flex;align-items:center;gap:14px;
+      max-width:var(--content-w);margin:18px auto 0;
+      padding:14px 18px;background:var(--warn-bg);
+      border:0.5px solid var(--warn-bd);border-radius:var(--r-md);
+    }
+    .compl-ack-i{
+      width:32px;height:32px;border-radius:var(--r-sm);
+      background:var(--warn);color:#fff;
+      display:inline-flex;align-items:center;justify-content:center;
+      font-size:15px;font-weight:700;flex-shrink:0;
+    }
+    .compl-ack-body{flex:1}
+    .compl-ack-t{font-size:13px;font-weight:600;color:var(--warn);letter-spacing:-0.005em}
+    .compl-ack-d{font-size:11.5px;color:var(--ink-2);margin-top:2px;line-height:1.45}
+    .compl-ack-d b{color:var(--warn);font-weight:600}
+    .compl-ack-btn{
+      flex-shrink:0;
+      padding:8px 16px;background:var(--warn);color:#fff;
+      border-radius:var(--r-sm);font-size:12px;font-weight:600;
+      cursor:pointer;transition:background .15s;
+      display:inline-flex;align-items:center;gap:6px;
+    }
+    .compl-ack-btn:hover{background:#8c590f}
+    .compl-ack-btn.acked{background:var(--good);color:#fff}
+    .compl-ack-btn.acked::before{content:'✓ '}
+
+    /* === TOC tick rail === */
+    .toc-rail{
+      position:fixed;top:50%;transform:translateY(-50%);right:24px;
+      display:flex;flex-direction:column;gap:11px;
+      z-index:10;padding:14px 10px;
+    }
+    .toc-rail:hover .toc-tick-label{opacity:1;transform:translateX(0)}
+    .toc-tick{display:flex;align-items:center;gap:10px;cursor:pointer;justify-content:flex-end}
+    .toc-tick-label{
+      font-size:11px;color:var(--ink-3);
+      opacity:0;transform:translateX(8px);
+      transition:opacity .2s,transform .2s,color .2s;
+      white-space:nowrap;font-weight:500;pointer-events:none;
+    }
+    .toc-tick.h3 .toc-tick-label{font-size:10px;color:var(--ink-4);padding-left:8px}
+    .toc-tick:hover .toc-tick-label{color:var(--ink)}
+    .toc-tick.on .toc-tick-label{color:var(--terra-d);opacity:1;transform:translateX(0)}
+    .toc-tick-bar{
+      width:14px;height:1.5px;background:var(--ink-5);
+      border-radius:1px;transition:all .2s;flex-shrink:0;
+    }
+    .toc-tick.h3 .toc-tick-bar{width:8px}
+    .toc-tick:hover .toc-tick-bar{background:var(--ink-3);width:18px}
+    .toc-tick.on .toc-tick-bar{background:var(--terra);width:22px;height:2px}
+
+    /* === Universal text block === */
+    .text-block{font-size:15px;line-height:1.65;color:var(--ink-2);margin:0 0 14px}
+    .text-block.lead{font-size:18px;line-height:1.55;margin-bottom:28px;color:var(--ink-2)}
+    .text-block p{margin:0 0 12px}
+    .text-block p:last-child{margin-bottom:0}
+    .text-block strong{color:var(--ink);font-weight:600}
+    .text-block em{color:var(--ink-2);font-style:italic}
+    .text-block code{
+      font-family:var(--font-mono);font-size:13px;padding:1px 6px;
+      background:var(--surf-2);border:0.5px solid var(--bd);
+      border-radius:3px;color:var(--ink);
+    }
+    .wikilink{
+      display:inline-flex;align-items:center;gap:3px;padding:1px 6px;
+      background:var(--terra-bg);color:var(--terra-d);border-radius:3px;
+      font-weight:500;cursor:pointer;white-space:nowrap;transition:background .15s,color .15s;
+    }
+    .wikilink:hover{background:var(--terra);color:#fff}
+    .wikilink::before{content:'⤷';font-size:.85em;opacity:.6;margin-right:1px;font-weight:400}
+    .text-block a.ext{color:var(--terra-d);border-bottom:1px solid var(--terra-bd)}
+    .text-block a.ext:hover{background:var(--terra-bg)}
+    .text-block ul,.text-block ol{margin:0 0 12px;padding-left:24px}
+    .text-block ul:last-child,.text-block ol:last-child{margin-bottom:0}
+    .text-block li{margin-bottom:5px}
+    .text-block ul li::marker{color:var(--terra)}
+    .text-block ol li::marker{color:var(--ink-3);font-weight:500}
+    .text-block blockquote{
+      margin:14px 0;padding:4px 0 4px 18px;
+      border-left:2px solid var(--terra-bd);
+      font-size:17px;line-height:1.55;color:var(--ink-2);font-style:italic;
+    }
+
+    /* Headings */
+    h2.section{
+      font-size:22px;font-weight:600;letter-spacing:-0.015em;color:var(--ink);
+      margin:40px 0 14px;line-height:1.2;scroll-margin-top:80px;
+      display:flex;align-items:baseline;gap:10px;
+    }
+    h2.section::before{
+      content:attr(data-num);
+      font-size:14px;font-weight:600;color:var(--ink-4);
+      font-variant-numeric:tabular-nums;flex-shrink:0;
+    }
+    h3.subsection{
+      font-size:16px;font-weight:600;letter-spacing:-0.005em;color:var(--ink);
+      margin:28px 0 10px;line-height:1.25;scroll-margin-top:80px;
+    }
+
+    /* Callouts */
+    .callout{
+      display:flex;gap:12px;padding:14px 16px;
+      border-radius:var(--r-md);margin:22px 0;
+      border:0.5px solid var(--terra-bd);background:var(--terra-bg);
+    }
+    .callout-icon{
+      flex-shrink:0;font-size:16px;width:22px;height:22px;
+      display:inline-flex;align-items:center;justify-content:center;
+      color:var(--terra-d);font-weight:600;margin-top:2px;
+    }
+    .callout-body{flex:1;min-width:0}
+    .callout-title{font-size:13px;font-weight:600;color:var(--ink);margin-bottom:3px;letter-spacing:-0.005em}
+    .callout-text{font-size:14px;line-height:1.55;color:var(--ink-2)}
+    .callout.info{background:var(--info-bg);border-color:var(--info-bd)}
+    .callout.info .callout-icon{color:var(--info)}
+    .callout.warn{background:var(--warn-bg);border-color:var(--warn-bd)}
+    .callout.warn .callout-icon{color:var(--warn)}
+    .callout.success{background:var(--good-bg);border-color:var(--good-bd)}
+    .callout.success .callout-icon{color:var(--good)}
+    .callout.danger{background:var(--bad-bg);border-color:var(--bad-bd)}
+    .callout.danger .callout-icon{color:var(--bad)}
+
+    /* Spec block */
+    .spec{margin:22px 0;border:0.5px solid var(--bd);border-radius:var(--r-md);background:var(--surf);overflow:hidden}
+    .spec-h{
+      padding:9px 14px;background:var(--surf-2);
+      font-size:11px;letter-spacing:.06em;text-transform:uppercase;
+      color:var(--ink-3);font-weight:500;border-bottom:0.5px solid var(--bd-soft);
+    }
+    .spec-row{display:grid;grid-template-columns:240px 1fr;padding:9px 14px;border-bottom:0.5px solid var(--bd-soft);font-size:13px}
+    .spec-row:last-child{border-bottom:none}
+    .spec-k{color:var(--ink-3)}
+    .spec-v{color:var(--ink);font-weight:500}
+    .spec-v code{font-family:var(--font-mono);font-size:12px;color:var(--ink-2)}
+
+    /* Checklist (specific to standards) */
+    .checklist{
+      margin:22px 0;border:0.5px solid var(--bd);
+      border-radius:var(--r-md);background:var(--surf);overflow:hidden;
+    }
+    .checklist-h{
+      padding:11px 16px;background:var(--surf-2);
+      font-size:12px;font-weight:600;color:var(--ink);
+      letter-spacing:-0.005em;border-bottom:0.5px solid var(--bd-soft);
+      display:flex;align-items:center;justify-content:space-between;
+    }
+    .checklist-h-cnt{font-size:11px;color:var(--ink-3);font-weight:500;letter-spacing:0}
+    .check-row{
+      display:flex;align-items:flex-start;gap:11px;
+      padding:10px 16px;border-bottom:0.5px solid var(--bd-soft);
+      font-size:13.5px;cursor:pointer;transition:background .12s;
+    }
+    .check-row:last-child{border-bottom:none}
+    .check-row:hover{background:var(--surf-2)}
+    .check-box{
+      width:16px;height:16px;border-radius:3px;
+      border:1px solid var(--bd-strong);background:#fff;
+      flex-shrink:0;margin-top:2px;display:inline-flex;
+      align-items:center;justify-content:center;
+      color:transparent;font-size:11px;font-weight:700;
+      transition:background .12s,border-color .12s,color .12s;
+    }
+    .check-row.on .check-box{background:var(--good);border-color:var(--good);color:#fff}
+    .check-row.on .check-text{color:var(--ink-3);text-decoration:line-through;text-decoration-color:var(--ink-4)}
+    .check-text{flex:1;color:var(--ink);line-height:1.5;letter-spacing:-0.005em}
+    .check-meta{font-size:11px;color:var(--ink-4);flex-shrink:0;margin-left:8px}
+
+    /* Embed card */
+    .embed{
+      display:flex;gap:14px;align-items:stretch;margin:24px 0;
+      padding:14px 16px;background:var(--surf);
+      border:0.5px solid var(--bd);border-radius:var(--r-md);
+      cursor:pointer;transition:border-color .15s,transform .15s;
+    }
+    .embed:hover{border-color:var(--terra-bd);transform:translateY(-1px)}
+    .embed-icon{
+      width:40px;height:40px;flex-shrink:0;border-radius:var(--r-sm);
+      display:inline-flex;align-items:center;justify-content:center;font-size:16px;
+    }
+    .embed-icon.std{background:var(--surf-3);color:var(--tp-std)}
+    .embed-icon.sol{background:#e6f1fb;color:var(--tp-sol)}
+    .embed-icon.proj{background:var(--terra-bg);color:var(--tp-proj)}
+    .embed-body{flex:1;min-width:0}
+    .embed-tag{font-size:10px;letter-spacing:.04em;text-transform:uppercase;font-weight:500;color:var(--ink-3)}
+    .embed-title{font-size:14px;font-weight:600;color:var(--ink);margin-top:2px;letter-spacing:-0.005em}
+    .embed-snippet{font-size:12px;color:var(--ink-3);margin-top:4px;line-height:1.5}
+    .embed-arr{color:var(--ink-3);font-size:16px;align-self:center;flex-shrink:0}
+
+    /* Divider */
+    hr.rule{
+      margin:36px 0;border:none;border-top:0.5px solid var(--bd);position:relative;
+    }
+    hr.rule::after{
+      content:'◆';position:absolute;top:-10px;left:50%;transform:translateX(-50%);
+      background:var(--bg);padding:0 10px;color:var(--ink-5);font-size:11px;
+    }
+
+    /* Article footer */
+    .article-footer{margin-top:48px;padding-top:24px;border-top:0.5px solid var(--bd)}
+    .af-tags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+    .af-tag{
+      font-size:11px;padding:4px 11px;
+      background:var(--surf);color:var(--ink-2);
+      border:0.5px solid var(--bd-strong);border-radius:var(--r-pill);
+      font-weight:500;transition:border-color .15s,color .15s;
+    }
+    .af-tag:hover{border-color:var(--terra-bd);color:var(--ink)}
+
+    /* Backlinks */
+    .backlinks{margin-top:28px;padding:22px 24px;background:var(--surf-2);border-radius:var(--r-lg)}
+    .backlinks-h{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:14px}
+    .backlinks-h-t{font-size:13px;font-weight:600;color:var(--ink);letter-spacing:-0.005em}
+    .backlinks-h-c{font-size:11px;color:var(--ink-3);font-weight:500}
+    .backlinks-list{display:flex;flex-direction:column;gap:2px}
+    .backlink{
+      display:flex;align-items:center;gap:10px;padding:9px 10px;
+      border-radius:var(--r-sm);cursor:pointer;transition:background .12s;
+    }
+    .backlink:hover{background:var(--surf)}
+    .backlink-icon{
+      width:22px;height:22px;border-radius:var(--r-sm);flex-shrink:0;
+      display:inline-flex;align-items:center;justify-content:center;font-size:11px;
+    }
+    .backlink-icon.proj{background:var(--terra-bg);color:var(--tp-proj)}
+    .backlink-icon.std{background:var(--surf-3);color:var(--tp-std)}
+    .backlink-icon.sol{background:#e6f1fb;color:var(--tp-sol)}
+    .backlink-icon.art{background:#eeedfe;color:var(--tp-art)}
+    .backlink-body{flex:1;min-width:0}
+    .backlink-tag{font-size:10px;letter-spacing:.04em;text-transform:uppercase;font-weight:500}
+    .backlink-tag.proj{color:var(--tp-proj)}
+    .backlink-tag.std{color:var(--tp-std)}
+    .backlink-tag.sol{color:var(--tp-sol)}
+    .backlink-tag.art{color:var(--tp-art)}
+    .backlink-title{
+      font-size:13px;font-weight:500;color:var(--ink);margin-top:1px;
+      overflow:hidden;text-overflow:ellipsis;white-space:nowrap;letter-spacing:-0.005em;
+    }
+    .backlink-via{font-size:11px;color:var(--ink-4);font-family:var(--font-mono);flex-shrink:0}
+
+    @media (max-width:1100px){.toc-rail{right:16px}}
+    @media (max-width:880px){
+      .toc-rail{display:none}
+    }
+    @media (max-width:720px){
+      .topbar{padding:12px 18px}
+      .pill{min-width:0;flex:1}.pill kbd{display:none}
+      .article-shell{padding:0 18px}
+      .article-body{padding:24px 0 40px}
+      .std-h{padding:24px 0 18px}
+      .std-h-t{font-size:24px}
+      .spec-row{grid-template-columns:1fr;gap:2px}
+      .spec-k{font-size:11px}
+    }
+  
+    /* === Dark theme tokens (matched with styleguide) === */
+    html[data-theme="dark"]{color-scheme:dark;--bg:#0f1110;--surf:#161816;--surf-2:#1c1f1c;--surf-3:#272b27;--ink:#f2f2ef;--ink-2:#d8d8d1;--ink-3:#a9aa9f;--ink-4:#7b7d74;--ink-5:#5d5f58;--bd:rgba(255,255,255,0.10);--bd-soft:rgba(255,255,255,0.07);--bd-strong:rgba(255,255,255,0.16);--terra-bg:rgba(221,103,49,0.20);--terra-bd:rgba(221,103,49,0.36);--good-bg:rgba(74,138,31,0.18);--good-bd:rgba(185,212,145,0.30);--warn-bg:rgba(168,106,22,0.20);--warn-bd:rgba(226,191,128,0.30);--info-bg:rgba(44,86,135,0.20);--info-bd:rgba(196,211,230,0.28);--bad-bg:rgba(163,45,45,0.18);--bad-bd:rgba(230,168,168,0.30)}
+    html[data-theme="dark"] .topbar,html[data-theme="dark"] .edit-toolbar{background:rgba(15,17,16,0.85)}
+    html[data-theme="dark"] .behind{background:linear-gradient(135deg,#15110d 0%,#1c1f1c 35%,#0f1110 65%,#272b27 100%);filter:blur(2px) saturate(0.9)}
+    html[data-theme="dark"] .behind-bar,html[data-theme="dark"] .behind-card,html[data-theme="dark"] .behind-grid > div{background:var(--surf)}
+
+  </style>
+</head>
+<body>
+
+  <div class="progress" aria-hidden="true"><div class="progress-fill" id="progressFill"></div></div>
+
+  <header class="topbar">
+    <a class="brand" href="hub-mockup.html" aria-label="На главную">
+      <span class="blogo" aria-hidden="true"></span>
+      <span class="bname">Wowhaus</span>
+    </a>
+    <a href="cmdk-mockup.html" class="pill" aria-label="Открыть палитру команд">
+      <span class="pill-i" aria-hidden="true">⌕</span>
+      <span>Поиск, навигация, действия</span>
+      <kbd>⌘ K</kbd>
+    </a>
+    <div class="tr">
+      <button class="icon-btn" aria-label="Переключить тему" data-theme-toggle>◐</button>
+      <a class="icon-btn" href="admin-mockup.html" aria-label="Админ-панель" title="Админ-панель">⚙</a><button class="av" aria-label="Профиль">МВ</button>
+    </div>
+  </header>
+
+  <!-- No cover, no proj-summary. Title sits directly under topbar. -->
+  <div class="article-shell">
+
+    <header class="std-h">
+      <a class="std-back" href="browser-mockup.html">
+        <span aria-hidden="true">←</span><span>Браузер · Стандарты</span>
+      </a>
+      <div class="std-crumb">
+        <span class="std-crumb-dot" aria-hidden="true"></span>
+        <span class="std-crumb-type">Стандарт</span>
+        <span class="std-crumb-sep">·</span>
+        <span class="std-crumb-cat">Безопасность</span>
+        <span class="std-status">⏵ Обязательное к ознакомлению</span>
+      </div>
+      <h1 class="std-h-t">Стандарт пожарной безопасности — v3</h1>
+      <div class="std-meta">
+        <span class="std-meta-author">
+          <span class="std-meta-av">ЕС</span>
+          Е. Седова
+        </span>
+        <span class="std-meta-sep">·</span>
+        <span>обновлено 22 апр</span>
+        <span class="std-meta-sep">·</span>
+        <span>rev 14</span>
+        <span class="std-meta-sep">·</span>
+        <span>12 минут чтения</span>
+      </div>
+      <div class="std-actions">
+        <a class="std-act-btn" href="article-edit-mockup.html"><span aria-hidden="true">✎</span>Редактировать</a>
+        <button class="std-act-btn" id="bookmarkBtn"><span aria-hidden="true">★</span>В закладки</button>
+        <button class="std-act-btn"><span aria-hidden="true">⤴</span>Поделиться</button>
+        <button class="std-act-btn"><span aria-hidden="true">↻</span>История версий</button>
+        <button class="std-act-btn"><span aria-hidden="true">⎙</span>Скачать PDF</button>
+      </div>
+    </header>
+
+    <!-- Compliance ack panel (specific to standard-type) -->
+    <aside class="compl-ack" aria-label="Требование ознакомления">
+      <span class="compl-ack-i" aria-hidden="true">!</span>
+      <div class="compl-ack-body">
+        <div class="compl-ack-t">Требуется подтвердить ознакомление</div>
+        <div class="compl-ack-d">Стандарт обязателен для всех сотрудников проектных отделов. <b>Срок до 15 мая.</b> Текущее покрытие: 52%.</div>
+      </div>
+      <button class="compl-ack-btn" id="ackBtn">Подтвердить</button>
+    </aside>
+
+    <article class="article-body">
+
+      <div class="text-block lead">
+        <p>Этот стандарт определяет минимальные требования к проектным решениям, материалам и процедурам, обеспечивающим пожарную безопасность объектов Wowhaus. Действует с 22 апреля; заменяет v2 (см. <a class="wikilink" href="article-mockup.html">историю изменений</a>).</p>
+      </div>
+
+      <h2 class="section" id="s-scope" data-num="1.">Назначение и область применения</h2>
+
+      <div class="text-block">
+        <p>Стандарт применяется ко всем стадиям проектирования (концепция → ПД → РД → авторский надзор) для объектов жилого, общественного, многофункционального и промышленного назначения. Не распространяется на объекты особо опасных производств — для них действует отдельный регламент.</p>
+        <p>В случае противоречия между этим стандартом и государственными нормами (СП, ГОСТ, ФЗ-123) — приоритет за нормами. Стандарт уточняет требования <em>в дополнение</em> к ним.</p>
+      </div>
+
+      <div class="callout warn">
+        <span class="callout-icon" aria-hidden="true">!</span>
+        <div class="callout-body">
+          <div class="callout-title">Главные изменения в v3 (по сравнению с v2)</div>
+          <div class="callout-text">Уточнены классы пожарной опасности фасадных систем (раздел 3); расширены требования к эвакуационным путям при панорамном остеклении; добавлен контрольный чек-лист (раздел 6).</div>
+        </div>
+      </div>
+
+      <h2 class="section" id="s-design" data-num="2.">Требования к проектным решениям</h2>
+
+      <div class="text-block">
+        <p>Все проектные решения должны обеспечивать <strong>безопасную эвакуацию людей</strong> в течение времени, определённого расчётом пожарного риска. Минимальное расчётное время — <strong>5 минут</strong> от момента обнаружения.</p>
+      </div>
+
+      <h3 class="subsection" id="s-evac">Эвакуационные пути</h3>
+
+      <div class="text-block">
+        <ul>
+          <li>Минимальная ширина пути эвакуации — <strong>1.2 м</strong> (для основных коридоров — 1.5 м).</li>
+          <li>Высота прохода — не менее <strong>2.0 м</strong>; на участках длиной до 3 м допускается 1.9 м.</li>
+          <li>Длина тупикового коридора — не более <strong>25 м</strong> (для жилых зданий — 20 м).</li>
+          <li>Двери на пути эвакуации — открываются <em>по направлению движения</em>, без замков, требующих ключа изнутри.</li>
+        </ul>
+      </div>
+
+      <h3 class="subsection" id="s-glazing">Панорамное остекление</h3>
+
+      <div class="text-block">
+        <p>В зданиях класса Ф1.3 (жилые) и Ф4.3 (общественные) панорамное остекление допустимо только при выполнении одного из условий: 1) отсутствие пути эвакуации вдоль фасада в зоне остекления, 2) применение огнестойкого остекления EI 30, 3) наличие парапета высотой ≥ 1.2 м со стороны эвакуации.</p>
+      </div>
+
+      <a class="embed" href="article-mockup.html">
+        <span class="embed-icon sol" aria-hidden="true">◇</span>
+        <div class="embed-body">
+          <span class="embed-tag">Решение · Wowhaus база</span>
+          <div class="embed-title">Огнестойкие стыки на фасадных подсистемах</div>
+          <div class="embed-snippet">Семь типовых узлов с EI 30/EI 60. Применимо к вентфасадам и панорамному остеклению.</div>
+        </div>
+        <span class="embed-arr" aria-hidden="true">→</span>
+      </a>
+
+      <h2 class="section" id="s-fireres" data-num="3.">Огнестойкость конструкций</h2>
+
+      <div class="text-block">
+        <p>Несущие и ограждающие конструкции должны соответствовать требуемым пределам огнестойкости. Расчёт ведётся по СП 2.13130.2020 с учётом класса конструктивной пожарной опасности здания.</p>
+      </div>
+
+      <div class="spec">
+        <div class="spec-h">Минимальные пределы огнестойкости (для зданий I–II класса)</div>
+        <div class="spec-row"><div class="spec-k">Несущие стены и колонны</div><div class="spec-v"><code>R 120</code> · 120 минут</div></div>
+        <div class="spec-row"><div class="spec-k">Перекрытия между этажами</div><div class="spec-v"><code>REI 60</code> · 60 минут</div></div>
+        <div class="spec-row"><div class="spec-k">Внутренние ненесущие стены</div><div class="spec-v"><code>EI 30</code> · 30 минут</div></div>
+        <div class="spec-row"><div class="spec-k">Наружные ненесущие стены</div><div class="spec-v"><code>E 15</code> · 15 минут</div></div>
+        <div class="spec-row"><div class="spec-k">Лестничные клетки (стены)</div><div class="spec-v"><code>REI 90</code> · 90 минут</div></div>
+        <div class="spec-row"><div class="spec-k">Двери в лестничных клетках</div><div class="spec-v"><code>EIS 30</code> · с дымогазонепроницаемостью</div></div>
+      </div>
+
+      <div class="callout info">
+        <span class="callout-icon" aria-hidden="true">i</span>
+        <div class="callout-body">
+          <div class="callout-title">Совместимость с фасадными системами</div>
+          <div class="callout-text">Терракотовые панели и большинство вентфасадов соответствуют классу <code>K0</code> по ГОСТ 31251 — см. <a class="wikilink" href="article-mockup.html">проект ЖК Северный свет</a> как референс.</div>
+        </div>
+      </div>
+
+      <h2 class="section" id="s-mat" data-num="4.">Требования к материалам</h2>
+
+      <div class="text-block">
+        <p>Применяемые материалы классифицируются по группе горючести (Г1–Г4), воспламеняемости (В1–В3), распространению пламени (РП1–РП4), дымообразующей способности (Д1–Д3) и токсичности (Т1–Т4).</p>
+      </div>
+
+      <div class="text-block">
+        <ol>
+          <li><strong>На путях эвакуации</strong> — материалы класса не ниже <code>КМ2</code> (Г1, В2, Д2, Т2, РП1).</li>
+          <li><strong>В помещениях с массовым пребыванием</strong> — отделка стен и потолков класса <code>КМ1</code>.</li>
+          <li><strong>Утеплители в фасадных системах</strong> — только Г1 или НГ (минвата плотностью ≥ 80 кг/м³).</li>
+          <li><strong>Облицовочные материалы фасадов</strong> — класс пожарной опасности не ниже <code>K0</code>.</li>
+        </ol>
+      </div>
+
+      <div class="callout danger">
+        <span class="callout-icon" aria-hidden="true">⊘</span>
+        <div class="callout-body">
+          <div class="callout-title">Запрещённые материалы</div>
+          <div class="callout-text">К применению на путях эвакуации <strong>не допускаются</strong>: пенополистирольные плиты Г3–Г4 без огнезащиты, ПВХ-панели Д3, текстильные обои без обработки антипиренами.</div>
+        </div>
+      </div>
+
+      <h2 class="section" id="s-checklist" data-num="5.">Контрольный чек-лист (РД)</h2>
+
+      <div class="text-block">
+        <p>На стадии рабочей документации архитектор проверяет, что соблюдены все ключевые требования. Чек-лист — обязательная часть авторского контроля; результаты прикрепляются к карточке проекта.</p>
+      </div>
+
+      <div class="checklist">
+        <div class="checklist-h">
+          <span>Чек-лист — пожарная безопасность · РД</span>
+          <span class="checklist-h-cnt">3 из 8 выполнено</span>
+        </div>
+        <div class="check-row on" data-check><span class="check-box">✓</span><span class="check-text">Расчёт пожарного риска приложен и подписан</span><span class="check-meta">обязат.</span></div>
+        <div class="check-row on" data-check><span class="check-box">✓</span><span class="check-text">Эвакуационные пути соответствуют ширине и длине из раздела 2.1</span><span class="check-meta">обязат.</span></div>
+        <div class="check-row on" data-check><span class="check-box">✓</span><span class="check-text">Огнестойкость конструкций согласована с конструктором</span><span class="check-meta">обязат.</span></div>
+        <div class="check-row" data-check><span class="check-box">✓</span><span class="check-text">Все материалы отделки имеют сертификаты пожарной безопасности</span><span class="check-meta">обязат.</span></div>
+        <div class="check-row" data-check><span class="check-box">✓</span><span class="check-text">Дверные блоки EIS 30 включены в спецификацию</span><span class="check-meta">обязат.</span></div>
+        <div class="check-row" data-check><span class="check-box">✓</span><span class="check-text">Системы оповещения (СОУЭ) указаны на планах</span><span class="check-meta">обязат.</span></div>
+        <div class="check-row" data-check><span class="check-box">✓</span><span class="check-text">Огнестойкие узлы примыкания фасада проработаны</span><span class="check-meta">для вентфасадов</span></div>
+        <div class="check-row" data-check><span class="check-box">✓</span><span class="check-text">Согласовано с инспектором МЧС (если требуется)</span><span class="check-meta">по проекту</span></div>
+      </div>
+
+      <h2 class="section" id="s-resp" data-num="6.">Ответственность</h2>
+
+      <div class="text-block">
+        <p>За соблюдение стандарта в проекте отвечает <strong>главный архитектор проекта</strong>. Авторский контроль — на всех стадиях. На стадии РД чек-лист подписывается ГАП и прикрепляется к карточке проекта.</p>
+        <p>Несоответствия фиксируются в <a class="wikilink" href="article-mockup.html">журнале авторского надзора</a> и устраняются до согласования с заказчиком и подачи на экспертизу.</p>
+      </div>
+
+      <hr class="rule" />
+
+      <div class="text-block">
+        <blockquote>
+          Пожарная безопасность — это не «галочка в чек-листе». Это привычка думать о том, как здание поведёт себя в худшие 5 минут своей жизни.
+        </blockquote>
+      </div>
+
+      <!-- Article footer: tags + backlinks -->
+      <footer class="article-footer">
+        <div class="af-tags">
+          <a class="af-tag" href="browser-mockup.html">#пожарная-безопасность</a>
+          <a class="af-tag" href="browser-mockup.html">#стандарт</a>
+          <a class="af-tag" href="browser-mockup.html">#эвакуация</a>
+          <a class="af-tag" href="browser-mockup.html">#огнестойкость</a>
+          <a class="af-tag" href="browser-mockup.html">#материалы</a>
+          <a class="af-tag" href="browser-mockup.html">#РД</a>
+        </div>
+
+        <div class="backlinks">
+          <header class="backlinks-h">
+            <span class="backlinks-h-t">Упоминается в</span>
+            <span class="backlinks-h-c">9 материалов</span>
+          </header>
+          <div class="backlinks-list">
+            <a class="backlink" href="article-mockup.html">
+              <span class="backlink-icon proj" aria-hidden="true">▤</span>
+              <div class="backlink-body">
+                <span class="backlink-tag proj">Проект</span>
+                <div class="backlink-title">ЖК Северный свет — концепция фасада</div>
+              </div>
+              <span class="backlink-via">/ projects / severny-svet</span>
+            </a>
+            <a class="backlink" href="article-mockup.html">
+              <span class="backlink-icon proj" aria-hidden="true">▤</span>
+              <div class="backlink-body">
+                <span class="backlink-tag proj">Проект</span>
+                <div class="backlink-title">Парк Мещерский — павильоны</div>
+              </div>
+              <span class="backlink-via">/ projects / meshchersky-park</span>
+            </a>
+            <a class="backlink" href="article-mockup.html">
+              <span class="backlink-icon sol" aria-hidden="true">◇</span>
+              <div class="backlink-body">
+                <span class="backlink-tag sol">Решение</span>
+                <div class="backlink-title">Огнестойкие стыки на фасадных подсистемах</div>
+              </div>
+              <span class="backlink-via">/ solutions / fire-joints</span>
+            </a>
+            <a class="backlink" href="article-std-mockup.html">
+              <span class="backlink-icon std" aria-hidden="true">⬚</span>
+              <div class="backlink-body">
+                <span class="backlink-tag std">Стандарт</span>
+                <div class="backlink-title">Стандарт по фасадным системам v1.4</div>
+              </div>
+              <span class="backlink-via">/ standards / facades-v1.4</span>
+            </a>
+            <a class="backlink" href="article-mockup.html">
+              <span class="backlink-icon art" aria-hidden="true">¶</span>
+              <div class="backlink-body">
+                <span class="backlink-tag art">Статья</span>
+                <div class="backlink-title">Сравнение систем вентфасадов</div>
+              </div>
+              <span class="backlink-via">/ articles / curtain-wall-comparison</span>
+            </a>
+          </div>
+        </div>
+      </footer>
+
+    </article>
+  </div>
+
+  <!-- TOC tick rail -->
+  <nav class="toc-rail" id="tocRail" aria-label="Оглавление">
+    <a class="toc-tick on" data-target="s-scope"><span class="toc-tick-label">1. Назначение</span><span class="toc-tick-bar"></span></a>
+    <a class="toc-tick" data-target="s-design"><span class="toc-tick-label">2. Проектные решения</span><span class="toc-tick-bar"></span></a>
+    <a class="toc-tick h3" data-target="s-evac"><span class="toc-tick-label">Эвакуационные пути</span><span class="toc-tick-bar"></span></a>
+    <a class="toc-tick h3" data-target="s-glazing"><span class="toc-tick-label">Панорамное остекление</span><span class="toc-tick-bar"></span></a>
+    <a class="toc-tick" data-target="s-fireres"><span class="toc-tick-label">3. Огнестойкость</span><span class="toc-tick-bar"></span></a>
+    <a class="toc-tick" data-target="s-mat"><span class="toc-tick-label">4. Материалы</span><span class="toc-tick-bar"></span></a>
+    <a class="toc-tick" data-target="s-checklist"><span class="toc-tick-label">5. Чек-лист</span><span class="toc-tick-bar"></span></a>
+    <a class="toc-tick" data-target="s-resp"><span class="toc-tick-label">6. Ответственность</span><span class="toc-tick-bar"></span></a>
+  </nav>
+
+  <script>
+    // Reading progress bar
+    const progressFill=document.getElementById('progressFill');
+    function updateProgress(){
+      const article=document.querySelector('.article-body');if(!article)return;
+      const rect=article.getBoundingClientRect();
+      const start=window.pageYOffset+rect.top;
+      const total=rect.height;
+      const scrolled=Math.max(0,window.pageYOffset-start+window.innerHeight*0.5);
+      const pct=Math.max(0,Math.min(100,(scrolled/total)*100));
+      progressFill.style.width=pct+'%';
+    }
+
+    // TOC scroll spy
+    const ticks=document.querySelectorAll('.toc-tick');
+    const targets=Array.from(ticks).map(t=>({tick:t,el:document.getElementById(t.dataset.target)})).filter(p=>p.el);
+    function updateActive(){
+      const offset=window.innerHeight*0.35;
+      let active=targets[0];
+      for(const p of targets){const top=p.el.getBoundingClientRect().top;if(top-offset<=0)active=p}
+      ticks.forEach(t=>t.classList.remove('on'));
+      if(active)active.tick.classList.add('on');
+    }
+    ticks.forEach(t=>{t.addEventListener('click',e=>{e.preventDefault();const target=document.getElementById(t.dataset.target);if(target)target.scrollIntoView({behavior:'smooth',block:'start'})})});
+
+    let scrollScheduled=false;
+    function onScroll(){
+      if(!scrollScheduled){scrollScheduled=true;requestAnimationFrame(()=>{updateProgress();updateActive();scrollScheduled=false})}
+    }
+    window.addEventListener('scroll',onScroll,{passive:true});
+    window.addEventListener('resize',onScroll);
+    onScroll();
+
+    // Bookmark toggle
+    const bookmarkBtn=document.getElementById('bookmarkBtn');
+    if(bookmarkBtn)bookmarkBtn.addEventListener('click',()=>bookmarkBtn.classList.toggle('bookmarked'));
+
+    // Compliance ack toggle
+    const ackBtn=document.getElementById('ackBtn');
+    if(ackBtn){
+      ackBtn.addEventListener('click',()=>{
+        const acked=ackBtn.classList.toggle('acked');
+        ackBtn.textContent=acked?'Ознакомлен':'Подтвердить';
+        if(acked)ackBtn.classList.add('acked');
+      });
+    }
+
+    // Checklist toggle
+    document.querySelectorAll('[data-check]').forEach(row=>{
+      row.addEventListener('click',()=>{
+        row.classList.toggle('on');
+        const list=row.closest('.checklist');
+        const total=list.querySelectorAll('[data-check]').length;
+        const done=list.querySelectorAll('[data-check].on').length;
+        const cnt=list.querySelector('.checklist-h-cnt');
+        if(cnt)cnt.textContent=`${done} из ${total} выполнено`;
+      });
+    });
+  
+    // === Dark theme toggle (shared key: wh-theme) ===
+    (function(){
+      var KEY='wh-theme', root=document.documentElement;
+      function applyTheme(t){
+        if(t==='dark') root.setAttribute('data-theme','dark');
+        else root.removeAttribute('data-theme');
+        document.querySelectorAll('[data-theme-toggle], .icon-btn[aria-label="Переключить тему"]').forEach(function(b){b.classList.toggle('on', t==='dark')});
+      }
+      applyTheme(localStorage.getItem(KEY) || 'light');
+      document.querySelectorAll('[data-theme-toggle], .icon-btn[aria-label="Переключить тему"]').forEach(function(b){
+        b.addEventListener('click', function(){
+          var next = root.getAttribute('data-theme')==='dark' ? 'light' : 'dark';
+          localStorage.setItem(KEY, next);
+          applyTheme(next);
+        });
+      });
+    })();
+
+  </script>
+</body>
+</html>

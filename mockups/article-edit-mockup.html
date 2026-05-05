@@ -771,6 +771,13 @@
       .float-tb{left:8px!important;right:8px!important;top:auto!important;bottom:auto!important}
       .dr-type-grid{grid-template-columns:1fr}
     }
+  
+    /* === Dark theme tokens (matched with styleguide) === */
+    html[data-theme="dark"]{color-scheme:dark;--bg:#0f1110;--surf:#161816;--surf-2:#1c1f1c;--surf-3:#272b27;--ink:#f2f2ef;--ink-2:#d8d8d1;--ink-3:#a9aa9f;--ink-4:#7b7d74;--ink-5:#5d5f58;--bd:rgba(255,255,255,0.10);--bd-soft:rgba(255,255,255,0.07);--bd-strong:rgba(255,255,255,0.16);--terra-bg:rgba(221,103,49,0.20);--terra-bd:rgba(221,103,49,0.36);--good-bg:rgba(74,138,31,0.18);--good-bd:rgba(185,212,145,0.30);--warn-bg:rgba(168,106,22,0.20);--warn-bd:rgba(226,191,128,0.30);--info-bg:rgba(44,86,135,0.20);--info-bd:rgba(196,211,230,0.28);--bad-bg:rgba(163,45,45,0.18);--bad-bd:rgba(230,168,168,0.30)}
+    html[data-theme="dark"] .topbar,html[data-theme="dark"] .edit-toolbar{background:rgba(15,17,16,0.85)}
+    html[data-theme="dark"] .behind{background:linear-gradient(135deg,#15110d 0%,#1c1f1c 35%,#0f1110 65%,#272b27 100%);filter:blur(2px) saturate(0.9)}
+    html[data-theme="dark"] .behind-bar,html[data-theme="dark"] .behind-card,html[data-theme="dark"] .behind-grid > div{background:var(--surf)}
+
   </style>
 </head>
 <body class="drawer-mode-insert">
@@ -795,10 +802,11 @@
     <div class="et-r">
       <button class="icon-btn on" id="drawerToggle" aria-label="Настройки статьи" title="Настройки статьи">⚙</button>
       <button class="icon-btn" aria-label="История версий" title="История версий">↻</button>
-      <button class="et-btn ghost" id="previewBtn"><span aria-hidden="true">⌕</span> Превью</button>
+      <button class="icon-btn" aria-label="Переключить тему" data-theme-toggle title="Светлая ↔ тёмная">◐</button>
+      <a class="et-btn ghost" id="previewBtn" href="article-mockup.html" target="_blank" rel="noopener" title="Открыть превью в новой вкладке"><span aria-hidden="true">⌕</span> Превью</a>
       <button class="et-btn ghost" id="saveBtn" title="Сохранить как черновик — на ревью не отправлять"><span aria-hidden="true">✓</span> Сохранить <kbd>⌘ S</kbd></button>
       <button class="et-btn primary" id="submitBtn">Отправить на ревью <kbd>⌘ ⏎</kbd></button>
-      <button class="av" aria-label="Профиль">АК</button>
+      <a class="icon-btn" href="admin-mockup.html" aria-label="Админ-панель" title="Админ-панель">⚙</a><button class="av" aria-label="Профиль">АК</button>
     </div>
   </header>
 
@@ -1347,6 +1355,25 @@
     document.querySelectorAll('.tag-inline').forEach(t=>{
       t.addEventListener('click',e=>{e.preventDefault()});
     });
+  
+    // === Dark theme toggle (shared key: wh-theme) ===
+    (function(){
+      var KEY='wh-theme', root=document.documentElement;
+      function applyTheme(t){
+        if(t==='dark') root.setAttribute('data-theme','dark');
+        else root.removeAttribute('data-theme');
+        document.querySelectorAll('[data-theme-toggle], .icon-btn[aria-label="Переключить тему"]').forEach(function(b){b.classList.toggle('on', t==='dark')});
+      }
+      applyTheme(localStorage.getItem(KEY) || 'light');
+      document.querySelectorAll('[data-theme-toggle], .icon-btn[aria-label="Переключить тему"]').forEach(function(b){
+        b.addEventListener('click', function(){
+          var next = root.getAttribute('data-theme')==='dark' ? 'light' : 'dark';
+          localStorage.setItem(KEY, next);
+          applyTheme(next);
+        });
+      });
+    })();
+
   </script>
 </body>
 </html>

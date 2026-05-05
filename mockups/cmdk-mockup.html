@@ -191,15 +191,6 @@
       padding:0 2px;
     }
 
-    /* Handoff hint — explains why ⌘K doesn't do full search */
-    .cmdk-handoff{
-      margin:6px 18px 8px;padding:10px 12px;
-      background:var(--info-bg);border:0.5px solid var(--info-bd);
-      border-radius:var(--r-sm);
-      font-size:11px;color:var(--ink-3);line-height:1.5;
-    }
-    .cmdk-handoff b{color:var(--info);font-weight:600}
-
     /* Empty state hint */
     .cmdk-empty{
       padding:36px 18px;text-align:center;
@@ -274,6 +265,13 @@
       .cmd-d{display:none}
       .cmdk-f{font-size:10px;gap:10px}
     }
+  
+    /* === Dark theme tokens (matched with styleguide) === */
+    html[data-theme="dark"]{color-scheme:dark;--bg:#0f1110;--surf:#161816;--surf-2:#1c1f1c;--surf-3:#272b27;--ink:#f2f2ef;--ink-2:#d8d8d1;--ink-3:#a9aa9f;--ink-4:#7b7d74;--ink-5:#5d5f58;--bd:rgba(255,255,255,0.10);--bd-soft:rgba(255,255,255,0.07);--bd-strong:rgba(255,255,255,0.16);--terra-bg:rgba(221,103,49,0.20);--terra-bd:rgba(221,103,49,0.36);--good-bg:rgba(74,138,31,0.18);--good-bd:rgba(185,212,145,0.30);--warn-bg:rgba(168,106,22,0.20);--warn-bd:rgba(226,191,128,0.30);--info-bg:rgba(44,86,135,0.20);--info-bd:rgba(196,211,230,0.28);--bad-bg:rgba(163,45,45,0.18);--bad-bd:rgba(230,168,168,0.30)}
+    html[data-theme="dark"] .topbar,html[data-theme="dark"] .edit-toolbar{background:rgba(15,17,16,0.85)}
+    html[data-theme="dark"] .behind{background:linear-gradient(135deg,#15110d 0%,#1c1f1c 35%,#0f1110 65%,#272b27 100%);filter:blur(2px) saturate(0.9)}
+    html[data-theme="dark"] .behind-bar,html[data-theme="dark"] .behind-card,html[data-theme="dark"] .behind-grid > div{background:var(--surf)}
+
   </style>
 </head>
 <body>
@@ -307,48 +305,13 @@
       <!-- Body — sections shift between default and search modes -->
       <div class="cmdk-body" id="cmdkBody">
 
-        <!-- ============ DEFAULT MODE ============ -->
-
-        <!-- Actions -->
-        <div class="cat-default">
-          <div class="cat-h">Действия</div>
-
-          <a class="cmd-row">
-            <span class="cmd-icon proj" aria-hidden="true">▤</span>
-            <div class="cmd-body"><span class="cmd-name">Создать проект</span><span class="cmd-d">Карточка проекта с фасетами и обложкой</span></div>
-            <span class="cmd-meta"><span class="cmd-kbd">⌘</span><span class="cmd-kbd">N</span><span class="cmd-kbd">P</span></span>
-          </a>
-
-          <a class="cmd-row">
-            <span class="cmd-icon std" aria-hidden="true">⬚</span>
-            <div class="cmd-body"><span class="cmd-name">Создать стандарт</span><span class="cmd-d">Регламент, обязательный к ознакомлению</span></div>
-            <span class="cmd-meta"><span class="cmd-kbd">⌘</span><span class="cmd-kbd">N</span><span class="cmd-kbd">S</span></span>
-          </a>
-
-          <a class="cmd-row">
-            <span class="cmd-icon sol" aria-hidden="true">◇</span>
-            <div class="cmd-body"><span class="cmd-name">Создать решение</span><span class="cmd-d">Узел, приём, рецепт</span></div>
-            <span class="cmd-meta"><span class="cmd-kbd">⌘</span><span class="cmd-kbd">N</span><span class="cmd-kbd">R</span></span>
-          </a>
-
-          <a class="cmd-row">
-            <span class="cmd-icon art" aria-hidden="true">¶</span>
-            <div class="cmd-body"><span class="cmd-name">Создать статью</span><span class="cmd-d">Заметка, гайд, разбор</span></div>
-            <span class="cmd-meta"><span class="cmd-kbd">⌘</span><span class="cmd-kbd">N</span><span class="cmd-kbd">A</span></span>
-          </a>
-
-          <a class="cmd-row">
-            <span class="cmd-icon" aria-hidden="true">▣</span>
-            <div class="cmd-body"><span class="cmd-name">Загрузить изображение</span><span class="cmd-d">Drag-and-drop или из буфера</span></div>
-            <span class="cmd-meta"><span class="cmd-kbd">⌘</span><span class="cmd-kbd">U</span></span>
-          </a>
-        </div>
+        <!-- ============ DEFAULT MODE — only navigation/commands/recents ============ -->
 
         <!-- Navigation -->
         <div class="cat-default">
           <div class="cat-h">Перейти</div>
 
-          <a class="cmd-row on" href="hub-mockup.html">
+          <a class="cmd-row on" href="browser-mockup.html">
             <span class="cmd-icon" aria-hidden="true">⊞</span>
             <div class="cmd-body"><span class="cmd-name">Браузер статей</span><span class="cmd-d">Все материалы, фасеты, фильтры</span></div>
             <span class="cmd-meta"><span class="cmd-kbd">G</span><span class="cmd-kbd">B</span></span>
@@ -362,19 +325,19 @@
 
           <a class="cmd-row" href="search-mockup.html">
             <span class="cmd-icon" aria-hidden="true">⌕</span>
-            <div class="cmd-body"><span class="cmd-name">Поиск</span><span class="cmd-d">Полный поиск по базе</span></div>
+            <div class="cmd-body"><span class="cmd-name">Поиск</span><span class="cmd-d">Полнотекстовый, фасеты, сортировка</span></div>
             <span class="cmd-meta"><span class="cmd-kbd">G</span><span class="cmd-kbd">S</span></span>
           </a>
 
           <a class="cmd-row">
             <span class="cmd-icon" aria-hidden="true">◆</span>
-            <div class="cmd-body"><span class="cmd-name">Регламенты</span><span class="cmd-d">Compliance — обязательное к ознакомлению</span></div>
+            <div class="cmd-body"><span class="cmd-name">Регламенты</span><span class="cmd-d">Обязательное к ознакомлению</span></div>
             <span class="cmd-meta"><span class="cmd-kbd">G</span><span class="cmd-kbd">R</span></span>
           </a>
 
           <a class="cmd-row">
             <span class="cmd-icon" aria-hidden="true">★</span>
-            <div class="cmd-body"><span class="cmd-name">Закладки</span><span class="cmd-d">Что вы сохранили на потом</span></div>
+            <div class="cmd-body"><span class="cmd-name">Закладки</span><span class="cmd-d">Сохранённые материалы</span></div>
             <span class="cmd-meta"><span class="cmd-kbd">G</span><span class="cmd-kbd">K</span></span>
           </a>
 
@@ -382,6 +345,34 @@
             <span class="cmd-icon" aria-hidden="true">⚙</span>
             <div class="cmd-body"><span class="cmd-name">Админ-панель</span><span class="cmd-d">Очередь, теги, фасеты, аналитика</span></div>
             <span class="cmd-meta"><span class="cmd-kbd">G</span><span class="cmd-kbd">A</span></span>
+          </a>
+        </div>
+
+        <!-- Commands (UI functions) -->
+        <div class="cat-default">
+          <div class="cat-h">Команды</div>
+
+          <a class="cmd-row" data-theme-toggle role="button">
+            <span class="cmd-icon" aria-hidden="true">◐</span>
+            <div class="cmd-body"><span class="cmd-name">Сменить тему</span><span class="cmd-d">Светлая ↔ тёмная</span></div>
+            <span class="cmd-meta"><span class="cmd-kbd">⌘</span><span class="cmd-kbd">\</span></span>
+          </a>
+
+          <a class="cmd-row">
+            <span class="cmd-icon" aria-hidden="true">⤴</span>
+            <div class="cmd-body"><span class="cmd-name">Скопировать ссылку на страницу</span><span class="cmd-d">В буфер обмена</span></div>
+            <span class="cmd-meta"><span class="cmd-kbd">⌘</span><span class="cmd-kbd">⇧</span><span class="cmd-kbd">C</span></span>
+          </a>
+
+          <a class="cmd-row">
+            <span class="cmd-icon" aria-hidden="true">▤</span>
+            <div class="cmd-body"><span class="cmd-name">Свернуть боковую панель</span><span class="cmd-d">Скрыть TOC и фильтры</span></div>
+            <span class="cmd-meta"><span class="cmd-kbd">⌘</span><span class="cmd-kbd">/</span></span>
+          </a>
+
+          <a class="cmd-row">
+            <span class="cmd-icon" aria-hidden="true">⏏</span>
+            <div class="cmd-body"><span class="cmd-name">Выйти из аккаунта</span></div>
           </a>
         </div>
 
@@ -426,45 +417,27 @@
           </a>
         </div>
 
-        <!-- ============ SEARCH MODE — filter commands/nav/recents + delegate to Поиск ============ -->
+        <!-- ============ SEARCH MODE — filter only built-in items ============ -->
 
         <div class="cat-search">
-          <div class="cat-h">Действия с «<span style="color:var(--ink-2);">терракот</span>»</div>
-          <a class="cmd-row">
-            <span class="cmd-icon art" aria-hidden="true">¶</span>
-            <div class="cmd-body"><span class="cmd-name">Создать статью «<mark>терракот</mark>»</span><span class="cmd-d">Новая запись с этим заголовком</span></div>
-            <span class="cmd-meta"><span class="cmd-kbd">⌘</span><span class="cmd-kbd">N</span><span class="cmd-kbd">A</span></span>
-          </a>
-          <a class="cmd-row">
-            <span class="cmd-icon" style="background:#eeedfe;color:var(--tp-art);border-color:#d8d6f0" aria-hidden="true">#</span>
-            <div class="cmd-body"><span class="cmd-name">Создать тег «<mark>#терракот</mark>»</span><span class="cmd-d">На одобрение менеджеру</span></div>
+          <div class="cat-h">Перейти</div>
+          <a class="cmd-row on" href="search-mockup.html">
+            <span class="cmd-icon" aria-hidden="true">⌕</span>
+            <div class="cmd-body"><span class="cmd-name"><mark>Поиск</mark></span><span class="cmd-d">Полнотекстовый, фасеты, сортировка</span></div>
+            <span class="cmd-meta"><span class="cmd-kbd">G</span><span class="cmd-kbd">S</span></span>
           </a>
         </div>
 
         <div class="cat-search">
-          <div class="cat-h">Быстрый переход</div>
-          <a class="cmd-row">
-            <span class="cmd-icon" style="background:#eeedfe;color:var(--tp-art);border-color:#d8d6f0" aria-hidden="true">#</span>
-            <div class="cmd-body"><span class="cmd-name">Тег «<mark>#терракот</mark>а»</span><span class="cmd-d">28 материалов в Браузере</span></div>
-          </a>
+          <div class="cat-h">Недавнее</div>
           <a class="cmd-row recent" href="article-mockup.html">
             <span class="cmd-icon"><span class="cmd-dot proj"></span></span>
             <div class="cmd-body">
               <span class="cmd-tag proj">Проект</span>
-              <span class="cmd-name">ЖК Северный свет — <mark>терракот</mark>овые панели Argeton</span>
+              <span class="cmd-name">ЖК Северный свет — концепция фасада <em style="color:var(--ink-4);font-style:normal;font-weight:400;">· раздел «<mark>Поиск</mark> референсов»</em></span>
             </div>
-            <span class="cmd-meta">недавнее</span>
+            <span class="cmd-meta">2 ч</span>
           </a>
-        </div>
-
-        <div class="cat-search">
-          <div class="cat-h">Полный поиск</div>
-          <a class="cmd-row on" href="search-mockup.html">
-            <span class="cmd-icon" aria-hidden="true">⌕</span>
-            <div class="cmd-body"><span class="cmd-name">Найти «<mark>терракот</mark>» во всей базе</span><span class="cmd-d">Открыть страницу Поиска — текст, изображения, фасеты</span></div>
-            <span class="cmd-meta"><span class="cmd-kbd">⌘</span><span class="cmd-kbd">↵</span></span>
-          </a>
-          <div class="cmdk-handoff">⌘K — для команд и быстрых переходов. Полнотекстовый поиск, фасетные фильтры и сортировка живут на отдельной странице <b>Поиска</b>.</div>
         </div>
 
       </div>
@@ -505,7 +478,7 @@
       if(body.classList.contains('cmdk-search')){
         input.value='';applyMode('');
       } else {
-        input.value='терракот';applyMode('терракот');
+        input.value='поиск';applyMode('поиск');
       }
       input.focus();
     });
@@ -528,10 +501,30 @@
 
     // Esc closes the palette (just hides backdrop visually)
     const bd=document.getElementById('cmdkBd');
-    function close(){bd.style.display='none'}
+    // In a standalone mockup, closing the palette returns the user to the Hub (the page "behind" it).
+    function close(){window.location.href='hub-mockup.html'}
     document.getElementById('cmdkEsc').addEventListener('click',close);
     document.addEventListener('keydown',e=>{if(e.key==='Escape')close()});
     bd.addEventListener('click',e=>{if(e.target===bd)close()});
+  
+    // === Dark theme toggle (shared key: wh-theme) ===
+    (function(){
+      var KEY='wh-theme', root=document.documentElement;
+      function applyTheme(t){
+        if(t==='dark') root.setAttribute('data-theme','dark');
+        else root.removeAttribute('data-theme');
+        document.querySelectorAll('[data-theme-toggle], .icon-btn[aria-label="Переключить тему"]').forEach(function(b){b.classList.toggle('on', t==='dark')});
+      }
+      applyTheme(localStorage.getItem(KEY) || 'light');
+      document.querySelectorAll('[data-theme-toggle], .icon-btn[aria-label="Переключить тему"]').forEach(function(b){
+        b.addEventListener('click', function(){
+          var next = root.getAttribute('data-theme')==='dark' ? 'light' : 'dark';
+          localStorage.setItem(KEY, next);
+          applyTheme(next);
+        });
+      });
+    })();
+
   </script>
 </body>
 </html>
