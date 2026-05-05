@@ -1,0 +1,1235 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Wowhaus Wiki — Статья</title>
+  <meta name="description" content="UI mockup of the article reading view." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap"
+    rel="stylesheet"
+  />
+  <style>
+    :root {
+      --terra: #dd6731;
+      --terra-d: #b8501f;
+      --terra-bg: #fbeee5;
+      --terra-bd: #e89971;
+
+      --ink: #1a1a1a;
+      --ink-2: #3d3d3d;
+      --ink-3: #7a7a7a;
+      --ink-4: #b4b2a9;
+      --ink-5: #c0bdb3;
+
+      --bd: rgba(0, 0, 0, 0.08);
+      --bd-soft: rgba(0, 0, 0, 0.05);
+      --bd-strong: rgba(0, 0, 0, 0.12);
+
+      --bg: #fafaf7;
+      --surf: #ffffff;
+      --surf-2: #f7f5f0;
+      --surf-3: #efece4;
+
+      --tp-proj: #8e3a14;
+      --tp-std: #444441;
+      --tp-sol: #0c447c;
+      --tp-art: #3c3489;
+
+      --good: #4a8a1f;
+      --good-bg: #eef6e3;
+      --good-bd: #b9d491;
+
+      --warn: #a86a16;
+      --warn-bg: #faecd6;
+      --warn-bd: #e2bf80;
+
+      --info-bg: #eef3f9;
+      --info-bd: #c4d3e6;
+      --info: #2c5687;
+
+      --font-sans: 'Manrope', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+      --font-mono: ui-monospace, 'SF Mono', Monaco, Consolas, monospace;
+
+      --r-sm: 5px;
+      --r-md: 7px;
+      --r-lg: 10px;
+      --r-xl: 12px;
+      --r-pill: 999px;
+
+      --content-w: 680px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font-sans);
+      font-size: 14px;
+      line-height: 1.5;
+      color: var(--ink);
+      background: var(--bg);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    a { color: inherit; text-decoration: none; }
+    button {
+      font-family: inherit; font-size: inherit; color: inherit;
+      background: none; border: none; padding: 0; cursor: pointer;
+    }
+
+    :focus-visible {
+      outline: 2px solid var(--terra);
+      outline-offset: 2px;
+      border-radius: 2px;
+    }
+
+    /* Top bar */
+    .topbar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 32px;
+      border-bottom: 0.5px solid var(--bd);
+      background: rgba(250, 250, 247, 0.85);
+      backdrop-filter: saturate(180%) blur(8px);
+      position: sticky; top: 0; z-index: 20;
+    }
+    .brand { display: flex; align-items: center; gap: 10px; }
+    .blogo {
+      width: 24px; height: 24px; border-radius: 6px;
+      background: var(--terra); position: relative; flex-shrink: 0;
+    }
+    .blogo::after {
+      content: ''; position: absolute; inset: 5px 5px 9px 5px;
+      border: 1.5px solid #fff; border-bottom: none; border-radius: 1px 1px 0 0;
+    }
+    .blogo::before {
+      content: ''; position: absolute; bottom: 5px; left: 5px; right: 5px;
+      height: 1.5px; background: #fff; border-radius: 1px;
+    }
+    .bname { font-weight: 600; font-size: 14px; color: var(--ink); letter-spacing: -0.01em; }
+    .pill {
+      display: inline-flex; align-items: center; gap: 9px;
+      padding: 8px 14px; background: var(--surf);
+      border: 0.5px solid var(--bd-strong); border-radius: var(--r-pill);
+      font-size: 13px; color: var(--ink-3); min-width: 280px; cursor: pointer;
+      transition: border-color .15s;
+    }
+    .pill:hover { border-color: var(--terra-bd); }
+    .pill .pill-i { color: var(--terra); }
+    .pill kbd {
+      margin-left: auto; font-family: var(--font-mono); font-size: 11px;
+      background: var(--surf-2); border: 0.5px solid var(--bd);
+      border-radius: 4px; padding: 1px 6px; color: var(--ink-2);
+    }
+    .tr { display: flex; align-items: center; gap: 10px; }
+    .icon-btn {
+      width: 32px; height: 32px; border-radius: 6px;
+      display: inline-flex; align-items: center; justify-content: center;
+      color: var(--ink-3); font-size: 14px; cursor: pointer;
+      transition: background .15s, color .15s;
+    }
+    .icon-btn:hover { background: var(--surf-2); color: var(--ink); }
+    .av {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: var(--surf-3); display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 500; color: var(--ink-2); cursor: pointer;
+    }
+
+    /* Reading progress bar */
+    .progress {
+      position: fixed; top: 0; left: 0; right: 0;
+      height: 2px;
+      background: transparent;
+      z-index: 30;
+      pointer-events: none;
+    }
+    .progress-fill {
+      height: 100%;
+      background: var(--terra);
+      width: 0;
+      transition: width 0.05s linear;
+    }
+
+    /* Cover */
+    .cover {
+      height: 380px;
+      position: relative;
+      overflow: hidden;
+      background: linear-gradient(135deg, #fbeee5 0%, #e89971 50%, #b8501f 100%);
+    }
+    .cover::after {
+      content: '';
+      position: absolute; inset: 0;
+      background:
+        radial-gradient(ellipse at 75% 65%, rgba(221, 103, 49, 0.45) 0%, transparent 60%),
+        linear-gradient(to bottom, rgba(0,0,0,0) 50%, rgba(0,0,0,0.25) 100%);
+    }
+    .cover-content {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column; justify-content: flex-end;
+      padding: 24px 32px;
+      color: #fff;
+    }
+    .cover-bar {
+      position: absolute; top: 24px; left: 32px; right: 32px;
+      display: flex; align-items: center; justify-content: space-between;
+      color: #fff;
+    }
+    .cover-back {
+      display: inline-flex; align-items: center; gap: 7px;
+      font-size: 12px; padding: 5px 11px;
+      background: rgba(255, 255, 255, 0.18);
+      border-radius: var(--r-sm); font-weight: 500;
+      backdrop-filter: blur(6px);
+      color: #fff;
+      transition: background .15s;
+    }
+    .cover-back:hover { background: rgba(255, 255, 255, 0.28); }
+    .cover-actions { display: flex; gap: 6px; }
+    .cover-action {
+      width: 32px; height: 32px; border-radius: var(--r-sm);
+      background: rgba(255, 255, 255, 0.18);
+      backdrop-filter: blur(6px);
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: 14px; color: #fff;
+      cursor: pointer; transition: background .15s;
+    }
+    .cover-action:hover { background: rgba(255, 255, 255, 0.28); }
+    .cover-action.bookmarked {
+      background: var(--terra); color: #fff;
+    }
+    .cover-tag {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 11px; padding: 4px 10px;
+      background: rgba(255, 255, 255, 0.22);
+      backdrop-filter: blur(6px);
+      border-radius: var(--r-sm); font-weight: 500;
+      letter-spacing: .04em; text-transform: uppercase;
+      color: #fff;
+      align-self: flex-start; margin-bottom: 12px;
+    }
+    .cover-tag .tdot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: #fff;
+    }
+    .cover-bp {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 10px; padding: 3px 8px;
+      background: var(--terra); color: #fff;
+      border-radius: 3px; font-weight: 600;
+      letter-spacing: .04em; text-transform: uppercase;
+      margin-left: 6px;
+    }
+    .cover-h {
+      font-size: 38px; font-weight: 600;
+      letter-spacing: -0.025em; line-height: 1.1;
+      max-width: 760px; margin: 0;
+      text-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+    }
+    .cover-meta {
+      display: flex; align-items: center; gap: 12px;
+      font-size: 13px; color: rgba(255, 255, 255, 0.92);
+      margin-top: 14px; flex-wrap: wrap;
+    }
+    .cover-meta-author { display: inline-flex; align-items: center; gap: 7px; }
+    .cover-meta-av {
+      width: 22px; height: 22px; border-radius: 50%;
+      background: rgba(255, 255, 255, 0.25);
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: 10px; font-weight: 500;
+    }
+    .cover-meta-sep { opacity: 0.5; }
+
+    /* Layout */
+    .article-shell {
+      display: grid;
+      grid-template-columns: 1fr;
+      max-width: 1140px;
+      margin: 0 auto;
+      padding: 0 32px;
+      position: relative;
+    }
+    .article-body {
+      max-width: var(--content-w);
+      margin: 0 auto;
+      padding: 36px 0 60px;
+      width: 100%;
+    }
+
+    /* === Project summary strip ===
+       Lives directly under the cover, before the article body.
+       7 fixed slots: Год, Площадь, Страна, Город, Типология, Стадия, Заказчик. */
+
+       .proj-summary {
+  background: var(--surf-2);        /* тёплая cream-полоса */
+  border-bottom: 0.5px solid var(--bd);
+}
+.proj-summary-inner {
+  max-width: 1140px;
+  margin: 0 auto;
+  padding: 18px 32px;
+}
+    .proj-summary-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 0;
+    }
+    .ps-cell {
+      padding: 4px 14px;
+      border-right: 0.5px solid var(--bd-soft);
+      display: flex; flex-direction: column; gap: 3px;
+      min-width: 0;
+    }
+    .ps-cell:last-child { border-right: none; }
+    .ps-cell:first-child { padding-left: 0; }
+    .ps-cell:last-child { padding-right: 0; }
+    .ps-l {
+      font-size: 10px; letter-spacing: .04em;
+      color: var(--ink-3); font-weight: 500;
+    }
+    .ps-v {
+      font-size: 14px; font-weight: 600;
+      color: var(--ink); line-height: 1.2;
+      letter-spacing: -0.005em;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+
+    /* TOC tick rail */
+    .toc-rail {
+      position: fixed;
+      top: 50%;
+      transform: translateY(-50%);
+      right: 24px;
+      display: flex; flex-direction: column; gap: 11px;
+      z-index: 10;
+      padding: 14px 10px;
+    }
+    .toc-rail:hover .toc-tick-label { opacity: 1; transform: translateX(0); }
+    .toc-tick {
+      display: flex; align-items: center; gap: 10px;
+      cursor: pointer;
+      justify-content: flex-end;
+    }
+    .toc-tick-label {
+      font-size: 11px; color: var(--ink-3);
+      opacity: 0; transform: translateX(8px);
+      transition: opacity .2s, transform .2s, color .2s;
+      white-space: nowrap;
+      font-weight: 500;
+      pointer-events: none;
+    }
+    .toc-tick.h3 .toc-tick-label { font-size: 10px; color: var(--ink-4); padding-left: 8px; }
+    .toc-tick:hover .toc-tick-label { color: var(--ink); }
+    .toc-tick.on .toc-tick-label { color: var(--terra-d); opacity: 1; transform: translateX(0); }
+    .toc-tick-bar {
+      width: 14px; height: 1.5px;
+      background: var(--ink-5);
+      border-radius: 1px;
+      transition: all .2s;
+      flex-shrink: 0;
+    }
+    .toc-tick.h3 .toc-tick-bar { width: 8px; }
+    .toc-tick:hover .toc-tick-bar { background: var(--ink-3); width: 18px; }
+    .toc-tick.on .toc-tick-bar {
+      background: var(--terra);
+      width: 22px;
+      height: 2px;
+    }
+
+    /* === Universal text block === */
+    .text-block {
+      font-size: 15px; line-height: 1.65;
+      color: var(--ink-2);
+      margin: 0 0 14px;
+    }
+    .text-block.lead {
+      font-size: 18px; line-height: 1.55;
+      margin-bottom: 28px;
+      color: var(--ink-2);
+    }
+    .text-block p {
+      margin: 0 0 12px;
+    }
+    .text-block p:last-child { margin-bottom: 0; }
+    .text-block strong { color: var(--ink); font-weight: 600; }
+    .text-block em { color: var(--ink-2); font-style: italic; }
+    .text-block code {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      padding: 1px 6px;
+      background: var(--surf-2);
+      border: 0.5px solid var(--bd);
+      border-radius: 3px;
+      color: var(--ink);
+    }
+
+    /* === Wikilinks (replaces footnotes-style external links) === */
+    .wikilink {
+      display: inline-flex; align-items: center; gap: 3px;
+      padding: 1px 6px;
+      background: var(--terra-bg);
+      color: var(--terra-d);
+      border-radius: 3px;
+      font-weight: 500;
+      text-decoration: none;
+      transition: background .15s, color .15s;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .wikilink:hover {
+      background: var(--terra);
+      color: #fff;
+    }
+    .wikilink::before {
+      content: '⤷';
+      font-size: 0.85em;
+      opacity: 0.6;
+      margin-right: 1px;
+      font-weight: 400;
+    }
+    .wikilink:hover::before { opacity: 1; }
+    /* External link kept distinct */
+    .text-block a.ext {
+      color: var(--terra-d);
+      border-bottom: 1px solid var(--terra-bd);
+    }
+    .text-block a.ext:hover { background: var(--terra-bg); }
+
+    .text-block ul, .text-block ol {
+      margin: 0 0 12px;
+      padding-left: 24px;
+    }
+    .text-block ul:last-child, .text-block ol:last-child { margin-bottom: 0; }
+    .text-block li { margin-bottom: 5px; }
+    .text-block ul li::marker { color: var(--terra); }
+    .text-block ol li::marker { color: var(--ink-3); font-weight: 500; }
+    .text-block blockquote {
+      margin: 14px 0;
+      padding: 4px 0 4px 18px;
+      border-left: 2px solid var(--terra-bd);
+      font-size: 17px; line-height: 1.55;
+      color: var(--ink-2);
+      font-style: italic;
+    }
+    .text-block blockquote .qsource {
+      display: block; margin-top: 8px;
+      font-size: 12px; color: var(--ink-3);
+      font-style: normal; font-weight: 500;
+    }
+
+    /* Headings */
+    h2.section {
+      font-size: 22px; font-weight: 600;
+      letter-spacing: -0.015em;
+      color: var(--ink);
+      margin: 40px 0 14px;
+      line-height: 1.2;
+      scroll-margin-top: 80px;
+    }
+    h3.subsection {
+      font-size: 16px; font-weight: 600;
+      letter-spacing: -0.005em;
+      color: var(--ink);
+      margin: 28px 0 10px;
+      line-height: 1.25;
+      scroll-margin-top: 80px;
+    }
+
+    /* Callout */
+    .callout {
+      display: flex; gap: 12px;
+      padding: 14px 16px;
+      border-radius: var(--r-md);
+      margin: 22px 0;
+      border: 0.5px solid var(--terra-bd);
+      background: var(--terra-bg);
+    }
+    .callout-icon {
+      flex-shrink: 0; font-size: 16px;
+      width: 22px; height: 22px;
+      display: inline-flex; align-items: center; justify-content: center;
+      color: var(--terra-d); font-weight: 600;
+      margin-top: 2px;
+    }
+    .callout-body { flex: 1; min-width: 0; }
+    .callout-title {
+      font-size: 13px; font-weight: 600;
+      color: var(--ink); margin-bottom: 3px;
+      letter-spacing: -0.005em;
+    }
+    .callout-text {
+      font-size: 14px; line-height: 1.55;
+      color: var(--ink-2);
+    }
+    .callout.info { background: var(--info-bg); border-color: var(--info-bd); }
+    .callout.info .callout-icon { color: var(--info); }
+    .callout.warn { background: var(--warn-bg); border-color: var(--warn-bd); }
+    .callout.warn .callout-icon { color: var(--warn); }
+    .callout.success { background: var(--good-bg); border-color: var(--good-bd); }
+    .callout.success .callout-icon { color: var(--good); }
+
+    /* Spec list */
+    .spec {
+      margin: 22px 0;
+      border: 0.5px solid var(--bd);
+      border-radius: var(--r-md);
+      background: var(--surf);
+      overflow: hidden;
+    }
+    .spec-h {
+      padding: 9px 14px;
+      background: var(--surf-2);
+      font-size: 11px; letter-spacing: .06em;
+      text-transform: uppercase; color: var(--ink-3);
+      font-weight: 500;
+      border-bottom: 0.5px solid var(--bd-soft);
+    }
+    .spec-row {
+      display: grid; grid-template-columns: 200px 1fr;
+      padding: 9px 14px;
+      border-bottom: 0.5px solid var(--bd-soft);
+      font-size: 13px;
+    }
+    .spec-row:last-child { border-bottom: none; }
+    .spec-k { color: var(--ink-3); }
+    .spec-v { color: var(--ink); font-weight: 500; }
+    .spec-v code {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--ink-2);
+    }
+
+    /* Image / figure */
+    figure.fig {
+      margin: 28px 0;
+    }
+    figure.fig img,
+    figure.fig .img-stub {
+      width: 100%;
+      border-radius: var(--r-md);
+      display: block;
+      cursor: zoom-in;
+    }
+    figure.fig .img-stub {
+      aspect-ratio: 16 / 10;
+      background: linear-gradient(135deg, var(--c1, #d8c8a8), var(--c2, #8a7a5a));
+      position: relative;
+      overflow: hidden;
+    }
+    figure.fig .img-stub::after {
+      content: '';
+      position: absolute; inset: 0;
+      background:
+        repeating-linear-gradient(0deg, rgba(255,255,255,0.04) 0 1px, transparent 1px 30px);
+    }
+    figure.fig figcaption {
+      display: flex; align-items: baseline; gap: 8px;
+      margin-top: 9px;
+      font-size: 12px; color: var(--ink-3);
+      line-height: 1.5;
+    }
+    figure.fig figcaption b {
+      color: var(--ink-2); font-weight: 600;
+    }
+    figure.fig figcaption .caption-source {
+      margin-left: auto;
+      color: var(--terra-d);
+      font-size: 11px;
+      font-weight: 500;
+    }
+
+    /* === Text + Image (combo block) === */
+    .combo {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 22px;
+      align-items: flex-start;
+      margin: 28px 0;
+    }
+    .combo .combo-image { order: 2; }
+    .combo.image-left .combo-image { order: 1; }
+    .combo.image-left .combo-text { order: 2; }
+    .combo .combo-image .img-stub {
+      width: 100%;
+      aspect-ratio: 4 / 5;
+      border-radius: var(--r-md);
+      background: linear-gradient(135deg, var(--c1, #d8c8a8), var(--c2, #8a7a5a));
+      position: relative;
+      overflow: hidden;
+      cursor: zoom-in;
+    }
+    .combo .combo-image .img-stub::after {
+      content: '';
+      position: absolute; inset: 0;
+      background: repeating-linear-gradient(0deg, rgba(255,255,255,0.04) 0 1px, transparent 1px 30px);
+    }
+    .combo .combo-caption {
+      margin-top: 8px;
+      font-size: 11px; color: var(--ink-3);
+      line-height: 1.5;
+      display: flex; align-items: baseline; gap: 8px;
+    }
+    .combo .combo-caption b {
+      color: var(--ink-2); font-weight: 600;
+    }
+    .combo .combo-text {
+      font-size: 14px; line-height: 1.65;
+      color: var(--ink-2);
+    }
+    .combo .combo-text p { margin: 0 0 10px; }
+    .combo .combo-text p:last-child { margin-bottom: 0; }
+    .combo .combo-text strong { color: var(--ink); font-weight: 600; }
+    .combo .combo-text em { color: var(--ink-2); font-style: italic; }
+
+    /* Gallery */
+    .gallery {
+      display: grid;
+      gap: 8px;
+      margin: 28px 0;
+    }
+    .gallery.cols-2 { grid-template-columns: 1fr 1fr; }
+    .gallery.cols-3 { grid-template-columns: repeat(3, 1fr); }
+    .gallery-item {
+      aspect-ratio: 1;
+      border-radius: var(--r-md);
+      background: linear-gradient(135deg, var(--c1, #d8c8a8), var(--c2, #8a7a5a));
+      cursor: zoom-in;
+      position: relative;
+      overflow: hidden;
+    }
+    .gallery-item::after {
+      content: '';
+      position: absolute; inset: 0;
+      background: repeating-linear-gradient(0deg, rgba(255,255,255,0.04) 0 1px, transparent 1px 30px);
+    }
+
+    /* Embed card */
+    .embed {
+      display: flex; gap: 14px; align-items: stretch;
+      margin: 24px 0;
+      padding: 14px 16px;
+      background: var(--surf);
+      border: 0.5px solid var(--bd);
+      border-radius: var(--r-md);
+      cursor: pointer;
+      transition: border-color .15s, transform .15s;
+    }
+    .embed:hover {
+      border-color: var(--terra-bd);
+      transform: translateY(-1px);
+    }
+    .embed-icon {
+      width: 40px; height: 40px;
+      flex-shrink: 0; border-radius: var(--r-sm);
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: 16px;
+    }
+    .embed-icon.std { background: var(--surf-3); color: var(--tp-std); }
+    .embed-icon.sol { background: #e6f1fb; color: var(--tp-sol); }
+    .embed-icon.proj { background: var(--terra-bg); color: var(--tp-proj); }
+    .embed-icon.art { background: #eeedfe; color: var(--tp-art); }
+    .embed-body { flex: 1; min-width: 0; }
+    .embed-tag {
+      font-size: 10px; letter-spacing: .04em;
+      text-transform: uppercase; font-weight: 500;
+      color: var(--ink-3);
+    }
+    .embed-title {
+      font-size: 14px; font-weight: 600;
+      color: var(--ink); margin-top: 2px;
+      letter-spacing: -0.005em;
+    }
+    .embed-snippet {
+      font-size: 12px; color: var(--ink-3);
+      margin-top: 4px; line-height: 1.5;
+    }
+    .embed-arr {
+      color: var(--ink-3);
+      font-size: 16px;
+      align-self: center;
+      flex-shrink: 0;
+    }
+
+    /* Divider */
+    hr.rule {
+      margin: 36px 0;
+      border: none;
+      border-top: 0.5px solid var(--bd);
+      position: relative;
+    }
+    hr.rule::after {
+      content: '◆';
+      position: absolute;
+      top: -10px; left: 50%; transform: translateX(-50%);
+      background: var(--bg);
+      padding: 0 10px;
+      color: var(--ink-5);
+      font-size: 11px;
+    }
+
+    /* Article footer */
+    .article-footer {
+      margin-top: 48px;
+      padding-top: 24px;
+      border-top: 0.5px solid var(--bd);
+    }
+    .af-tags {
+      display: flex; flex-wrap: wrap; gap: 6px;
+      margin-bottom: 8px;
+    }
+    .af-tag {
+      font-size: 11px; padding: 4px 11px;
+      background: var(--surf); color: var(--ink-2);
+      border: 0.5px solid var(--bd-strong);
+      border-radius: var(--r-pill); font-weight: 500;
+      transition: border-color .15s, color .15s;
+    }
+    .af-tag:hover { border-color: var(--terra-bd); color: var(--ink); }
+
+    /* Backlinks */
+    .backlinks {
+      margin-top: 28px;
+      padding: 22px 24px;
+      background: var(--surf-2);
+      border-radius: var(--r-lg);
+    }
+    .backlinks-h {
+      display: flex; align-items: baseline; justify-content: space-between;
+      margin-bottom: 14px;
+    }
+    .backlinks-h-t {
+      font-size: 13px; font-weight: 600;
+      color: var(--ink); letter-spacing: -0.005em;
+    }
+    .backlinks-h-c {
+      font-size: 11px; color: var(--ink-3);
+      font-weight: 500;
+    }
+    .backlinks-list {
+      display: flex; flex-direction: column; gap: 2px;
+    }
+    .backlink {
+      display: flex; align-items: center; gap: 10px;
+      padding: 9px 10px; border-radius: var(--r-sm);
+      cursor: pointer;
+      transition: background .12s;
+    }
+    .backlink:hover { background: var(--surf); }
+    .backlink-icon {
+      width: 22px; height: 22px; border-radius: var(--r-sm);
+      flex-shrink: 0;
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: 11px;
+    }
+    .backlink-icon.proj { background: var(--terra-bg); color: var(--tp-proj); }
+    .backlink-icon.std { background: var(--surf-3); color: var(--tp-std); }
+    .backlink-icon.sol { background: #e6f1fb; color: var(--tp-sol); }
+    .backlink-icon.art { background: #eeedfe; color: var(--tp-art); }
+    .backlink-body { flex: 1; min-width: 0; }
+    .backlink-tag {
+      font-size: 10px; letter-spacing: .04em;
+      text-transform: uppercase; font-weight: 500;
+    }
+    .backlink-tag.proj { color: var(--tp-proj); }
+    .backlink-tag.std { color: var(--tp-std); }
+    .backlink-tag.sol { color: var(--tp-sol); }
+    .backlink-tag.art { color: var(--tp-art); }
+    .backlink-title {
+      font-size: 13px; font-weight: 500;
+      color: var(--ink); margin-top: 1px;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+      letter-spacing: -0.005em;
+    }
+    .backlink-via {
+      font-size: 11px; color: var(--ink-4);
+      font-family: var(--font-mono);
+      flex-shrink: 0;
+    }
+
+    @media (max-width: 1100px) {
+      .toc-rail { right: 16px; }
+    }
+    @media (max-width: 880px) {
+      .toc-rail { display: none; }
+      .proj-summary-grid { grid-template-columns: repeat(4, 1fr); gap: 14px 0; }
+      .ps-cell:nth-child(4) { border-right: none; }
+    }
+    @media (max-width: 720px) {
+      .topbar { padding: 12px 18px; }
+      .pill { min-width: 0; flex: 1; }
+      .pill kbd { display: none; }
+      .cover { height: 280px; }
+      .cover-h { font-size: 28px; }
+      .cover-bar { left: 18px; right: 18px; top: 18px; }
+      .cover-content { padding: 18px; }
+      .article-shell { padding: 0 18px; }
+      .article-body { padding: 24px 0 40px; }
+      .proj-summary { padding: 0 18px; }
+      .proj-summary-grid { grid-template-columns: repeat(2, 1fr); gap: 16px 0; }
+      .ps-cell:nth-child(2n) { border-right: none; }
+      .ps-cell { padding: 4px 12px; }
+      .ps-cell:first-child { padding-left: 0; }
+      .gallery.cols-3 { grid-template-columns: 1fr 1fr; }
+      .spec-row { grid-template-columns: 1fr; gap: 2px; }
+      .spec-k { font-size: 11px; }
+      .combo { grid-template-columns: 1fr; gap: 14px; }
+      .combo .combo-image, .combo .combo-text { order: initial; }
+      .combo.image-left .combo-image,
+      .combo.image-right .combo-image { order: 1; }
+      .combo.image-left .combo-text,
+      .combo.image-right .combo-text { order: 2; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="progress" aria-hidden="true">
+    <div class="progress-fill" id="progressFill"></div>
+  </div>
+
+  <header class="topbar">
+    <a class="brand" href="hub-mockup.html" aria-label="На главную">
+      <span class="blogo" aria-hidden="true"></span>
+      <span class="bname">Wowhaus</span>
+    </a>
+    <button class="pill" aria-label="Открыть палитру команд">
+      <span class="pill-i" aria-hidden="true">⌕</span>
+      <span>Поиск, навигация, действия</span>
+      <kbd>⌘ K</kbd>
+    </button>
+    <div class="tr">
+      <button class="icon-btn" aria-label="Переключить тему">◐</button>
+      <button class="av" aria-label="Профиль">АМ</button>
+    </div>
+  </header>
+
+  <!-- Cover -->
+  <section class="cover" aria-label="Обложка">
+    <div class="cover-bar">
+      <a class="cover-back" href="browser-mockup.html">
+        <span aria-hidden="true">←</span>
+        <span>Браузер</span>
+      </a>
+      <div class="cover-actions">
+        <button class="cover-action" id="bookmarkBtn" aria-label="Закладка">★</button>
+        <button class="cover-action" aria-label="Поделиться">⤴</button>
+        <button class="cover-action" aria-label="Ещё">⋯</button>
+      </div>
+    </div>
+    <div class="cover-content">
+      <span class="cover-tag">
+        <span class="tdot"></span>
+        Проект
+        <span class="cover-bp">BP</span>
+      </span>
+      <h1 class="cover-h">ЖК Северный свет — концепция фасада</h1>
+      <div class="cover-meta">
+        <span class="cover-meta-author">
+          <span class="cover-meta-av">АК</span>
+          Антон Краснов
+        </span>
+        <span class="cover-meta-sep">·</span>
+        <span>обновлено 28 апр</span>
+        <span class="cover-meta-sep">·</span>
+        <span>rev 7</span>
+        <span class="cover-meta-sep">·</span>
+        <span>9 минут чтения</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Project summary strip -->
+  <section class="proj-summary" aria-label="Спецификация проекта">
+    <div class="proj-summary-inner">
+      <div class="proj-summary-grid">
+        <div class="ps-cell">
+          <span class="ps-l">Год</span>
+          <span class="ps-v">2023–2024</span>
+        </div>
+        <div class="ps-cell">
+          <span class="ps-l">Площадь</span>
+          <span class="ps-v">42 800 м²</span>
+        </div>
+        <div class="ps-cell">
+          <span class="ps-l">Страна</span>
+          <span class="ps-v">Россия</span>
+        </div>
+        <div class="ps-cell">
+          <span class="ps-l">Город</span>
+          <span class="ps-v">Москва</span>
+        </div>
+        <div class="ps-cell">
+          <span class="ps-l">Типология</span>
+          <span class="ps-v">Жилой</span>
+        </div>
+        <div class="ps-cell">
+          <span class="ps-l">Стадия</span>
+          <span class="ps-v">РД</span>
+        </div>
+        <div class="ps-cell">
+          <span class="ps-l">Заказчик</span>
+          <span class="ps-v">ГК «Самолёт»</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="article-shell">
+
+    <article class="article-body">
+
+      <!-- Lead text block (no dropcap) -->
+      <div class="text-block lead">
+        <p>
+          Заказчик — девелопер с портфелем 8 проектов в Москве и области. ЖК расположен на склоне в северо-западной части города, с открытыми видами на Москву-реку с верхних этажей. Фасадное решение должно работать круглый год: от пасмурного зимнего света до жаркого июльского полдня.
+        </p>
+      </div>
+
+      <h2 class="section" id="s-context">Контекст</h2>
+
+      <div class="text-block">
+        <p>
+          До начала проектирования мы провели три выезда на площадку — в апреле, июле и октябре. Это позволило увидеть, как площадка живёт в разных световых режимах. <strong>Северная сторона</strong> большую часть года остаётся в синеватой тени; южный фасад наоборот — открыт прямому солнцу с раннего утра.
+        </p>
+        <p>
+          Мы остановились на материале, который умеет работать с обоими режимами: <em>терракотовых панелях</em> производителя <a class="wikilink" href="#">Argeton</a>. В тени они дают спокойный охровый тон, на солнце уходят в более тёплый, почти кирпичный. Конкурентами были <a class="wikilink" href="#">HPL</a>, <a class="wikilink" href="#">фиброцемент</a> и <a class="wikilink" href="#">керамогранит</a> — все проиграли по тактильности.
+        </p>
+      </div>
+
+      <div class="callout">
+        <span class="callout-icon" aria-hidden="true">◆</span>
+        <div class="callout-body">
+          <div class="callout-title">Главное наблюдение</div>
+          <div class="callout-text">Терракота — единственный из шести рассмотренных материалов, который воспринимается как камень с расстояния и как керамика с близи. Это меняет восприятие масштаба.</div>
+        </div>
+      </div>
+
+      <h2 class="section" id="s-concept">Концепция</h2>
+
+      <div class="text-block">
+        <p>
+          Фасад строится на трёх вертикальных ритмах: <strong>опоры</strong> (бетонные пилоны), <strong>наполнение</strong> (терракотовые панели на скрытой подсистеме) и <strong>проёмы</strong> (двойное остекление с тонкой алюминиевой подсистемой). Все три ритма синхронизированы по сетке 600 мм. Подробнее о подсистеме — в <a class="wikilink" href="#">стандарте по фасадным системам v1.4</a>.
+        </p>
+      </div>
+
+      <h3 class="subsection" id="s-rhythm">Ритм и пропорция</h3>
+
+      <div class="combo image-right">
+        <div class="combo-text">
+          <p>
+            Высота терракотовой панели — <strong>300 мм</strong>, длина — <strong>1200 мм</strong>. Ширина окна = 4 модуля = 2400 мм. Это даёт достаточно крупную единицу, чтобы фасад читался цельно с дальних видовых точек, и достаточно мелкую, чтобы не выглядеть монументально на пешеходной дистанции.
+          </p>
+          <p>
+            На углах применили половинные панели с прямым резом. Это даёт сухой, «городской» переход, в отличие от обычных угловых элементов с фаской — они часто выглядят слащаво.
+          </p>
+        </div>
+        <div class="combo-image">
+          <div class="img-stub" style="--c1: #f5d4ba; --c2: #b8501f"></div>
+          <div class="combo-caption">
+            <span><b>Илл. 1.</b> Юго-западный угол на высоте +18 м. Видна работа модуля 300×1200.</span>
+          </div>
+        </div>
+      </div>
+
+      <h3 class="subsection" id="s-material">Материал и подсистема</h3>
+
+      <div class="text-block">
+        <p>
+          Подсистему мы прорабатывали совместно с конструкторами <a class="wikilink" href="#">Schüco</a> — два круга совещаний, протоколы по типовым узлам. Все решения зафиксированы в отдельной статье, см. ниже.
+        </p>
+      </div>
+
+      <div class="spec">
+        <div class="spec-h">Спецификация — фасадная система</div>
+        <div class="spec-row">
+          <div class="spec-k">Материал</div>
+          <div class="spec-v">Терракотовые панели Argeton 300×1200 мм</div>
+        </div>
+        <div class="spec-row">
+          <div class="spec-k">Толщина</div>
+          <div class="spec-v">30 мм</div>
+        </div>
+        <div class="spec-row">
+          <div class="spec-k">Подсистема</div>
+          <div class="spec-v">Скрытая алюминиевая, шаг 600 мм</div>
+        </div>
+        <div class="spec-row">
+          <div class="spec-k">Вентзазор</div>
+          <div class="spec-v">50 мм (открытый, с верхним и нижним продухом)</div>
+        </div>
+        <div class="spec-row">
+          <div class="spec-k">Утеплитель</div>
+          <div class="spec-v">Минвата 150 мм, плотность 80 кг/м³</div>
+        </div>
+        <div class="spec-row">
+          <div class="spec-k">Цвет</div>
+          <div class="spec-v">Argeton AT-04 «тёплый охровый»</div>
+        </div>
+        <div class="spec-row">
+          <div class="spec-k">Класс пожарной опасности</div>
+          <div class="spec-v"><code>K0</code> по ГОСТ 31251</div>
+        </div>
+      </div>
+
+      <a class="embed">
+        <span class="embed-icon sol" aria-hidden="true">◇</span>
+        <div class="embed-body">
+          <span class="embed-tag">Решение · Wowhaus база</span>
+          <div class="embed-title">Узлы примыканий вентфасада AlucoBond</div>
+          <div class="embed-snippet">Пять типовых узлов: горизонтальный/вертикальный шов, угол, примыкание к окну, примыкание к парапету.</div>
+        </div>
+        <span class="embed-arr" aria-hidden="true">→</span>
+      </a>
+
+      <div class="callout warn">
+        <span class="callout-icon" aria-hidden="true">!</span>
+        <div class="callout-body">
+          <div class="callout-title">Внимание при монтаже</div>
+          <div class="callout-text">Подсистема рассчитана на смещение ±15 мм. На участках, где предполагаются температурные деформации больше указанного, обязательно использовать дополнительный <a class="wikilink" href="#">деформационный шов</a> с нащельником из нержавейки 304.</div>
+        </div>
+      </div>
+
+      <div class="combo image-left">
+        <div class="combo-image">
+          <div class="img-stub" style="--c1: #c8b0a0; --c2: #5a4030"></div>
+          <div class="combo-caption">
+            <span><b>Илл. 2.</b> Узел кляммерного крепления. Скрытая подсистема, вентзазор 50 мм.</span>
+          </div>
+        </div>
+        <div class="combo-text">
+          <p>
+            <strong>Кляммерное крепление</strong> с регулировкой по трём осям. Это даёт допуск на неточности монолита ±15 мм по каждой оси без необходимости подрезать панель.
+          </p>
+          <p>
+            Дренажный канал между панелями работает на отвод конденсата с тыльной стороны. Для этого нижний продух обязательно должен быть открытым — закрытый делает систему недышащей.
+          </p>
+        </div>
+      </div>
+
+      <h2 class="section" id="s-zoning">Зонирование</h2>
+
+      <div class="text-block">
+        <p>
+          Концепция работает в трёх масштабах:
+        </p>
+        <ol>
+          <li><strong>Городской</strong> — фасад читается как тёплая «кирпичная» масса, которая визуально удерживает корпус на склоне.</li>
+          <li><strong>Дворовый</strong> — внутри дворов появляется второй уровень детали: открытые узлы примыканий, цвет затирки, шаг.</li>
+          <li><strong>Тактильный</strong> — на пешеходной дистанции терракота читается как материал ручного обжига с микрорельефом.</li>
+        </ol>
+      </div>
+
+      <h3 class="subsection" id="s-references">Референсы</h3>
+
+      <div class="text-block">
+        <p>
+          Прецеденты, к которым мы возвращались на разных этапах: фасад в <a class="wikilink" href="#">Реновация Нагатино</a>, павильоны в <a class="wikilink" href="#">Парке Мещерский</a>, и внешние референсы — из заметок к концепции:
+        </p>
+      </div>
+
+      <div class="gallery cols-3">
+        <a class="gallery-item" style="--c1: #c8a87b; --c2: #6f5630"></a>
+        <a class="gallery-item" style="--c1: #d8c8a8; --c2: #8a7a5a"></a>
+        <a class="gallery-item" style="--c1: #b88c5a; --c2: #5a3f1a"></a>
+      </div>
+
+      <div class="text-block">
+        <blockquote>
+          Кирпич уважает время, а терракота уважает свет. Это разные стратегии относительно нескольких десятилетий жизни фасада — обе допустимы, но решать нужно в начале.
+          <span class="qsource">— из заметок к концепции, февраль 2024</span>
+        </blockquote>
+      </div>
+
+      <h2 class="section" id="s-results">Результаты и выводы</h2>
+
+      <div class="callout success">
+        <span class="callout-icon" aria-hidden="true">✓</span>
+        <div class="callout-body">
+          <div class="callout-title">Что подтвердилось на практике</div>
+          <div class="callout-text">Скрытая подсистема экономит около 40 мм по толщине стены при той же тепловой эффективности. На 12 секциях это даёт +84 м² продаваемой площади.</div>
+        </div>
+      </div>
+
+      <div class="text-block">
+        <p>
+          <a class="wikilink" href="#">Стандарт по фасадным системам v1.4</a> включил это решение как референсное. Решение и узлы — в отдельных статьях базы.
+        </p>
+      </div>
+
+      <div class="callout info">
+        <span class="callout-icon" aria-hidden="true">i</span>
+        <div class="callout-body">
+          <div class="callout-title">К сведению</div>
+          <div class="callout-text">При следующем применении этой подсистемы стоит запросить у Argeton актуальные данные по морозостойкости (партия 2024-Q3 показала чуть ниже среднего по предыдущим партиям).</div>
+        </div>
+      </div>
+
+      <hr class="rule" />
+
+      <div class="text-block">
+        <p>
+          Команда: Антон Краснов (главный архитектор), Маша Воронцова (фасадный консультант), Игорь Серов (узлы), Лена Романова (BIM-координатор). Работа над фасадом заняла 4 месяца, с октября 2023 по февраль 2024.
+        </p>
+      </div>
+
+      <!-- Article footer: tags + backlinks -->
+      <footer class="article-footer">
+        <div class="af-tags">
+          <a class="af-tag" href="browser-mockup.html">#фасад</a>
+          <a class="af-tag" href="browser-mockup.html">#терракота</a>
+          <a class="af-tag" href="browser-mockup.html">#BIM</a>
+          <a class="af-tag" href="browser-mockup.html">#Argeton</a>
+          <a class="af-tag" href="browser-mockup.html">#вентфасад</a>
+        </div>
+
+        <div class="backlinks">
+          <header class="backlinks-h">
+            <span class="backlinks-h-t">Упоминается в</span>
+            <span class="backlinks-h-c">5 материалов</span>
+          </header>
+          <div class="backlinks-list">
+            <a class="backlink">
+              <span class="backlink-icon std" aria-hidden="true">⬚</span>
+              <div class="backlink-body">
+                <span class="backlink-tag std">Стандарт</span>
+                <div class="backlink-title">Стандарт по фасадным системам v1.4</div>
+              </div>
+              <span class="backlink-via">/ standards / facades-v1.4</span>
+            </a>
+            <a class="backlink">
+              <span class="backlink-icon sol" aria-hidden="true">◇</span>
+              <div class="backlink-body">
+                <span class="backlink-tag sol">Решение</span>
+                <div class="backlink-title">Узлы примыканий вентфасада AlucoBond</div>
+              </div>
+              <span class="backlink-via">/ solutions / alucobond-nodes</span>
+            </a>
+            <a class="backlink">
+              <span class="backlink-icon art" aria-hidden="true">¶</span>
+              <div class="backlink-body">
+                <span class="backlink-tag art">Статья</span>
+                <div class="backlink-title">Сравнение систем вентфасадов</div>
+              </div>
+              <span class="backlink-via">/ articles / curtain-wall-comparison</span>
+            </a>
+            <a class="backlink">
+              <span class="backlink-icon proj" aria-hidden="true">▤</span>
+              <div class="backlink-body">
+                <span class="backlink-tag proj">Проект</span>
+                <div class="backlink-title">Реновация Нагатино — фасадная стратегия</div>
+              </div>
+              <span class="backlink-via">/ projects / nagatino-renovation</span>
+            </a>
+            <a class="backlink">
+              <span class="backlink-icon proj" aria-hidden="true">▤</span>
+              <div class="backlink-body">
+                <span class="backlink-tag proj">Проект</span>
+                <div class="backlink-title">Парк Мещерский — павильоны</div>
+              </div>
+              <span class="backlink-via">/ projects / meshchersky-park</span>
+            </a>
+          </div>
+        </div>
+      </footer>
+
+    </article>
+  </div>
+
+  <!-- TOC tick rail -->
+  <nav class="toc-rail" id="tocRail" aria-label="Оглавление">
+    <a class="toc-tick on" data-target="s-context">
+      <span class="toc-tick-label">Контекст</span>
+      <span class="toc-tick-bar"></span>
+    </a>
+    <a class="toc-tick" data-target="s-concept">
+      <span class="toc-tick-label">Концепция</span>
+      <span class="toc-tick-bar"></span>
+    </a>
+    <a class="toc-tick h3" data-target="s-rhythm">
+      <span class="toc-tick-label">Ритм и пропорция</span>
+      <span class="toc-tick-bar"></span>
+    </a>
+    <a class="toc-tick h3" data-target="s-material">
+      <span class="toc-tick-label">Материал и подсистема</span>
+      <span class="toc-tick-bar"></span>
+    </a>
+    <a class="toc-tick" data-target="s-zoning">
+      <span class="toc-tick-label">Зонирование</span>
+      <span class="toc-tick-bar"></span>
+    </a>
+    <a class="toc-tick h3" data-target="s-references">
+      <span class="toc-tick-label">Референсы</span>
+      <span class="toc-tick-bar"></span>
+    </a>
+    <a class="toc-tick" data-target="s-results">
+      <span class="toc-tick-label">Результаты и выводы</span>
+      <span class="toc-tick-bar"></span>
+    </a>
+  </nav>
+
+  <script>
+    // Reading progress bar
+    const progressFill = document.getElementById('progressFill');
+    function updateProgress() {
+      const article = document.querySelector('.article-body');
+      if (!article) return;
+      const rect = article.getBoundingClientRect();
+      const start = window.pageYOffset + rect.top;
+      const total = rect.height;
+      const scrolled = Math.max(0, window.pageYOffset - start + window.innerHeight * 0.5);
+      const pct = Math.max(0, Math.min(100, (scrolled / total) * 100));
+      progressFill.style.width = pct + '%';
+    }
+
+    // TOC scroll spy
+    const ticks = document.querySelectorAll('.toc-tick');
+    const targets = Array.from(ticks).map(t => ({
+      tick: t,
+      el: document.getElementById(t.dataset.target)
+    })).filter(p => p.el);
+
+    function updateActive() {
+      const offset = window.innerHeight * 0.35;
+      let active = targets[0];
+      for (const p of targets) {
+        const top = p.el.getBoundingClientRect().top;
+        if (top - offset <= 0) active = p;
+      }
+      ticks.forEach(t => t.classList.remove('on'));
+      if (active) active.tick.classList.add('on');
+    }
+
+    ticks.forEach(t => {
+      t.addEventListener('click', e => {
+        e.preventDefault();
+        const target = document.getElementById(t.dataset.target);
+        if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    });
+
+    let scrollScheduled = false;
+    function onScroll() {
+      if (!scrollScheduled) {
+        scrollScheduled = true;
+        requestAnimationFrame(() => {
+          updateProgress();
+          updateActive();
+          scrollScheduled = false;
+        });
+      }
+    }
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll);
+    onScroll();
+
+    // Bookmark toggle
+    const bookmarkBtn = document.getElementById('bookmarkBtn');
+    if (bookmarkBtn) {
+      bookmarkBtn.addEventListener('click', () => bookmarkBtn.classList.toggle('bookmarked'));
+    }
+  </script>
+</body>
+</html>

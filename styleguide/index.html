@@ -1,0 +1,442 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Wowhaus Wiki — UI Style Guide</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./assets/ui.css" />
+  <link rel="stylesheet" href="./assets/styleguide.css" />
+</head>
+<body class="role-manager">
+  <div class="sg-shell">
+    <aside class="sg-nav">
+      <div class="sg-brand">
+        <span class="blogo" aria-hidden="true"></span>
+        <div>
+          <div class="sg-brand-title">UI Style Guide</div>
+          <div class="sg-brand-sub">Benchmark для текущего UI проекта</div>
+        </div>
+      </div>
+
+      <a data-sg-link href="#overview">Обзор</a>
+      <a data-sg-link href="#tokens">Токены</a>
+      <a data-sg-link href="#typography">Типографика</a>
+      <a data-sg-link href="#buttons">Кнопки</a>
+      <a data-sg-link href="#inputs">Поля ввода</a>
+      <a data-sg-link href="#badges">Статусы / бейджи</a>
+      <a data-sg-link href="#tables">Таблицы / списки</a>
+      <a data-sg-link href="#cards">Карточки</a>
+      <a data-sg-link href="#modals">Модалки</a>
+      <a data-sg-link href="#layout">Сетка / адаптив</a>
+
+      <div class="sg-divider"></div>
+      <div class="sg-small">
+        Клик по значку копирования — копирует токен/значение в буфер.
+        Для проверки “как в продукте” используются классы из `admin-mockup.html`.
+      </div>
+    </aside>
+
+    <main class="sg-main">
+      <section id="overview" class="sg-section">
+        <div class="sg-section-h">
+          <h2>Обзор</h2>
+          <span class="sg-id">#overview</span>
+        </div>
+        <div class="sg-card">
+          <div class="sg-h1">Wowhaus Wiki UI</div>
+          <p class="sg-lead">
+            Этот документ — “эталон” текущих UI-решений: токены, типографика и ключевые компоненты.
+            Его цель — быстро сравнивать/поддерживать консистентность и ускорять разработку.
+          </p>
+          <div class="sg-row">
+            <span class="pill" style="min-width:auto">
+              <span class="pill-i">⌘</span>
+              Cmd+K / Search
+              <kbd>⌘ K</kbd>
+            </span>
+            <button class="role-toggle" type="button" data-sg-theme-toggle title="Toggle theme">
+              <span class="rt-icon">◐</span>
+              Theme
+            </button>
+            <button class="role-toggle" type="button" data-copy="role-manager" title="Copy: role-manager">
+              <span class="rt-icon">M</span>
+              Роль: менеджер
+            </button>
+            <button class="role-toggle" type="button" data-copy="role-admin" title="Copy: role-admin">
+              <span class="rt-icon">A</span>
+              Роль: админ
+            </button>
+          </div>
+          <p class="sg-note">
+            Источник UI-стилей: общий CSS из `admin-mockup.html`, вынесенный в `styleguide/assets/ui.css`.
+          </p>
+          <p class="sg-note" style="margin-top:8px">
+            Tip: кнопка <b>Theme</b> переключает light/dark (сохраняется в localStorage).
+          </p>
+          <div class="sg-divider"></div>
+          <div class="sg-sub">Связанные мокапы</div>
+          <div class="sg-row" style="align-items:flex-start;gap:10px;flex-wrap:wrap">
+            <a class="ph-btn ghost" href="../hub-mockup.html">Hub</a>
+            <a class="ph-btn ghost" href="../browser-mockup.html">Browser</a>
+            <a class="ph-btn ghost" href="../search-mockup.html">Search</a>
+            <a class="ph-btn ghost" href="../cmdk-mockup.html">Cmd+K</a>
+            <a class="ph-btn ghost" href="../article-mockup.html">Article</a>
+            <a class="ph-btn ghost" href="../article-edit-mockup.html">Editor</a>
+            <a class="ph-btn ghost" href="../images-mockup.html">Images</a>
+            <a class="ph-btn ghost" href="../admin-mockup.html">Admin</a>
+          </div>
+          <p class="sg-note" style="margin-top:10px">
+            Токены и базовая типографика в этих мокапах совпадают. Странице style guide достаточно `ui.css` для общих компонентов;
+            у некоторых страниц (Editor / Cmd+K / Search / Article) есть дополнительные page-specific правила внутри их HTML.
+          </p>
+        </div>
+      </section>
+
+      <section id="tokens" class="sg-section">
+        <div class="sg-section-h">
+          <h2>Токены</h2>
+          <span class="sg-id">#tokens</span>
+        </div>
+        <div class="sg-card">
+          <div class="sg-sub">Бренд / акценты</div>
+          <div class="sg-grid">
+            <div class="sg-swatch" data-copy="var(--terra)" title="Click to copy">
+              <span class="sg-sq" style="background:var(--terra)"></span>
+              <div>
+                <div class="sg-name">--terra</div>
+                <div class="sg-val">#dd6731</div>
+              </div>
+              <code style="margin-left:auto">copy</code>
+            </div>
+            <div class="sg-swatch" data-copy="var(--terra-d)">
+              <span class="sg-sq" style="background:var(--terra-d)"></span>
+              <div><div class="sg-name">--terra-d</div><div class="sg-val">#b8501f</div></div>
+              <code style="margin-left:auto">copy</code>
+            </div>
+            <div class="sg-swatch" data-copy="var(--terra-bg)">
+              <span class="sg-sq" style="background:var(--terra-bg)"></span>
+              <div><div class="sg-name">--terra-bg</div><div class="sg-val">#fbeee5</div></div>
+              <code style="margin-left:auto">copy</code>
+            </div>
+          </div>
+
+          <div class="sg-divider"></div>
+
+          <div class="sg-sub">Текст / поверхности</div>
+          <div class="sg-grid">
+            <div class="sg-swatch" data-copy="var(--ink)"><span class="sg-sq" style="background:var(--ink)"></span><div><div class="sg-name">--ink</div><div class="sg-val">#1a1a1a</div></div><code style="margin-left:auto">copy</code></div>
+            <div class="sg-swatch" data-copy="var(--ink-3)"><span class="sg-sq" style="background:var(--ink-3)"></span><div><div class="sg-name">--ink-3</div><div class="sg-val">#7a7a7a</div></div><code style="margin-left:auto">copy</code></div>
+            <div class="sg-swatch" data-copy="var(--bg)"><span class="sg-sq" style="background:var(--bg)"></span><div><div class="sg-name">--bg</div><div class="sg-val">#fafaf7</div></div><code style="margin-left:auto">copy</code></div>
+            <div class="sg-swatch" data-copy="var(--surf)"><span class="sg-sq" style="background:var(--surf)"></span><div><div class="sg-name">--surf</div><div class="sg-val">#ffffff</div></div><code style="margin-left:auto">copy</code></div>
+            <div class="sg-swatch" data-copy="var(--surf-2)"><span class="sg-sq" style="background:var(--surf-2)"></span><div><div class="sg-name">--surf-2</div><div class="sg-val">#f7f5f0</div></div><code style="margin-left:auto">copy</code></div>
+            <div class="sg-swatch" data-copy="var(--surf-3)"><span class="sg-sq" style="background:var(--surf-3)"></span><div><div class="sg-name">--surf-3</div><div class="sg-val">#efece4</div></div><code style="margin-left:auto">copy</code></div>
+          </div>
+
+          <div class="sg-divider"></div>
+          <div class="sg-sub">Состояния</div>
+          <div class="sg-grid">
+            <div class="sg-swatch" data-copy="var(--good)"><span class="sg-sq" style="background:var(--good)"></span><div><div class="sg-name">--good</div><div class="sg-val">#4a8a1f</div></div><code style="margin-left:auto">copy</code></div>
+            <div class="sg-swatch" data-copy="var(--warn)"><span class="sg-sq" style="background:var(--warn)"></span><div><div class="sg-name">--warn</div><div class="sg-val">#a86a16</div></div><code style="margin-left:auto">copy</code></div>
+            <div class="sg-swatch" data-copy="var(--bad)"><span class="sg-sq" style="background:var(--bad)"></span><div><div class="sg-name">--bad</div><div class="sg-val">#a32d2d</div></div><code style="margin-left:auto">copy</code></div>
+          </div>
+
+          <p class="sg-note">Радиусы: <span class="sg-kbd">--r-sm</span> / <span class="sg-kbd">--r-md</span> / <span class="sg-kbd">--r-lg</span> / <span class="sg-kbd">--r-pill</span></p>
+        </div>
+      </section>
+
+      <section id="typography" class="sg-section">
+        <div class="sg-section-h">
+          <h2>Типографика</h2>
+          <span class="sg-id">#typography</span>
+        </div>
+        <div class="sg-card sg-typo">
+          <div class="sg-typo-sample">
+            <div class="ph-h" style="margin:0">Заголовок страницы (ph-h)</div>
+            <div class="ph-meta">Подзаголовок / мета (ph-meta)</div>
+            <div class="sg-typo-meta">font: Manrope; size: 24/12; weight: 600/—</div>
+          </div>
+          <div class="sg-typo-sample">
+            <div style="font-size:16px;font-weight:600;letter-spacing:-0.01em">Секционный заголовок</div>
+            <div class="sg-small">Обычный текст — 14px, line-height 1.5. Моно: <code style="font-family:var(--font-mono)">--font-mono</code>.</div>
+            <div class="sg-typo-meta">body: 14px/1.5; h: 16–24px; mono: ui-monospace</div>
+          </div>
+        </div>
+      </section>
+
+      <section id="buttons" class="sg-section">
+        <div class="sg-section-h">
+          <h2>Кнопки</h2>
+          <span class="sg-id">#buttons</span>
+        </div>
+        <div class="sg-card">
+          <div class="sg-sub">Основные</div>
+          <div class="sg-row">
+            <button class="ph-btn primary" type="button">Primary</button>
+            <button class="ph-btn ghost" type="button">Ghost</button>
+            <button class="rr-btn primary" type="button">RR Primary</button>
+            <button class="rr-btn ghost" type="button">RR Ghost</button>
+            <button class="rr-btn warn" type="button">Warn</button>
+          </div>
+          <div class="sg-divider"></div>
+          <div class="sg-sub">Состояния</div>
+          <div class="sg-row">
+            <button class="ph-btn primary" type="button" disabled>Disabled</button>
+            <button class="ph-btn ghost" type="button" aria-disabled="true">Aria disabled</button>
+            <button class="rr-btn warn" type="button" disabled>Disabled warn</button>
+          </div>
+          <div class="sg-divider"></div>
+          <div class="sg-sub">Иконки</div>
+          <div class="sg-row">
+            <button class="icon-btn" type="button" aria-label="Star">✦</button>
+            <button class="icon-btn" type="button" aria-label="Notifications">◔</button>
+            <button class="icon-btn" type="button" aria-label="Settings">⛭</button>
+            <span class="av" title="Avatar">МК</span>
+          </div>
+        </div>
+      </section>
+
+      <section id="inputs" class="sg-section">
+        <div class="sg-section-h">
+          <h2>Поля ввода</h2>
+          <span class="sg-id">#inputs</span>
+        </div>
+        <div class="sg-card">
+          <div class="sg-grid-2">
+            <div>
+              <div class="sg-sub">Search (как в assign-search)</div>
+              <div class="assign-search">
+                <span class="assign-search-i">⌕</span>
+                <input placeholder="Поиск..." />
+              </div>
+              <div class="sg-sub">Disabled input</div>
+              <div class="assign-search">
+                <span class="assign-search-i">⌕</span>
+                <input placeholder="Поиск..." disabled value="Disabled" />
+              </div>
+              <div class="sg-sub">Textarea</div>
+              <textarea class="return-textarea" placeholder="Комментарий..." style="min-height:90px"></textarea>
+            </div>
+            <div>
+              <div class="sg-sub">Сегменты</div>
+              <div class="seg" data-sg-seg>
+                <button class="seg-btn on" type="button">Все <span class="cnt">42</span></button>
+                <button class="seg-btn" type="button">Новые <span class="cnt">7</span></button>
+                <button class="seg-btn" type="button">Проблемные <span class="cnt">3</span></button>
+              </div>
+              <div class="sg-divider"></div>
+              <div class="sg-sub">Sort button</div>
+              <button class="sort-btn" type="button">Сортировка · по дате ▾</button>
+              <div class="sg-divider"></div>
+              <div class="sg-sub">Chips</div>
+              <div class="return-chips">
+                <div class="return-chip on" data-copy="chip:on">Не хватает контента</div>
+                <div class="return-chip" data-copy="chip:off">Слабые ссылки</div>
+                <div class="return-chip" data-copy="chip:off">Нужен формат</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="badges" class="sg-section">
+        <div class="sg-section-h">
+          <h2>Статусы / бейджи</h2>
+          <span class="sg-id">#badges</span>
+        </div>
+        <div class="sg-card">
+          <div class="sg-row">
+            <span class="rr-status review">⏺ Review</span>
+            <span class="rr-status changes">⚠ Changes</span>
+            <span class="rr-status new">✓ New</span>
+            <span class="tag-status live">Live</span>
+            <span class="tag-status pending">Pending</span>
+            <span class="group-tag">Тег</span>
+            <span class="group-tag dept">Отдел</span>
+            <span class="group-tag role">Роль</span>
+          </div>
+          <div class="sg-divider"></div>
+          <div class="sg-row">
+            <span class="sys-method get">GET</span>
+            <span class="sys-method post">POST</span>
+            <span class="sys-method put">PUT</span>
+            <span class="sys-method delete">DELETE</span>
+          </div>
+        </div>
+      </section>
+
+      <section id="tables" class="sg-section">
+        <div class="sg-section-h">
+          <h2>Таблицы / списки</h2>
+          <span class="sg-id">#tables</span>
+        </div>
+        <div class="sg-card">
+          <div class="sg-sub">Пример row-card (review)</div>
+          <div class="row-card">
+            <div class="row-h">
+              <span></span><span>Заголовок</span><span>Автор</span><span>Тип</span><span>Статус</span><span style="text-align:right">Действия</span>
+            </div>
+            <div class="review-row">
+              <span class="rr-icon proj">P</span>
+              <div>
+                <div class="rr-title">Проект · ЖК Северный свет — концепция</div>
+                <div class="rr-tag">updated 2h ago</div>
+              </div>
+              <div class="rr-author"><span class="rr-av">АК</span>Анна К.</div>
+              <div class="rr-when">сегодня</div>
+              <span class="rr-status review">Review</span>
+              <div class="rr-actions">
+                <button class="rr-btn ghost" type="button">Открыть</button>
+                <button class="rr-btn primary" type="button">Принять</button>
+              </div>
+            </div>
+            <div class="review-row returning">
+              <span class="rr-icon std">S</span>
+              <div>
+                <div class="rr-title">Стандарт · Пожарная безопасность v3</div>
+                <div class="rr-tag">needs edits</div>
+              </div>
+              <div class="rr-author"><span class="rr-av">МС</span>Максим С.</div>
+              <div class="rr-when">вчера</div>
+              <span class="rr-status changes">Changes</span>
+              <div class="rr-actions">
+                <button class="rr-btn warn" type="button">Вернуть</button>
+                <button class="rr-btn ghost" type="button">Подробнее</button>
+              </div>
+              <div class="review-return">
+                <div class="return-h">Возврат на доработку</div>
+                <div class="return-chips">
+                  <div class="return-chip on">Не хватает структуры</div>
+                  <div class="return-chip">Нужны ссылки</div>
+                </div>
+                <textarea class="return-textarea">Пожалуйста, добавь оглавление и ссылки на нормативы.</textarea>
+                <div class="return-actions">
+                  <button class="rr-btn ghost" type="button">Отмена</button>
+                  <button class="rr-btn warn" type="button">Отправить</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="cards" class="sg-section">
+        <div class="sg-section-h">
+          <h2>Карточки</h2>
+          <span class="sg-id">#cards</span>
+        </div>
+        <div class="sg-card">
+          <div class="sg-sub">Статистика</div>
+          <div class="dash-grid">
+            <div class="dash-card">
+              <div class="dash-card-head"><span class="dash-card-t">Ожидают ревью</span><span class="dash-card-arr">→</span></div>
+              <div class="dash-card-v">14</div>
+              <div class="dash-card-d">за последние 7 дней</div>
+            </div>
+            <div class="dash-card attention">
+              <div class="dash-card-head"><span class="dash-card-t">Просрочено</span><span class="dash-card-arr">⚠</span></div>
+              <div class="dash-card-v">3</div>
+              <div class="dash-card-d">нужно вмешательство</div>
+            </div>
+          </div>
+
+          <div class="sg-divider"></div>
+          <div class="sg-sub">Баннер</div>
+          <div class="facet-pending-banner">
+            <span class="facet-pending-icon">i</span>
+            <div class="facet-pending-text">
+              <b>Значения ожидают модерации</b> — пример информативного баннера.
+            </div>
+            <button class="ph-btn ghost" type="button">Действие</button>
+          </div>
+        </div>
+      </section>
+
+      <section id="modals" class="sg-section">
+        <div class="sg-section-h">
+          <h2>Модалки</h2>
+          <span class="sg-id">#modals</span>
+        </div>
+        <div class="sg-card">
+          <div class="sg-row">
+            <button class="ph-btn primary" type="button" data-sg-open-modal>Открыть модалку</button>
+            <button class="ph-btn ghost" type="button" data-copy="Esc">Esc закрывает</button>
+          </div>
+          <p class="sg-note">Это demo-модалка на стилях из `ui.css` (клик по фону или Esc — закрыть).</p>
+        </div>
+      </section>
+
+      <section id="layout" class="sg-section">
+        <div class="sg-section-h">
+          <h2>Сетка / адаптив</h2>
+          <span class="sg-id">#layout</span>
+        </div>
+        <div class="sg-card">
+          <div class="sg-sub">Примеры</div>
+          <div class="sg-grid">
+            <div class="sg-demo">
+              <div class="health-grid" style="background:var(--surf);border-radius:var(--r-lg);border:0.5px solid var(--bd);overflow:hidden">
+                <div class="health-cell"><div class="health-l">Сервис</div><div class="health-v"><span class="health-dot"></span>OK</div><div class="health-d">в норме</div></div>
+                <div class="health-cell"><div class="health-l">Очередь</div><div class="health-v"><span class="health-dot warn"></span>Warn</div><div class="health-d">растёт</div></div>
+                <div class="health-cell"><div class="health-l">Ошибки</div><div class="health-v"><span class="health-dot bad"></span>Bad</div><div class="health-d">нужно разобраться</div></div>
+              </div>
+            </div>
+            <div class="sg-demo">
+              <div class="sys-grid">
+                <div class="sys-stat">
+                  <div class="sys-stat-h"><span class="sys-stat-t">Latency</span><span class="sys-stat-status">✓ OK</span></div>
+                  <div class="sys-stat-v">148ms</div>
+                  <div class="sys-stat-d">p95</div>
+                </div>
+                <div class="sys-stat warn-card">
+                  <div class="sys-stat-h"><span class="sys-stat-t">Errors</span><span class="sys-stat-status warn">⚠ WARN</span></div>
+                  <div class="sys-stat-v">1.9%</div>
+                  <div class="sys-stat-d">за 24ч</div>
+                </div>
+                <div class="sys-stat">
+                  <div class="sys-stat-h"><span class="sys-stat-t">Traffic</span><span class="sys-stat-status">✓ OK</span></div>
+                  <div class="sys-stat-v">12k</div>
+                  <div class="sys-stat-d">requests</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="sg-footer">
+            Tip: проверяйте брейкпоинты — в `ui.css` есть media rules на 1100 / 880 / 540.
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div class="modal-backdrop" data-sg-modal>
+    <div class="modal" role="dialog" aria-label="Demo modal">
+      <header class="modal-h">
+        <span class="nc-mod-av">UI</span>
+        <div class="modal-h-body">
+          <h3 class="modal-h-t">Демо модалка</h3>
+          <div class="modal-h-d"><b>Использует</b> текущие токены и кнопки (как в админке)</div>
+        </div>
+        <button class="modal-close" type="button" data-sg-close-modal>×</button>
+      </header>
+      <div class="modal-body">
+        <div class="nc-mod-banner">Этот блок — пример warning banner внутри модалки.</div>
+        <div class="nc-mod-section-h">Состояния</div>
+        <div class="nc-mod-step done"><span class="nc-mod-status done">✓</span><span class="nc-mod-step-name">Done</span><span class="nc-mod-step-when">сегодня</span></div>
+        <div class="nc-mod-step now"><span class="nc-mod-status now">▸</span><span class="nc-mod-step-name">In progress</span><span class="nc-mod-step-when now">2 дня</span></div>
+        <div class="nc-mod-step todo"><span class="nc-mod-status todo">○</span><span class="nc-mod-step-name">Todo</span><span class="nc-mod-step-when">—</span></div>
+      </div>
+      <footer class="modal-foot">
+        <button class="rr-btn ghost" type="button" data-sg-close-modal>Закрыть</button>
+        <button class="rr-btn primary" type="button">Ок</button>
+      </footer>
+    </div>
+  </div>
+
+  <script src="./assets/styleguide.js"></script>
+</body>
+</html>
+

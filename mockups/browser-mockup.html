@@ -1,0 +1,984 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Wowhaus Wiki — Браузер</title>
+  <meta name="description" content="UI mockup of the redesigned Browser screen." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap"
+    rel="stylesheet"
+  />
+  <style>
+    :root {
+      --terra: #dd6731;
+      --terra-d: #b8501f;
+      --terra-bg: #fbeee5;
+      --terra-bd: #e89971;
+
+      --ink: #1a1a1a;
+      --ink-2: #3d3d3d;
+      --ink-3: #7a7a7a;
+      --ink-4: #b4b2a9;
+      --ink-5: #c0bdb3;
+
+      --bd: rgba(0, 0, 0, 0.08);
+      --bd-soft: rgba(0, 0, 0, 0.05);
+      --bd-strong: rgba(0, 0, 0, 0.12);
+
+      --bg: #fafaf7;
+      --surf: #ffffff;
+      --surf-2: #f7f5f0;
+      --surf-3: #efece4;
+
+      --tp-proj: #8e3a14;
+      --tp-std: #444441;
+      --tp-sol: #0c447c;
+      --tp-art: #3c3489;
+
+      --good: #639922;
+
+      --font-sans: 'Manrope', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+      --font-mono: ui-monospace, 'SF Mono', Monaco, Consolas, monospace;
+
+      --r-sm: 5px;
+      --r-md: 7px;
+      --r-lg: 10px;
+      --r-xl: 12px;
+      --r-pill: 999px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font-sans);
+      font-size: 14px;
+      line-height: 1.5;
+      color: var(--ink);
+      background: var(--bg);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    a { color: inherit; text-decoration: none; }
+    button {
+      font-family: inherit; font-size: inherit; color: inherit;
+      background: none; border: none; padding: 0; cursor: pointer;
+    }
+    input { font-family: inherit; font-size: inherit; color: inherit; }
+
+    :focus-visible {
+      outline: 2px solid var(--terra);
+      outline-offset: 2px;
+      border-radius: 2px;
+    }
+
+    /* Top bar */
+    .topbar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 32px;
+      border-bottom: 0.5px solid var(--bd);
+      background: rgba(250, 250, 247, 0.85);
+      backdrop-filter: saturate(180%) blur(8px);
+      position: sticky; top: 0; z-index: 10;
+    }
+    .brand { display: flex; align-items: center; gap: 10px; }
+    .blogo {
+      width: 24px; height: 24px; border-radius: 6px;
+      background: var(--terra); position: relative; flex-shrink: 0;
+    }
+    .blogo::after {
+      content: ''; position: absolute; inset: 5px 5px 9px 5px;
+      border: 1.5px solid #fff; border-bottom: none; border-radius: 1px 1px 0 0;
+    }
+    .blogo::before {
+      content: ''; position: absolute; bottom: 5px; left: 5px; right: 5px;
+      height: 1.5px; background: #fff; border-radius: 1px;
+    }
+    .bname { font-weight: 600; font-size: 14px; color: var(--ink); letter-spacing: -0.01em; }
+    .pill {
+      display: inline-flex; align-items: center; gap: 9px;
+      padding: 8px 14px; background: var(--surf);
+      border: 0.5px solid var(--bd-strong); border-radius: var(--r-pill);
+      font-size: 13px; color: var(--ink-3); min-width: 280px; cursor: pointer;
+      transition: border-color .15s;
+    }
+    .pill:hover { border-color: var(--terra-bd); }
+    .pill .pill-i { color: var(--terra); }
+    .pill kbd {
+      margin-left: auto; font-family: var(--font-mono); font-size: 11px;
+      background: var(--surf-2); border: 0.5px solid var(--bd);
+      border-radius: 4px; padding: 1px 6px; color: var(--ink-2);
+    }
+    .tr { display: flex; align-items: center; gap: 10px; }
+    .icon-btn {
+      width: 32px; height: 32px; border-radius: 6px;
+      display: inline-flex; align-items: center; justify-content: center;
+      color: var(--ink-3); font-size: 14px; cursor: pointer;
+      transition: background .15s, color .15s;
+    }
+    .icon-btn:hover { background: var(--surf-2); color: var(--ink); }
+    .av {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: var(--surf-3); display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 500; color: var(--ink-2); cursor: pointer;
+    }
+
+    /* Page */
+    .page { max-width: 1200px; margin: 0 auto; padding: 24px 32px 40px; }
+
+    .ph {
+      display: flex; align-items: flex-end; justify-content: space-between;
+      gap: 16px; margin-bottom: 22px;
+    }
+    .ph-l { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+    .back-btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 12px; color: var(--ink-3); padding: 4px 8px 4px 4px;
+      border-radius: var(--r-sm); align-self: flex-start; font-weight: 500;
+      transition: color .15s, background .15s; margin-left: -4px;
+    }
+    .back-btn:hover { color: var(--ink); background: var(--surf-2); }
+    .back-btn-arr { font-size: 14px; line-height: 1; }
+    .ph-h {
+      font-size: 26px; font-weight: 600; color: var(--ink);
+      letter-spacing: -0.02em; line-height: 1.1;
+    }
+    .ph-meta { font-size: 12px; color: var(--ink-3); }
+    .ph-meta b { color: var(--terra); font-weight: 600; }
+    .ph-create {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 9px 16px; background: var(--ink); color: #fff;
+      border-radius: var(--r-md); font-size: 13px; font-weight: 500;
+      transition: background .15s; flex-shrink: 0;
+    }
+    .ph-create:hover { background: #000; }
+
+    /* Search bar */
+    .search-bar {
+      display: flex; gap: 10px; align-items: center; margin-bottom: 14px;
+    }
+    .search-input {
+      flex: 1; display: flex; align-items: center; gap: 9px;
+      padding: 10px 14px; background: var(--surf);
+      border: 0.5px solid var(--bd-strong); border-radius: var(--r-lg);
+      font-size: 13px; color: var(--ink); transition: border-color .15s;
+    }
+    .search-input:focus-within { border-color: var(--terra); outline: none; }
+    .search-input input {
+      flex: 1; border: none; outline: none; background: transparent;
+      color: var(--ink); font-size: 13px;
+    }
+    .search-input input::placeholder { color: var(--ink-3); }
+    .search-input .ctrl {
+      color: var(--ink-4); font-family: var(--font-mono); font-size: 10px;
+    }
+    .seg {
+      display: flex; background: var(--surf-2);
+      border-radius: var(--r-md); padding: 2px;
+    }
+    .seg-btn {
+      padding: 6px 14px; font-size: 12px; color: var(--ink-3);
+      border-radius: 5px; font-weight: 500; transition: color .15s;
+    }
+    .seg-btn:hover { color: var(--ink); }
+    .seg-btn.on {
+      background: var(--surf); color: var(--ink);
+      box-shadow: 0 0 0 0.5px var(--bd-strong);
+    }
+
+    /* Type bar */
+    .type-bar {
+      display: flex; align-items: center; gap: 4px;
+      margin-bottom: 12px; padding-bottom: 12px;
+      border-bottom: 0.5px solid var(--bd-soft); flex-wrap: wrap;
+    }
+    .tb-btn {
+      padding: 6px 12px; font-size: 12px; color: var(--ink-3);
+      border-radius: var(--r-md); display: inline-flex;
+      align-items: center; gap: 6px; font-weight: 500;
+      transition: background .15s, color .15s;
+    }
+    .tb-btn:hover { background: var(--surf-2); color: var(--ink); }
+    .tb-btn.on { background: var(--ink); color: #fff; }
+    .tb-btn.on .tb-cnt { color: rgba(255, 255, 255, 0.55); }
+    .tb-dot { width: 6px; height: 6px; border-radius: 50%; }
+    .tb-cnt {
+      font-size: 10px; color: var(--ink-4);
+      font-variant-numeric: tabular-nums; font-weight: 500;
+    }
+    .tb-spacer { flex: 1; }
+    .tb-bp {
+      display: inline-flex; align-items: center; gap: 7px;
+      padding: 6px 12px; font-size: 12px; color: var(--terra-d);
+      font-weight: 500; border: 0.5px solid var(--terra-bd);
+      border-radius: var(--r-md); background: var(--terra-bg);
+      cursor: pointer; transition: background .15s;
+    }
+    .tb-bp:hover { background: #f5d4ba; }
+    .tb-bp.on {
+      background: var(--terra); color: #fff; border-color: var(--terra);
+    }
+    .tb-bp.on:hover { background: var(--terra-d); }
+    .tb-bp .bp-d {
+      width: 5px; height: 5px; background: currentColor; transform: rotate(45deg);
+    }
+
+    /* Filter bar */
+    .filter-bar {
+      display: flex; align-items: center; gap: 4px;
+      margin-bottom: 12px; flex-wrap: wrap;
+    }
+    .fb-btn {
+      padding: 6px 11px; font-size: 12px; color: var(--ink-2);
+      border-radius: var(--r-sm); display: inline-flex;
+      align-items: center; gap: 5px; font-weight: 500;
+      transition: background .15s, color .15s;
+    }
+    .fb-btn:hover { background: var(--surf-2); color: var(--ink); }
+    .fb-btn.open { background: var(--surf-2); color: var(--ink); }
+    .fb-btn.has { color: var(--ink); }
+    .fb-btn.has::after {
+      content: ''; width: 5px; height: 5px;
+      background: var(--terra); border-radius: 50%; margin-left: 1px;
+    }
+    .fb-btn .arr {
+      font-size: 8px; opacity: .5; transition: transform .15s;
+    }
+    .fb-btn.open .arr { transform: rotate(180deg); }
+    .fb-sep {
+      width: 1px; height: 12px; background: var(--bd); margin: 0 2px;
+    }
+    .fb-spacer { flex: 1; }
+    .fb-sort {
+      padding: 6px 11px; font-size: 12px; color: var(--ink-2);
+      border-radius: var(--r-sm); display: inline-flex;
+      align-items: center; gap: 5px; font-weight: 500;
+      background: var(--surf-2); transition: background .15s;
+    }
+    .fb-sort:hover { background: var(--surf-3); color: var(--ink); }
+    .fb-clr {
+      font-size: 11px; color: var(--terra-d); padding: 6px 10px;
+      border-radius: var(--r-sm); font-weight: 500;
+      transition: background .15s;
+    }
+    .fb-clr:hover { background: var(--terra-bg); }
+
+    /* Mega dropdown */
+    .mega-wrap { position: relative; }
+    .mega {
+      display: none;
+      background: var(--surf); border: 0.5px solid var(--bd-strong);
+      border-radius: var(--r-lg); padding: 18px 20px;
+      margin-bottom: 12px; box-shadow: 0 4px 16px rgba(0, 0, 0, .04);
+    }
+    .mega.open { display: block; }
+    .mega-cols { display: grid; gap: 16px; }
+    .mopt {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 6px 8px; cursor: pointer; font-size: 13px;
+      color: var(--ink-2); border-radius: 4px; transition: background .15s;
+    }
+    .mopt:hover { color: var(--ink); background: var(--surf-2); }
+    .mopt-l { display: flex; align-items: center; gap: 10px; }
+    .mopt input {
+      width: 14px; height: 14px; cursor: pointer; accent-color: var(--terra);
+    }
+    .mcnt {
+      font-size: 11px; color: var(--ink-3);
+      font-variant-numeric: tabular-nums;
+    }
+    .m-ft {
+      display: flex; justify-content: flex-end;
+      margin-top: 14px; padding-top: 12px;
+      border-top: 0.5px solid var(--bd-soft);
+    }
+    .m-app {
+      padding: 7px 16px; font-size: 12px; font-weight: 500;
+      background: var(--terra); color: #fff;
+      border-radius: var(--r-sm); transition: background .15s;
+    }
+    .m-app:hover { background: var(--terra-d); }
+    .tag-srch { position: relative; margin-bottom: 14px; }
+    .tag-srch input {
+      width: 100%; height: 34px; padding: 0 12px 0 32px;
+      border: 0.5px solid var(--bd-strong); background: var(--surf);
+      font-size: 12px; outline: none; border-radius: var(--r-sm);
+      transition: border-color .15s;
+    }
+    .tag-srch input:focus { border-color: var(--terra); }
+    .tag-srch-i {
+      position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
+      font-size: 12px; color: var(--ink-4);
+    }
+    .tag-cl { display: flex; flex-wrap: wrap; gap: 6px; }
+    .tag-p {
+      font-size: 12px; padding: 5px 11px;
+      border: 0.5px solid var(--bd-strong); background: var(--surf);
+      color: var(--ink-2); cursor: pointer; display: flex;
+      align-items: center; gap: 6px; border-radius: 14px; font-weight: 500;
+      transition: border-color .15s, background .15s, color .15s;
+    }
+    .tag-p:hover { border-color: var(--terra-bd); color: var(--ink); }
+    .tag-p.on {
+      background: var(--terra-bg); color: var(--tp-proj);
+      border-color: var(--terra-bd);
+    }
+    .tcnt {
+      font-size: 11px; color: var(--ink-3);
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Active chips */
+    .chips {
+      display: flex; align-items: center; gap: 7px;
+      padding: 4px 0 14px; flex-wrap: wrap;
+      border-bottom: 0.5px solid var(--bd-soft); margin-bottom: 14px;
+    }
+    .chips:empty { display: none; }
+    .chips-l {
+      font-size: 10px; letter-spacing: .04em; text-transform: uppercase;
+      color: var(--ink-4); font-weight: 500; margin-right: 4px;
+    }
+    .chip {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 4px 10px; font-size: 11px; color: var(--ink-2);
+      background: var(--surf); border: 0.5px solid var(--bd-strong);
+      border-radius: var(--r-pill); font-weight: 500;
+    }
+    .chip.tag {
+      background: var(--terra-bg); color: var(--tp-proj);
+      border-color: var(--terra-bd);
+    }
+    .chip-x {
+      opacity: .5; cursor: pointer; font-size: 13px;
+      line-height: 1; font-weight: 400; transition: opacity .15s;
+    }
+    .chip-x:hover { opacity: 1; }
+
+    /* Results meta */
+    .res-meta {
+      display: flex; align-items: baseline; justify-content: space-between;
+      margin-bottom: 14px;
+    }
+    .res-cnt { font-size: 12px; color: var(--ink-3); }
+    .res-cnt b { color: var(--ink); font-weight: 600; }
+
+    /* Card grid */
+    .grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 12px; margin-bottom: 24px;
+    }
+    .card {
+      background: var(--surf); border: 0.5px solid var(--bd);
+      border-radius: var(--r-lg); overflow: hidden; cursor: pointer;
+      transition: border-color .15s, transform .15s, box-shadow .15s;
+      display: flex; flex-direction: column;
+    }
+    .card:hover {
+      border-color: var(--terra-bd); transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, .04);
+    }
+    .card.bp { border-color: var(--terra-bd); }
+    .card.hidden { display: none; }
+    .card-cv { height: 88px; position: relative; flex-shrink: 0; }
+    .card-cv.proj { background: linear-gradient(135deg, #fbeee5, #e89971); }
+    .card-cv.std { background: linear-gradient(135deg, #efece4, #b4b2a9); }
+    .card-cv.sol { background: linear-gradient(135deg, #e6f1fb, #85b7eb); }
+    .card-cv.art { background: linear-gradient(135deg, #eeedfe, #afa9ec); }
+    .card-cv-tag {
+      position: absolute; top: 9px; left: 9px;
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 10px; padding: 3px 8px;
+      background: rgba(255, 255, 255, 0.88); border-radius: 4px;
+      font-weight: 500;
+    }
+    .card-cv-tag.proj { color: var(--tp-proj); }
+    .card-cv-tag.std { color: var(--tp-std); }
+    .card-cv-tag.sol { color: var(--tp-sol); }
+    .card-cv-tag.art { color: var(--tp-art); }
+    .card-bp {
+      position: absolute; top: 9px; right: 9px;
+      font-size: 9px; padding: 3px 7px;
+      background: var(--terra); color: #fff;
+      border-radius: 3px; font-weight: 500;
+      letter-spacing: .04em; text-transform: uppercase;
+    }
+    .card-body {
+      padding: 11px 13px 13px; display: flex; flex-direction: column;
+      gap: 6px; flex: 1;
+    }
+    .card-body.no-cv { padding: 14px; gap: 9px; min-height: 138px; }
+    .card-tag {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 10px; font-weight: 500; letter-spacing: .04em;
+      text-transform: uppercase; align-self: flex-start;
+    }
+    .card-tag::before {
+      content: ''; width: 5px; height: 5px; border-radius: 50%;
+    }
+    .card-tag.proj { color: var(--tp-proj); }
+    .card-tag.proj::before { background: var(--tp-proj); }
+    .card-tag.std { color: var(--tp-std); }
+    .card-tag.std::before { background: var(--tp-std); }
+    .card-tag.sol { color: var(--tp-sol); }
+    .card-tag.sol::before { background: var(--tp-sol); }
+    .card-tag.art { color: var(--tp-art); }
+    .card-tag.art::before { background: var(--tp-art); }
+    .card-t {
+      font-size: 14px; font-weight: 600; line-height: 1.3;
+      color: var(--ink); letter-spacing: -0.005em;
+    }
+    .card-tg { font-size: 11px; color: var(--ink-3); }
+    .card-foot {
+      display: flex; align-items: center; gap: 7px;
+      padding-top: 8px; border-top: 0.5px solid var(--bd-soft);
+      margin-top: auto;
+    }
+    .card-av {
+      width: 18px; height: 18px; border-radius: 50%;
+      background: var(--surf-3); display: inline-flex;
+      align-items: center; justify-content: center;
+      font-size: 9px; font-weight: 500; color: var(--ink-2); flex-shrink: 0;
+    }
+    .card-au {
+      font-size: 11px; color: var(--ink-3); flex: 1;
+      min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .card-d {
+      font-size: 11px; color: var(--ink-4); flex-shrink: 0;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Pagination */
+    .more { text-align: center; padding: 14px 0 6px; }
+    .more-btn {
+      padding: 8px 20px; background: var(--surf);
+      border: 0.5px solid var(--bd-strong); border-radius: var(--r-md);
+      font-size: 13px; color: var(--ink-2); font-weight: 500;
+      transition: border-color .15s, color .15s;
+    }
+    .more-btn:hover { border-color: var(--terra-bd); color: var(--ink); }
+    .more-meta { font-size: 11px; color: var(--ink-4); margin-top: 7px; }
+
+    /* Empty state */
+    .empty { display: none; text-align: center; padding: 60px 20px; }
+    .empty.on { display: block; }
+    .empty-i {
+      font-size: 32px; opacity: .3; margin-bottom: 10px;
+    }
+    .empty-t {
+      font-size: 14px; color: var(--ink); font-weight: 600;
+      margin-bottom: 4px; letter-spacing: -0.005em;
+    }
+    .empty-d { font-size: 12px; color: var(--ink-3); }
+    .empty-clr {
+      display: inline-block; margin-top: 14px;
+      padding: 7px 16px; background: var(--terra); color: #fff;
+      border-radius: var(--r-sm); font-size: 12px; font-weight: 500;
+    }
+
+    @media (max-width: 720px) {
+      .topbar { padding: 12px 18px; }
+      .pill { min-width: 0; flex: 1; }
+      .pill kbd { display: none; }
+      .page { padding: 18px 18px 28px; }
+      .ph { flex-direction: column; align-items: stretch; }
+      .ph-create { align-self: flex-start; }
+      .search-bar { flex-direction: column; align-items: stretch; }
+      .seg { align-self: flex-start; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="hub-mockup.html" aria-label="На главную">
+      <span class="blogo" aria-hidden="true"></span>
+      <span class="bname">Wowhaus</span>
+    </a>
+    <button class="pill" aria-label="Открыть палитру команд">
+      <span class="pill-i" aria-hidden="true">⌕</span>
+      <span>Поиск, навигация, действия</span>
+      <kbd>⌘ K</kbd>
+    </button>
+    <div class="tr">
+      <button class="icon-btn" aria-label="Переключить тему">◐</button>
+      <button class="av" aria-label="Профиль">АМ</button>
+    </div>
+  </header>
+
+  <main class="page">
+    <div class="ph">
+      <div class="ph-l">
+        <a class="back-btn" href="hub-mockup.html">
+          <span class="back-btn-arr" aria-hidden="true">←</span>
+          <span>В Хаб</span>
+        </a>
+        <h1 class="ph-h">Браузер</h1>
+        <div class="ph-meta" id="phMeta">247 материалов · <b>12 best practices</b></div>
+      </div>
+      <button class="ph-create">+ Создать</button>
+    </div>
+
+    <div class="search-bar">
+      <div class="search-input">
+        <span style="color: var(--terra)" aria-hidden="true">⌕</span>
+        <input id="searchIn" type="text" placeholder="Поиск по названию, автору, тегу…" />
+        <span class="ctrl">⌘F</span>
+      </div>
+      <div class="seg" role="tablist">
+        <button class="seg-btn on" role="tab" aria-selected="true">Статьи</button>
+        <button class="seg-btn" role="tab" aria-selected="false">Изображения</button>
+      </div>
+    </div>
+
+    <div class="type-bar" id="typeBar">
+      <button class="tb-btn on" data-type="all">Все<span class="tb-cnt">247</span></button>
+      <button class="tb-btn" data-type="proj"><span class="tb-dot" style="background: var(--tp-proj)"></span>Проект<span class="tb-cnt">98</span></button>
+      <button class="tb-btn" data-type="std"><span class="tb-dot" style="background: var(--tp-std)"></span>Стандарт<span class="tb-cnt">42</span></button>
+      <button class="tb-btn" data-type="sol"><span class="tb-dot" style="background: var(--tp-sol)"></span>Решение<span class="tb-cnt">67</span></button>
+      <button class="tb-btn" data-type="art"><span class="tb-dot" style="background: var(--tp-art)"></span>Статья<span class="tb-cnt">40</span></button>
+      <span class="tb-spacer"></span>
+      <button class="tb-bp" id="bpToggle"><span class="bp-d"></span>Best practices</button>
+    </div>
+
+    <div class="filter-bar" id="filterBar"></div>
+    <div id="megaWrap"></div>
+
+    <div class="chips" id="chips"></div>
+
+    <div class="res-meta">
+      <div class="res-cnt" id="resCnt"><b>8 материалов</b></div>
+    </div>
+
+    <div class="grid" id="grid">
+      <article class="card bp" data-type="proj" data-bp="1">
+        <div class="card-cv proj">
+          <span class="card-cv-tag proj">● Проект</span>
+          <span class="card-bp">BP</span>
+        </div>
+        <div class="card-body">
+          <div class="card-t">ЖК Северный свет — концепция фасада</div>
+          <div class="card-tg">Фасад · BIM · 2023</div>
+          <div class="card-foot">
+            <span class="card-av">АК</span>
+            <span class="card-au">Антон К.</span>
+            <span class="card-d">28 апр</span>
+          </div>
+        </div>
+      </article>
+
+      <article class="card" data-type="std">
+        <div class="card-body no-cv">
+          <span class="card-tag std">Стандарт</span>
+          <div class="card-t">Стандарт BIM-моделирования v2.1</div>
+          <div class="card-tg">Обновлён апр. 2024</div>
+          <div class="card-foot">
+            <span class="card-av">МВ</span>
+            <span class="card-au">Маша В.</span>
+            <span class="card-d">апр</span>
+          </div>
+        </div>
+      </article>
+
+      <article class="card bp" data-type="sol" data-bp="1">
+        <div class="card-cv sol">
+          <span class="card-cv-tag sol">● Решение</span>
+          <span class="card-bp">BP</span>
+        </div>
+        <div class="card-body">
+          <div class="card-t">Стык витража с монолитом</div>
+          <div class="card-tg">Фасад · конструктив</div>
+          <div class="card-foot">
+            <span class="card-av">ИС</span>
+            <span class="card-au">Игорь С.</span>
+            <span class="card-d">5 дн</span>
+          </div>
+        </div>
+      </article>
+
+      <article class="card" data-type="sol">
+        <div class="card-cv sol">
+          <span class="card-cv-tag sol">● Решение</span>
+        </div>
+        <div class="card-body">
+          <div class="card-t">Гидроизоляция плиты — паркинг</div>
+          <div class="card-tg">Конструктив · фундамент</div>
+          <div class="card-foot">
+            <span class="card-av">ДЛ</span>
+            <span class="card-au">Дима Л.</span>
+            <span class="card-d">2 нед</span>
+          </div>
+        </div>
+      </article>
+
+      <article class="card" data-type="art">
+        <div class="card-body no-cv">
+          <span class="card-tag art">Статья</span>
+          <div class="card-t">Параметрическое моделирование оболочек</div>
+          <div class="card-tg">Лена Р. · аналитика</div>
+          <div class="card-foot">
+            <span class="card-av">ЛР</span>
+            <span class="card-au">Лена Р.</span>
+            <span class="card-d">3 дн</span>
+          </div>
+        </div>
+      </article>
+
+      <article class="card" data-type="proj">
+        <div class="card-cv proj">
+          <span class="card-cv-tag proj">● Проект</span>
+        </div>
+        <div class="card-body">
+          <div class="card-t">Реновация Нагатино</div>
+          <div class="card-tg">Реновация · 2024</div>
+          <div class="card-foot">
+            <span class="card-av">АК</span>
+            <span class="card-au">Антон К.</span>
+            <span class="card-d">2 ч</span>
+          </div>
+        </div>
+      </article>
+
+      <article class="card bp" data-type="sol" data-bp="1">
+        <div class="card-cv sol">
+          <span class="card-cv-tag sol">● Решение</span>
+          <span class="card-bp">BP</span>
+        </div>
+        <div class="card-body">
+          <div class="card-t">Трансформируемые перегородки</div>
+          <div class="card-tg">Интерьер · перегородки</div>
+          <div class="card-foot">
+            <span class="card-av">МВ</span>
+            <span class="card-au">Маша В.</span>
+            <span class="card-d">1 нед</span>
+          </div>
+        </div>
+      </article>
+
+      <article class="card" data-type="std">
+        <div class="card-body no-cv">
+          <span class="card-tag std">Стандарт</span>
+          <div class="card-t">Стандарт пожарных эвакуаций v3</div>
+          <div class="card-tg">Обновлён март 2024</div>
+          <div class="card-foot">
+            <span class="card-av">МВ</span>
+            <span class="card-au">Маша В.</span>
+            <span class="card-d">март</span>
+          </div>
+        </div>
+      </article>
+
+      <article class="card" data-type="proj">
+        <div class="card-cv proj">
+          <span class="card-cv-tag proj">● Проект</span>
+        </div>
+        <div class="card-body">
+          <div class="card-t">Тушинский берег — набережная</div>
+          <div class="card-tg">Благоустройство · 2024</div>
+          <div class="card-foot">
+            <span class="card-av">ЛР</span>
+            <span class="card-au">Лена Р.</span>
+            <span class="card-d">3 нед</span>
+          </div>
+        </div>
+      </article>
+
+      <article class="card" data-type="art">
+        <div class="card-body no-cv">
+          <span class="card-tag art">Статья</span>
+          <div class="card-t">Curtain wall — сравнение систем</div>
+          <div class="card-tg">Маша В. · обзор</div>
+          <div class="card-foot">
+            <span class="card-av">МВ</span>
+            <span class="card-au">Маша В.</span>
+            <span class="card-d">1 мес</span>
+          </div>
+        </div>
+      </article>
+
+      <article class="card" data-type="sol">
+        <div class="card-cv sol">
+          <span class="card-cv-tag sol">● Решение</span>
+        </div>
+        <div class="card-body">
+          <div class="card-t">Узлы AlucoBond — деформационный шов</div>
+          <div class="card-tg">Фасад · алюминий</div>
+          <div class="card-foot">
+            <span class="card-av">ИС</span>
+            <span class="card-au">Игорь С.</span>
+            <span class="card-d">2 мес</span>
+          </div>
+        </div>
+      </article>
+
+      <article class="card" data-type="std">
+        <div class="card-body no-cv">
+          <span class="card-tag std">Стандарт</span>
+          <div class="card-t">Ограждения у воды (WH-014)</div>
+          <div class="card-tg">Обновлён апр. 2024</div>
+          <div class="card-foot">
+            <span class="card-av">ЕС</span>
+            <span class="card-au">Е. Седова</span>
+            <span class="card-d">апр</span>
+          </div>
+        </div>
+      </article>
+    </div>
+
+    <div class="empty" id="empty">
+      <div class="empty-i">⌕</div>
+      <div class="empty-t">Ничего не найдено</div>
+      <div class="empty-d">Попробуйте смягчить фильтры или другую формулировку</div>
+      <button class="empty-clr" onclick="clearAll()">Сбросить фильтры</button>
+    </div>
+
+    <div class="more" id="more">
+      <button class="more-btn">Загрузить ещё</button>
+      <div class="more-meta" id="moreMeta">показано 12 из 247 · по 24 за раз</div>
+    </div>
+  </main>
+
+  <script>
+    // Tag dictionary with counts
+    const TAGS = ['фасад', 'конструктив', 'интерьер', 'BIM', 'реновация', 'витраж', 'кровля', 'узел', 'благоустройство', 'МАФ', 'монолит', 'терракота', 'мембрана', 'перегородки', 'металл', 'кирпич'];
+    const TC = {фасад:18,конструктив:14,интерьер:11,BIM:9,реновация:7,витраж:6,кровля:12,узел:8,благоустройство:10,МАФ:5,монолит:13,терракота:4,мембрана:6,перегородки:7,металл:9,кирпич:8};
+
+    // Master list of all facets — used for "Все" tab (union of everything)
+    const ALL_FACETS = [
+      {key:'mat',label:'Материал',cols:3,opts:[['Бетон',24],['Кирпич',18],['Металл',31],['Стекло',22],['Дерево',12],['Терракота',4],['Керамогранит',8],['Алюминий',15],['Камень',6]]},
+      {key:'elem',label:'Элемент',cols:2,opts:[['Фасад',28],['Кровля',12],['Перекрытие',9],['Лестница',8],['Перегородки',7],['Остекление',16]]},
+      {key:'env',label:'Среда',cols:1,opts:[['Экстерьер',42],['Интерьер',28],['Благоустройство',14]]},
+      {key:'manuf',label:'Производитель',cols:2,opts:[['AlucoBond',6],['Schüco',11],['Argeton',4],['Reynaers',8]]},
+      {key:'typo',label:'Типология',cols:2,opts:[['Жилой',12],['Коммерческий',8],['Культурный',5],['Общественный',6],['Промышленный',3]]},
+      {key:'stage',label:'Стадия',cols:1,opts:[['Концепция',8],['ЭП',6],['ПД',9],['РД',12],['АН',5]]},
+      {key:'year',label:'Год',cols:1,opts:[['2024',6],['2023',9],['2022',7],['2021',5]]},
+      {key:'area',label:'Площадь',cols:1,opts:[['до 500 м²',5],['500–2 000 м²',8],['2 000–10 000 м²',12],['>10 000 м²',9]]},
+      {key:'team',label:'Команда',cols:1,opts:[['Команда А',12],['Команда Б',8],['Команда В',6]]}
+    ];
+
+    // Type-specific facet sets
+    const F = {
+      all:  {groups: ALL_FACETS},
+      proj: {groups: [
+        {key:'typo',label:'Типология',cols:2,opts:[['Жилой',12],['Коммерческий',8],['Культурный',5],['Общественный',6],['Промышленный',3]]},
+        {key:'country',label:'Страна',cols:1,opts:[['Россия',28],['Казахстан',4],['ОАЭ',2]]},
+        {key:'stage',label:'Стадия',cols:1,opts:[['Концепция',8],['ЭП',6],['ПД',9],['РД',12],['АН',5]]},
+        {key:'year',label:'Год',cols:1,opts:[['2024',6],['2023',9],['2022',7],['2021',5]]},
+        {key:'area',label:'Площадь',cols:1,opts:[['до 500 м²',5],['500–2 000 м²',8],['2 000–10 000 м²',12],['>10 000 м²',9]]},
+        {key:'mat',label:'Материал',cols:2,opts:[['Бетон',24],['Кирпич',18],['Металл',31],['Стекло',22],['Терракота',4]]},
+        {key:'elem',label:'Элемент',cols:2,opts:[['Фасад',28],['Кровля',12],['Лестница',8],['Перегородки',7]]},
+        {key:'team',label:'Команда',cols:1,opts:[['Команда А',12],['Команда Б',8],['Команда В',6]]}
+      ]},
+      std:  {groups: [
+        {key:'year',label:'Год обновления',cols:1,opts:[['2024',8],['2023',6],['2022',4]]},
+        {key:'elem',label:'Элемент',cols:2,opts:[['Фасад',8],['Кровля',5],['Лестница',2]]},
+        {key:'env',label:'Среда',cols:1,opts:[['Экстерьер',12],['Интерьер',6]]}
+      ]},
+      sol:  {groups: [
+        {key:'stage',label:'Стадия',cols:1,opts:[['РД',14],['ПД',8],['АН',5]]},
+        {key:'elem',label:'Элемент',cols:2,opts:[['Фасад',12],['Кровля',6],['Остекление',8]]},
+        {key:'mat',label:'Материал',cols:2,opts:[['Бетон',9],['Металл',14],['Стекло',6]]}
+      ]},
+      art:  {groups: [
+        {key:'year',label:'Год',cols:1,opts:[['2024',5],['2023',7]]},
+        {key:'author',label:'Автор',cols:1,opts:[['Антон К.',6],['Маша В.',4],['Игорь С.',5]]}
+      ]}
+    };
+
+    // State
+    let curT = 'all';
+    let bpOn = false;
+    let openK = null;
+    const A = new Set(); // active facet values
+    const AT = new Set(); // active tags
+
+    // DOM refs
+    const filterBar = document.getElementById('filterBar');
+    const megaWrap = document.getElementById('megaWrap');
+    const chips = document.getElementById('chips');
+    const grid = document.getElementById('grid');
+    const empty = document.getElementById('empty');
+    const more = document.getElementById('more');
+    const resCnt = document.getElementById('resCnt');
+    const moreMeta = document.getElementById('moreMeta');
+    const bpToggle = document.getElementById('bpToggle');
+    const searchIn = document.getElementById('searchIn');
+
+    // Type-bar handler
+    document.querySelectorAll('.tb-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.tb-btn').forEach(b => b.classList.remove('on'));
+        btn.classList.add('on');
+        curT = btn.dataset.type;
+        closeMega();
+        renderFB();
+        applyFilters();
+      });
+    });
+
+    // BP toggle
+    bpToggle.addEventListener('click', () => {
+      bpOn = !bpOn;
+      bpToggle.classList.toggle('on', bpOn);
+      applyFilters();
+    });
+
+    // Search
+    searchIn.addEventListener('input', applyFilters);
+
+    function renderFB() {
+      const cfg = F[curT] || F.all;
+      const gs = cfg.groups || [];
+      let fH = '', mH = '';
+
+      gs.forEach((g, i) => {
+        const hv = [...A].some(v => g.opts.some(o => o[0] === v));
+        const cnt = [...A].filter(v => g.opts.some(o => o[0] === v)).length;
+        fH += `<button class="fb-btn${hv ? ' has' : ''}" onclick="toggleMega('${g.key}', this)">${g.label}${cnt ? ' · ' + cnt : ''} <span class="arr">▼</span></button>`;
+        if (i < gs.length - 1) fH += '<div class="fb-sep"></div>';
+
+        const per = Math.ceil(g.opts.length / g.cols);
+        let cH = '';
+        for (let c = 0; c < g.cols; c++) {
+          cH += '<div>' + g.opts.slice(c * per, (c + 1) * per).map(o =>
+            `<label class="mopt"><span class="mopt-l"><input type="checkbox" ${A.has(o[0]) ? 'checked' : ''} onchange="toggleFacet(this, '${o[0]}')">${o[0]}</span><span class="mcnt">${o[1]}</span></label>`
+          ).join('') + '</div>';
+        }
+        mH += `<div class="mega" id="mg-${g.key}"><div class="mega-cols" style="grid-template-columns: repeat(${g.cols}, 1fr)">${cH}</div><div class="m-ft"><button class="m-app" onclick="closeMega()">Применить</button></div></div>`;
+      });
+
+      // Tags facet
+      if (gs.length) fH += '<div class="fb-sep"></div>';
+      fH += `<button class="fb-btn${AT.size ? ' has' : ''}" onclick="toggleMega('tags', this)">Теги${AT.size ? ' · ' + AT.size : ''} <span class="arr">▼</span></button>`;
+      mH += `<div class="mega" id="mg-tags"><div class="tag-srch"><span class="tag-srch-i">⌕</span><input id="tIn" type="text" placeholder="Поиск тегов…" oninput="filterTags(this.value)"></div><div class="tag-cl">${TAGS.map(t => `<span class="tag-p${AT.has(t) ? ' on' : ''}" data-tag="${t}" onclick="toggleTag('${t}', this)">${t} <span class="tcnt">${TC[t]}</span></span>`).join('')}</div><div class="m-ft"><button class="m-app" onclick="closeMega()">Применить</button></div></div>`;
+
+      // Spacer + sort
+      fH += `<span class="fb-spacer"></span><button class="fb-sort">↓ Обновлено <span class="arr">▼</span></button>`;
+      if (A.size || AT.size) fH += `<button class="fb-clr" onclick="clearAll()">Сбросить</button>`;
+
+      filterBar.innerHTML = fH;
+      megaWrap.innerHTML = mH;
+    }
+
+    function toggleMega(k, btn) {
+      const isOpen = document.getElementById('mg-' + k)?.classList.contains('open');
+      closeMega();
+      if (!isOpen) {
+        document.getElementById('mg-' + k)?.classList.add('open');
+        btn.classList.add('open');
+        openK = k;
+        if (k === 'tags') document.getElementById('tIn')?.focus();
+      }
+    }
+    function closeMega() {
+      document.querySelectorAll('.mega').forEach(m => m.classList.remove('open'));
+      document.querySelectorAll('.fb-btn').forEach(b => b.classList.remove('open'));
+      openK = null;
+    }
+    function toggleFacet(c, v) {
+      if (c.checked) A.add(v); else A.delete(v);
+      renderChips();
+      // Re-render filter bar to update counts
+      const wasOpen = openK;
+      renderFB();
+      if (wasOpen) {
+        const m = document.getElementById('mg-' + wasOpen);
+        m?.classList.add('open');
+        document.querySelector(`.fb-btn[onclick*="'${wasOpen}'"]`)?.classList.add('open');
+        openK = wasOpen;
+      }
+      applyFilters();
+    }
+    function toggleTag(t, el) {
+      if (AT.has(t)) { AT.delete(t); el.classList.remove('on'); }
+      else { AT.add(t); el.classList.add('on'); }
+      renderChips();
+      // Update tag-button label
+      const tb = document.querySelector('.fb-btn[onclick*="\\'tags\\'"]');
+      if (tb) {
+        tb.classList.toggle('has', AT.size > 0);
+        tb.firstChild.nodeValue = AT.size ? `Теги · ${AT.size} ` : 'Теги ';
+      }
+      applyFilters();
+    }
+    function filterTags(q) {
+      const ql = q.toLowerCase();
+      document.querySelectorAll('.tag-p').forEach(p => {
+        p.style.display = (!q || p.dataset.tag.toLowerCase().includes(ql)) ? '' : 'none';
+      });
+    }
+    function renderChips() {
+      const all = [...A, ...AT];
+      if (!all.length) { chips.innerHTML = ''; return; }
+      let h = '<span class="chips-l">Активно</span>';
+      [...A].forEach(v => h += `<span class="chip">${v}<span class="chip-x" onclick="removeChip('${v}', false)">×</span></span>`);
+      [...AT].forEach(v => h += `<span class="chip tag">#${v}<span class="chip-x" onclick="removeChip('${v}', true)">×</span></span>`);
+      h += `<button class="fb-clr" onclick="clearAll()">Сбросить всё</button>`;
+      chips.innerHTML = h;
+    }
+    function removeChip(v, isTag) {
+      if (isTag) AT.delete(v); else A.delete(v);
+      renderChips();
+      renderFB();
+      applyFilters();
+    }
+    function clearAll() {
+      A.clear();
+      AT.clear();
+      renderChips();
+      renderFB();
+      applyFilters();
+    }
+
+    function applyFilters() {
+      const q = (searchIn.value || '').toLowerCase().trim();
+      let visible = 0;
+      document.querySelectorAll('.card').forEach(c => {
+        const tOk = curT === 'all' || c.dataset.type === curT;
+        const bOk = !bpOn || c.dataset.bp === '1';
+        const txt = c.textContent.toLowerCase();
+        const qOk = !q || txt.includes(q);
+        const show = tOk && bOk && qOk;
+        c.classList.toggle('hidden', !show);
+        if (show) visible++;
+      });
+
+      // Note: in real app, A/AT would also filter cards. For mockup we just show counts.
+      empty.classList.toggle('on', visible === 0);
+      more.style.display = visible > 0 ? 'block' : 'none';
+      grid.style.display = visible > 0 ? 'grid' : 'none';
+      resCnt.innerHTML = visible === 0
+        ? '<b>0 материалов</b>'
+        : `<b>${visible} ${pluralize(visible)}</b>`;
+      moreMeta.textContent = `показано ${visible} из 247 · по 24 за раз`;
+    }
+
+    function pluralize(n) {
+      const m = n % 10, h = n % 100;
+      if (h >= 11 && h <= 19) return 'материалов';
+      if (m === 1) return 'материал';
+      if (m >= 2 && m <= 4) return 'материала';
+      return 'материалов';
+    }
+
+    // Close mega on outside click
+    document.addEventListener('click', e => {
+      if (!e.target.closest('.fb-btn') && !e.target.closest('.mega')) {
+        closeMega();
+      }
+    });
+    // Close mega on Esc
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') closeMega();
+    });
+
+    // Init
+    renderFB();
+    applyFilters();
+  </script>
+</body>
+</html>

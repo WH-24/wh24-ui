@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Бриф — иконки, фавиконы, бренд‑ассеты</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./assets/ui.css" />
+  <link rel="stylesheet" href="./assets/styleguide.css" />
+  <style>
+    .sg-main{max-width:980px}
+    .sg-card ul{margin:0;padding-left:18px}
+    .sg-card li{margin:6px 0}
+    .sg-k{font-family:var(--font-mono);font-size:11px;background:var(--surf-2);border:0.5px solid var(--bd);border-radius:6px;padding:2px 7px;color:var(--ink-2)}
+    .sg-grid-2{align-items:start}
+    .icon-preview{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+    .icon-preview .icon-btn{font-size:14px}
+    .icon-swatch{display:inline-flex;align-items:center;gap:8px;padding:6px 10px;border-radius:var(--r-pill);border:0.5px solid var(--bd-soft);background:var(--surf-2);font-size:12px;font-weight:500;color:var(--ink-2)}
+    .icon-swatch.good{background:var(--good-bg);border-color:var(--good-bd);color:var(--good)}
+    .icon-swatch.info{background:var(--info-bg);border-color:var(--info-bd);color:var(--info)}
+    .icon-swatch.warn{background:var(--warn-bg);border-color:var(--warn-bd);color:var(--warn)}
+    .icon-swatch.bad{background:var(--bad-bg);border-color:var(--bad-bd);color:var(--bad)}
+  </style>
+</head>
+<body>
+  <div class="sg-shell">
+    <aside class="sg-nav">
+      <div class="sg-brand">
+        <span class="blogo" aria-hidden="true"></span>
+        <div>
+          <div class="sg-brand-title">Brief</div>
+          <div class="sg-brand-sub">Иконки / фавиконы / ассеты</div>
+        </div>
+      </div>
+
+      <a class="on" href="#overview">Обзор</a>
+      <a href="#deliverables">Поставка</a>
+      <a href="#spec">Спецификация</a>
+      <a href="#color">Цвет и темы</a>
+      <a href="#example">Пример</a>
+      <a href="#export">Экспорт</a>
+      <a href="#checklist">Чеклист</a>
+
+      <div class="sg-divider"></div>
+      <div class="sg-small">
+        Документ использует текущие токены из <span class="sg-kbd">ui.css</span>.
+      </div>
+    </aside>
+
+    <main class="sg-main">
+      <section id="overview" class="sg-section">
+        <div class="sg-section-h">
+          <h2>Обзор</h2>
+          <span class="sg-id">#overview</span>
+        </div>
+        <div class="sg-card">
+          <div class="sg-h1">Бриф: иконки, фавиконы, бренд‑ассеты</div>
+          <p class="sg-lead">Wowhaus Wiki UI · документ для дизайна/экспорта ассетов</p>
+
+          <div class="sg-sub">Цели</div>
+          <ul>
+            <li><b>Единый визуальный язык иконок</b> для UI (навигация, действия, статусы).</li>
+            <li><b>Убрать emoji</b> из UI‑контролов; перейти на один целостный набор.</li>
+            <li>Поддержка светлой и тёмной темы + семантики состояний (<span class="sg-k">neutral</span> / <span class="sg-k">info</span> / <span class="sg-k">warn</span> / <span class="sg-k">bad</span>).</li>
+          </ul>
+        </div>
+      </section>
+
+      <section id="deliverables" class="sg-section">
+        <div class="sg-section-h">
+          <h2>Поставка</h2>
+          <span class="sg-id">#deliverables</span>
+        </div>
+        <div class="sg-card">
+          <ul>
+            <li><b>Набор иконок (SVG)</b>: основные UI‑иконки, экспортированные отдельными SVG‑файлами.</li>
+            <li><b>Набор фавиконов</b>:
+              <ul>
+                <li><code>favicon.ico</code> (мульти‑размерный, если возможно)</li>
+                <li><code>favicon-16.png</code>, <code>favicon-32.png</code>, <code>favicon-48.png</code></li>
+                <li><code>apple-touch-icon.png</code> (180×180)</li>
+                <li><code>android-chrome-192.png</code>, <code>android-chrome-512.png</code></li>
+              </ul>
+            </li>
+            <li>Опционально: вариации знака/иконки приложения (монохром / filled).</li>
+          </ul>
+        </div>
+      </section>
+
+      <section id="spec" class="sg-section">
+        <div class="sg-section-h">
+          <h2>Спецификация</h2>
+          <span class="sg-id">#spec</span>
+        </div>
+        <div class="sg-card">
+          <div class="sg-grid-2">
+            <div>
+              <div class="sg-sub">Сетка / размеры</div>
+              <div class="sg-row">
+                <span class="sg-k">16</span>
+                <span class="sg-k">20</span>
+                <span class="sg-k">24</span>
+                <span class="sg-k">опц. 12</span>
+              </div>
+              <p class="sg-note">Опциональный 12px — только при реальной необходимости (микро‑лейблы/очень плотные таблицы).</p>
+            </div>
+            <div>
+              <div class="sg-sub">Штрих / геометрия</div>
+              <ul>
+                <li>Одна согласованная толщина штриха на семейство размеров.</li>
+                <li>Rounded caps/joins — рекомендуется.</li>
+                <li>Оптическое выравнивание + pixel‑hinting на 1×.</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="sg-divider"></div>
+          <div class="sg-sub">Стиль</div>
+          <ul>
+            <li>По умолчанию — outline‑иконки.</li>
+            <li>Filled‑вариант — только по смыслу (например, активный bookmark), но в рамках общей системы.</li>
+          </ul>
+        </div>
+      </section>
+
+      <section id="color" class="sg-section">
+        <div class="sg-section-h">
+          <h2>Цвет и темы</h2>
+          <span class="sg-id">#color</span>
+        </div>
+        <div class="sg-card">
+          <ul>
+            <li>Иконки по умолчанию — монохром, наследуют цвет текста: <span class="sg-k">currentColor</span>.</li>
+            <li>Для статусных иконок допускается раскраска токенами: <span class="sg-k">--good</span>, <span class="sg-k">--info</span>, <span class="sg-k">--warn</span>, <span class="sg-k">--bad</span>.</li>
+            <li>В тёмной теме не использовать полупрозрачные штрихи, которые “пропадают”.</li>
+          </ul>
+        </div>
+      </section>
+
+      <section id="example" class="sg-section">
+        <div class="sg-section-h">
+          <h2>Пример (как должно выглядеть в UI)</h2>
+          <span class="sg-id">#example</span>
+        </div>
+        <div class="sg-card">
+          <div class="sg-sub">Иконка внутри кнопки (монохром, currentColor)</div>
+          <div class="sg-row icon-preview">
+            <button class="ph-btn ghost" type="button"><span aria-hidden="true">⛭</span> Настройки</button>
+            <button class="rr-btn primary" type="button"><span aria-hidden="true">✦</span> Закрепить</button>
+            <button class="rr-btn warn" type="button"><span aria-hidden="true">!</span> Внимание</button>
+          </div>
+
+          <div class="sg-divider"></div>
+          <div class="sg-sub">Статусная окраска (только там, где есть смысл)</div>
+          <div class="sg-row">
+            <span class="icon-swatch good">✓ good</span>
+            <span class="icon-swatch info">i info</span>
+            <span class="icon-swatch warn">! warn</span>
+            <span class="icon-swatch bad">× bad</span>
+          </div>
+
+          <div class="sg-divider"></div>
+          <div class="sg-sub">Требования к SVG (snippet)</div>
+          <div class="sg-code">&lt;svg viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; ...&gt;
+  ...
+&lt;/svg&gt;</div>
+          <p class="sg-note">Важно: дефолтные иконки — без захардкоженных цветов, только <span class="sg-k">currentColor</span>.</p>
+        </div>
+      </section>
+
+      <section id="export" class="sg-section">
+        <div class="sg-section-h">
+          <h2>Нейминг и экспорт</h2>
+          <span class="sg-id">#export</span>
+        </div>
+        <div class="sg-card">
+          <ul>
+            <li>Имена файлов: <span class="sg-k">kebab-case.svg</span> (например <code>settings.svg</code>).</li>
+            <li>Каждый SVG:
+              <ul>
+                <li>чистый <span class="sg-k">viewBox</span></li>
+                <li>без “захардкоженных” цветов (использовать <span class="sg-k">currentColor</span>)</li>
+                <li>оптимизирован (SVGO или аналог)</li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <section id="checklist" class="sg-section">
+        <div class="sg-section-h">
+          <h2>Чеклист приёмки</h2>
+          <span class="sg-id">#checklist</span>
+        </div>
+        <div class="sg-card">
+          <ul>
+            <li>Единый стиль (штрих, скругления, оптический вес).</li>
+            <li>Хорошо выглядит в light и dark теме.</li>
+            <li>Экспорт соответствует неймингу и правилу <span class="sg-k">currentColor</span>.</li>
+            <li>Читаемо на 16px.</li>
+          </ul>
+        </div>
+      </section>
+    </main>
+  </div>
+</body>
+</html>
+

@@ -1,0 +1,1105 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Wowhaus Wiki — Админ-панель</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+:root{--terra:#dd6731;--terra-d:#b8501f;--terra-bg:#fbeee5;--terra-bd:#e89971;--ink:#1a1a1a;--ink-2:#3d3d3d;--ink-3:#7a7a7a;--ink-4:#b4b2a9;--ink-5:#c0bdb3;--bd:rgba(0,0,0,0.08);--bd-soft:rgba(0,0,0,0.05);--bd-strong:rgba(0,0,0,0.12);--bg:#fafaf7;--surf:#ffffff;--surf-2:#f7f5f0;--surf-3:#efece4;--tp-proj:#8e3a14;--tp-std:#444441;--tp-sol:#0c447c;--tp-art:#3c3489;--good:#4a8a1f;--good-bg:#eef6e3;--good-bd:#b9d491;--warn:#a86a16;--warn-bg:#faecd6;--warn-bd:#e2bf80;--info-bg:#eef3f9;--info-bd:#c4d3e6;--info:#2c5687;--bad:#a32d2d;--bad-bg:#fceaea;--bad-bd:#e6a8a8;--font-sans:'Manrope',system-ui,sans-serif;--font-mono:ui-monospace,'SF Mono',Monaco,monospace;--r-sm:5px;--r-md:7px;--r-lg:10px;--r-pill:999px;--sb-w:220px}
+*,*::before,*::after{box-sizing:border-box}html,body{margin:0;padding:0}
+body{font-family:var(--font-sans);font-size:14px;line-height:1.5;color:var(--ink);background:var(--bg);-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}button{font-family:inherit;font-size:inherit;color:inherit;background:none;border:none;padding:0;cursor:pointer}
+input,textarea{font-family:inherit;font-size:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--terra);outline-offset:2px;border-radius:2px}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 24px;border-bottom:0.5px solid var(--bd);background:rgba(250,250,247,0.85);backdrop-filter:saturate(180%) blur(8px);position:sticky;top:0;z-index:20}
+.brand{display:flex;align-items:center;gap:10px}
+.blogo{width:24px;height:24px;border-radius:6px;background:var(--terra);position:relative;flex-shrink:0}
+.blogo::after{content:'';position:absolute;inset:5px 5px 9px 5px;border:1.5px solid #fff;border-bottom:none;border-radius:1px 1px 0 0}
+.blogo::before{content:'';position:absolute;bottom:5px;left:5px;right:5px;height:1.5px;background:#fff;border-radius:1px}
+.bname{font-weight:600;font-size:14px;color:var(--ink);letter-spacing:-0.01em}
+.bsep{color:var(--ink-5);margin:0 6px}.bcrumb{font-size:13px;color:var(--ink-3);font-weight:500}
+.pill{display:inline-flex;align-items:center;gap:9px;padding:7px 14px;background:var(--surf);border:0.5px solid var(--bd-strong);border-radius:var(--r-pill);font-size:13px;color:var(--ink-3);min-width:220px;cursor:pointer;transition:border-color .15s}
+.pill:hover{border-color:var(--terra-bd)}.pill .pill-i{color:var(--terra)}
+.pill kbd{margin-left:auto;font-family:var(--font-mono);font-size:10px;background:var(--surf-2);border:0.5px solid var(--bd);border-radius:4px;padding:1px 6px;color:var(--ink-2)}
+.tr{display:flex;align-items:center;gap:8px}
+.icon-btn{width:30px;height:30px;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;color:var(--ink-3);font-size:13px;cursor:pointer;transition:background .15s,color .15s}
+.icon-btn:hover{background:var(--surf-2);color:var(--ink)}
+.av{width:30px;height:30px;border-radius:50%;background:var(--surf-3);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;color:var(--ink-2);cursor:pointer}
+.role-toggle{display:inline-flex;align-items:center;gap:7px;padding:5px 11px;background:var(--terra-bg);border:0.5px solid var(--terra-bd);border-radius:var(--r-pill);font-size:11px;font-weight:500;color:var(--terra-d);cursor:pointer;transition:background .15s}
+.role-toggle:hover{background:#f5d4ba}
+.role-toggle .rt-icon{width:14px;height:14px;border-radius:50%;background:var(--terra);display:inline-flex;align-items:center;justify-content:center;color:#fff;font-size:10px;flex-shrink:0}
+.admin-shell{display:grid;grid-template-columns:var(--sb-w) 1fr;min-height:calc(100vh - 57px)}
+.sidebar{background:var(--surf);border-right:0.5px solid var(--bd);padding:22px 14px;overflow-y:auto}
+.sb-back{display:inline-flex;align-items:center;gap:7px;font-size:12px;color:var(--ink-3);padding:5px 8px;border-radius:var(--r-sm);margin-bottom:18px;font-weight:500;transition:color .15s,background .15s}
+.sb-back:hover{color:var(--ink);background:var(--surf-2)}
+.sb-section{font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-4);font-weight:500;padding:14px 10px 6px}
+.sb-section:first-of-type{padding-top:0}
+.sb-link{display:flex;align-items:center;gap:10px;padding:7px 10px;font-size:13px;color:var(--ink-2);border-radius:var(--r-sm);cursor:pointer;transition:background .12s,color .12s;font-weight:500;margin-bottom:1px}
+.sb-link:hover{background:var(--surf-2);color:var(--ink)}
+.sb-link.on{background:var(--terra-bg);color:var(--terra-d)}
+.sb-link-i{width:14px;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;font-size:13px;opacity:0.7}
+.sb-link.on .sb-link-i{opacity:1}
+.sb-link-cnt{margin-left:auto;font-size:10px;background:var(--surf-3);color:var(--ink-3);padding:1px 7px;border-radius:var(--r-pill);font-variant-numeric:tabular-nums;font-weight:500}
+.sb-link.on .sb-link-cnt{background:var(--terra);color:#fff}
+.sb-link.warn .sb-link-cnt{background:var(--warn-bg);color:var(--warn)}
+.sb-link[data-admin]{display:none}
+body.role-admin .sb-link[data-admin]{display:flex}body.role-admin .sb-section[data-admin]{display:block}
+.sb-section[data-admin]{display:none}
+.content{padding:28px 32px 40px;max-width:1240px;width:100%;overflow-x:hidden}
+.ph{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:22px}
+.ph-l{display:flex;flex-direction:column;gap:4px}
+.ph-h{font-size:24px;font-weight:600;color:var(--ink);letter-spacing:-0.02em;line-height:1.1}
+.ph-meta{font-size:12px;color:var(--ink-3)}
+.ph-actions{display:flex;gap:8px;align-items:center}
+.ph-btn{padding:8px 14px;border-radius:var(--r-md);font-size:12px;font-weight:500;transition:background .15s,border-color .15s,color .15s}
+.ph-btn.primary{background:var(--ink);color:#fff}.ph-btn.primary:hover{background:#000}
+.ph-btn.ghost{background:var(--surf);border:0.5px solid var(--bd-strong);color:var(--ink-2)}
+.ph-btn.ghost:hover{border-color:var(--terra-bd);color:var(--ink)}
+.pane{display:none}.pane.on{display:block}
+.dash-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:22px}
+.dash-card{background:var(--surf);border:0.5px solid var(--bd);border-radius:var(--r-lg);padding:16px 18px;cursor:pointer;transition:border-color .15s,transform .15s}
+.dash-card:hover{border-color:var(--terra-bd);transform:translateY(-1px)}
+.dash-card.attention{border-color:var(--warn-bd);background:linear-gradient(180deg,var(--warn-bg) 0%,var(--surf) 90%)}
+.dash-card-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:10px}
+.dash-card-t{font-size:12px;font-weight:600;color:var(--ink);letter-spacing:-0.005em}
+.dash-card-arr{color:var(--ink-3);font-size:14px}.dash-card.attention .dash-card-arr{color:var(--warn)}
+.dash-card-v{font-size:28px;font-weight:600;color:var(--ink);line-height:1;letter-spacing:-0.02em;margin-bottom:6px;font-variant-numeric:tabular-nums}
+.dash-card.attention .dash-card-v{color:var(--warn)}
+.dash-card-d{font-size:11px;color:var(--ink-3)}
+.dash-row{background:var(--surf);border:0.5px solid var(--bd);border-radius:var(--r-lg);margin-bottom:22px}
+.dash-row-head{padding:14px 18px;border-bottom:0.5px solid var(--bd-soft);display:flex;align-items:baseline;justify-content:space-between}
+.dash-row-t{font-size:13px;font-weight:600;color:var(--ink);letter-spacing:-0.005em}
+.dash-row-link{font-size:11px;color:var(--terra-d);font-weight:500}
+.dash-row-link:hover{text-decoration:underline}
+.dash-row-body{padding:4px 8px}
+.dash-act-item{display:flex;align-items:center;gap:12px;padding:9px 10px;border-radius:var(--r-sm);cursor:pointer;transition:background .12s}
+.dash-act-item:hover{background:var(--surf-2)}
+.dash-act-icon{width:26px;height:26px;border-radius:var(--r-sm);display:inline-flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0}
+.dash-act-icon.review{background:var(--info-bg);color:var(--info)}
+.dash-act-icon.compl{background:var(--terra-bg);color:var(--terra-d)}
+.dash-act-icon.facet{background:var(--surf-3);color:var(--ink-2)}
+.dash-act-icon.tag{background:#eeedfe;color:var(--tp-art)}
+.dash-act-body{flex:1;min-width:0}
+.dash-act-t{font-size:13px;color:var(--ink);font-weight:500;letter-spacing:-0.005em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dash-act-m{font-size:11px;color:var(--ink-3);margin-top:1px}
+.dash-act-time{font-size:11px;color:var(--ink-4);font-variant-numeric:tabular-nums;flex-shrink:0}
+.health-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:0}
+.health-cell{padding:12px 18px;border-right:0.5px solid var(--bd-soft);display:flex;flex-direction:column;gap:4px}
+.health-cell:last-child{border-right:none}
+.health-l{font-size:10px;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-3);font-weight:500}
+.health-v{font-size:16px;font-weight:600;color:var(--ink);letter-spacing:-0.005em;display:inline-flex;align-items:center;gap:7px}
+.health-dot{width:7px;height:7px;border-radius:50%;background:var(--good)}
+.health-dot.warn{background:var(--warn)}.health-dot.bad{background:var(--bad)}
+.health-d{font-size:11px;color:var(--ink-3)}
+.filter-bar{display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.seg{display:flex;background:var(--surf-2);border-radius:var(--r-md);padding:2px}
+.seg-btn{padding:5px 12px;font-size:12px;color:var(--ink-3);border-radius:5px;font-weight:500;transition:color .15s;display:inline-flex;align-items:center;gap:6px}
+.seg-btn:hover{color:var(--ink)}
+.seg-btn.on{background:var(--surf);color:var(--ink);box-shadow:0 0 0 0.5px var(--bd-strong)}
+.seg-btn .cnt{font-size:10px;padding:1px 6px;background:var(--surf-3);color:var(--ink-3);border-radius:var(--r-pill);font-weight:500}
+.seg-btn.on .cnt{background:var(--terra-bg);color:var(--terra-d)}
+.filter-spacer{flex:1}
+.sort-btn{padding:5px 11px;font-size:11px;color:var(--ink-2);border-radius:var(--r-sm);background:var(--surf-2);font-weight:500;display:inline-flex;align-items:center;gap:5px}
+.sort-btn:hover{background:var(--surf-3)}
+.row-card{background:var(--surf);border:0.5px solid var(--bd);border-radius:var(--r-lg);overflow:hidden}
+.row-h{display:grid;grid-template-columns:30px 1fr 200px 100px 120px 200px;align-items:center;gap:12px;padding:9px 16px;background:var(--surf-2);font-size:10px;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-3);font-weight:500;border-bottom:0.5px solid var(--bd-soft)}
+.review-row{display:grid;grid-template-columns:30px 1fr 200px 100px 120px 200px;align-items:center;gap:12px;padding:12px 16px;border-bottom:0.5px solid var(--bd-soft);transition:background .12s}
+.review-row:hover{background:var(--surf-2)}.review-row:last-child{border-bottom:none}
+.rr-icon{width:26px;height:26px;border-radius:var(--r-sm);display:inline-flex;align-items:center;justify-content:center;font-size:12px}
+.rr-icon.proj{background:var(--terra-bg);color:var(--tp-proj)}
+.rr-icon.std{background:var(--surf-3);color:var(--tp-std)}
+.rr-icon.sol{background:#e6f1fb;color:var(--tp-sol)}
+.rr-icon.art{background:#eeedfe;color:var(--tp-art)}
+.rr-title{font-weight:500;color:var(--ink);font-size:13px;letter-spacing:-0.005em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rr-tag{font-size:10px;letter-spacing:.04em;text-transform:uppercase;font-weight:500;color:var(--ink-3);display:inline-block;margin-top:1px}
+.rr-author{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--ink-2)}
+.rr-av{width:22px;height:22px;border-radius:50%;background:var(--terra-bg);color:var(--terra-d);display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:500;flex-shrink:0}
+.rr-when{font-size:12px;color:var(--ink-3);font-variant-numeric:tabular-nums}
+.rr-status{font-size:11px;padding:3px 8px;border-radius:var(--r-pill);font-weight:500;display:inline-flex;align-items:center;gap:5px;align-self:flex-start;justify-self:flex-start}
+.rr-status.review{background:var(--info-bg);color:var(--info);border:0.5px solid var(--info-bd)}
+.rr-status.changes{background:var(--warn-bg);color:var(--warn);border:0.5px solid var(--warn-bd)}
+.rr-status.new{background:var(--good-bg);color:var(--good);border:0.5px solid var(--good-bd)}
+.rr-actions{display:flex;gap:6px;justify-content:flex-end}
+.rr-btn{padding:5px 11px;border-radius:var(--r-sm);font-size:11px;font-weight:500;transition:background .15s,border-color .15s}
+.rr-btn.primary{background:var(--ink);color:#fff}.rr-btn.primary:hover{background:#000}
+.rr-btn.ghost{background:var(--surf);border:0.5px solid var(--bd-strong);color:var(--ink-2)}
+.rr-btn.ghost:hover{border-color:var(--terra-bd);color:var(--ink)}
+.rr-btn.warn{background:var(--warn-bg);color:var(--warn);border:0.5px solid var(--warn-bd)}
+.rr-btn.warn:hover{background:var(--warn);color:#fff}
+.review-return{display:none;grid-column:1 / -1;background:var(--warn-bg);border-top:0.5px solid var(--warn-bd);padding:14px 18px;border-radius:0}
+.review-row.returning .review-return{display:block}
+.review-row.returning{background:var(--warn-bg)}
+.return-h{font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--warn);font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:7px}
+.return-h::before{content:'↻';font-size:13px}
+.return-textarea{width:100%;min-height:70px;padding:10px 12px;background:#fff;border:0.5px solid var(--warn-bd);border-radius:var(--r-sm);font-size:12px;color:var(--ink);outline:none;resize:vertical;line-height:1.5;font-family:inherit}
+.return-textarea:focus{border-color:var(--warn)}
+.return-actions{display:flex;gap:8px;margin-top:10px;justify-content:flex-end}
+.return-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:9px}
+.return-chips-l{font-size:10px;letter-spacing:.04em;text-transform:uppercase;color:var(--warn);font-weight:600;margin-bottom:6px;width:100%;opacity:.85}
+.return-chip{font-size:11px;padding:5px 11px;background:var(--surf);border:0.5px solid var(--warn-bd);border-radius:var(--r-pill);color:var(--ink-2);cursor:pointer;font-weight:500;transition:background .12s,border-color .12s,color .12s;font-family:inherit}
+.return-chip:hover{border-color:var(--warn);color:var(--ink)}
+.return-chip.on{background:var(--warn);color:#fff;border-color:var(--warn)}
+.compl-grid{display:grid;grid-template-columns:1.4fr 1fr;gap:16px;align-items:flex-start}
+.compl-overview{background:var(--surf);border:0.5px solid var(--bd);border-radius:var(--r-lg);padding:16px 18px}
+.compl-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:0;margin-bottom:14px;padding-bottom:14px;border-bottom:0.5px solid var(--bd-soft)}
+.compl-stat{padding:0 14px 0 0;border-right:0.5px solid var(--bd-soft);display:flex;flex-direction:column;gap:3px}
+.compl-stat:not(:first-child){padding-left:18px}.compl-stat:last-child{border-right:none}
+.compl-stat-l{font-size:10px;letter-spacing:.04em;color:var(--ink-3);font-weight:500}
+.compl-stat-v{font-size:22px;font-weight:600;color:var(--ink);line-height:1;letter-spacing:-0.015em;font-variant-numeric:tabular-nums}
+.compl-stat-v.good{color:var(--good)}.compl-stat-v.warn{color:var(--warn)}.compl-stat-v.bad{color:var(--bad)}
+.compl-controls{display:flex;align-items:center;gap:8px;margin:6px 0 12px;flex-wrap:wrap}
+.compl-controls-l{font-size:10px;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-3);font-weight:500;margin-right:2px}
+.compl-spacer{flex:1}
+.compl-add{font-size:11px;padding:6px 12px;background:var(--ink);color:#fff;border-radius:var(--r-sm);font-weight:500}
+.compl-add:hover{background:#000}
+.compl-group-h{display:flex;align-items:baseline;gap:8px;padding:14px 0 6px;font-size:10px;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-4);font-weight:500;border-top:0.5px solid var(--bd-soft)}
+.compl-group-h:first-of-type{border-top:none;padding-top:4px}
+.compl-group-h-cnt{font-size:10px;background:var(--surf-3);color:var(--ink-3);padding:1px 7px;border-radius:var(--r-pill);font-weight:500;letter-spacing:0;text-transform:none}
+.compl-row{display:grid;grid-template-columns:1fr 80px 100px 80px;gap:12px;padding:10px 6px;border-bottom:0.5px solid var(--bd-soft);align-items:center;font-size:13px;cursor:pointer;transition:background .12s;border-radius:var(--r-sm);margin-left:-6px;margin-right:-6px}
+.compl-row:hover{background:var(--surf-2)}
+.compl-row.active{background:var(--terra-bg)}
+.compl-row:last-child{border-bottom:none}
+.compl-row-t{color:var(--ink);font-weight:500;letter-spacing:-0.005em;display:flex;align-items:center;gap:8px;overflow:hidden}
+.compl-row-t .tm-dot{width:6px;height:6px;border-radius:50%;background:var(--tp-std);flex-shrink:0}
+.compl-row-t .tname{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.compl-row-num{font-size:12px;color:var(--ink-2);font-variant-numeric:tabular-nums;font-weight:500}
+.compl-progress{height:4px;background:var(--surf-3);border-radius:2px;overflow:hidden}
+.compl-progress-fill{height:100%;background:var(--good);border-radius:2px}
+.compl-progress-fill.warn{background:var(--warn)}.compl-progress-fill.bad{background:var(--bad)}
+.compl-pct{font-size:11px;color:var(--ink-3);font-variant-numeric:tabular-nums;text-align:right}
+.compl-detail{background:var(--surf);border:0.5px solid var(--bd);border-radius:var(--r-lg);padding:16px 18px}
+.compl-d-h{font-size:12px;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-4);font-weight:500;margin-bottom:4px}
+.compl-d-t{font-size:16px;font-weight:600;color:var(--ink);letter-spacing:-0.01em;line-height:1.25;margin-bottom:14px}
+.compl-d-meta{display:flex;flex-direction:column;gap:8px;padding-bottom:14px;margin-bottom:14px;border-bottom:0.5px solid var(--bd-soft)}
+.compl-d-row{display:grid;grid-template-columns:110px 1fr;gap:12px;font-size:12px;align-items:baseline}
+.compl-d-k{color:var(--ink-3)}
+.compl-d-v{color:var(--ink);font-weight:500;display:flex;flex-wrap:wrap;gap:5px}
+.group-tag{font-size:11px;padding:3px 9px;background:var(--surf-2);color:var(--ink-2);border-radius:var(--r-pill);font-weight:500}
+.group-tag.dept{background:#e6f1fb;color:var(--tp-sol)}
+.group-tag.role{background:#eeedfe;color:var(--tp-art)}
+.compl-d-readers-h{font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-3);font-weight:500;margin-bottom:8px;display:flex;align-items:baseline;justify-content:space-between}
+.compl-d-bar{height:6px;background:var(--surf-3);border-radius:3px;overflow:hidden;margin-bottom:6px}
+.compl-d-bar-fill{height:100%;background:var(--good);border-radius:3px}
+.compl-d-bar-fill.warn{background:var(--warn)}
+.compl-d-pct-row{display:flex;justify-content:space-between;font-size:11px;color:var(--ink-3);margin-bottom:12px}
+.compl-d-readers-list{display:flex;flex-direction:column;gap:5px;max-height:220px;overflow-y:auto}
+.compl-reader{display:flex;align-items:center;gap:8px;padding:5px 7px;border-radius:var(--r-sm)}
+.compl-reader-av{width:22px;height:22px;border-radius:50%;background:var(--surf-3);color:var(--ink-2);display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:500;flex-shrink:0}
+.compl-reader-name{font-size:12px;color:var(--ink-2);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.compl-reader-status{font-size:11px;flex-shrink:0;font-variant-numeric:tabular-nums}
+.compl-reader-status.ok{color:var(--good)}.compl-reader-status.late{color:var(--warn)}.compl-reader-status.miss{color:var(--bad)}
+.assign-panel{background:var(--surf);border:0.5px solid var(--bd);border-radius:var(--r-lg);padding:16px 18px;margin-top:16px}
+.assign-h{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.assign-h-t{font-size:13px;font-weight:600;color:var(--ink);letter-spacing:-0.005em}
+.assign-h-badge{font-size:9px;padding:2px 7px;background:var(--terra-bg);color:var(--terra-d);border:0.5px solid var(--terra-bd);border-radius:var(--r-pill);font-weight:500;letter-spacing:.04em;text-transform:uppercase}
+.assign-d{font-size:11px;color:var(--ink-3);margin-bottom:12px;line-height:1.5}
+.assign-search{position:relative;margin-bottom:10px}
+.assign-search input{width:100%;height:34px;padding:0 12px 0 32px;background:var(--bg);border:0.5px solid var(--bd-strong);border-radius:var(--r-sm);font-size:12px;color:var(--ink);outline:none}
+.assign-search input:focus{border-color:var(--terra)}
+.assign-search-i{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--ink-4);font-size:12px}
+.assign-selected{display:flex;flex-wrap:wrap;gap:5px;padding:8px 0;min-height:26px}
+.assign-pick{display:inline-flex;align-items:center;gap:6px;padding:3px 8px 3px 4px;background:var(--terra-bg);color:var(--terra-d);border:0.5px solid var(--terra-bd);border-radius:var(--r-pill);font-size:11px;font-weight:500}
+.assign-pick-av{width:18px;height:18px;border-radius:50%;background:var(--terra);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:9px;font-weight:600}
+.assign-pick-x{opacity:.5;cursor:pointer;font-size:13px;line-height:1}.assign-pick-x:hover{opacity:1}
+.assign-list{display:flex;flex-direction:column;gap:1px;max-height:200px;overflow-y:auto;background:var(--bg);border-radius:var(--r-sm);padding:4px;margin-bottom:12px}
+.assign-item{display:flex;align-items:center;gap:8px;padding:6px 7px;border-radius:var(--r-sm);font-size:12px;cursor:pointer;transition:background .12s}
+.assign-item:hover{background:var(--surf-2)}
+.assign-item.disabled{opacity:0.45;cursor:not-allowed}
+.assign-item-av{width:22px;height:22px;border-radius:50%;background:var(--surf-3);color:var(--ink-2);display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:500;flex-shrink:0}
+.assign-item-body{flex:1;min-width:0;overflow:hidden}
+.assign-item-name{font-size:12px;color:var(--ink);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.assign-item-meta{font-size:10px;color:var(--ink-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.assign-item-warn{font-size:10px;color:var(--warn);flex-shrink:0;font-style:italic}
+.assign-warn-banner{display:flex;gap:8px;align-items:flex-start;padding:8px 12px;background:var(--warn-bg);border:0.5px solid var(--warn-bd);border-radius:var(--r-sm);font-size:11px;color:var(--ink-2);margin-bottom:12px;line-height:1.45}
+.assign-warn-banner b{color:var(--warn);font-weight:600}
+.assign-warn-icon{flex-shrink:0;font-size:12px;color:var(--warn);font-weight:600}
+.assign-actions{display:flex;gap:8px}
+.assign-actions .ph-btn{padding:7px 14px}
+.tags-grid{background:var(--surf);border:0.5px solid var(--bd);border-radius:var(--r-lg);overflow:hidden}
+.tag-row-h{display:grid;grid-template-columns:1fr 100px 110px 130px 200px;gap:12px;padding:9px 16px;background:var(--surf-2);font-size:10px;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-3);font-weight:500;border-bottom:0.5px solid var(--bd-soft)}
+.tag-row{display:grid;grid-template-columns:1fr 100px 110px 130px 200px;gap:12px;padding:11px 16px;align-items:center;border-bottom:0.5px solid var(--bd-soft);transition:background .12s}
+.tag-row:last-child{border-bottom:none}.tag-row:hover{background:var(--surf-2)}
+.tag-name{font-size:13px;font-weight:600;color:var(--ink);letter-spacing:-0.005em;display:inline-flex;align-items:center;gap:6px}
+.tag-name::before{content:'#';color:var(--ink-4);font-weight:400}
+.tag-cnt{font-size:12px;color:var(--ink-2);font-weight:500;font-variant-numeric:tabular-nums}
+.tag-status{font-size:11px;padding:3px 8px;border-radius:var(--r-pill);font-weight:500;align-self:flex-start;justify-self:flex-start}
+.tag-status.live{background:var(--good-bg);color:var(--good);border:0.5px solid var(--good-bd)}
+.tag-status.pending{background:var(--info-bg);color:var(--info);border:0.5px solid var(--info-bd)}
+.tag-when{font-size:12px;color:var(--ink-3);font-variant-numeric:tabular-nums}
+.tag-actions{display:flex;gap:5px;justify-content:flex-end}
+.tag-btn{padding:4px 9px;font-size:11px;border-radius:var(--r-sm);font-weight:500;color:var(--ink-2);transition:background .12s}
+.tag-btn:hover{background:var(--surf);color:var(--ink)}
+.tag-btn.danger{color:var(--bad)}.tag-btn.danger:hover{background:var(--bad-bg)}
+.facets-shell{display:grid;grid-template-columns:220px 1fr;gap:16px}
+.facet-cats{background:var(--surf);border:0.5px solid var(--bd);border-radius:var(--r-lg);overflow:hidden}
+.facet-cat{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;font-size:13px;color:var(--ink-2);cursor:pointer;border-bottom:0.5px solid var(--bd-soft);font-weight:500;transition:background .12s,color .12s}
+.facet-cat:last-child{border-bottom:none}
+.facet-cat:hover{background:var(--surf-2);color:var(--ink)}
+.facet-cat.on{background:var(--terra-bg);color:var(--terra-d)}
+.facet-cat-cnt{font-size:10px;background:var(--surf-3);color:var(--ink-3);padding:1px 7px;border-radius:var(--r-pill);font-weight:500}
+.facet-cat.on .facet-cat-cnt{background:var(--terra);color:#fff}
+.facet-detail{background:var(--surf);border:0.5px solid var(--bd);border-radius:var(--r-lg);padding:16px 18px}
+.facet-detail-h{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:14px;padding-bottom:12px;border-bottom:0.5px solid var(--bd-soft)}
+.facet-detail-t{font-size:16px;font-weight:600;color:var(--ink);letter-spacing:-0.01em}
+.facet-detail-d{font-size:11px;color:var(--ink-3)}
+.facet-pending-banner{display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--info-bg);border:0.5px solid var(--info-bd);border-radius:var(--r-md);margin-bottom:14px;font-size:12px}
+.facet-pending-icon{width:22px;height:22px;border-radius:50%;background:var(--info);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;flex-shrink:0}
+.facet-pending-text{flex:1;color:var(--ink)}
+.facet-pending-text b{color:var(--info)}
+.facet-values{display:flex;flex-wrap:wrap;gap:6px}
+.fv-pill{display:inline-flex;align-items:center;gap:7px;padding:5px 11px;background:var(--surf);color:var(--ink-2);border:0.5px solid var(--bd-strong);border-radius:var(--r-pill);font-size:12px;font-weight:500}
+.fv-pill .fv-cnt{font-size:10px;background:var(--surf-2);color:var(--ink-3);padding:0 6px;border-radius:var(--r-pill)}
+.fv-pill.pending{background:var(--info-bg);border-color:var(--info-bd);color:var(--info)}
+.fv-pill.pending .fv-cnt{background:rgba(255,255,255,0.6);color:var(--info)}
+.fv-pill .fv-edit{font-size:11px;opacity:0.5;cursor:pointer}.fv-pill .fv-edit:hover{opacity:1}
+.fv-actions{display:inline-flex;gap:4px;margin-left:4px}
+.fv-act-btn{width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;border-radius:3px;font-size:11px;transition:background .12s}
+.fv-act-btn.approve{background:var(--good-bg);color:var(--good)}.fv-act-btn.approve:hover{background:var(--good);color:#fff}
+.fv-act-btn.reject{background:var(--bad-bg);color:var(--bad)}.fv-act-btn.reject:hover{background:var(--bad);color:#fff}
+.trash-bulk-bar{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--terra-bg);border:0.5px solid var(--terra-bd);border-radius:var(--r-md);margin-bottom:12px;font-size:12px}
+.trash-bulk-bar.empty{display:none}
+.trash-bulk-cnt{font-weight:600;color:var(--terra-d)}
+.trash-bulk-spacer{flex:1}
+.trash-grid{background:var(--surf);border:0.5px solid var(--bd);border-radius:var(--r-lg);overflow:hidden}
+.trash-row-h{display:grid;grid-template-columns:24px 30px 1fr 140px 100px 110px 200px;gap:12px;padding:9px 16px;background:var(--surf-2);font-size:10px;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-3);font-weight:500;border-bottom:0.5px solid var(--bd-soft);align-items:center}
+.trash-row{display:grid;grid-template-columns:24px 30px 1fr 140px 100px 110px 200px;gap:12px;padding:11px 16px;align-items:center;border-bottom:0.5px solid var(--bd-soft);transition:background .12s}
+.trash-row:hover{background:var(--surf-2)}
+.trash-row.checked{background:var(--terra-bg)}
+.trash-row:last-child{border-bottom:none}
+.trash-checkbox{width:16px;height:16px;border:1.5px solid var(--bd-strong);border-radius:3px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;background:var(--surf);transition:all .12s}
+.trash-checkbox:hover{border-color:var(--terra-bd)}
+.trash-checkbox.on{background:var(--terra);border-color:var(--terra);color:#fff;font-size:11px}
+.trash-checkbox.on::after{content:'✓'}
+.trash-title{font-size:13px;font-weight:500;color:var(--ink);letter-spacing:-0.005em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.trash-meta{font-size:11px;color:var(--ink-3);margin-top:1px}
+.trash-deleted-by{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--ink-2)}
+.trash-when,.trash-expires{font-size:12px;color:var(--ink-3);font-variant-numeric:tabular-nums}
+.trash-expires.soon{color:var(--warn);font-weight:500}
+.onb-modes{display:flex;align-items:center;gap:8px;margin-bottom:14px}
+.onb-shell{display:grid;grid-template-columns:220px 1fr;gap:16px}
+.onb-tracks{background:var(--surf);border:0.5px solid var(--bd);border-radius:var(--r-lg);overflow:hidden}
+.onb-track-h{padding:12px 14px;border-bottom:0.5px solid var(--bd-soft);display:flex;justify-content:space-between;align-items:center}
+.onb-track-h-t{font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-3);font-weight:500}
+.onb-track{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;font-size:13px;color:var(--ink-2);cursor:pointer;border-bottom:0.5px solid var(--bd-soft);font-weight:500;transition:background .12s,color .12s}
+.onb-track:last-child{border-bottom:none}
+.onb-track:hover{background:var(--surf-2);color:var(--ink)}
+.onb-track.on{background:var(--terra-bg);color:var(--terra-d)}
+.onb-track-cnt{font-size:10px;background:var(--surf-3);color:var(--ink-3);padding:1px 7px;border-radius:var(--r-pill);font-weight:500}
+.onb-track.on .onb-track-cnt{background:var(--terra);color:#fff}
+.onb-detail{background:var(--surf);border:0.5px solid var(--bd);border-radius:var(--r-lg);padding:16px 18px}
+.onb-detail-h{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:14px;padding-bottom:12px;border-bottom:0.5px solid var(--bd-soft)}
+.onb-detail-t{font-size:16px;font-weight:600;color:var(--ink);letter-spacing:-0.01em}
+.onb-detail-d{font-size:11px;color:var(--ink-3)}
+.onb-step-list{display:flex;flex-direction:column;gap:6px;margin-bottom:16px}
+.onb-step{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--bg);border:0.5px solid var(--bd-soft);border-radius:var(--r-md);cursor:grab;transition:border-color .12s}
+.onb-step:hover{border-color:var(--terra-bd)}
+.onb-grip{color:var(--ink-4);font-size:12px;flex-shrink:0}
+.onb-num{width:22px;height:22px;background:var(--terra-bg);color:var(--terra-d);border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;flex-shrink:0}
+.onb-step-icon{width:26px;height:26px;border-radius:var(--r-sm);display:inline-flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0}
+.onb-step-icon.proj{background:var(--terra-bg);color:var(--tp-proj)}
+.onb-step-icon.std{background:var(--surf-3);color:var(--tp-std)}
+.onb-step-icon.sol{background:#e6f1fb;color:var(--tp-sol)}
+.onb-step-icon.art{background:#eeedfe;color:var(--tp-art)}
+.onb-step-body{flex:1;min-width:0}
+.onb-step-name{font-size:13px;font-weight:500;color:var(--ink);letter-spacing:-0.005em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.onb-step-meta{font-size:11px;color:var(--ink-3)}
+.onb-step-actions{display:flex;gap:4px}
+.onb-step-btn{width:24px;height:24px;display:inline-flex;align-items:center;justify-content:center;border-radius:var(--r-sm);color:var(--ink-3);font-size:12px}
+.onb-step-btn:hover{background:var(--surf-2);color:var(--ink)}
+.onb-add-step{display:flex;align-items:center;gap:8px;padding:10px 12px;border:0.5px dashed var(--bd-strong);border-radius:var(--r-md);font-size:12px;color:var(--ink-3);font-weight:500;cursor:pointer;transition:border-color .12s,color .12s;width:100%;justify-content:center}
+.onb-add-step:hover{border-color:var(--terra-bd);color:var(--terra-d)}
+.onb-newcomers{background:var(--surf);border:0.5px solid var(--bd);border-radius:var(--r-lg);overflow:hidden}
+.nc-row-h{display:grid;grid-template-columns:1fr 200px 110px 100px 120px;gap:12px;padding:9px 16px;background:var(--surf-2);font-size:10px;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-3);font-weight:500;border-bottom:0.5px solid var(--bd-soft)}
+.nc-row{display:grid;grid-template-columns:1fr 200px 110px 100px 120px;gap:12px;padding:11px 16px;align-items:center;border-bottom:0.5px solid var(--bd-soft);transition:background .12s;cursor:pointer}
+.nc-row:hover{background:var(--surf-2)}
+.nc-row:last-child{border-bottom:none}
+.nc-name{display:flex;align-items:center;gap:10px}
+.nc-av{width:30px;height:30px;border-radius:50%;background:var(--terra-bg);color:var(--terra-d);display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;flex-shrink:0}
+.nc-name-text{font-size:13px;font-weight:500;color:var(--ink);letter-spacing:-0.005em}
+.nc-name-meta{font-size:11px;color:var(--ink-3);margin-top:1px}
+.nc-progress-cell{display:flex;align-items:center;gap:8px}
+.nc-progress-bar{flex:1;height:5px;background:var(--surf-3);border-radius:3px;overflow:hidden}
+.nc-progress-fill{height:100%;background:var(--good);border-radius:3px}
+.nc-progress-fill.warn{background:var(--warn)}
+.nc-progress-pct{font-size:11px;color:var(--ink-3);font-variant-numeric:tabular-nums;min-width:40px;text-align:right}
+.nc-step{font-size:12px;color:var(--ink-2);font-weight:500;font-variant-numeric:tabular-nums}
+.nc-since{font-size:11px;color:var(--ink-3);font-variant-numeric:tabular-nums}
+.nc-status{font-size:11px;font-weight:500}
+.nc-status.ok{color:var(--good)}.nc-status.warn{color:var(--warn)}
+.anal-controls{display:flex;align-items:center;gap:8px;margin-bottom:14px}
+.anal-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px}
+.anal-stat{background:var(--surf);border:0.5px solid var(--bd);border-radius:var(--r-lg);padding:14px 16px;display:flex;flex-direction:column;gap:4px}
+.anal-stat-l{font-size:10px;letter-spacing:.04em;color:var(--ink-3);font-weight:500}
+.anal-stat-v{font-size:24px;font-weight:600;color:var(--ink);line-height:1;letter-spacing:-0.02em;font-variant-numeric:tabular-nums}
+.anal-stat-t{font-size:11px;color:var(--good);font-weight:500}
+.anal-stat-t.bad{color:var(--bad)}.anal-stat-t.flat{color:var(--ink-3)}
+.anal-row{display:grid;grid-template-columns:1.5fr 1fr;gap:12px;margin-bottom:18px}
+.anal-card{background:var(--surf);border:0.5px solid var(--bd);border-radius:var(--r-lg);padding:14px 16px}
+.anal-card-h{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:12px}
+.anal-card-t{font-size:13px;font-weight:600;color:var(--ink);letter-spacing:-0.005em}
+.anal-card-d{font-size:11px;color:var(--ink-3)}
+.anal-chart{height:130px;position:relative}
+.anal-bar-row{display:flex;flex-direction:column;gap:7px}
+.anal-bar{display:grid;grid-template-columns:130px 1fr 50px;gap:10px;align-items:center;font-size:12px}
+.anal-bar-name{color:var(--ink-2);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.anal-bar-track{height:7px;background:var(--surf-2);border-radius:3px;overflow:hidden}
+.anal-bar-fill{height:100%;background:var(--terra);border-radius:3px}
+.anal-bar-fill.miss{background:var(--bad)}
+.anal-bar-cnt{color:var(--ink-3);font-variant-numeric:tabular-nums;text-align:right}
+.anal-list-row{display:grid;grid-template-columns:1fr 60px;gap:10px;padding:8px 0;border-bottom:0.5px solid var(--bd-soft);align-items:center;font-size:12px}
+.anal-list-row:last-child{border-bottom:none}
+.anal-list-name{color:var(--ink);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.anal-list-name code{font-family:var(--font-mono);background:var(--surf-2);padding:1px 5px;border-radius:3px;font-size:11px;border:0.5px solid var(--bd)}
+.anal-list-cnt{font-variant-numeric:tabular-nums;color:var(--ink-3);text-align:right;font-weight:500}
+.anal-list-cnt.miss{color:var(--bad)}
+.sys-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px}
+.sys-stat{background:var(--surf);border:0.5px solid var(--bd);border-radius:var(--r-lg);padding:14px 16px}
+.sys-stat.warn-card{border-color:var(--warn-bd);background:linear-gradient(180deg,var(--warn-bg) 0%,var(--surf) 90%)}
+.sys-stat-h{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px}
+.sys-stat-t{font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-3);font-weight:500}
+.sys-stat-status{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:500;color:var(--good)}
+.sys-stat-status.warn{color:var(--warn)}.sys-stat-status.bad{color:var(--bad)}
+.sys-stat-v{font-size:22px;font-weight:600;color:var(--ink);line-height:1;letter-spacing:-0.015em;margin-bottom:4px;font-variant-numeric:tabular-nums}
+.sys-stat-d{font-size:11px;color:var(--ink-3)}
+.sys-list{background:var(--surf);border:0.5px solid var(--bd);border-radius:var(--r-lg);overflow:hidden}
+.sys-list-h{padding:11px 16px;background:var(--surf-2);border-bottom:0.5px solid var(--bd-soft);font-size:12px;font-weight:600;color:var(--ink);letter-spacing:-0.005em;display:flex;align-items:center;justify-content:space-between}
+.sys-row{display:grid;grid-template-columns:240px 1fr 80px 100px 80px;gap:12px;padding:10px 16px;align-items:center;border-bottom:0.5px solid var(--bd-soft);font-size:12px;cursor:pointer;transition:background .12s}
+.sys-row:hover{background:var(--surf-2)}
+.sys-row:last-child{border-bottom:none}
+.sys-ep{font-family:var(--font-mono);font-size:11px;color:var(--ink);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sys-method{font-size:10px;padding:2px 6px;border-radius:3px;font-weight:600;letter-spacing:.04em;flex-shrink:0;font-family:var(--font-mono)}
+.sys-method.get{background:#e6f1fb;color:var(--tp-sol)}
+.sys-method.post{background:var(--good-bg);color:var(--good)}
+.sys-method.put{background:var(--warn-bg);color:var(--warn)}
+.sys-method.delete{background:var(--bad-bg);color:var(--bad)}
+.sys-ep-row{display:flex;align-items:center;gap:8px;overflow:hidden}
+.sys-desc{font-size:11px;color:var(--ink-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sys-num{font-variant-numeric:tabular-nums;color:var(--ink-2);font-weight:500;text-align:right}
+.sys-pct{font-variant-numeric:tabular-nums;color:var(--ink-3);text-align:right}
+.sys-pct.warn{color:var(--warn)}.sys-pct.bad{color:var(--bad)}
+.logs-toolbar{display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.logs-search{position:relative;flex:1;min-width:180px}
+.logs-search input{width:100%;height:32px;padding:0 12px 0 32px;background:var(--surf);border:0.5px solid var(--bd-strong);border-radius:var(--r-sm);font-size:12px;color:var(--ink);outline:none;font-family:var(--font-mono)}
+.logs-search input:focus{border-color:var(--terra)}
+.logs-search-i{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--ink-4);font-size:12px}
+.logs-list{background:var(--surf);border:0.5px solid var(--bd);border-radius:var(--r-lg);overflow:hidden;font-family:var(--font-mono)}
+.logs-row{display:grid;grid-template-columns:110px 60px 60px 80px 1fr 14px;gap:10px;padding:8px 14px;align-items:center;border-bottom:0.5px solid var(--bd-soft);font-size:11px;cursor:pointer;transition:background .1s}
+.logs-row:last-child{border-bottom:none}
+.logs-row:hover{background:var(--surf-2)}
+.logs-row.expanded{background:var(--surf-2)}
+.logs-row.expanded .logs-chev{transform:rotate(90deg)}
+.logs-time{color:var(--ink-3);font-variant-numeric:tabular-nums}
+.logs-level{font-size:9px;padding:2px 6px;border-radius:3px;font-weight:600;letter-spacing:.04em;text-align:center;text-transform:uppercase}
+.logs-level.info{background:var(--info-bg);color:var(--info)}
+.logs-level.warn{background:var(--warn-bg);color:var(--warn)}
+.logs-level.error{background:var(--bad-bg);color:var(--bad)}
+.logs-level.debug{background:var(--surf-2);color:var(--ink-3)}
+.logs-status{font-variant-numeric:tabular-nums;font-weight:500}
+.logs-status.ok{color:var(--good)}.logs-status.warn{color:var(--warn)}.logs-status.bad{color:var(--bad)}
+.logs-msg{color:var(--ink);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.logs-msg .meta{color:var(--ink-3);font-weight:400}
+.logs-chev{color:var(--ink-4);font-size:10px;transition:transform .15s;text-align:right}
+.logs-detail{display:none;grid-column:1 / -1;background:#1a1a1a;color:#dadada;padding:12px 16px;font-size:11px;border-radius:var(--r-sm);margin-top:8px;line-height:1.6;overflow-x:auto}
+.logs-row.expanded .logs-detail{display:block}
+.logs-detail .ld-h{color:#888;text-transform:uppercase;font-size:9px;letter-spacing:.06em;margin-top:8px;margin-bottom:4px}
+.logs-detail .ld-h:first-child{margin-top:0}
+.logs-detail .ld-key{color:#dd6731}
+.logs-detail .ld-val{color:#dadada}
+.logs-detail .ld-str{color:#a8d49b}
+.logs-detail .ld-num{color:#a8c5dd}
+.backup-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+.backup-card{background:var(--surf);border:0.5px solid var(--bd);border-radius:var(--r-lg);padding:16px 18px}
+.backup-card-h{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:12px}
+.backup-card-t{font-size:13px;font-weight:600;color:var(--ink);letter-spacing:-0.005em}
+.backup-info-row{display:grid;grid-template-columns:130px 1fr;gap:12px;padding:6px 0;font-size:12px}
+.backup-info-k{color:var(--ink-3)}.backup-info-v{color:var(--ink);font-weight:500}
+.backup-action-row{display:flex;gap:8px;margin-top:12px;padding-top:12px;border-top:0.5px solid var(--bd-soft)}
+.backup-history{background:var(--surf);border:0.5px solid var(--bd);border-radius:var(--r-lg);overflow:hidden}
+.backup-row-h{display:grid;grid-template-columns:200px 1fr 100px 80px 200px;gap:12px;padding:9px 16px;background:var(--surf-2);font-size:10px;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-3);font-weight:500;border-bottom:0.5px solid var(--bd-soft)}
+.backup-row{display:grid;grid-template-columns:200px 1fr 100px 80px 200px;gap:12px;padding:11px 16px;align-items:center;border-bottom:0.5px solid var(--bd-soft);font-size:12px}
+.backup-row:last-child{border-bottom:none}
+.backup-row:hover{background:var(--surf-2)}
+.backup-when{font-variant-numeric:tabular-nums;color:var(--ink);font-weight:500}
+.backup-type{font-size:10px;padding:2px 8px;border-radius:3px;font-weight:500;letter-spacing:.04em;text-transform:uppercase;align-self:flex-start;justify-self:flex-start}
+.backup-type.auto{background:var(--info-bg);color:var(--info)}
+.backup-type.manual{background:var(--terra-bg);color:var(--terra-d)}
+.backup-size{font-variant-numeric:tabular-nums;color:var(--ink-2);text-align:right}
+.backup-status{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:500;color:var(--good)}
+.backup-actions{display:flex;gap:5px;justify-content:flex-end}
+.modal-backdrop{position:fixed;inset:0;background:rgba(26,26,26,0.5);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);z-index:100;display:none;align-items:flex-start;justify-content:center;padding:48px 24px 24px;overflow-y:auto}
+.modal-backdrop.on{display:flex}
+.modal{background:var(--surf);border-radius:var(--r-lg);width:100%;max-width:520px;box-shadow:0 24px 60px rgba(0,0,0,0.18);border:0.5px solid var(--bd);animation:modalIn .18s ease-out}
+@keyframes modalIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+.modal-h{display:flex;align-items:flex-start;gap:14px;padding:20px 22px 16px;border-bottom:0.5px solid var(--bd-soft)}
+.modal-h .nc-mod-av{width:48px;height:48px;border-radius:50%;background:var(--terra-bg);color:var(--terra-d);display:inline-flex;align-items:center;justify-content:center;font-size:16px;font-weight:600;flex-shrink:0;letter-spacing:-0.005em}
+.modal-h-body{flex:1;min-width:0}
+.modal-h-t{font-size:17px;font-weight:600;color:var(--ink);letter-spacing:-0.01em;margin:0 0 3px;line-height:1.25}
+.modal-h-d{font-size:12px;color:var(--ink-3);line-height:1.5}
+.modal-h-d b{color:var(--ink-2);font-weight:500}
+.modal-close{margin-left:auto;width:28px;height:28px;display:inline-flex;align-items:center;justify-content:center;color:var(--ink-3);font-size:18px;border-radius:var(--r-sm);flex-shrink:0;line-height:1}
+.modal-close:hover{background:var(--surf-2);color:var(--ink)}
+.modal-body{padding:16px 22px 4px}
+.modal-foot{padding:13px 22px;border-top:0.5px solid var(--bd-soft);background:var(--surf-2);display:flex;gap:8px;justify-content:flex-end;border-bottom-left-radius:var(--r-lg);border-bottom-right-radius:var(--r-lg)}
+.nc-mod-banner{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--warn-bg);border:0.5px solid var(--warn-bd);border-radius:var(--r-sm);font-size:12px;color:var(--warn);font-weight:500;margin-bottom:14px;line-height:1.4}
+.nc-mod-banner::before{content:'!';width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;background:var(--warn);color:#fff;border-radius:50%;font-weight:700;font-size:11px;flex-shrink:0}
+.nc-mod-banner b{color:var(--warn)}
+.nc-mod-section-h{font-size:10px;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-3);font-weight:500;margin:4px 0 8px}
+.nc-mod-step{display:flex;align-items:center;gap:11px;padding:9px 0;border-bottom:0.5px solid var(--bd-soft);font-size:13px}
+.nc-mod-step:last-child{border-bottom:none}
+.nc-mod-status{width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;flex-shrink:0;border-radius:50%}
+.nc-mod-status.done{background:var(--good-bg);color:var(--good)}
+.nc-mod-status.now{background:var(--terra-bg);color:var(--terra-d)}
+.nc-mod-status.todo{background:var(--surf-3);color:var(--ink-4)}
+.nc-mod-step-name{flex:1;color:var(--ink);font-weight:500;letter-spacing:-0.005em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nc-mod-step.done .nc-mod-step-name{color:var(--ink-2)}
+.nc-mod-step.todo .nc-mod-step-name{color:var(--ink-4)}
+.nc-mod-step-when{font-size:11px;color:var(--ink-3);font-variant-numeric:tabular-nums;flex-shrink:0}
+.nc-mod-step-when.now{color:var(--terra-d);font-weight:500}
+[data-role-admin]{display:none}body.role-admin [data-role-admin]{display:inline-flex}
+[data-role-manager-only]{display:inline-flex}body.role-admin [data-role-manager-only]{display:none}
+.dash-row[data-admin]{display:none}body.role-admin .dash-row[data-admin]{display:block}
+@media (max-width:1100px){.compl-grid{grid-template-columns:1fr}.facets-shell,.onb-shell{grid-template-columns:1fr}.facet-cats,.onb-tracks{display:flex;flex-wrap:wrap}.facet-cat,.onb-track{border-bottom:none;border-right:0.5px solid var(--bd-soft);padding:8px 12px}.anal-grid{grid-template-columns:repeat(2,1fr)}.anal-row{grid-template-columns:1fr}.sys-grid{grid-template-columns:1fr}.backup-grid{grid-template-columns:1fr}}
+@media (max-width:880px){.admin-shell{grid-template-columns:1fr}.sidebar{position:sticky;top:57px;z-index:10;border-right:none;border-bottom:0.5px solid var(--bd);padding:12px 16px}.dash-grid{grid-template-columns:1fr 1fr}.health-grid{grid-template-columns:1fr}.health-cell{border-right:none}}
+@media (max-width:540px){.topbar{padding:12px 16px}.pill{display:none}.content{padding:18px 16px 28px}.dash-grid,.anal-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body class="role-manager">
+<header class="topbar">
+<a class="brand" href="hub-mockup.html"><span class="blogo"></span><span class="bname">Wowhaus</span><span class="bsep">/</span><span class="bcrumb">Админ-панель</span></a>
+<button class="pill"><span class="pill-i">⌕</span><span>Поиск, навигация, действия</span><kbd>⌘ K</kbd></button>
+<div class="tr">
+<button class="role-toggle" id="roleToggle"><span class="rt-icon" id="rtIcon">М</span><span id="rtLabel">Менеджер</span><span style="opacity:0.5;font-size:9px;">⇆</span></button>
+<button class="icon-btn">◐</button><button class="av">АМ</button>
+</div>
+</header>
+<div class="admin-shell">
+<aside class="sidebar">
+<a class="sb-back" href="hub-mockup.html"><span>←</span><span>В Хаб</span></a>
+<div class="sb-section">Общее</div>
+<a class="sb-link on" data-pane="dashboard"><span class="sb-link-i">⊞</span><span>Дашборд</span></a>
+<div class="sb-section">Контент</div>
+<a class="sb-link warn" data-pane="review"><span class="sb-link-i">⏵</span><span>Очередь ревью</span><span class="sb-link-cnt">7</span></a>
+<a class="sb-link" data-admin data-pane="trash"><span class="sb-link-i">⊠</span><span>Корзина</span><span class="sb-link-cnt">11</span></a>
+<a class="sb-link" data-pane="facets"><span class="sb-link-i">⌘</span><span>Фасеты</span><span class="sb-link-cnt">3</span></a>
+<a class="sb-link" data-pane="tags"><span class="sb-link-i">#</span><span>Теги</span><span class="sb-link-cnt">156</span></a>
+<div class="sb-section">Compliance</div>
+<a class="sb-link" data-pane="compliance"><span class="sb-link-i">◆</span><span>Регламенты</span><span class="sb-link-cnt">8</span></a>
+<a class="sb-link" data-pane="onboarding"><span class="sb-link-i">✦</span><span>Onboarding</span></a>
+<div class="sb-section">Аналитика</div>
+<a class="sb-link" data-pane="analytics"><span class="sb-link-i">⏛</span><span>Аналитика</span></a>
+<div class="sb-section" data-admin>Система</div>
+<a class="sb-link" data-admin data-pane="api-health"><span class="sb-link-i">●</span><span>API health</span></a>
+<a class="sb-link" data-admin data-pane="logs"><span class="sb-link-i">≡</span><span>Логи</span></a>
+<a class="sb-link" data-admin data-pane="backup"><span class="sb-link-i">⇩</span><span>Backup</span></a>
+</aside>
+<main class="content">
+
+<section class="pane on" data-pane="dashboard">
+<div class="ph"><div class="ph-l"><h1 class="ph-h">Дашборд</h1><span class="ph-meta">Добрый день, Анна. Ниже — что сегодня требует внимания.</span></div></div>
+<div class="dash-grid">
+<a class="dash-card attention" data-go="review"><header class="dash-card-head"><span class="dash-card-t">Статьи на ревью</span><span class="dash-card-arr">→</span></header><div class="dash-card-v">7</div><div class="dash-card-d">3 ждут больше 3 дней</div></a>
+<a class="dash-card attention" data-go="facets"><header class="dash-card-head"><span class="dash-card-t">Предложения фасет</span><span class="dash-card-arr">→</span></header><div class="dash-card-v">3</div><div class="dash-card-d">Ждут вашего одобрения</div></a>
+<a class="dash-card" data-go="compliance"><header class="dash-card-head"><span class="dash-card-t">Compliance · покрытие</span><span class="dash-card-arr">→</span></header><div class="dash-card-v">87<span style="font-size:18px;color:var(--ink-3);">%</span></div><div class="dash-card-d">12 сотрудников ещё не прочитали</div></a>
+<a class="dash-card" data-go="tags"><header class="dash-card-head"><span class="dash-card-t">Теги на запуск</span><span class="dash-card-arr">→</span></header><div class="dash-card-v">5</div><div class="dash-card-d">Предложены редакторами на этой неделе</div></a>
+</div>
+<div class="dash-row">
+<header class="dash-row-head"><span class="dash-row-t">Активность за сегодня</span><a class="dash-row-link">Весь журнал →</a></header>
+<div class="dash-row-body">
+<a class="dash-act-item"><span class="dash-act-icon review">⏵</span><div class="dash-act-body"><div class="dash-act-t">Антон К. отправил «ЖК Северный свет — концепция фасада» на ревью</div><div class="dash-act-m">Проект · ожидает 2 часа</div></div><span class="dash-act-time">14:32</span></a>
+<a class="dash-act-item"><span class="dash-act-icon facet">⌘</span><div class="dash-act-body"><div class="dash-act-t">Маша В. предложила новое значение «Корьё» в фасет «Материал»</div><div class="dash-act-m">Ждёт вашего одобрения</div></div><span class="dash-act-time">12:08</span></a>
+<a class="dash-act-item"><span class="dash-act-icon tag">#</span><div class="dash-act-body"><div class="dash-act-t">Игорь С. создал тег «#витражная-система»</div><div class="dash-act-m">Ждёт подтверждения и запуска</div></div><span class="dash-act-time">11:14</span></a>
+<a class="dash-act-item"><span class="dash-act-icon compl">◆</span><div class="dash-act-body"><div class="dash-act-t">«Стандарт пожарной безопасности v3» прочитал Дима Л.</div><div class="dash-act-m">Compliance: 13 из 25 сотрудников</div></div><span class="dash-act-time">10:42</span></a>
+<a class="dash-act-item"><span class="dash-act-icon review">⏵</span><div class="dash-act-body"><div class="dash-act-t">Лена Р. отправила «Парк Мещерский — этап 2» на ревью</div><div class="dash-act-m">Проект · ожидает 5 часов</div></div><span class="dash-act-time">09:50</span></a>
+</div>
+</div>
+<div class="dash-row" data-admin>
+<header class="dash-row-head"><span class="dash-row-t">Здоровье системы</span><a class="dash-row-link" data-go="api-health">Подробнее →</a></header>
+<div class="health-grid">
+<div class="health-cell"><span class="health-l">API</span><span class="health-v"><span class="health-dot"></span>Работает</span><span class="health-d">/health · 200 ms · 0% ошибок</span></div>
+<div class="health-cell"><span class="health-l">База данных</span><span class="health-v"><span class="health-dot"></span>Работает</span><span class="health-d">PostgreSQL 16 · 124 ms · ready</span></div>
+<div class="health-cell"><span class="health-l">Backup</span><span class="health-v"><span class="health-dot warn"></span>Внимание</span><span class="health-d">Последний 6 ч назад (норма ≤4 ч)</span></div>
+</div>
+</div>
+</section>
+
+<section class="pane" data-pane="review">
+<div class="ph"><div class="ph-l"><h1 class="ph-h">Очередь ревью</h1><span class="ph-meta">Статьи и предложения, ожидающие подтверждения.</span></div></div>
+<div class="filter-bar"><div class="seg"><button class="seg-btn on">Все<span class="cnt">7</span></button><button class="seg-btn">Статьи<span class="cnt">5</span></button><button class="seg-btn">Теги<span class="cnt">2</span></button></div><span class="filter-spacer"></span><button class="sort-btn">↓ Дата отправки <span style="font-size:8px;opacity:.5;">▼</span></button></div>
+<div class="row-card">
+<div class="row-h"><span></span><span>Заголовок</span><span>Автор</span><span>Ожидает</span><span>Статус</span><span style="text-align:right">Действие</span></div>
+<div class="review-row"><span class="rr-icon proj">▤</span><div><div class="rr-title">ЖК Северный свет — концепция фасада</div><div class="rr-tag">Проект · 9 минут чтения</div></div><div class="rr-author"><span class="rr-av">АК</span><span>Антон К.</span></div><span class="rr-when">2 часа</span><span class="rr-status review">● На ревью</span><div class="rr-actions"><button class="rr-btn ghost">Открыть</button><button class="rr-btn warn" data-return>Вернуть</button><button class="rr-btn primary">Опубликовать</button></div><div class="review-return"><div class="return-h">Вернуть на доработку — комментарий редактору</div><div class="return-chips"><span class="return-chips-l">Частые причины</span><button class="return-chip" data-chip>Нужны источники</button><button class="return-chip" data-chip>Уточнить терминологию</button><button class="return-chip" data-chip>Перепроверить узлы</button><button class="return-chip" data-chip>Добавить иллюстрации</button><button class="return-chip" data-chip>Согласовать с заказчиком</button></div><textarea class="return-textarea" placeholder="Что поправить? Например: «Нужно уточнить вентзазор в спецификации, и добавить ссылку на стандарт фасадных систем v1.4»"></textarea><div class="return-actions"><button class="rr-btn ghost" data-return-cancel>Отмена</button><button class="rr-btn warn">Отправить редактору</button></div></div></div>
+<div class="review-row"><span class="rr-icon proj">▤</span><div><div class="rr-title">Парк Мещерский — этап 2</div><div class="rr-tag">Проект · 6 минут чтения</div></div><div class="rr-author"><span class="rr-av">ЛР</span><span>Лена Р.</span></div><span class="rr-when">5 часов</span><span class="rr-status review">● На ревью</span><div class="rr-actions"><button class="rr-btn ghost">Открыть</button><button class="rr-btn warn" data-return>Вернуть</button><button class="rr-btn primary">Опубликовать</button></div><div class="review-return"><div class="return-h">Вернуть на доработку — комментарий редактору</div><div class="return-chips"><span class="return-chips-l">Частые причины</span><button class="return-chip" data-chip>Нужны источники</button><button class="return-chip" data-chip>Уточнить терминологию</button><button class="return-chip" data-chip>Перепроверить узлы</button><button class="return-chip" data-chip>Добавить иллюстрации</button><button class="return-chip" data-chip>Согласовать с заказчиком</button></div><textarea class="return-textarea" placeholder="Что поправить?"></textarea><div class="return-actions"><button class="rr-btn ghost" data-return-cancel>Отмена</button><button class="rr-btn warn">Отправить редактору</button></div></div></div>
+<div class="review-row"><span class="rr-icon sol">◇</span><div><div class="rr-title">Узел AlucoBond — деформационный шов (правка)</div><div class="rr-tag">Решение · правка после возврата</div></div><div class="rr-author"><span class="rr-av">ИС</span><span>Игорь С.</span></div><span class="rr-when">1 день</span><span class="rr-status changes">↻ Доработано</span><div class="rr-actions"><button class="rr-btn ghost">Открыть</button><button class="rr-btn warn" data-return>Вернуть</button><button class="rr-btn primary">Опубликовать</button></div><div class="review-return"><div class="return-h">Вернуть на доработку — комментарий редактору</div><div class="return-chips"><span class="return-chips-l">Частые причины</span><button class="return-chip" data-chip>Нужны источники</button><button class="return-chip" data-chip>Уточнить терминологию</button><button class="return-chip" data-chip>Перепроверить узлы</button><button class="return-chip" data-chip>Добавить иллюстрации</button><button class="return-chip" data-chip>Согласовать с заказчиком</button></div><textarea class="return-textarea" placeholder="Что поправить?"></textarea><div class="return-actions"><button class="rr-btn ghost" data-return-cancel>Отмена</button><button class="rr-btn warn">Отправить редактору</button></div></div></div>
+<div class="review-row"><span class="rr-icon std">⬚</span><div><div class="rr-title">Стандарт инсталляций — крепления v2.2</div><div class="rr-tag">Стандарт · обязательное к ознакомлению</div></div><div class="rr-author"><span class="rr-av">ЕС</span><span>Е. Седова</span></div><span class="rr-when">3 дня</span><span class="rr-status review">● На ревью</span><div class="rr-actions"><button class="rr-btn ghost">Открыть</button><button class="rr-btn warn" data-return>Вернуть</button><button class="rr-btn primary">Опубликовать</button></div><div class="review-return"><div class="return-h">Вернуть на доработку — комментарий редактору</div><div class="return-chips"><span class="return-chips-l">Частые причины</span><button class="return-chip" data-chip>Нужны источники</button><button class="return-chip" data-chip>Уточнить терминологию</button><button class="return-chip" data-chip>Перепроверить узлы</button><button class="return-chip" data-chip>Добавить иллюстрации</button><button class="return-chip" data-chip>Согласовать с заказчиком</button></div><textarea class="return-textarea"></textarea><div class="return-actions"><button class="rr-btn ghost" data-return-cancel>Отмена</button><button class="rr-btn warn">Отправить редактору</button></div></div></div>
+<div class="review-row"><span class="rr-icon art">¶</span><div><div class="rr-title">Curtain wall — сравнение систем (обновление)</div><div class="rr-tag">Статья · 12 мин · обновление</div></div><div class="rr-author"><span class="rr-av">МВ</span><span>Маша В.</span></div><span class="rr-when">3 дня</span><span class="rr-status review">● На ревью</span><div class="rr-actions"><button class="rr-btn ghost">Открыть</button><button class="rr-btn warn" data-return>Вернуть</button><button class="rr-btn primary">Опубликовать</button></div><div class="review-return"><div class="return-h">Вернуть на доработку — комментарий редактору</div><div class="return-chips"><span class="return-chips-l">Частые причины</span><button class="return-chip" data-chip>Нужны источники</button><button class="return-chip" data-chip>Уточнить терминологию</button><button class="return-chip" data-chip>Перепроверить узлы</button><button class="return-chip" data-chip>Добавить иллюстрации</button><button class="return-chip" data-chip>Согласовать с заказчиком</button></div><textarea class="return-textarea"></textarea><div class="return-actions"><button class="rr-btn ghost" data-return-cancel>Отмена</button><button class="rr-btn warn">Отправить редактору</button></div></div></div>
+<div class="review-row"><span class="rr-icon" style="background:#eeedfe;color:var(--tp-art);">#</span><div><div class="rr-title">Тег «#витражная-система»</div><div class="rr-tag">Новый тег · 0 использований</div></div><div class="rr-author"><span class="rr-av">ИС</span><span>Игорь С.</span></div><span class="rr-when">3 ч</span><span class="rr-status new">+ Новый</span><div class="rr-actions"><button class="rr-btn ghost">Отклонить</button><button class="rr-btn primary">Запустить</button></div></div>
+<div class="review-row"><span class="rr-icon" style="background:#eeedfe;color:var(--tp-art);">#</span><div><div class="rr-title">Тег «#биофилия»</div><div class="rr-tag">Новый тег · 0 использований</div></div><div class="rr-author"><span class="rr-av">ЛР</span><span>Лена Р.</span></div><span class="rr-when">5 ч</span><span class="rr-status new">+ Новый</span><div class="rr-actions"><button class="rr-btn ghost">Отклонить</button><button class="rr-btn primary">Запустить</button></div></div>
+</div>
+</section>
+
+<section class="pane" data-pane="compliance">
+<div class="ph"><div class="ph-l"><h1 class="ph-h">Регламенты</h1><span class="ph-meta">Обязательные к ознакомлению статьи. Группировка по отделам / категориям и адресные назначения.</span></div></div>
+<div class="compl-grid">
+<div class="compl-overview">
+<div class="compl-stats"><div class="compl-stat"><span class="compl-stat-l">Регламентов</span><span class="compl-stat-v">8</span></div><div class="compl-stat"><span class="compl-stat-l">Покрытие</span><span class="compl-stat-v good">87%</span></div><div class="compl-stat"><span class="compl-stat-l">Просрочено</span><span class="compl-stat-v warn">3</span></div></div>
+<div class="compl-controls"><span class="compl-controls-l">Группировка</span><div class="seg"><button class="seg-btn on">По отделам</button><button class="seg-btn">По категориям</button><button class="seg-btn">Без</button></div><span class="compl-spacer"></span><button class="sort-btn">↓ Покрытие <span style="font-size:8px;opacity:.5;">▼</span></button><button class="compl-add">+ Добавить</button></div>
+<div class="compl-group-h"><span>Все отделы</span><span class="compl-group-h-cnt">3</span></div>
+<div class="compl-row active"><div class="compl-row-t"><span class="tm-dot"></span><span class="tname">Стандарт пожарной безопасности v3</span></div><span class="compl-row-num">25 чел.</span><div class="compl-progress"><div class="compl-progress-fill warn" style="width:52%"></div></div><span class="compl-pct">52%</span></div>
+<div class="compl-row"><div class="compl-row-t"><span class="tm-dot"></span><span class="tname">Корпоративная этика и режим</span></div><span class="compl-row-num">25 чел.</span><div class="compl-progress"><div class="compl-progress-fill bad" style="width:24%"></div></div><span class="compl-pct">24%</span></div>
+<div class="compl-row"><div class="compl-row-t"><span class="tm-dot"></span><span class="tname">Стандарт инсталляций — материалы</span></div><span class="compl-row-num">25 чел.</span><div class="compl-progress"><div class="compl-progress-fill" style="width:100%"></div></div><span class="compl-pct">100%</span></div>
+<div class="compl-group-h"><span>Архитектура</span><span class="compl-group-h-cnt">3</span></div>
+<div class="compl-row"><div class="compl-row-t"><span class="tm-dot"></span><span class="tname">Стандарт BIM-моделирования v2.1</span></div><span class="compl-row-num">18 чел.</span><div class="compl-progress"><div class="compl-progress-fill" style="width:94%"></div></div><span class="compl-pct">94%</span></div>
+<div class="compl-row"><div class="compl-row-t"><span class="tm-dot"></span><span class="tname">Стандарт по фасадным системам v1.4</span></div><span class="compl-row-num">22 чел.</span><div class="compl-progress"><div class="compl-progress-fill warn" style="width:73%"></div></div><span class="compl-pct">73%</span></div>
+<div class="compl-row"><div class="compl-row-t"><span class="tm-dot"></span><span class="tname">Стандарт акустики — open space</span></div><span class="compl-row-num">9 чел.</span><div class="compl-progress"><div class="compl-progress-fill" style="width:89%"></div></div><span class="compl-pct">89%</span></div>
+<div class="compl-group-h"><span>Инженерия</span><span class="compl-group-h-cnt">2</span></div>
+<div class="compl-row"><div class="compl-row-t"><span class="tm-dot"></span><span class="tname">Электрика — нормы и приёмка</span></div><span class="compl-row-num">7 чел.</span><div class="compl-progress"><div class="compl-progress-fill" style="width:86%"></div></div><span class="compl-pct">86%</span></div>
+<div class="compl-row"><div class="compl-row-t"><span class="tm-dot"></span><span class="tname">Сантехника — узлы и стояки</span></div><span class="compl-row-num">7 чел.</span><div class="compl-progress"><div class="compl-progress-fill" style="width:100%"></div></div><span class="compl-pct">100%</span></div>
+</div>
+<aside class="compl-detail">
+<span class="compl-d-h">Выбран регламент</span>
+<h3 class="compl-d-t">Стандарт пожарной безопасности v3</h3>
+<div class="compl-d-meta">
+<div class="compl-d-row"><span class="compl-d-k">Группы</span><span class="compl-d-v"><span class="group-tag dept">Все отделы</span></span></div>
+<div class="compl-d-row"><span class="compl-d-k">Должности</span><span class="compl-d-v"><span class="group-tag role">Архитектор</span><span class="group-tag role">Главный архитектор</span><span class="group-tag role">Главный инженер</span></span></div>
+<div class="compl-d-row"><span class="compl-d-k">Deadline</span><span class="compl-d-v">15 мая 2024 (через 11 дней)</span></div>
+<div class="compl-d-row"><span class="compl-d-k">Версия</span><span class="compl-d-v">rev 4 · обновлена 28 апр</span></div>
+<div class="compl-d-row"><span class="compl-d-k">Перечитка</span><span class="compl-d-v">Запрошена при последнем обновлении</span></div>
+</div>
+<div class="compl-d-readers-h"><span>Прочитали 13 из 25</span><span style="text-transform:none;letter-spacing:0;color:var(--terra-d);cursor:pointer;">Напомнить непрочитавшим</span></div>
+<div class="compl-d-bar"><div class="compl-d-bar-fill warn" style="width:52%"></div></div>
+<div class="compl-d-pct-row"><span>52% покрытие</span><span>12 не прочитали</span></div>
+<div class="compl-d-readers-list">
+<div class="compl-reader"><span class="compl-reader-av">АК</span><span class="compl-reader-name">Антон Краснов</span><span class="compl-reader-status ok">✓ 28 апр</span></div>
+<div class="compl-reader"><span class="compl-reader-av">МВ</span><span class="compl-reader-name">Маша Воронцова</span><span class="compl-reader-status ok">✓ 28 апр</span></div>
+<div class="compl-reader"><span class="compl-reader-av">ИС</span><span class="compl-reader-name">Игорь Серов</span><span class="compl-reader-status ok">✓ 30 апр</span></div>
+<div class="compl-reader"><span class="compl-reader-av">ЛР</span><span class="compl-reader-name">Лена Романова</span><span class="compl-reader-status ok">✓ 1 мая</span></div>
+<div class="compl-reader"><span class="compl-reader-av">ДЛ</span><span class="compl-reader-name">Дима Лебедев</span><span class="compl-reader-status ok">✓ сегодня</span></div>
+<div class="compl-reader"><span class="compl-reader-av">ЕС</span><span class="compl-reader-name">Екатерина Седова</span><span class="compl-reader-status late">○ Не прочитала</span></div>
+<div class="compl-reader"><span class="compl-reader-av">НЦ</span><span class="compl-reader-name">Наталья Цветкова</span><span class="compl-reader-status late">○ Не прочитала</span></div>
+<div class="compl-reader"><span class="compl-reader-av">ПЗ</span><span class="compl-reader-name">Пётр Зайцев</span><span class="compl-reader-status miss">! Просрочено</span></div>
+</div>
+<div class="assign-panel">
+<div class="assign-h"><span class="assign-h-t">Назначить адресно</span><span class="assign-h-badge">Не противоречит правам</span></div>
+<div class="assign-d">Дополнительно к группам выше — конкретные сотрудники, которым этот регламент будет назначен. Если у сотрудника нет доступа к статье по правам — назначение не сработает.</div>
+<div class="assign-search"><span class="assign-search-i">⌕</span><input type="text" placeholder="Найти сотрудника по имени или должности…" /></div>
+<div class="assign-selected">
+<span class="assign-pick"><span class="assign-pick-av">ВК</span>Виктория Карпова<span class="assign-pick-x">×</span></span>
+<span class="assign-pick"><span class="assign-pick-av">СМ</span>Сергей Моисеев<span class="assign-pick-x">×</span></span>
+</div>
+<div class="assign-list">
+<div class="assign-item"><span class="assign-item-av">АН</span><div class="assign-item-body"><div class="assign-item-name">Алексей Новиков</div><div class="assign-item-meta">Архитектор · отдел Архитектура</div></div></div>
+<div class="assign-item"><span class="assign-item-av">КП</span><div class="assign-item-body"><div class="assign-item-name">Ксения Павлова</div><div class="assign-item-meta">BIM-координатор · отдел Архитектура</div></div></div>
+<div class="assign-item disabled"><span class="assign-item-av">ОС</span><div class="assign-item-body"><div class="assign-item-name">Ольга Соколова</div><div class="assign-item-meta">Гость · только проекты</div></div><span class="assign-item-warn">нет доступа</span></div>
+<div class="assign-item"><span class="assign-item-av">РТ</span><div class="assign-item-body"><div class="assign-item-name">Роман Титов</div><div class="assign-item-meta">Инженер · отдел Инженерия</div></div></div>
+<div class="assign-item"><span class="assign-item-av">МШ</span><div class="assign-item-body"><div class="assign-item-name">Михаил Шевцов</div><div class="assign-item-meta">Менеджер проектов</div></div></div>
+</div>
+<div class="assign-warn-banner"><span class="assign-warn-icon">!</span><span><b>Внимание:</b> 1 сотрудник не имеет доступа к этой статье — назначение для него невозможно. Чтобы это исправить, измените видимость статьи или права сотрудника в WH ID.</span></div>
+<div class="assign-actions"><button class="ph-btn ghost">Отмена</button><button class="ph-btn primary">Назначить (2 сотрудника)</button></div>
+</div>
+</aside>
+</div>
+</section>
+
+<section class="pane" data-pane="tags">
+<div class="ph"><div class="ph-l"><h1 class="ph-h">Теги</h1><span class="ph-meta">Словарь · 156 активных, 5 ожидают подтверждения.</span></div></div>
+<div class="filter-bar"><div class="seg"><button class="seg-btn on">Все<span class="cnt">161</span></button><button class="seg-btn">Активные<span class="cnt">156</span></button><button class="seg-btn">Ожидают<span class="cnt">5</span></button></div><span class="filter-spacer"></span><button class="sort-btn">↓ По использованию <span style="font-size:8px;opacity:.5;">▼</span></button></div>
+<div class="tags-grid">
+<div class="tag-row-h"><span>Тег</span><span>Использований</span><span>Статус</span><span>Создан</span><span style="text-align:right">Действия</span></div>
+<div class="tag-row"><span class="tag-name">фасад</span><span class="tag-cnt">68</span><span class="tag-status live">● Активен</span><span class="tag-when">2 года назад</span><div class="tag-actions"><button class="tag-btn">Переименовать</button><button class="tag-btn">Слить</button><button class="tag-btn danger">Удалить</button></div></div>
+<div class="tag-row"><span class="tag-name">конструктив</span><span class="tag-cnt">54</span><span class="tag-status live">● Активен</span><span class="tag-when">2 года назад</span><div class="tag-actions"><button class="tag-btn">Переименовать</button><button class="tag-btn">Слить</button><button class="tag-btn danger">Удалить</button></div></div>
+<div class="tag-row"><span class="tag-name">BIM</span><span class="tag-cnt">42</span><span class="tag-status live">● Активен</span><span class="tag-when">2 года назад</span><div class="tag-actions"><button class="tag-btn">Переименовать</button><button class="tag-btn">Слить</button><button class="tag-btn danger">Удалить</button></div></div>
+<div class="tag-row"><span class="tag-name">терракота</span><span class="tag-cnt">28</span><span class="tag-status live">● Активен</span><span class="tag-when">1 год назад</span><div class="tag-actions"><button class="tag-btn">Переименовать</button><button class="tag-btn">Слить</button><button class="tag-btn danger">Удалить</button></div></div>
+<div class="tag-row"><span class="tag-name">витражная-система</span><span class="tag-cnt">0</span><span class="tag-status pending">○ Ждёт запуска</span><span class="tag-when">3 часа назад · Игорь С.</span><div class="tag-actions"><button class="tag-btn">Открыть</button><button class="tag-btn" style="background:var(--ink);color:#fff;padding:5px 10px;">Запустить</button></div></div>
+<div class="tag-row"><span class="tag-name">биофилия</span><span class="tag-cnt">0</span><span class="tag-status pending">○ Ждёт запуска</span><span class="tag-when">5 часов назад · Лена Р.</span><div class="tag-actions"><button class="tag-btn">Открыть</button><button class="tag-btn" style="background:var(--ink);color:#fff;padding:5px 10px;">Запустить</button></div></div>
+<div class="tag-row"><span class="tag-name">фасады</span><span class="tag-cnt">3</span><span class="tag-status live">● Активен</span><span class="tag-when">3 мес назад</span><div class="tag-actions"><button class="tag-btn">Переименовать</button><button class="tag-btn" style="background:var(--terra-bg);color:var(--terra-d);">Слить с #фасад</button><button class="tag-btn danger">Удалить</button></div></div>
+</div>
+</section>
+
+<section class="pane" data-pane="facets">
+<div class="ph"><div class="ph-l"><h1 class="ph-h">Фасеты</h1><span class="ph-meta">Категории и значения, по которым фильтруются статьи. Новые типы добавляются кодом.</span></div></div>
+<div class="facets-shell">
+<div class="facet-cats">
+<a class="facet-cat on">Материал<span class="facet-cat-cnt">9</span></a>
+<a class="facet-cat">Элемент<span class="facet-cat-cnt">6</span></a>
+<a class="facet-cat">Среда<span class="facet-cat-cnt">3</span></a>
+<a class="facet-cat">Производитель<span class="facet-cat-cnt">4</span></a>
+<a class="facet-cat">Типология<span class="facet-cat-cnt">5</span></a>
+<a class="facet-cat">Стадия<span class="facet-cat-cnt">5</span></a>
+<a class="facet-cat">Год<span class="facet-cat-cnt">4</span></a>
+<a class="facet-cat">Площадь<span class="facet-cat-cnt">4</span></a>
+<a class="facet-cat">Команда<span class="facet-cat-cnt">3</span></a>
+</div>
+<div class="facet-detail">
+<header class="facet-detail-h"><h3 class="facet-detail-t">Материал</h3><span class="facet-detail-d">9 значений · 2 на одобрении</span></header>
+<div class="facet-pending-banner"><span class="facet-pending-icon">!</span><span class="facet-pending-text"><b>2 значения</b> ждут вашего одобрения. Их предложили редакторы.</span></div>
+<div class="facet-values">
+<span class="fv-pill">Бетон<span class="fv-cnt">24</span></span>
+<span class="fv-pill">Кирпич<span class="fv-cnt">18</span></span>
+<span class="fv-pill">Металл<span class="fv-cnt">31</span></span>
+<span class="fv-pill">Стекло<span class="fv-cnt">22</span></span>
+<span class="fv-pill">Дерево<span class="fv-cnt">12</span></span>
+<span class="fv-pill">Терракота<span class="fv-cnt">4</span></span>
+<span class="fv-pill">Керамогранит<span class="fv-cnt">8</span></span>
+<span class="fv-pill">Алюминий<span class="fv-cnt">15</span></span>
+<span class="fv-pill">Камень<span class="fv-cnt">6</span></span>
+<span class="fv-pill pending">Корьё<span class="fv-cnt">0</span><span class="fv-actions"><button class="fv-act-btn approve">✓</button><button class="fv-act-btn reject">×</button></span></span>
+<span class="fv-pill pending">Терразит<span class="fv-cnt">0</span><span class="fv-actions"><button class="fv-act-btn approve">✓</button><button class="fv-act-btn reject">×</button></span></span>
+<button class="fv-pill" style="border-style:dashed;color:var(--ink-3);background:transparent;">+ Предложить значение</button>
+</div>
+</div>
+</div>
+</section>
+
+<section class="pane" data-pane="trash">
+<div class="ph"><div class="ph-l"><h1 class="ph-h">Корзина</h1><span class="ph-meta">11 материалов мягко удалено. Хранятся 30 дней — затем удаляются навсегда.</span></div></div>
+<div class="filter-bar"><div class="seg"><button class="seg-btn on">Все<span class="cnt">12</span></button><button class="seg-btn">Статьи<span class="cnt">8</span></button><button class="seg-btn">Изображения<span class="cnt">3</span></button><button class="seg-btn">Блоки<span class="cnt">1</span></button></div><span class="filter-spacer"></span><button class="sort-btn">↓ Удалено <span style="font-size:8px;opacity:.5;">▼</span></button></div>
+<div class="trash-bulk-bar" id="trashBulkBar"><span class="trash-bulk-cnt"><span id="trashBulkCnt">0</span> выбрано</span><span class="trash-bulk-spacer"></span><button class="rr-btn ghost">Снять выбор</button><button class="rr-btn ghost">Восстановить выбранные</button><button class="rr-btn ghost" style="color:var(--bad);border-color:var(--bad-bd);">Удалить навсегда</button></div>
+<div class="trash-grid">
+<div class="trash-row-h"><span><span class="trash-checkbox" id="trashAll"></span></span><span></span><span>Материал</span><span>Удалил</span><span>Удалено</span><span>Останется</span><span style="text-align:right">Действие</span></div>
+<div class="trash-row"><span class="trash-checkbox" data-tcb></span><span class="rr-icon proj">▤</span><div><div class="trash-title">ЖК Орех — концепция (черновик)</div><div class="trash-meta">Проект · 1 200 слов · 3 изображения</div></div><div class="trash-deleted-by"><span class="rr-av">АК</span>Антон К.</div><span class="trash-when">28 апр</span><span class="trash-expires">28 дней</span><div class="rr-actions"><button class="rr-btn ghost">Восстановить</button><button class="rr-btn ghost" style="color:var(--bad);border-color:var(--bad-bd);">Удалить</button></div></div>
+<div class="trash-row"><span class="trash-checkbox" data-tcb></span><span class="rr-icon sol">◇</span><div><div class="trash-title">Решение — крепление ламелей (старая версия)</div><div class="trash-meta">Решение · 8 блоков · 4 изображения</div></div><div class="trash-deleted-by"><span class="rr-av">ИС</span>Игорь С.</div><span class="trash-when">25 апр</span><span class="trash-expires">25 дней</span><div class="rr-actions"><button class="rr-btn ghost">Восстановить</button><button class="rr-btn ghost" style="color:var(--bad);border-color:var(--bad-bd);">Удалить</button></div></div>
+<div class="trash-row"><span class="trash-checkbox" data-tcb></span><span class="rr-icon art">¶</span><div><div class="trash-title">Заметки с командировки в Барселону</div><div class="trash-meta">Статья · 600 слов</div></div><div class="trash-deleted-by"><span class="rr-av">МВ</span>Маша В.</div><span class="trash-when">22 апр</span><span class="trash-expires">22 дня</span><div class="rr-actions"><button class="rr-btn ghost">Восстановить</button><button class="rr-btn ghost" style="color:var(--bad);border-color:var(--bad-bd);">Удалить</button></div></div>
+<div class="trash-row"><span class="trash-checkbox" data-tcb></span><span class="rr-icon" style="background:var(--surf-3);color:var(--ink-3);">▣</span><div><div class="trash-title">IMG_2451.jpg, IMG_2452.jpg, IMG_2453.jpg</div><div class="trash-meta">3 изображения · 18 МБ суммарно</div></div><div class="trash-deleted-by"><span class="rr-av">АК</span>Антон К.</div><span class="trash-when">18 апр</span><span class="trash-expires">18 дней</span><div class="rr-actions"><button class="rr-btn ghost">Восстановить</button><button class="rr-btn ghost" style="color:var(--bad);border-color:var(--bad-bd);">Удалить</button></div></div>
+<div class="trash-row"><span class="trash-checkbox" data-tcb></span><span class="rr-icon std">⬚</span><div><div class="trash-title">Стандарт лестниц v0.5 (черновик)</div><div class="trash-meta">Стандарт · черновик · не публиковался</div></div><div class="trash-deleted-by"><span class="rr-av">ЕС</span>Е. Седова</div><span class="trash-when">15 апр</span><span class="trash-expires">15 дней</span><div class="rr-actions"><button class="rr-btn ghost">Восстановить</button><button class="rr-btn ghost" style="color:var(--bad);border-color:var(--bad-bd);">Удалить</button></div></div>
+<div class="trash-row"><span class="trash-checkbox" data-tcb></span><span class="rr-icon proj">▤</span><div><div class="trash-title">Концепция парка (отвергнутый вариант)</div><div class="trash-meta">Проект · 2 200 слов</div></div><div class="trash-deleted-by"><span class="rr-av">ЛР</span>Лена Р.</div><span class="trash-when">8 апр</span><span class="trash-expires soon">8 дней</span><div class="rr-actions"><button class="rr-btn ghost">Восстановить</button><button class="rr-btn ghost" style="color:var(--bad);border-color:var(--bad-bd);">Удалить</button></div></div>
+</div>
+</section>
+
+<section class="pane" data-pane="onboarding">
+<div class="ph"><div class="ph-l"><h1 class="ph-h">Onboarding</h1><span class="ph-meta">Чек-листы для новых сотрудников. Разные маршруты для разных ролей.</span></div></div>
+<div class="onb-modes"><div class="seg" id="onbModes"><button class="seg-btn on" data-onb="tracks">Маршруты</button><button class="seg-btn" data-onb="newcomers">Новички<span class="cnt">3</span></button></div><span class="filter-spacer"></span><button class="ph-btn primary" id="onbPrimary">+ Новый маршрут</button></div>
+
+<div id="onbTracksView">
+<div class="onb-shell">
+<div class="onb-tracks">
+<header class="onb-track-h"><span class="onb-track-h-t">Маршруты</span></header>
+<a class="onb-track on">Архитектор<span class="onb-track-cnt">9</span></a>
+<a class="onb-track">Главный архитектор<span class="onb-track-cnt">14</span></a>
+<a class="onb-track">BIM-координатор<span class="onb-track-cnt">11</span></a>
+<a class="onb-track">Инженер<span class="onb-track-cnt">8</span></a>
+<a class="onb-track">Менеджер проектов<span class="onb-track-cnt">12</span></a>
+<a class="onb-track">Стажёр<span class="onb-track-cnt">5</span></a>
+</div>
+<div class="onb-detail">
+<header class="onb-detail-h"><h3 class="onb-detail-t">Архитектор</h3><span class="onb-detail-d">9 шагов · среднее прохождение 4 дня</span></header>
+<div class="onb-step-list">
+<div class="onb-step"><span class="onb-grip">⋮⋮</span><span class="onb-num">1</span><span class="onb-step-icon art">¶</span><div class="onb-step-body"><div class="onb-step-name">Добро пожаловать в Wowhaus</div><div class="onb-step-meta">Статья · 5 минут</div></div><div class="onb-step-actions"><button class="onb-step-btn">⌝</button><button class="onb-step-btn">×</button></div></div>
+<div class="onb-step"><span class="onb-grip">⋮⋮</span><span class="onb-num">2</span><span class="onb-step-icon std">⬚</span><div class="onb-step-body"><div class="onb-step-name">Корпоративная этика и режим</div><div class="onb-step-meta">Стандарт · 8 минут · обязательное</div></div><div class="onb-step-actions"><button class="onb-step-btn">⌝</button><button class="onb-step-btn">×</button></div></div>
+<div class="onb-step"><span class="onb-grip">⋮⋮</span><span class="onb-num">3</span><span class="onb-step-icon std">⬚</span><div class="onb-step-body"><div class="onb-step-name">Стандарт пожарной безопасности v3</div><div class="onb-step-meta">Стандарт · 12 минут · обязательное</div></div><div class="onb-step-actions"><button class="onb-step-btn">⌝</button><button class="onb-step-btn">×</button></div></div>
+<div class="onb-step"><span class="onb-grip">⋮⋮</span><span class="onb-num">4</span><span class="onb-step-icon std">⬚</span><div class="onb-step-body"><div class="onb-step-name">Стандарт BIM-моделирования v2.1</div><div class="onb-step-meta">Стандарт · 15 минут</div></div><div class="onb-step-actions"><button class="onb-step-btn">⌝</button><button class="onb-step-btn">×</button></div></div>
+<div class="onb-step"><span class="onb-grip">⋮⋮</span><span class="onb-num">5</span><span class="onb-step-icon art">¶</span><div class="onb-step-body"><div class="onb-step-name">Как мы работаем с заказчиком: пять опор</div><div class="onb-step-meta">Статья · 7 минут · best practice</div></div><div class="onb-step-actions"><button class="onb-step-btn">⌝</button><button class="onb-step-btn">×</button></div></div>
+<div class="onb-step"><span class="onb-grip">⋮⋮</span><span class="onb-num">6</span><span class="onb-step-icon proj">▤</span><div class="onb-step-body"><div class="onb-step-name">ЖК Северный свет — концепция фасада</div><div class="onb-step-meta">Проект · референс · best practice</div></div><div class="onb-step-actions"><button class="onb-step-btn">⌝</button><button class="onb-step-btn">×</button></div></div>
+<div class="onb-step"><span class="onb-grip">⋮⋮</span><span class="onb-num">7</span><span class="onb-step-icon sol">◇</span><div class="onb-step-body"><div class="onb-step-name">Узлы примыканий вентфасада AlucoBond</div><div class="onb-step-meta">Решение · 10 минут</div></div><div class="onb-step-actions"><button class="onb-step-btn">⌝</button><button class="onb-step-btn">×</button></div></div>
+<div class="onb-step"><span class="onb-grip">⋮⋮</span><span class="onb-num">8</span><span class="onb-step-icon art">¶</span><div class="onb-step-body"><div class="onb-step-name">Шаблоны презентаций и брендбук</div><div class="onb-step-meta">Статья · 5 минут</div></div><div class="onb-step-actions"><button class="onb-step-btn">⌝</button><button class="onb-step-btn">×</button></div></div>
+<div class="onb-step"><span class="onb-grip">⋮⋮</span><span class="onb-num">9</span><span class="onb-step-icon art">¶</span><div class="onb-step-body"><div class="onb-step-name">Как пользоваться вики и Cmd+K</div><div class="onb-step-meta">Статья · 4 минуты</div></div><div class="onb-step-actions"><button class="onb-step-btn">⌝</button><button class="onb-step-btn">×</button></div></div>
+</div>
+<button class="onb-add-step">+ Добавить шаг</button>
+</div>
+</div>
+</div>
+
+<div id="onbNewcomersView" style="display:none">
+<div class="onb-newcomers">
+<div class="nc-row-h"><span>Сотрудник</span><span>Маршрут</span><span>Прогресс</span><span>Текущий шаг</span><span>Старт</span></div>
+<div class="nc-row" data-nc="vk"><div class="nc-name"><span class="nc-av">ВК</span><div><div class="nc-name-text">Виктория Карпова</div><div class="nc-name-meta">Архитектор · отдел Архитектура</div></div></div><span style="font-size:12px;color:var(--ink-2);">Архитектор</span><div class="nc-progress-cell"><div class="nc-progress-bar"><div class="nc-progress-fill" style="width:78%"></div></div><span class="nc-progress-pct">78%</span></div><span class="nc-step">7 из 9</span><span class="nc-since">3 дня назад</span></div>
+<div class="nc-row" data-nc="sm"><div class="nc-name"><span class="nc-av">СМ</span><div><div class="nc-name-text">Сергей Моисеев</div><div class="nc-name-meta">Стажёр · отдел Архитектура</div></div></div><span style="font-size:12px;color:var(--ink-2);">Стажёр</span><div class="nc-progress-cell"><div class="nc-progress-bar"><div class="nc-progress-fill warn" style="width:33%"></div></div><span class="nc-progress-pct">33%</span></div><span class="nc-step warn" style="color:var(--warn)">2 из 5 · застрял</span><span class="nc-since">8 дней назад</span></div>
+<div class="nc-row" data-nc="ms"><div class="nc-name"><span class="nc-av">МШ</span><div><div class="nc-name-text">Михаил Шевцов</div><div class="nc-name-meta">Менеджер проектов</div></div></div><span style="font-size:12px;color:var(--ink-2);">Менеджер проектов</span><div class="nc-progress-cell"><div class="nc-progress-bar"><div class="nc-progress-fill" style="width:100%"></div></div><span class="nc-progress-pct">100%</span></div><span class="nc-step" style="color:var(--good)">Завершён</span><span class="nc-since">5 дней назад</span></div>
+<div class="nc-row" data-nc="rt"><div class="nc-name"><span class="nc-av">РТ</span><div><div class="nc-name-text">Роман Титов</div><div class="nc-name-meta">Инженер · отдел Инженерия</div></div></div><span style="font-size:12px;color:var(--ink-2);">Инженер</span><div class="nc-progress-cell"><div class="nc-progress-bar"><div class="nc-progress-fill" style="width:62%"></div></div><span class="nc-progress-pct">62%</span></div><span class="nc-step">5 из 8</span><span class="nc-since">2 дня назад</span></div>
+</div>
+</div>
+</section>
+
+<section class="pane" data-pane="analytics">
+<div class="ph"><div class="ph-l"><h1 class="ph-h">Аналитика</h1><span class="ph-meta">Просмотры, поиск, активность сотрудников и compliance.</span></div></div>
+<div class="anal-controls"><div class="seg"><button class="seg-btn">7 дней</button><button class="seg-btn on">30 дней</button><button class="seg-btn">90 дней</button><button class="seg-btn">Год</button></div></div>
+<div class="anal-grid">
+<div class="anal-stat"><span class="anal-stat-l">Просмотры</span><span class="anal-stat-v">8 412</span><span class="anal-stat-t">↑ 18% к прошлому периоду</span></div>
+<div class="anal-stat"><span class="anal-stat-l">Активные сотрудники</span><span class="anal-stat-v">22<span style="font-size:14px;color:var(--ink-3);"> / 25</span></span><span class="anal-stat-t">↑ 2 чел.</span></div>
+<div class="anal-stat"><span class="anal-stat-l">Поисковых запросов</span><span class="anal-stat-v">1 248</span><span class="anal-stat-t flat">→ ровно</span></div>
+<div class="anal-stat"><span class="anal-stat-l">Compliance · покрытие</span><span class="anal-stat-v">87%</span><span class="anal-stat-t">↑ 4%</span></div>
+</div>
+<div class="anal-row">
+<div class="anal-card">
+<header class="anal-card-h"><span class="anal-card-t">Просмотры по дням</span><span class="anal-card-d">за 30 дней</span></header>
+<div class="anal-chart">
+<svg width="100%" height="130" viewBox="0 0 600 130" preserveAspectRatio="none">
+<defs><linearGradient id="cg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#dd6731" stop-opacity="0.25"/><stop offset="100%" stop-color="#dd6731" stop-opacity="0"/></linearGradient></defs>
+<line x1="0" y1="32" x2="600" y2="32" stroke="rgba(0,0,0,0.05)"/><line x1="0" y1="65" x2="600" y2="65" stroke="rgba(0,0,0,0.05)"/><line x1="0" y1="98" x2="600" y2="98" stroke="rgba(0,0,0,0.05)"/>
+<path d="M 0,80 L 20,72 L 40,68 L 60,75 L 80,60 L 100,55 L 120,52 L 140,58 L 160,48 L 180,42 L 200,50 L 220,38 L 240,32 L 260,40 L 280,28 L 300,35 L 320,42 L 340,30 L 360,25 L 380,38 L 400,30 L 420,22 L 440,28 L 460,18 L 480,32 L 500,28 L 520,20 L 540,26 L 560,18 L 580,12 L 600,20 L 600,130 L 0,130 Z" fill="url(#cg)"/>
+<path d="M 0,80 L 20,72 L 40,68 L 60,75 L 80,60 L 100,55 L 120,52 L 140,58 L 160,48 L 180,42 L 200,50 L 220,38 L 240,32 L 260,40 L 280,28 L 300,35 L 320,42 L 340,30 L 360,25 L 380,38 L 400,30 L 420,22 L 440,28 L 460,18 L 480,32 L 500,28 L 520,20 L 540,26 L 560,18 L 580,12 L 600,20" fill="none" stroke="#dd6731" stroke-width="1.5"/>
+</svg>
+</div>
+<div style="display:flex;justify-content:space-between;font-size:10px;color:var(--ink-4);margin-top:6px;"><span>1 апр</span><span>10 апр</span><span>20 апр</span><span>30 апр</span></div>
+</div>
+<div class="anal-card">
+<header class="anal-card-h"><span class="anal-card-t">Топ статей</span><span class="anal-card-d">по просмотрам</span></header>
+<div class="anal-bar-row">
+<div class="anal-bar"><span class="anal-bar-name">Стандарт BIM v2.1</span><div class="anal-bar-track"><div class="anal-bar-fill" style="width:100%"></div></div><span class="anal-bar-cnt">412</span></div>
+<div class="anal-bar"><span class="anal-bar-name">ЖК Северный свет</span><div class="anal-bar-track"><div class="anal-bar-fill" style="width:78%"></div></div><span class="anal-bar-cnt">322</span></div>
+<div class="anal-bar"><span class="anal-bar-name">Узлы AlucoBond</span><div class="anal-bar-track"><div class="anal-bar-fill" style="width:64%"></div></div><span class="anal-bar-cnt">266</span></div>
+<div class="anal-bar"><span class="anal-bar-name">Сравнение вентфасадов</span><div class="anal-bar-track"><div class="anal-bar-fill" style="width:51%"></div></div><span class="anal-bar-cnt">211</span></div>
+<div class="anal-bar"><span class="anal-bar-name">Стандарт акустики</span><div class="anal-bar-track"><div class="anal-bar-fill" style="width:42%"></div></div><span class="anal-bar-cnt">175</span></div>
+<div class="anal-bar"><span class="anal-bar-name">Парк Мещерский</span><div class="anal-bar-track"><div class="anal-bar-fill" style="width:33%"></div></div><span class="anal-bar-cnt">138</span></div>
+</div>
+</div>
+</div>
+<div class="anal-row">
+<div class="anal-card">
+<header class="anal-card-h"><span class="anal-card-t">Топ запросов</span><span class="anal-card-d">за период</span></header>
+<div>
+<div class="anal-list-row"><span class="anal-list-name"><code>фасад терракота</code></span><span class="anal-list-cnt">84</span></div>
+<div class="anal-list-row"><span class="anal-list-name"><code>BIM модель</code></span><span class="anal-list-cnt">67</span></div>
+<div class="anal-list-row"><span class="anal-list-name"><code>акустика open space</code></span><span class="anal-list-cnt">52</span></div>
+<div class="anal-list-row"><span class="anal-list-name"><code>стандарт инсталляций</code></span><span class="anal-list-cnt">41</span></div>
+<div class="anal-list-row"><span class="anal-list-name"><code>узлы вентфасада</code></span><span class="anal-list-cnt">38</span></div>
+</div>
+</div>
+<div class="anal-card">
+<header class="anal-card-h"><span class="anal-card-t">Запросы без результатов</span><span class="anal-card-d">требуют внимания</span></header>
+<div>
+<div class="anal-list-row"><span class="anal-list-name"><code>гидроизоляция кровли</code></span><span class="anal-list-cnt miss">14</span></div>
+<div class="anal-list-row"><span class="anal-list-name"><code>паркинг подземный нормы</code></span><span class="anal-list-cnt miss">11</span></div>
+<div class="anal-list-row"><span class="anal-list-name"><code>тёплые полы расчёт</code></span><span class="anal-list-cnt miss">9</span></div>
+<div class="anal-list-row"><span class="anal-list-name"><code>солнцезащита Schüco</code></span><span class="anal-list-cnt miss">7</span></div>
+<div class="anal-list-row"><span class="anal-list-name"><code>энергоэффективность пассив</code></span><span class="anal-list-cnt miss">6</span></div>
+</div>
+</div>
+</div>
+<div class="anal-row">
+<div class="anal-card">
+<header class="anal-card-h"><span class="anal-card-t">Использование тегов</span><span class="anal-card-d">самые популярные</span></header>
+<div class="anal-bar-row">
+<div class="anal-bar"><span class="anal-bar-name">#фасад</span><div class="anal-bar-track"><div class="anal-bar-fill" style="width:100%"></div></div><span class="anal-bar-cnt">68</span></div>
+<div class="anal-bar"><span class="anal-bar-name">#конструктив</span><div class="anal-bar-track"><div class="anal-bar-fill" style="width:79%"></div></div><span class="anal-bar-cnt">54</span></div>
+<div class="anal-bar"><span class="anal-bar-name">#BIM</span><div class="anal-bar-track"><div class="anal-bar-fill" style="width:62%"></div></div><span class="anal-bar-cnt">42</span></div>
+<div class="anal-bar"><span class="anal-bar-name">#терракота</span><div class="anal-bar-track"><div class="anal-bar-fill" style="width:41%"></div></div><span class="anal-bar-cnt">28</span></div>
+<div class="anal-bar"><span class="anal-bar-name">#благоустройство</span><div class="anal-bar-track"><div class="anal-bar-fill" style="width:29%"></div></div><span class="anal-bar-cnt">20</span></div>
+</div>
+</div>
+<div class="anal-card">
+<header class="anal-card-h"><span class="anal-card-t">Compliance · отстают</span><span class="anal-card-d">по покрытию</span></header>
+<div class="anal-bar-row">
+<div class="anal-bar"><span class="anal-bar-name">Корп. этика</span><div class="anal-bar-track"><div class="anal-bar-fill miss" style="width:24%"></div></div><span class="anal-bar-cnt">24%</span></div>
+<div class="anal-bar"><span class="anal-bar-name">Пожарная безопасность v3</span><div class="anal-bar-track"><div class="anal-bar-fill" style="background:var(--warn);width:52%"></div></div><span class="anal-bar-cnt">52%</span></div>
+<div class="anal-bar"><span class="anal-bar-name">Фасадные системы v1.4</span><div class="anal-bar-track"><div class="anal-bar-fill" style="background:var(--warn);width:73%"></div></div><span class="anal-bar-cnt">73%</span></div>
+<div class="anal-bar"><span class="anal-bar-name">Электрика — нормы</span><div class="anal-bar-track"><div class="anal-bar-fill" style="background:var(--good);width:86%"></div></div><span class="anal-bar-cnt">86%</span></div>
+</div>
+</div>
+</div>
+</section>
+
+<section class="pane" data-pane="api-health">
+<div class="ph"><div class="ph-l"><h1 class="ph-h">API health</h1><span class="ph-meta">Состояние сервиса в реальном времени.</span></div><div class="ph-actions"><button class="ph-btn ghost">↻ Обновить</button></div></div>
+<div class="sys-grid">
+<div class="sys-stat"><header class="sys-stat-h"><span class="sys-stat-t">API</span><span class="sys-stat-status"><span class="health-dot"></span>Работает</span></header><div class="sys-stat-v">200<span style="font-size:14px;color:var(--ink-3);"> ms</span></div><div class="sys-stat-d">/health · 0% ошибок · uptime 99.98%</div></div>
+<div class="sys-stat"><header class="sys-stat-h"><span class="sys-stat-t">База данных</span><span class="sys-stat-status"><span class="health-dot"></span>Работает</span></header><div class="sys-stat-v">124<span style="font-size:14px;color:var(--ink-3);"> ms</span></div><div class="sys-stat-d">PostgreSQL 16 · ready · 41% памяти</div></div>
+<div class="sys-stat warn-card"><header class="sys-stat-h"><span class="sys-stat-t">Backup</span><span class="sys-stat-status warn"><span class="health-dot warn"></span>Внимание</span></header><div class="sys-stat-v">6<span style="font-size:14px;color:var(--ink-3);"> ч назад</span></div><div class="sys-stat-d">Норма ≤4 ч · последний 08:42</div></div>
+</div>
+<div class="sys-list">
+<header class="sys-list-h"><span>Эндпоинты</span><span style="font-size:10px;color:var(--ink-3);font-weight:500;">за последний час</span></header>
+<div class="sys-row" style="background:var(--surf-2);font-size:10px;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-3);font-weight:500;padding:9px 16px;cursor:default;"><span>Эндпоинт</span><span>Описание</span><span>Запросов</span><span>Латентность</span><span>Ошибок</span></div>
+<div class="sys-row"><div class="sys-ep-row"><span class="sys-method get">GET</span><span class="sys-ep">/articles</span></div><span class="sys-desc">Список статей с фильтром</span><span class="sys-num">2 184</span><span class="sys-num">142 ms</span><span class="sys-pct">0%</span></div>
+<div class="sys-row"><div class="sys-ep-row"><span class="sys-method get">GET</span><span class="sys-ep">/articles/{slug}</span></div><span class="sys-desc">Получить статью</span><span class="sys-num">1 056</span><span class="sys-num">98 ms</span><span class="sys-pct">0%</span></div>
+<div class="sys-row"><div class="sys-ep-row"><span class="sys-method post">POST</span><span class="sys-ep">/articles/{slug}/blocks</span></div><span class="sys-desc">Добавить блок</span><span class="sys-num">312</span><span class="sys-num">220 ms</span><span class="sys-pct">0%</span></div>
+<div class="sys-row"><div class="sys-ep-row"><span class="sys-method get">GET</span><span class="sys-ep">/search</span></div><span class="sys-desc">Поиск с подсветкой</span><span class="sys-num">486</span><span class="sys-num">312 ms</span><span class="sys-pct warn">0.4%</span></div>
+<div class="sys-row"><div class="sys-ep-row"><span class="sys-method get">GET</span><span class="sys-ep">/media</span></div><span class="sys-desc">Медиа-библиотека</span><span class="sys-num">128</span><span class="sys-num">186 ms</span><span class="sys-pct">0%</span></div>
+<div class="sys-row"><div class="sys-ep-row"><span class="sys-method post">POST</span><span class="sys-ep">/media/upload</span></div><span class="sys-desc">Загрузить файл</span><span class="sys-num">42</span><span class="sys-num">1 240 ms</span><span class="sys-pct">0%</span></div>
+<div class="sys-row"><div class="sys-ep-row"><span class="sys-method put">PUT</span><span class="sys-ep">/articles/{slug}</span></div><span class="sys-desc">Обновить статью</span><span class="sys-num">94</span><span class="sys-num">340 ms</span><span class="sys-pct">0%</span></div>
+<div class="sys-row"><div class="sys-ep-row"><span class="sys-method delete">DELETE</span><span class="sys-ep">/articles/{slug}</span></div><span class="sys-desc">Мягкое удаление</span><span class="sys-num">3</span><span class="sys-num">98 ms</span><span class="sys-pct">0%</span></div>
+<div class="sys-row"><div class="sys-ep-row"><span class="sys-method get">GET</span><span class="sys-ep">/compliance/coverage</span></div><span class="sys-desc">Покрытие compliance</span><span class="sys-num">28</span><span class="sys-num">1 850 ms</span><span class="sys-pct bad">2.1%</span></div>
+</div>
+</section>
+
+<section class="pane" data-pane="logs">
+<div class="ph"><div class="ph-l"><h1 class="ph-h">Логи</h1><span class="ph-meta">Журнал запросов и ошибок. Кликни строку для деталей. Хранятся 30 дней.</span></div><div class="ph-actions"><button class="ph-btn ghost">↻ Авто-обновление</button></div></div>
+<div class="logs-toolbar"><div class="seg"><button class="seg-btn on">Все</button><button class="seg-btn">Info</button><button class="seg-btn">Warn</button><button class="seg-btn">Error</button></div><div class="logs-search"><span class="logs-search-i">⌕</span><input type="text" placeholder="Фильтр: метод, путь, юзер, текст ошибки…" /></div><button class="sort-btn">↓ По времени <span style="font-size:8px;opacity:.5;">▼</span></button></div>
+<div class="logs-list">
+
+<div class="logs-row"><span class="logs-time">14:32:08</span><span class="logs-level info">info</span><span class="logs-status ok">200</span><span style="color:var(--ink-2);">GET</span><span class="logs-msg">/articles?type=proj&limit=24 <span class="meta">user=anton.k 142ms</span></span><span class="logs-chev">▸</span><div class="logs-detail">
+<div class="ld-h">Request</div>
+<span class="ld-key">GET</span> <span class="ld-val">/articles?type=proj&limit=24 HTTP/2</span><br>
+<span class="ld-key">User-Agent:</span> <span class="ld-str">"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Safari/605"</span><br>
+<span class="ld-key">Authorization:</span> <span class="ld-str">"Bearer eyJhbGc..."</span><br>
+<span class="ld-key">User:</span> <span class="ld-str">"anton.k@wowhaus.ru"</span> <span class="ld-key">role=</span><span class="ld-str">"editor"</span>
+<div class="ld-h">Response</div>
+<span class="ld-key">Status:</span> <span class="ld-num">200</span> <span class="ld-key">Latency:</span> <span class="ld-num">142ms</span> <span class="ld-key">Size:</span> <span class="ld-num">48.2 KB</span><br>
+<span class="ld-key">Items:</span> <span class="ld-num">24</span> <span class="ld-key">Total:</span> <span class="ld-num">42</span>
+</div></div>
+
+<div class="logs-row"><span class="logs-time">14:31:54</span><span class="logs-level info">info</span><span class="logs-status ok">200</span><span style="color:var(--ink-2);">POST</span><span class="logs-msg">/articles/severny-svet/review <span class="meta">user=anton.k 280ms</span></span><span class="logs-chev">▸</span><div class="logs-detail">
+<div class="ld-h">Request</div>
+<span class="ld-key">POST</span> <span class="ld-val">/articles/severny-svet/review</span><br>
+<span class="ld-key">Body:</span> <span class="ld-str">{ "action": "submit", "rev": 7 }</span>
+<div class="ld-h">Response</div>
+<span class="ld-key">Status:</span> <span class="ld-num">200</span> <span class="ld-key">Status changed:</span> <span class="ld-str">"draft → review"</span>
+</div></div>
+
+<div class="logs-row"><span class="logs-time">14:30:42</span><span class="logs-level info">info</span><span class="logs-status ok">200</span><span style="color:var(--ink-2);">GET</span><span class="logs-msg">/search?q=терракота <span class="meta">user=masha.v 312ms</span></span><span class="logs-chev">▸</span><div class="logs-detail">
+<div class="ld-h">Query</div>
+<span class="ld-key">q:</span> <span class="ld-str">"терракота"</span> <span class="ld-key">limit:</span> <span class="ld-num">20</span>
+<div class="ld-h">Response</div>
+<span class="ld-key">Hits:</span> <span class="ld-num">28</span> <span class="ld-key">Took:</span> <span class="ld-num">218ms</span> (DB) + <span class="ld-num">94ms</span> (highlight)
+</div></div>
+
+<div class="logs-row"><span class="logs-time">14:28:15</span><span class="logs-level warn">warn</span><span class="logs-status warn">429</span><span style="color:var(--ink-2);">GET</span><span class="logs-msg">/search/autocomplete — rate limit hit <span class="meta">user=lena.r 8ms</span></span><span class="logs-chev">▸</span><div class="logs-detail">
+<div class="ld-h">Rate limit exceeded</div>
+<span class="ld-key">Limit:</span> <span class="ld-num">60 req/min</span> <span class="ld-key">Used:</span> <span class="ld-num">61</span><br>
+<span class="ld-key">Retry-After:</span> <span class="ld-num">22s</span><br>
+<span class="ld-key">Suggestion:</span> <span class="ld-str">"Throttle client-side autocomplete to 250ms debounce"</span>
+</div></div>
+
+<div class="logs-row"><span class="logs-time">14:25:01</span><span class="logs-level info">info</span><span class="logs-status ok">201</span><span style="color:var(--ink-2);">POST</span><span class="logs-msg">/media/upload IMG_8443.jpg <span class="meta">user=igor.s 1240ms</span></span><span class="logs-chev">▸</span><div class="logs-detail">
+<div class="ld-h">Upload</div>
+<span class="ld-key">Filename:</span> <span class="ld-str">"IMG_8443.jpg"</span> <span class="ld-key">Size:</span> <span class="ld-num">4.2 MB</span> <span class="ld-key">Type:</span> <span class="ld-str">"image/jpeg"</span><br>
+<span class="ld-key">Storage:</span> <span class="ld-str">"s3://wh-wiki-media/2024/05/img_8443.jpg"</span><br>
+<span class="ld-key">Variants:</span> thumb (180×180), medium (800×800), large (2400×2400)
+</div></div>
+
+<div class="logs-row"><span class="logs-time">14:22:43</span><span class="logs-level error">error</span><span class="logs-status bad">500</span><span style="color:var(--ink-2);">GET</span><span class="logs-msg">/compliance/coverage — DB timeout after 1850ms <span class="meta">user=anna.m</span></span><span class="logs-chev">▸</span><div class="logs-detail">
+<div class="ld-h">Error: DBConnectionTimeout</div>
+<span class="ld-key">Message:</span> <span class="ld-str">"Connection acquisition timed out after 1850ms"</span><br>
+<span class="ld-key">Pool:</span> <span class="ld-num">10/10</span> active <span class="ld-key">Waiting:</span> <span class="ld-num">3</span>
+<div class="ld-h">Stack trace</div>
+<span class="ld-val">at Pool.acquire (db/pool.ts:142:18)<br>
+at ComplianceService.getCoverage (services/compliance.ts:88:24)<br>
+at /api/compliance/coverage handler (routes/compliance.ts:34:12)</span>
+<div class="ld-h">Suggested action</div>
+<span class="ld-str">"Increase connection pool size or optimize coverage query (currently scans 25k rows)"</span>
+</div></div>
+
+<div class="logs-row"><span class="logs-time">14:18:09</span><span class="logs-level info">info</span><span class="logs-status ok">200</span><span style="color:var(--ink-2);">PUT</span><span class="logs-msg">/articles/aluco-nodes <span class="meta">user=igor.s 340ms</span></span><span class="logs-chev">▸</span><div class="logs-detail">
+<div class="ld-h">Update</div>
+<span class="ld-key">Article:</span> <span class="ld-str">"aluco-nodes"</span> <span class="ld-key">rev:</span> <span class="ld-num">5 → 6</span><br>
+<span class="ld-key">Diff:</span> +12 lines, -3 lines, 2 blocks added
+</div></div>
+
+<div class="logs-row"><span class="logs-time">14:14:22</span><span class="logs-level info">info</span><span class="logs-status ok">200</span><span style="color:var(--ink-2);">GET</span><span class="logs-msg">/articles/severny-svet <span class="meta">user=dima.l 98ms</span></span><span class="logs-chev">▸</span><div class="logs-detail"><div class="ld-h">Cache hit</div><span class="ld-key">Source:</span> <span class="ld-str">"redis:articles:severny-svet:rev7"</span> <span class="ld-key">TTL:</span> <span class="ld-num">312s remaining</span></div></div>
+
+<div class="logs-row"><span class="logs-time">14:09:51</span><span class="logs-level warn">warn</span><span class="logs-status warn">404</span><span style="color:var(--ink-2);">GET</span><span class="logs-msg">/articles/old-stairs-v05 — not found <span class="meta">user=ekaterina.s</span></span><span class="logs-chev">▸</span><div class="logs-detail"><div class="ld-h">Not found</div><span class="ld-key">Slug:</span> <span class="ld-str">"old-stairs-v05"</span><br><span class="ld-key">Reason:</span> <span class="ld-str">"Article in trash, deleted 15 апр by ekaterina.s"</span><br><span class="ld-key">Restore:</span> <a href="#" style="color:#dd6731;">Trash → Stairs v0.5</a></div></div>
+
+<div class="logs-row"><span class="logs-time">14:05:03</span><span class="logs-level info">info</span><span class="logs-status ok">200</span><span style="color:var(--ink-2);">POST</span><span class="logs-msg">/tags — создан тег #биофилия <span class="meta">user=lena.r 124ms</span></span><span class="logs-chev">▸</span><div class="logs-detail"><div class="ld-h">Tag created</div><span class="ld-key">Name:</span> <span class="ld-str">"#биофилия"</span> <span class="ld-key">Status:</span> <span class="ld-str">"pending_review"</span></div></div>
+
+<div class="logs-row"><span class="logs-time">14:00:00</span><span class="logs-level debug">debug</span><span class="logs-status ok">200</span><span style="color:var(--ink-2);">GET</span><span class="logs-msg">/health · scheduled check <span class="meta">200ms</span></span><span class="logs-chev">▸</span><div class="logs-detail"><div class="ld-h">Health check</div><span class="ld-key">DB:</span> <span class="ld-str">"ok"</span> <span class="ld-key">Cache:</span> <span class="ld-str">"ok"</span> <span class="ld-key">Storage:</span> <span class="ld-str">"ok"</span></div></div>
+
+<div class="logs-row"><span class="logs-time">13:55:18</span><span class="logs-level error">error</span><span class="logs-status bad">503</span><span style="color:var(--ink-2);">POST</span><span class="logs-msg">/media/upload — storage temporarily unavailable <span class="meta">user=anton.k retry=2</span></span><span class="logs-chev">▸</span><div class="logs-detail"><div class="ld-h">Error: StorageUnavailable</div><span class="ld-key">Backend:</span> <span class="ld-str">"s3://wh-wiki-media"</span> <span class="ld-key">Region:</span> <span class="ld-str">"eu-central-1"</span><br><span class="ld-key">Message:</span> <span class="ld-str">"503 Service Unavailable from upstream"</span><br><span class="ld-key">Retry:</span> <span class="ld-num">2 of 3</span> · client backoff <span class="ld-num">2s</span></div></div>
+
+<div class="logs-row"><span class="logs-time">13:42:14</span><span class="logs-level warn">warn</span><span class="logs-status warn">401</span><span style="color:var(--ink-2);">GET</span><span class="logs-msg">/admin/system — unauthorized (role=manager) <span class="meta">user=anna.m</span></span><span class="logs-chev">▸</span><div class="logs-detail"><div class="ld-h">Authorization failure</div><span class="ld-key">Required role:</span> <span class="ld-str">"admin"</span> <span class="ld-key">Actual role:</span> <span class="ld-str">"manager"</span><br><span class="ld-key">Endpoint:</span> <span class="ld-str">"/admin/system/*"</span></div></div>
+
+</div>
+</section>
+
+<section class="pane" data-pane="backup">
+<div class="ph"><div class="ph-l"><h1 class="ph-h">Backup</h1><span class="ph-meta">Резервные копии и восстановление.</span></div><div class="ph-actions"><button class="ph-btn ghost">↻ Обновить</button><button class="ph-btn primary">+ Создать сейчас</button></div></div>
+<div class="backup-grid">
+<div class="backup-card">
+<header class="backup-card-h"><span class="backup-card-t">Расписание</span></header>
+<div class="backup-info-row"><span class="backup-info-k">Частота</span><span class="backup-info-v">Каждые 4 часа</span></div>
+<div class="backup-info-row"><span class="backup-info-k">Следующий</span><span class="backup-info-v">через 2 ч 14 мин</span></div>
+<div class="backup-info-row"><span class="backup-info-k">Retention</span><span class="backup-info-v">30 дней (180 копий)</span></div>
+<div class="backup-info-row"><span class="backup-info-k">Хранилище</span><span class="backup-info-v">S3 · wh-wiki-backups</span></div>
+<div class="backup-action-row"><button class="ph-btn ghost">Изменить расписание</button></div>
+</div>
+<div class="backup-card">
+<header class="backup-card-h"><span class="backup-card-t">Последний бэкап</span></header>
+<div class="backup-info-row"><span class="backup-info-k">Когда</span><span class="backup-info-v">сегодня, 08:42 (6 ч назад)</span></div>
+<div class="backup-info-row"><span class="backup-info-k">Размер</span><span class="backup-info-v">487 МБ</span></div>
+<div class="backup-info-row"><span class="backup-info-k">Тип</span><span class="backup-info-v">Автоматический</span></div>
+<div class="backup-info-row"><span class="backup-info-k">Статус</span><span class="backup-info-v" style="color:var(--good);">✓ Успешно</span></div>
+<div class="backup-action-row"><button class="ph-btn ghost">↓ Скачать</button><button class="ph-btn ghost">↻ Восстановить</button></div>
+</div>
+</div>
+<div class="backup-history">
+<header class="sys-list-h"><span>История бэкапов</span><span style="font-size:10px;color:var(--ink-3);font-weight:500;">последние 10</span></header>
+<div class="backup-row-h"><span>Время</span><span></span><span>Размер</span><span>Тип</span><span style="text-align:right">Действия</span></div>
+<div class="backup-row"><span class="backup-when">сегодня, 08:42</span><span class="backup-status">✓ Успешно</span><span class="backup-size">487 МБ</span><span class="backup-type auto">Авто</span><div class="backup-actions"><button class="rr-btn ghost">↓ Скачать</button><button class="rr-btn ghost">Восстановить</button></div></div>
+<div class="backup-row"><span class="backup-when">сегодня, 04:42</span><span class="backup-status">✓ Успешно</span><span class="backup-size">485 МБ</span><span class="backup-type auto">Авто</span><div class="backup-actions"><button class="rr-btn ghost">↓ Скачать</button><button class="rr-btn ghost">Восстановить</button></div></div>
+<div class="backup-row"><span class="backup-when">сегодня, 00:42</span><span class="backup-status">✓ Успешно</span><span class="backup-size">484 МБ</span><span class="backup-type auto">Авто</span><div class="backup-actions"><button class="rr-btn ghost">↓ Скачать</button><button class="rr-btn ghost">Восстановить</button></div></div>
+<div class="backup-row"><span class="backup-when">вчера, 20:42</span><span class="backup-status">✓ Успешно</span><span class="backup-size">482 МБ</span><span class="backup-type auto">Авто</span><div class="backup-actions"><button class="rr-btn ghost">↓ Скачать</button><button class="rr-btn ghost">Восстановить</button></div></div>
+<div class="backup-row"><span class="backup-when">вчера, 16:42</span><span class="backup-status">✓ Успешно</span><span class="backup-size">481 МБ</span><span class="backup-type auto">Авто</span><div class="backup-actions"><button class="rr-btn ghost">↓ Скачать</button><button class="rr-btn ghost">Восстановить</button></div></div>
+<div class="backup-row"><span class="backup-when">вчера, 14:18</span><span class="backup-status">✓ Успешно</span><span class="backup-size">480 МБ</span><span class="backup-type manual">Ручной</span><div class="backup-actions"><button class="rr-btn ghost">↓ Скачать</button><button class="rr-btn ghost">Восстановить</button></div></div>
+<div class="backup-row"><span class="backup-when">вчера, 12:42</span><span class="backup-status">✓ Успешно</span><span class="backup-size">479 МБ</span><span class="backup-type auto">Авто</span><div class="backup-actions"><button class="rr-btn ghost">↓ Скачать</button><button class="rr-btn ghost">Восстановить</button></div></div>
+<div class="backup-row"><span class="backup-when">вчера, 08:42</span><span class="backup-status">✓ Успешно</span><span class="backup-size">476 МБ</span><span class="backup-type auto">Авто</span><div class="backup-actions"><button class="rr-btn ghost">↓ Скачать</button><button class="rr-btn ghost">Восстановить</button></div></div>
+<div class="backup-row"><span class="backup-when">2 дня назад, 04:42</span><span class="backup-status">✓ Успешно</span><span class="backup-size">474 МБ</span><span class="backup-type auto">Авто</span><div class="backup-actions"><button class="rr-btn ghost">↓ Скачать</button><button class="rr-btn ghost">Восстановить</button></div></div>
+<div class="backup-row"><span class="backup-when">2 дня назад, 00:42</span><span class="backup-status">✓ Успешно</span><span class="backup-size">473 МБ</span><span class="backup-type auto">Авто</span><div class="backup-actions"><button class="rr-btn ghost">↓ Скачать</button><button class="rr-btn ghost">Восстановить</button></div></div>
+</div>
+</section>
+
+</main>
+</div>
+
+<div class="modal-backdrop" data-nc-modal="vk">
+<div class="modal" role="dialog" aria-label="Карточка новичка">
+<header class="modal-h">
+<span class="nc-mod-av">ВК</span>
+<div class="modal-h-body">
+<h3 class="modal-h-t">Виктория Карпова</h3>
+<div class="modal-h-d"><b>Архитектор</b> · отдел Архитектура · нанята 15 апр (3 недели назад)</div>
+</div>
+<button class="modal-close" data-nc-close>×</button>
+</header>
+<div class="modal-body">
+<div class="nc-mod-section-h">Маршрут «Архитектор» · 7 из 9 шагов</div>
+<div class="nc-mod-step done"><span class="nc-mod-status done">✓</span><span class="nc-mod-step-name">Добро пожаловать в Wowhaus</span><span class="nc-mod-step-when">15 апр</span></div>
+<div class="nc-mod-step done"><span class="nc-mod-status done">✓</span><span class="nc-mod-step-name">Корпоративная этика и режим</span><span class="nc-mod-step-when">15 апр</span></div>
+<div class="nc-mod-step done"><span class="nc-mod-status done">✓</span><span class="nc-mod-step-name">Стандарт пожарной безопасности v3</span><span class="nc-mod-step-when">16 апр</span></div>
+<div class="nc-mod-step done"><span class="nc-mod-status done">✓</span><span class="nc-mod-step-name">Стандарт BIM-моделирования v2.1</span><span class="nc-mod-step-when">18 апр</span></div>
+<div class="nc-mod-step done"><span class="nc-mod-status done">✓</span><span class="nc-mod-step-name">Как мы работаем с заказчиком: пять опор</span><span class="nc-mod-step-when">22 апр</span></div>
+<div class="nc-mod-step done"><span class="nc-mod-status done">✓</span><span class="nc-mod-step-name">ЖК Северный свет — концепция фасада</span><span class="nc-mod-step-when">25 апр</span></div>
+<div class="nc-mod-step now"><span class="nc-mod-status now">▸</span><span class="nc-mod-step-name">Узлы примыканий вентфасада AlucoBond</span><span class="nc-mod-step-when now">в процессе · 2 дня</span></div>
+<div class="nc-mod-step todo"><span class="nc-mod-status todo">○</span><span class="nc-mod-step-name">Шаблоны презентаций и брендбук</span><span class="nc-mod-step-when">не начат</span></div>
+<div class="nc-mod-step todo"><span class="nc-mod-status todo">○</span><span class="nc-mod-step-name">Как пользоваться вики и Cmd+K</span><span class="nc-mod-step-when">не начат</span></div>
+</div>
+<footer class="modal-foot">
+<button class="rr-btn ghost" data-nc-close>Закрыть</button>
+<button class="rr-btn ghost">Написать наставнику</button>
+<button class="rr-btn primary">Открыть профиль</button>
+</footer>
+</div>
+</div>
+
+<div class="modal-backdrop" data-nc-modal="sm">
+<div class="modal" role="dialog" aria-label="Карточка новичка">
+<header class="modal-h">
+<span class="nc-mod-av">СМ</span>
+<div class="modal-h-body">
+<h3 class="modal-h-t">Сергей Моисеев</h3>
+<div class="modal-h-d"><b>Стажёр</b> · отдел Архитектура · нанят 27 апр (8 дней назад)</div>
+</div>
+<button class="modal-close" data-nc-close>×</button>
+</header>
+<div class="modal-body">
+<div class="nc-mod-banner">Застрял на 4-й день на шаге <b>«Стандарт пожарной безопасности»</b>. Возможно, нужна помощь наставника.</div>
+<div class="nc-mod-section-h">Маршрут «Стажёр» · 2 из 5 шагов</div>
+<div class="nc-mod-step done"><span class="nc-mod-status done">✓</span><span class="nc-mod-step-name">Добро пожаловать в Wowhaus</span><span class="nc-mod-step-when">27 апр</span></div>
+<div class="nc-mod-step done"><span class="nc-mod-status done">✓</span><span class="nc-mod-step-name">Корпоративная этика и режим</span><span class="nc-mod-step-when">28 апр</span></div>
+<div class="nc-mod-step now"><span class="nc-mod-status now">▸</span><span class="nc-mod-step-name">Стандарт пожарной безопасности v3</span><span class="nc-mod-step-when now">в процессе · 4 дня</span></div>
+<div class="nc-mod-step todo"><span class="nc-mod-status todo">○</span><span class="nc-mod-step-name">Как мы работаем с заказчиком</span><span class="nc-mod-step-when">не начат</span></div>
+<div class="nc-mod-step todo"><span class="nc-mod-status todo">○</span><span class="nc-mod-step-name">Как пользоваться вики и Cmd+K</span><span class="nc-mod-step-when">не начат</span></div>
+</div>
+<footer class="modal-foot">
+<button class="rr-btn ghost" data-nc-close>Закрыть</button>
+<button class="rr-btn ghost">Написать наставнику</button>
+<button class="rr-btn primary">Открыть профиль</button>
+</footer>
+</div>
+</div>
+
+<div class="modal-backdrop" data-nc-modal="ms">
+<div class="modal" role="dialog" aria-label="Карточка новичка">
+<header class="modal-h">
+<span class="nc-mod-av">МШ</span>
+<div class="modal-h-body">
+<h3 class="modal-h-t">Михаил Шевцов</h3>
+<div class="modal-h-d"><b>Менеджер проектов</b> · нанят 30 апр (5 дней назад) · <span style="color:var(--good)">маршрут пройден</span></div>
+</div>
+<button class="modal-close" data-nc-close>×</button>
+</header>
+<div class="modal-body">
+<div class="nc-mod-section-h">Маршрут «Менеджер проектов» · 12 из 12 шагов</div>
+<div class="nc-mod-step done"><span class="nc-mod-status done">✓</span><span class="nc-mod-step-name">Добро пожаловать в Wowhaus</span><span class="nc-mod-step-when">30 апр</span></div>
+<div class="nc-mod-step done"><span class="nc-mod-status done">✓</span><span class="nc-mod-step-name">Корпоративная этика и режим</span><span class="nc-mod-step-when">30 апр</span></div>
+<div class="nc-mod-step done"><span class="nc-mod-status done">✓</span><span class="nc-mod-step-name">Стандарт пожарной безопасности v3</span><span class="nc-mod-step-when">1 мая</span></div>
+<div class="nc-mod-step done"><span class="nc-mod-status done">✓</span><span class="nc-mod-step-name">Управление сроками и Gantt</span><span class="nc-mod-step-when">1 мая</span></div>
+<div class="nc-mod-step done"><span class="nc-mod-status done">✓</span><span class="nc-mod-step-name">Бюджеты и сметы — основы</span><span class="nc-mod-step-when">2 мая</span></div>
+<div class="nc-mod-step done"><span class="nc-mod-status done">✓</span><span class="nc-mod-step-name">Шаблоны договоров и тендеров</span><span class="nc-mod-step-when">2 мая</span></div>
+<div class="nc-mod-step done"><span class="nc-mod-status done">✓</span><span class="nc-mod-step-name">Как мы работаем с заказчиком</span><span class="nc-mod-step-when">3 мая</span></div>
+<div class="nc-mod-step done"><span class="nc-mod-status done">✓</span><span class="nc-mod-step-name">Регламент еженедельных отчётов</span><span class="nc-mod-step-when">3 мая</span></div>
+<div class="nc-mod-step done"><span class="nc-mod-status done">✓</span><span class="nc-mod-step-name">Парк Мещерский — кейс</span><span class="nc-mod-step-when">3 мая</span></div>
+<div class="nc-mod-step done"><span class="nc-mod-status done">✓</span><span class="nc-mod-step-name">Шаблоны презентаций и брендбук</span><span class="nc-mod-step-when">4 мая</span></div>
+<div class="nc-mod-step done"><span class="nc-mod-status done">✓</span><span class="nc-mod-step-name">Согласование с подрядчиками</span><span class="nc-mod-step-when">4 мая</span></div>
+<div class="nc-mod-step done"><span class="nc-mod-status done">✓</span><span class="nc-mod-step-name">Как пользоваться вики и Cmd+K</span><span class="nc-mod-step-when">4 мая</span></div>
+</div>
+<footer class="modal-foot">
+<button class="rr-btn ghost" data-nc-close>Закрыть</button>
+<button class="rr-btn ghost">Сертификат</button>
+<button class="rr-btn primary">Открыть профиль</button>
+</footer>
+</div>
+</div>
+
+<div class="modal-backdrop" data-nc-modal="rt">
+<div class="modal" role="dialog" aria-label="Карточка новичка">
+<header class="modal-h">
+<span class="nc-mod-av">РТ</span>
+<div class="modal-h-body">
+<h3 class="modal-h-t">Роман Титов</h3>
+<div class="modal-h-d"><b>Инженер</b> · отдел Инженерия · нанят 3 мая (2 дня назад)</div>
+</div>
+<button class="modal-close" data-nc-close>×</button>
+</header>
+<div class="modal-body">
+<div class="nc-mod-section-h">Маршрут «Инженер» · 5 из 8 шагов</div>
+<div class="nc-mod-step done"><span class="nc-mod-status done">✓</span><span class="nc-mod-step-name">Добро пожаловать в Wowhaus</span><span class="nc-mod-step-when">3 мая</span></div>
+<div class="nc-mod-step done"><span class="nc-mod-status done">✓</span><span class="nc-mod-step-name">Корпоративная этика и режим</span><span class="nc-mod-step-when">3 мая</span></div>
+<div class="nc-mod-step done"><span class="nc-mod-status done">✓</span><span class="nc-mod-step-name">Стандарт пожарной безопасности v3</span><span class="nc-mod-step-when">4 мая</span></div>
+<div class="nc-mod-step done"><span class="nc-mod-status done">✓</span><span class="nc-mod-step-name">Конструктив — типовые узлы</span><span class="nc-mod-step-when">4 мая</span></div>
+<div class="nc-mod-step done"><span class="nc-mod-status done">✓</span><span class="nc-mod-step-name">Электрика — нормы</span><span class="nc-mod-step-when">5 мая</span></div>
+<div class="nc-mod-step now"><span class="nc-mod-status now">▸</span><span class="nc-mod-step-name">BIM-моделирование инженерных систем</span><span class="nc-mod-step-when now">в процессе</span></div>
+<div class="nc-mod-step todo"><span class="nc-mod-status todo">○</span><span class="nc-mod-step-name">Регламент согласований с архитектурой</span><span class="nc-mod-step-when">не начат</span></div>
+<div class="nc-mod-step todo"><span class="nc-mod-status todo">○</span><span class="nc-mod-step-name">Как пользоваться вики и Cmd+K</span><span class="nc-mod-step-when">не начат</span></div>
+</div>
+<footer class="modal-foot">
+<button class="rr-btn ghost" data-nc-close>Закрыть</button>
+<button class="rr-btn ghost">Написать наставнику</button>
+<button class="rr-btn primary">Открыть профиль</button>
+</footer>
+</div>
+</div>
+
+<script>
+const links=document.querySelectorAll('.sb-link'),panes=document.querySelectorAll('.pane');
+function switchPane(name){links.forEach(l=>l.classList.toggle('on',l.dataset.pane===name));panes.forEach(p=>p.classList.toggle('on',p.dataset.pane===name));window.scrollTo(0,0)}
+links.forEach(l=>l.addEventListener('click',e=>{e.preventDefault();switchPane(l.dataset.pane)}));
+document.querySelectorAll('[data-go]').forEach(el=>el.addEventListener('click',e=>{e.preventDefault();switchPane(el.dataset.go)}));
+
+const roleToggle=document.getElementById('roleToggle'),rtIcon=document.getElementById('rtIcon'),rtLabel=document.getElementById('rtLabel');
+let role='manager';
+function applyRole(r){role=r;document.body.classList.toggle('role-admin',r==='admin');document.body.classList.toggle('role-manager',r==='manager');rtIcon.textContent=r==='admin'?'А':'М';rtLabel.textContent=r==='admin'?'Админ':'Менеджер';if(r!=='admin'){const ap=document.querySelector('.pane.on');if(ap&&['api-health','logs','backup','trash'].includes(ap.dataset.pane))switchPane('dashboard')}}
+roleToggle.addEventListener('click',()=>applyRole(role==='manager'?'admin':'manager'));applyRole('manager');
+
+// Review return-with-comment toggle
+document.querySelectorAll('[data-return]').forEach(btn=>{
+  btn.addEventListener('click',e=>{e.stopPropagation();const row=btn.closest('.review-row');row.classList.toggle('returning')});
+});
+document.querySelectorAll('[data-return-cancel]').forEach(btn=>{
+  btn.addEventListener('click',e=>{e.stopPropagation();btn.closest('.review-row').classList.remove('returning')});
+});
+
+// Trash bulk-select
+const trashAll=document.getElementById('trashAll'),trashBulkBar=document.getElementById('trashBulkBar'),trashBulkCnt=document.getElementById('trashBulkCnt');
+const trashCheckboxes=document.querySelectorAll('[data-tcb]');
+function updateTrashBulk(){const checked=document.querySelectorAll('[data-tcb].on').length;trashBulkCnt.textContent=checked;trashBulkBar.classList.toggle('empty',checked===0)}
+trashCheckboxes.forEach(cb=>{cb.addEventListener('click',e=>{e.stopPropagation();cb.classList.toggle('on');cb.closest('.trash-row').classList.toggle('checked',cb.classList.contains('on'));updateTrashBulk()})});
+if(trashAll){trashAll.addEventListener('click',e=>{e.stopPropagation();const goingOn=!trashAll.classList.contains('on');trashAll.classList.toggle('on',goingOn);trashCheckboxes.forEach(cb=>{cb.classList.toggle('on',goingOn);cb.closest('.trash-row').classList.toggle('checked',goingOn)});updateTrashBulk()})}
+updateTrashBulk();
+
+// Onboarding mode toggle
+const onbModes=document.getElementById('onbModes'),onbTracksView=document.getElementById('onbTracksView'),onbNewcomersView=document.getElementById('onbNewcomersView'),onbPrimary=document.getElementById('onbPrimary');
+if(onbModes){onbModes.querySelectorAll('.seg-btn').forEach(b=>b.addEventListener('click',()=>{onbModes.querySelectorAll('.seg-btn').forEach(x=>x.classList.remove('on'));b.classList.add('on');const m=b.dataset.onb;onbTracksView.style.display=m==='tracks'?'block':'none';onbNewcomersView.style.display=m==='newcomers'?'block':'none';onbPrimary.textContent=m==='tracks'?'+ Новый маршрут':'Экспорт прогресса'}))}
+
+// Logs row expand
+document.querySelectorAll('.logs-row').forEach(row=>{row.addEventListener('click',()=>row.classList.toggle('expanded'))});
+
+// Return-form quick-reply chips (visual only)
+document.querySelectorAll('[data-chip]').forEach(chip=>{
+  chip.addEventListener('click',e=>{e.stopPropagation();chip.classList.toggle('on')});
+});
+
+// Newcomer detail modal
+const ncModals=document.querySelectorAll('[data-nc-modal]');
+function openNcModal(id){const m=document.querySelector(`[data-nc-modal="${id}"]`);if(m)m.classList.add('on')}
+function closeNcModals(){ncModals.forEach(m=>m.classList.remove('on'))}
+document.querySelectorAll('.nc-row[data-nc]').forEach(row=>{
+  row.addEventListener('click',()=>openNcModal(row.dataset.nc));
+});
+ncModals.forEach(m=>{
+  m.addEventListener('click',e=>{if(e.target===m)closeNcModals()});
+});
+document.querySelectorAll('[data-nc-close]').forEach(b=>{
+  b.addEventListener('click',e=>{e.stopPropagation();closeNcModals()});
+});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeNcModals()});
+</script>
+</body>
+</html>

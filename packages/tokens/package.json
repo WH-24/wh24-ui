@@ -1,0 +1,34 @@
+{
+  "name": "@wowhaus/ui-tokens",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Frame-agnostic design tokens for Wowhaus services",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./tokens.css": "./src/tokens.css",
+    "./base.css": "./src/base.css",
+    "./theme": {
+      "types": "./dist/theme.d.ts",
+      "import": "./dist/theme.js"
+    }
+  },
+  "files": [
+    "dist",
+    "src/tokens.css",
+    "src/base.css"
+  ],
+  "scripts": {
+    "build": "tsc -b tsconfig.json",
+    "typecheck": "tsc -b tsconfig.json --noEmit",
+    "clean": "tsc -b tsconfig.json --clean && rm -rf dist *.tsbuildinfo"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.5"
+  }
+}

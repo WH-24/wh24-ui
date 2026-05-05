@@ -1,0 +1,1133 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Wowhaus Wiki — Поиск</title>
+  <meta name="description" content="UI mockup of the search screen." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap"
+    rel="stylesheet"
+  />
+  <style>
+    :root {
+      --terra: #dd6731;
+      --terra-d: #b8501f;
+      --terra-bg: #fbeee5;
+      --terra-bd: #e89971;
+      --terra-mark: rgba(221, 103, 49, 0.18);
+
+      --ink: #1a1a1a;
+      --ink-2: #3d3d3d;
+      --ink-3: #7a7a7a;
+      --ink-4: #b4b2a9;
+      --ink-5: #c0bdb3;
+
+      --bd: rgba(0, 0, 0, 0.08);
+      --bd-soft: rgba(0, 0, 0, 0.05);
+      --bd-strong: rgba(0, 0, 0, 0.12);
+
+      --bg: #fafaf7;
+      --surf: #ffffff;
+      --surf-2: #f7f5f0;
+      --surf-3: #efece4;
+
+      --tp-proj: #8e3a14;
+      --tp-std: #444441;
+      --tp-sol: #0c447c;
+      --tp-art: #3c3489;
+
+      --font-sans: 'Manrope', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+      --font-mono: ui-monospace, 'SF Mono', Monaco, Consolas, monospace;
+
+      --r-sm: 5px;
+      --r-md: 7px;
+      --r-lg: 10px;
+      --r-xl: 12px;
+      --r-pill: 999px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font-sans);
+      font-size: 14px;
+      line-height: 1.5;
+      color: var(--ink);
+      background: var(--bg);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    a { color: inherit; text-decoration: none; }
+    button {
+      font-family: inherit; font-size: inherit; color: inherit;
+      background: none; border: none; padding: 0; cursor: pointer;
+    }
+    input { font-family: inherit; font-size: inherit; color: inherit; }
+
+    :focus-visible {
+      outline: 2px solid var(--terra);
+      outline-offset: 2px;
+      border-radius: 2px;
+    }
+
+    /* Top bar */
+    .topbar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 32px;
+      border-bottom: 0.5px solid var(--bd);
+      background: rgba(250, 250, 247, 0.85);
+      backdrop-filter: saturate(180%) blur(8px);
+      position: sticky; top: 0; z-index: 10;
+    }
+    .brand { display: flex; align-items: center; gap: 10px; }
+    .blogo {
+      width: 24px; height: 24px; border-radius: 6px;
+      background: var(--terra); position: relative; flex-shrink: 0;
+    }
+    .blogo::after {
+      content: ''; position: absolute; inset: 5px 5px 9px 5px;
+      border: 1.5px solid #fff; border-bottom: none; border-radius: 1px 1px 0 0;
+    }
+    .blogo::before {
+      content: ''; position: absolute; bottom: 5px; left: 5px; right: 5px;
+      height: 1.5px; background: #fff; border-radius: 1px;
+    }
+    .bname { font-weight: 600; font-size: 14px; color: var(--ink); letter-spacing: -0.01em; }
+    .pill {
+      display: inline-flex; align-items: center; gap: 9px;
+      padding: 8px 14px; background: var(--surf);
+      border: 0.5px solid var(--bd-strong); border-radius: var(--r-pill);
+      font-size: 13px; color: var(--ink-3); min-width: 280px; cursor: pointer;
+      transition: border-color .15s;
+    }
+    .pill:hover { border-color: var(--terra-bd); }
+    .pill .pill-i { color: var(--terra); }
+    .pill kbd {
+      margin-left: auto; font-family: var(--font-mono); font-size: 11px;
+      background: var(--surf-2); border: 0.5px solid var(--bd);
+      border-radius: 4px; padding: 1px 6px; color: var(--ink-2);
+    }
+    .tr { display: flex; align-items: center; gap: 10px; }
+    .icon-btn {
+      width: 32px; height: 32px; border-radius: 6px;
+      display: inline-flex; align-items: center; justify-content: center;
+      color: var(--ink-3); font-size: 14px; cursor: pointer;
+      transition: background .15s, color .15s;
+    }
+    .icon-btn:hover { background: var(--surf-2); color: var(--ink); }
+    .av {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: var(--surf-3); display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 500; color: var(--ink-2); cursor: pointer;
+    }
+
+    /* Page */
+    .page { max-width: 980px; margin: 0 auto; padding: 24px 32px 40px; }
+
+    .ph {
+      display: flex; flex-direction: column; gap: 8px;
+      margin-bottom: 20px;
+    }
+    .back-btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 12px; color: var(--ink-3); padding: 4px 8px 4px 4px;
+      border-radius: var(--r-sm); align-self: flex-start; font-weight: 500;
+      transition: color .15s, background .15s; margin-left: -4px;
+    }
+    .back-btn:hover { color: var(--ink); background: var(--surf-2); }
+    .ph-h {
+      font-size: 26px; font-weight: 600; color: var(--ink);
+      letter-spacing: -0.02em; line-height: 1.1;
+    }
+
+    /* Hero search input */
+    .hero-search { position: relative; margin-bottom: 16px; }
+    .hero-search-i {
+      position: absolute; left: 18px; top: 50%; transform: translateY(-50%);
+      color: var(--terra); font-size: 18px; pointer-events: none;
+    }
+    .hero-search input {
+      width: 100%; height: 56px;
+      padding: 0 130px 0 50px;
+      background: var(--surf);
+      border: 0.5px solid var(--bd-strong);
+      border-radius: var(--r-xl);
+      font-size: 17px; color: var(--ink); outline: none;
+      transition: border-color .15s;
+      font-weight: 500; letter-spacing: -0.005em;
+    }
+    .hero-search input::placeholder { color: var(--ink-3); font-weight: 400; }
+    .hero-search input:focus { border-color: var(--terra); }
+    .hero-search-clear {
+      position: absolute; right: 78px; top: 50%; transform: translateY(-50%);
+      width: 22px; height: 22px;
+      background: var(--surf-3); color: var(--ink-3);
+      border-radius: 50%;
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: 12px; cursor: pointer;
+      transition: background .15s, color .15s;
+    }
+    .hero-search-clear:hover { background: var(--ink-5); color: var(--ink); }
+    .hero-search-clear.hidden { display: none; }
+    .hero-search-kbd {
+      position: absolute; right: 18px; top: 50%; transform: translateY(-50%);
+      font-family: var(--font-mono); font-size: 11px;
+      background: var(--surf-2); border: 0.5px solid var(--bd);
+      border-radius: 4px; padding: 2px 8px; color: var(--ink-2);
+      pointer-events: none;
+    }
+
+    .search-meta {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 12px; color: var(--ink-3);
+      margin-bottom: 14px;
+    }
+    .search-meta b { color: var(--ink); font-weight: 600; }
+    .res-meta-sep { color: var(--ink-5); }
+
+    /* Filters */
+    .filters {
+      display: flex; align-items: center; gap: 8px;
+      padding: 0 0 14px; flex-wrap: wrap;
+      border-bottom: 0.5px solid var(--bd-soft); margin-bottom: 14px;
+    }
+    .type-pills { display: flex; gap: 4px; }
+    .tp-btn {
+      padding: 5px 11px; font-size: 12px; color: var(--ink-3);
+      border-radius: var(--r-md); display: inline-flex;
+      align-items: center; gap: 6px; font-weight: 500;
+      transition: background .15s, color .15s;
+    }
+    .tp-btn:hover { background: var(--surf-2); color: var(--ink); }
+    .tp-btn.on { background: var(--ink); color: #fff; }
+    .tp-btn.on .tp-cnt { color: rgba(255,255,255,0.55); }
+    .tp-cnt { font-size: 10px; color: var(--ink-4); font-variant-numeric: tabular-nums; font-weight: 500; }
+
+    .filter-sep { width: 1px; height: 14px; background: var(--bd); }
+
+    .tag-chips { display: flex; gap: 6px; flex-wrap: wrap; }
+    .chip {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 3px 10px; font-size: 11px;
+      background: var(--terra-bg); color: var(--tp-proj);
+      border: 0.5px solid var(--terra-bd);
+      border-radius: var(--r-pill); font-weight: 500;
+    }
+    .chip-x { opacity: .55; cursor: pointer; font-size: 13px; line-height: 1; }
+    .chip-x:hover { opacity: 1; }
+    .add-tag-btn {
+      padding: 3px 10px; font-size: 11px; color: var(--ink-3);
+      border-radius: var(--r-pill); font-weight: 500;
+      border: 0.5px dashed var(--bd-strong);
+      transition: color .15s, border-color .15s;
+    }
+    .add-tag-btn:hover { color: var(--ink); border-color: var(--terra-bd); }
+    .filters-spacer { flex: 1; }
+
+    /* Sort = layout switcher */
+    .sort-wrap { position: relative; }
+    .sort-btn {
+      padding: 6px 11px; font-size: 12px; color: var(--ink-2);
+      border-radius: var(--r-sm); display: inline-flex; align-items: center; gap: 6px;
+      font-weight: 500; background: var(--surf-2);
+      transition: background .15s;
+    }
+    .sort-btn:hover { background: var(--surf-3); color: var(--ink); }
+    .sort-btn.open { background: var(--surf-3); color: var(--ink); }
+    .sort-arr { font-size: 9px; opacity: .55; transition: transform .15s; }
+    .sort-btn.open .sort-arr { transform: rotate(180deg); }
+    .sort-menu {
+      position: absolute; top: calc(100% + 6px); right: 0;
+      min-width: 240px;
+      background: var(--surf); border: 0.5px solid var(--bd-strong);
+      border-radius: var(--r-md); padding: 4px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+      z-index: 5;
+      display: none;
+    }
+    .sort-menu.open { display: block; }
+    .sort-opt {
+      display: flex; align-items: flex-start; gap: 10px;
+      padding: 9px 11px; border-radius: var(--r-sm);
+      cursor: pointer; transition: background .12s;
+    }
+    .sort-opt:hover { background: var(--surf-2); }
+    .sort-opt-check {
+      width: 14px; flex-shrink: 0; color: var(--terra);
+      font-size: 12px; padding-top: 2px;
+    }
+    .sort-opt:not(.on) .sort-opt-check { visibility: hidden; }
+    .sort-opt-text { flex: 1; min-width: 0; }
+    .sort-opt-name {
+      font-size: 13px; color: var(--ink); font-weight: 500;
+    }
+    .sort-opt.on .sort-opt-name { color: var(--terra-d); }
+    .sort-opt-desc {
+      font-size: 11px; color: var(--ink-3); margin-top: 2px;
+      line-height: 1.4;
+    }
+
+    /* Result variants */
+    .results { display: none; }
+    .results.on { display: block; }
+
+    /* Sections (variant by-type) */
+    .sec { margin-bottom: 24px; }
+    .sec.empty { display: none; }
+    .sec-h {
+      display: flex; align-items: baseline; gap: 10px;
+      margin-bottom: 12px; padding-bottom: 8px;
+      border-bottom: 0.5px solid var(--bd-soft);
+    }
+    .sec-h-t {
+      font-size: 13px; font-weight: 600; color: var(--ink);
+      letter-spacing: -0.005em;
+    }
+    .sec-h-c {
+      font-size: 11px; padding: 1px 8px;
+      background: var(--terra-bg); color: var(--terra-d);
+      border: 0.5px solid var(--terra-bd);
+      border-radius: var(--r-pill); font-weight: 500;
+      font-variant-numeric: tabular-nums;
+    }
+    .sec-h-tg {
+      margin-left: auto;
+      font-size: 11px; color: var(--ink-3); font-weight: 500;
+      cursor: pointer;
+    }
+    .sec-h-tg:hover { color: var(--ink); }
+    .sec.collapsed .sec-body { display: none; }
+
+    /* Result row */
+    .res-row {
+      display: flex; gap: 12px; align-items: flex-start;
+      padding: 12px 0; border-bottom: 0.5px solid var(--bd-soft);
+      cursor: pointer;
+      transition: background .12s;
+    }
+    .res-row:last-child { border-bottom: none; }
+    .res-row:hover { background: var(--surf-2); }
+
+    .res-icon {
+      width: 32px; height: 32px; border-radius: var(--r-sm);
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: 14px; flex-shrink: 0; margin-top: 1px;
+    }
+    .res-icon.proj { background: var(--terra-bg); color: var(--tp-proj); }
+    .res-icon.std  { background: var(--surf-3); color: var(--tp-std); }
+    .res-icon.sol  { background: #e6f1fb; color: var(--tp-sol); }
+    .res-icon.art  { background: #eeedfe; color: var(--tp-art); }
+    .res-icon.block { background: var(--surf-2); color: var(--ink-3); border: 0.5px dashed var(--bd-strong); }
+    .res-icon.image { background: var(--surf-3); color: var(--ink-3); }
+
+    .res-body { flex: 1; min-width: 0; }
+    .res-row-top {
+      display: flex; align-items: center; gap: 8px;
+      flex-wrap: wrap; margin-bottom: 4px;
+    }
+    .res-tag {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 10px; font-weight: 500; letter-spacing: .04em;
+      text-transform: uppercase;
+    }
+    .res-tag::before { content: ''; width: 5px; height: 5px; border-radius: 50%; }
+    .res-tag.proj { color: var(--tp-proj); } .res-tag.proj::before { background: var(--tp-proj); }
+    .res-tag.std  { color: var(--tp-std); }  .res-tag.std::before { background: var(--tp-std); }
+    .res-tag.sol  { color: var(--tp-sol); }  .res-tag.sol::before { background: var(--tp-sol); }
+    .res-tag.art  { color: var(--tp-art); }  .res-tag.art::before { background: var(--tp-art); }
+    .res-tag.block { color: var(--ink-3); } .res-tag.block::before { background: var(--ink-4); }
+    .res-tag.image { color: var(--ink-3); } .res-tag.image::before { background: var(--ink-4); }
+    .res-bp {
+      font-size: 9px; padding: 2px 6px;
+      background: var(--terra); color: #fff;
+      border-radius: 3px; font-weight: 500;
+      letter-spacing: .04em; text-transform: uppercase;
+    }
+    .res-rank {
+      font-size: 11px; padding: 1px 7px;
+      background: var(--surf-2); color: var(--ink-3);
+      border-radius: var(--r-pill); font-weight: 500;
+      font-variant-numeric: tabular-nums;
+    }
+    .res-rank.high {
+      background: var(--terra-bg); color: var(--terra-d);
+    }
+    .res-path {
+      font-size: 11px; color: var(--ink-4);
+      font-family: var(--font-mono);
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+      flex: 1; min-width: 0;
+    }
+    .res-h {
+      font-size: 15px; font-weight: 600; color: var(--ink);
+      line-height: 1.3; letter-spacing: -0.005em;
+      margin-bottom: 5px;
+    }
+    .res-h mark {
+      background: var(--terra-mark); color: var(--terra-d);
+      padding: 0 2px; border-radius: 2px;
+    }
+    .res-snip {
+      font-size: 13px; color: var(--ink-2); line-height: 1.55;
+      margin-bottom: 6px;
+    }
+    .res-snip mark {
+      background: var(--terra-mark); color: var(--terra-d);
+      padding: 0 2px; border-radius: 2px; font-weight: 500;
+    }
+    .res-meta {
+      display: flex; align-items: center; gap: 10px;
+      font-size: 11px; color: var(--ink-3);
+      flex-wrap: wrap;
+    }
+    .res-meta-tags {
+      display: inline-flex; gap: 5px; flex-wrap: wrap;
+    }
+    .res-meta-tag {
+      font-size: 10px; padding: 1px 7px;
+      background: var(--surf-2); color: var(--ink-3);
+      border-radius: var(--r-pill); font-weight: 500;
+    }
+    .res-meta-tag.match {
+      background: var(--terra-bg); color: var(--terra-d);
+    }
+
+    /* Image grid in by-type */
+    .img-row { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; }
+    .img-thumb {
+      aspect-ratio: 1;
+      border-radius: var(--r-md);
+      overflow: hidden; cursor: pointer;
+      position: relative;
+      background: var(--surf-3);
+      transition: transform .15s, box-shadow .15s;
+    }
+    .img-thumb:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
+    .img-thumb svg { display: block; width: 100%; height: 100%; }
+    .img-thumb-tags {
+      position: absolute; left: 6px; bottom: 6px; right: 6px;
+      display: flex; flex-wrap: wrap; gap: 3px;
+      opacity: 0; transition: opacity .15s;
+    }
+    .img-thumb:hover .img-thumb-tags { opacity: 1; }
+    .img-thumb-tag {
+      font-size: 9px; padding: 1px 6px;
+      background: rgba(255,255,255,0.85);
+      backdrop-filter: blur(4px);
+      color: var(--ink); border-radius: 3px;
+      font-weight: 500;
+    }
+
+    .show-more {
+      display: inline-block; font-size: 12px; color: var(--terra-d);
+      padding: 8px 0 0; font-weight: 500; cursor: pointer;
+    }
+    .show-more:hover { text-decoration: underline; }
+
+    @media (max-width: 720px) {
+      .topbar { padding: 12px 18px; }
+      .pill { min-width: 0; flex: 1; }
+      .pill kbd { display: none; }
+      .page { padding: 18px 18px 28px; }
+      .img-row { grid-template-columns: repeat(3, 1fr); }
+      .filters { gap: 10px; }
+      .sort-menu { right: 0; left: auto; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="hub-mockup.html" aria-label="На главную">
+      <span class="blogo" aria-hidden="true"></span>
+      <span class="bname">Wowhaus</span>
+    </a>
+    <button class="pill" aria-label="Открыть палитру команд">
+      <span class="pill-i" aria-hidden="true">⌕</span>
+      <span>Поиск, навигация, действия</span>
+      <kbd>⌘ K</kbd>
+    </button>
+    <div class="tr">
+      <button class="icon-btn" aria-label="Переключить тему">◐</button>
+      <button class="av" aria-label="Профиль">АМ</button>
+    </div>
+  </header>
+
+  <main class="page">
+    <div class="ph">
+      <a class="back-btn" href="hub-mockup.html">
+        <span aria-hidden="true">←</span>
+        <span>В Хаб</span>
+      </a>
+      <h1 class="ph-h">Поиск</h1>
+    </div>
+
+    <div class="hero-search">
+      <span class="hero-search-i" aria-hidden="true">⌕</span>
+      <input id="searchIn" type="text" value="вентилируемый фасад терракота" placeholder="Запрос…" />
+      <button class="hero-search-clear" id="clearBtn" aria-label="Очистить">×</button>
+      <span class="hero-search-kbd">⏎</span>
+    </div>
+
+    <div class="search-meta">
+      <span><b>22 результата</b> за 0.04 с</span>
+      <span class="res-meta-sep">·</span>
+      <span>312 статей · 1 480 узлов в индексе</span>
+    </div>
+
+    <div class="filters">
+      <div class="type-pills">
+        <button class="tp-btn on">Все<span class="tp-cnt">22</span></button>
+        <button class="tp-btn">Статьи<span class="tp-cnt">4</span></button>
+        <button class="tp-btn">Блоки<span class="tp-cnt">7</span></button>
+        <button class="tp-btn">Изображения<span class="tp-cnt">11</span></button>
+      </div>
+      <span class="filter-sep"></span>
+      <div class="tag-chips">
+        <span class="chip">#фасад<span class="chip-x">×</span></span>
+        <span class="chip">#терракота<span class="chip-x">×</span></span>
+        <button class="add-tag-btn">+ тег</button>
+      </div>
+
+      <span class="filters-spacer"></span>
+
+      <div class="sort-wrap">
+        <button class="sort-btn" id="sortBtn" aria-haspopup="menu" aria-expanded="false">
+          <span>↓</span><span id="sortLabel">Релевантность</span><span class="sort-arr">▼</span>
+        </button>
+        <div class="sort-menu" id="sortMenu" role="menu">
+          <div class="sort-opt on" data-mode="relevance">
+            <span class="sort-opt-check">✓</span>
+            <div class="sort-opt-text">
+              <div class="sort-opt-name">Релевантность</div>
+              <div class="sort-opt-desc">Все типы вперемешку, сверху самые точные совпадения</div>
+            </div>
+          </div>
+          <div class="sort-opt" data-mode="by-type">
+            <span class="sort-opt-check">✓</span>
+            <div class="sort-opt-text">
+              <div class="sort-opt-name">По типу</div>
+              <div class="sort-opt-desc">Группировка по секциям: статьи, блоки, изображения</div>
+            </div>
+          </div>
+          <div class="sort-opt" data-mode="updated">
+            <span class="sort-opt-check">✓</span>
+            <div class="sort-opt-text">
+              <div class="sort-opt-name">По дате обновления</div>
+              <div class="sort-opt-desc">Сначала свежее, независимо от релевантности</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- =================== RELEVANCE (mixed feed) =================== -->
+    <div class="results on" data-mode="relevance">
+
+      <a class="res-row">
+        <span class="res-icon proj" aria-hidden="true">▤</span>
+        <div class="res-body">
+          <div class="res-row-top">
+            <span class="res-tag proj">Проект</span>
+            <span class="res-bp">BP</span>
+            <span class="res-rank high">99% match</span>
+            <span class="res-path">/ projects / severny-svet</span>
+          </div>
+          <div class="res-h">ЖК Северный свет — концепция <mark>фасада</mark></div>
+          <div class="res-snip">
+            Юго-западный <mark>фасад</mark> решён в <mark>терракоте</mark> Argeton 300×1200 на скрытой подсистеме с вентзазором 50 мм. Цвет — тёплый охровый, под прямым солнцем уходит в тёплый кирпичный.
+          </div>
+          <div class="res-meta">
+            <span>Антон К.</span>
+            <span class="res-meta-sep">·</span>
+            <span>обновлено 28 апр</span>
+            <span class="res-meta-sep">·</span>
+            <div class="res-meta-tags">
+              <span class="res-meta-tag match">фасад</span>
+              <span class="res-meta-tag match">терракота</span>
+              <span class="res-meta-tag">BIM</span>
+            </div>
+          </div>
+        </div>
+      </a>
+
+      <a class="res-row">
+        <span class="res-icon block" aria-hidden="true">¶</span>
+        <div class="res-body">
+          <div class="res-row-top">
+            <span class="res-tag block">Блок · текст</span>
+            <span class="res-rank high">96% match</span>
+            <span class="res-path">ЖК Северный свет › Фасад › Материал</span>
+          </div>
+          <div class="res-snip">
+            <mark>Терракотовые</mark> панели Argeton 300×1200 мм на скрытой подсистеме. Вентзазор 50 мм. Цвет — тёплый охровый с тонкой текстурой обжига.
+          </div>
+          <div class="res-meta">
+            <div class="res-meta-tags">
+              <span class="res-meta-tag match">фасад</span>
+              <span class="res-meta-tag match">терракота</span>
+            </div>
+            <span class="res-meta-sep">·</span>
+            <span>shared · 3 статьи</span>
+          </div>
+        </div>
+      </a>
+
+      <a class="res-row">
+        <span class="res-icon sol" aria-hidden="true">◇</span>
+        <div class="res-body">
+          <div class="res-row-top">
+            <span class="res-tag sol">Решение</span>
+            <span class="res-bp">BP</span>
+            <span class="res-rank high">94% match</span>
+            <span class="res-path">/ solutions / alucobond-nodes</span>
+          </div>
+          <div class="res-h">Узлы примыканий <mark>вентфасада</mark> AlucoBond</div>
+          <div class="res-snip">
+            Деформационный шов перекрывается нащельником из нержавеющей стали 304. <mark>Вентфасад</mark> на алюминиевой подсистеме, шаг профилей 600 мм.
+          </div>
+          <div class="res-meta">
+            <span>Игорь С.</span>
+            <span class="res-meta-sep">·</span>
+            <span>5 дн</span>
+            <span class="res-meta-sep">·</span>
+            <div class="res-meta-tags">
+              <span class="res-meta-tag match">фасад</span>
+              <span class="res-meta-tag">алюминий</span>
+              <span class="res-meta-tag">узел</span>
+            </div>
+          </div>
+        </div>
+      </a>
+
+      <a class="res-row">
+        <span class="res-icon image" aria-hidden="true">▣</span>
+        <div class="res-body">
+          <div class="res-row-top">
+            <span class="res-tag image">Изображение</span>
+            <span class="res-rank">88% match</span>
+            <span class="res-path">ЖК Северный свет</span>
+          </div>
+          <div class="res-h">Терракотовые панели Argeton 300×1200</div>
+          <div class="res-snip">
+            Узел шва между панелями с открытым горизонтальным дренажём. Скрытая подсистема.
+          </div>
+          <div class="res-meta">
+            <div class="res-meta-tags">
+              <span class="res-meta-tag match">фасад</span>
+              <span class="res-meta-tag match">терракота</span>
+              <span class="res-meta-tag">узел</span>
+            </div>
+          </div>
+        </div>
+      </a>
+
+      <a class="res-row">
+        <span class="res-icon art" aria-hidden="true">¶</span>
+        <div class="res-body">
+          <div class="res-row-top">
+            <span class="res-tag art">Статья</span>
+            <span class="res-rank">82% match</span>
+            <span class="res-path">/ articles / curtain-wall-comparison</span>
+          </div>
+          <div class="res-h">Сравнение систем <mark>вентфасадов</mark></div>
+          <div class="res-snip">
+            Сравнение пяти систем <mark>вентилируемых фасадов</mark>: керамогранит, <mark>терракота</mark>, алюминиевые композитные панели, фиброцемент, HPL. <mark>Терракота</mark> выигрывает у керамогранита по долговечности.
+          </div>
+          <div class="res-meta">
+            <span>Маша В.</span>
+            <span class="res-meta-sep">·</span>
+            <span>1 мес</span>
+            <span class="res-meta-sep">·</span>
+            <div class="res-meta-tags">
+              <span class="res-meta-tag match">фасад</span>
+              <span class="res-meta-tag match">терракота</span>
+              <span class="res-meta-tag">керамогранит</span>
+            </div>
+          </div>
+        </div>
+      </a>
+
+      <a class="res-row">
+        <span class="res-icon block" aria-hidden="true">¶</span>
+        <div class="res-body">
+          <div class="res-row-top">
+            <span class="res-tag block">Блок · текст</span>
+            <span class="res-rank">76% match</span>
+            <span class="res-path">Сравнение систем › Долговечность</span>
+          </div>
+          <div class="res-snip">
+            <mark>Терракота</mark> выигрывает у керамогранита по долговечности цвета: натуральные оксиды железа сохраняют тон до 50 лет без выцветания.
+          </div>
+          <div class="res-meta">
+            <div class="res-meta-tags">
+              <span class="res-meta-tag match">терракота</span>
+            </div>
+          </div>
+        </div>
+      </a>
+
+      <a class="res-row">
+        <span class="res-icon image" aria-hidden="true">▣</span>
+        <div class="res-body">
+          <div class="res-row-top">
+            <span class="res-tag image">Изображение</span>
+            <span class="res-rank">71% match</span>
+            <span class="res-path">ЖК Северный свет</span>
+          </div>
+          <div class="res-h">Фасад из терракоты — общий вид</div>
+          <div class="res-snip">Юго-западный фасад в вечернем свете. Видна работа оттенка под прямыми лучами.</div>
+          <div class="res-meta">
+            <div class="res-meta-tags">
+              <span class="res-meta-tag match">фасад</span>
+              <span class="res-meta-tag match">терракота</span>
+            </div>
+          </div>
+        </div>
+      </a>
+
+      <a class="res-row">
+        <span class="res-icon std" aria-hidden="true">⬚</span>
+        <div class="res-body">
+          <div class="res-row-top">
+            <span class="res-tag std">Стандарт</span>
+            <span class="res-rank">68% match</span>
+            <span class="res-path">/ standards / facades-v1.4</span>
+          </div>
+          <div class="res-h">Стандарт по <mark>фасадным</mark> системам v1.4</div>
+          <div class="res-snip">
+            Корпоративный стандарт по проектированию <mark>фасадов</mark>: вентилируемые системы, мокрые штукатурные, тёплые штукатурные, сборные.
+          </div>
+          <div class="res-meta">
+            <span>Е. Седова</span>
+            <span class="res-meta-sep">·</span>
+            <span>обновлено 14 апр</span>
+          </div>
+        </div>
+      </a>
+
+      <a class="res-row">
+        <span class="res-icon block" aria-hidden="true">¶</span>
+        <div class="res-body">
+          <div class="res-row-top">
+            <span class="res-tag block">Блок · текст</span>
+            <span class="res-rank">63% match</span>
+            <span class="res-path">Узлы AlucoBond › Деформация</span>
+          </div>
+          <div class="res-snip">
+            Деформационный шов перекрывается нащельником из нержавеющей стали. Шов рассчитан на смещение ±15 мм. <mark>Вентфасад</mark> сохраняет герметичность при температурных деформациях.
+          </div>
+        </div>
+      </a>
+
+      <span class="show-more">Показать ещё 13 результатов →</span>
+    </div>
+
+    <!-- =================== BY TYPE (sections) =================== -->
+    <div class="results" data-mode="by-type">
+
+      <section class="sec">
+        <header class="sec-h">
+          <span class="sec-h-t">Статьи</span>
+          <span class="sec-h-c">4</span>
+          <button class="sec-h-tg">Скрыть</button>
+        </header>
+        <div class="sec-body">
+
+          <a class="res-row">
+            <span class="res-icon proj" aria-hidden="true">▤</span>
+            <div class="res-body">
+              <div class="res-row-top">
+                <span class="res-tag proj">Проект</span>
+                <span class="res-bp">BP</span>
+                <span class="res-path">/ projects / severny-svet</span>
+              </div>
+              <div class="res-h">ЖК Северный свет — концепция <mark>фасада</mark></div>
+              <div class="res-snip">
+                Юго-западный <mark>фасад</mark> решён в <mark>терракоте</mark> Argeton 300×1200 на скрытой подсистеме с вентзазором 50 мм.
+              </div>
+              <div class="res-meta">
+                <span>Антон К.</span>
+                <span class="res-meta-sep">·</span>
+                <span>обновлено 28 апр</span>
+                <span class="res-meta-sep">·</span>
+                <div class="res-meta-tags">
+                  <span class="res-meta-tag match">фасад</span>
+                  <span class="res-meta-tag match">терракота</span>
+                  <span class="res-meta-tag">BIM</span>
+                </div>
+              </div>
+            </div>
+          </a>
+
+          <a class="res-row">
+            <span class="res-icon sol" aria-hidden="true">◇</span>
+            <div class="res-body">
+              <div class="res-row-top">
+                <span class="res-tag sol">Решение</span>
+                <span class="res-bp">BP</span>
+                <span class="res-path">/ solutions / alucobond-nodes</span>
+              </div>
+              <div class="res-h">Узлы примыканий <mark>вентфасада</mark> AlucoBond</div>
+              <div class="res-snip">
+                Деформационный шов перекрывается нащельником из нержавеющей стали 304. <mark>Вентфасад</mark> на алюминиевой подсистеме.
+              </div>
+              <div class="res-meta">
+                <span>Игорь С.</span>
+                <span class="res-meta-sep">·</span>
+                <span>5 дн</span>
+                <span class="res-meta-sep">·</span>
+                <div class="res-meta-tags">
+                  <span class="res-meta-tag match">фасад</span>
+                  <span class="res-meta-tag">алюминий</span>
+                </div>
+              </div>
+            </div>
+          </a>
+
+          <a class="res-row">
+            <span class="res-icon art" aria-hidden="true">¶</span>
+            <div class="res-body">
+              <div class="res-row-top">
+                <span class="res-tag art">Статья</span>
+                <span class="res-path">/ articles / curtain-wall-comparison</span>
+              </div>
+              <div class="res-h">Сравнение систем <mark>вентфасадов</mark></div>
+              <div class="res-snip">
+                Сравнение пяти систем <mark>вентилируемых фасадов</mark>: керамогранит, <mark>терракота</mark>, алюминиевые панели, фиброцемент, HPL.
+              </div>
+              <div class="res-meta">
+                <span>Маша В.</span>
+                <span class="res-meta-sep">·</span>
+                <span>1 мес</span>
+              </div>
+            </div>
+          </a>
+
+          <a class="res-row">
+            <span class="res-icon std" aria-hidden="true">⬚</span>
+            <div class="res-body">
+              <div class="res-row-top">
+                <span class="res-tag std">Стандарт</span>
+                <span class="res-path">/ standards / facades-v1.4</span>
+              </div>
+              <div class="res-h">Стандарт по <mark>фасадным</mark> системам v1.4</div>
+              <div class="res-snip">
+                Корпоративный стандарт по проектированию <mark>фасадов</mark>: вентилируемые системы, мокрые штукатурные, тёплые штукатурные.
+              </div>
+              <div class="res-meta">
+                <span>Е. Седова</span>
+                <span class="res-meta-sep">·</span>
+                <span>обновлено 14 апр</span>
+              </div>
+            </div>
+          </a>
+
+        </div>
+      </section>
+
+      <section class="sec">
+        <header class="sec-h">
+          <span class="sec-h-t">Блоки</span>
+          <span class="sec-h-c">7</span>
+          <button class="sec-h-tg">Скрыть</button>
+        </header>
+        <div class="sec-body">
+
+          <a class="res-row">
+            <span class="res-icon block" aria-hidden="true">¶</span>
+            <div class="res-body">
+              <div class="res-row-top">
+                <span class="res-tag block">Блок · текст</span>
+                <span class="res-path">ЖК Северный свет › Фасад › Материал</span>
+              </div>
+              <div class="res-snip">
+                <mark>Терракотовые</mark> панели Argeton 300×1200 мм на скрытой подсистеме. Вентзазор 50 мм.
+              </div>
+              <div class="res-meta">
+                <div class="res-meta-tags">
+                  <span class="res-meta-tag match">фасад</span>
+                  <span class="res-meta-tag match">терракота</span>
+                </div>
+                <span class="res-meta-sep">·</span>
+                <span>shared · 3 статьи</span>
+              </div>
+            </div>
+          </a>
+
+          <a class="res-row">
+            <span class="res-icon block" aria-hidden="true">¶</span>
+            <div class="res-body">
+              <div class="res-row-top">
+                <span class="res-tag block">Блок · текст</span>
+                <span class="res-path">Узлы AlucoBond › Деформация</span>
+              </div>
+              <div class="res-snip">
+                Деформационный шов перекрывается нащельником из нержавеющей стали. <mark>Вентфасад</mark> сохраняет герметичность при температурных деформациях.
+              </div>
+              <div class="res-meta">
+                <div class="res-meta-tags">
+                  <span class="res-meta-tag match">фасад</span>
+                </div>
+              </div>
+            </div>
+          </a>
+
+          <a class="res-row">
+            <span class="res-icon block" aria-hidden="true">¶</span>
+            <div class="res-body">
+              <div class="res-row-top">
+                <span class="res-tag block">Блок · текст</span>
+                <span class="res-path">Сравнение систем › Долговечность</span>
+              </div>
+              <div class="res-snip">
+                <mark>Терракота</mark> выигрывает у керамогранита по долговечности цвета: натуральные оксиды железа сохраняют тон до 50 лет.
+              </div>
+              <div class="res-meta">
+                <div class="res-meta-tags">
+                  <span class="res-meta-tag match">терракота</span>
+                </div>
+              </div>
+            </div>
+          </a>
+
+          <span class="show-more">Показать ещё 4 блока →</span>
+
+        </div>
+      </section>
+
+      <section class="sec">
+        <header class="sec-h">
+          <span class="sec-h-t">Изображения</span>
+          <span class="sec-h-c">11</span>
+          <button class="sec-h-tg">Скрыть</button>
+        </header>
+        <div class="sec-body">
+          <div class="img-row" id="imgRow"></div>
+        </div>
+      </section>
+
+    </div>
+
+    <!-- =================== UPDATED (mixed by date) =================== -->
+    <div class="results" data-mode="updated">
+
+      <a class="res-row">
+        <span class="res-icon proj" aria-hidden="true">▤</span>
+        <div class="res-body">
+          <div class="res-row-top">
+            <span class="res-tag proj">Проект</span>
+            <span class="res-bp">BP</span>
+            <span class="res-path">/ projects / severny-svet</span>
+          </div>
+          <div class="res-h">ЖК Северный свет — концепция <mark>фасада</mark></div>
+          <div class="res-snip">
+            Юго-западный <mark>фасад</mark> решён в <mark>терракоте</mark> Argeton 300×1200 на скрытой подсистеме.
+          </div>
+          <div class="res-meta">
+            <span>Антон К. · обновлено 28 апр</span>
+          </div>
+        </div>
+      </a>
+
+      <a class="res-row">
+        <span class="res-icon std" aria-hidden="true">⬚</span>
+        <div class="res-body">
+          <div class="res-row-top">
+            <span class="res-tag std">Стандарт</span>
+            <span class="res-path">/ standards / facades-v1.4</span>
+          </div>
+          <div class="res-h">Стандарт по <mark>фасадным</mark> системам v1.4</div>
+          <div class="res-snip">
+            Корпоративный стандарт по проектированию <mark>фасадов</mark>: вентилируемые, мокрые штукатурные, сборные.
+          </div>
+          <div class="res-meta">
+            <span>Е. Седова · 14 апр</span>
+          </div>
+        </div>
+      </a>
+
+      <a class="res-row">
+        <span class="res-icon sol" aria-hidden="true">◇</span>
+        <div class="res-body">
+          <div class="res-row-top">
+            <span class="res-tag sol">Решение</span>
+            <span class="res-bp">BP</span>
+            <span class="res-path">/ solutions / alucobond-nodes</span>
+          </div>
+          <div class="res-h">Узлы примыканий <mark>вентфасада</mark> AlucoBond</div>
+          <div class="res-snip">
+            Деформационный шов перекрывается нащельником из нержавеющей стали 304.
+          </div>
+          <div class="res-meta">
+            <span>Игорь С. · 5 дн назад</span>
+          </div>
+        </div>
+      </a>
+
+      <a class="res-row">
+        <span class="res-icon block" aria-hidden="true">¶</span>
+        <div class="res-body">
+          <div class="res-row-top">
+            <span class="res-tag block">Блок · текст</span>
+            <span class="res-path">ЖК Северный свет › Фасад › Материал</span>
+          </div>
+          <div class="res-snip">
+            <mark>Терракотовые</mark> панели Argeton 300×1200 мм на скрытой подсистеме.
+          </div>
+          <div class="res-meta">
+            <span>обновлено 1 нед назад</span>
+          </div>
+        </div>
+      </a>
+
+      <a class="res-row">
+        <span class="res-icon art" aria-hidden="true">¶</span>
+        <div class="res-body">
+          <div class="res-row-top">
+            <span class="res-tag art">Статья</span>
+            <span class="res-path">/ articles / curtain-wall-comparison</span>
+          </div>
+          <div class="res-h">Сравнение систем <mark>вентфасадов</mark></div>
+          <div class="res-snip">
+            Сравнение пяти систем <mark>вентилируемых фасадов</mark>.
+          </div>
+          <div class="res-meta">
+            <span>Маша В. · 1 мес назад</span>
+          </div>
+        </div>
+      </a>
+
+      <span class="show-more">Показать ещё 17 результатов →</span>
+    </div>
+
+  </main>
+
+  <script>
+    // Image thumbnails
+    const PALETTES = [
+      ['#9FE1CB', '#5fa68e'], ['#85B7EB', '#446c9a'], ['#FAC775', '#b58a3a'],
+      ['#CECBF6', '#7a73c9'], ['#C0DD97', '#6f9447'], ['#F0997B', '#a35a3f'],
+      ['#dd6731', '#8e3a14'], ['#a2d8e0', '#4a90a0'], ['#e8c4d8', '#a45f7e'],
+      ['#b7d8a8', '#5a8642'], ['#dcc4a0', '#9a7b4d'],
+    ];
+    const TAG_SETS = [
+      ['#фасад', '#терракота'], ['#фасад', '#витраж'], ['#фасад', '#терракота'],
+      ['#кровля', '#узел'], ['#фасад', '#алюминий'], ['#фасад', '#кирпич'],
+      ['#фасад', '#терракота'], ['#стекло', '#витраж'], ['#благоустройство'],
+      ['#кровля'], ['#фасад'],
+    ];
+
+    function renderImg(idx) {
+      const [c1, c2] = PALETTES[idx];
+      const tags = TAG_SETS[idx] || [];
+      const lines = [];
+      for (let i = 0; i < 4; i++) {
+        const y = 25 * (i + 0.5);
+        const x1 = Math.random() * 30;
+        const x2 = 100 - Math.random() * 30;
+        lines.push(`<line x1="${x1}" y1="${y}" x2="${x2}" y2="${y}" stroke="rgba(255,255,255,0.06)" stroke-width="0.4"/>`);
+      }
+      return `
+        <a class="img-thumb" aria-label="Изображение ${idx + 1}">
+          <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
+            <defs>
+              <linearGradient id="ig${idx}" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stop-color="${c1}"/>
+                <stop offset="100%" stop-color="${c2}"/>
+              </linearGradient>
+            </defs>
+            <rect width="100" height="100" fill="url(#ig${idx})"/>
+            ${lines.join('')}
+          </svg>
+          <div class="img-thumb-tags">
+            ${tags.map(t => `<span class="img-thumb-tag">${t}</span>`).join('')}
+          </div>
+        </a>
+      `;
+    }
+    const row = document.getElementById('imgRow');
+    if (row) row.innerHTML = Array.from({ length: 6 }, (_, i) => renderImg(i)).join('');
+
+    // Sort dropdown
+    const sortBtn = document.getElementById('sortBtn');
+    const sortMenu = document.getElementById('sortMenu');
+    const sortLabel = document.getElementById('sortLabel');
+
+    function closeSortMenu() {
+      sortMenu.classList.remove('open');
+      sortBtn.classList.remove('open');
+      sortBtn.setAttribute('aria-expanded', 'false');
+    }
+
+    sortBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      const isOpen = sortMenu.classList.contains('open');
+      if (isOpen) closeSortMenu();
+      else {
+        sortMenu.classList.add('open');
+        sortBtn.classList.add('open');
+        sortBtn.setAttribute('aria-expanded', 'true');
+      }
+    });
+
+    document.querySelectorAll('.sort-opt').forEach(opt => {
+      opt.addEventListener('click', () => {
+        const mode = opt.dataset.mode;
+        // update active option
+        document.querySelectorAll('.sort-opt').forEach(o => o.classList.remove('on'));
+        opt.classList.add('on');
+        // update label
+        sortLabel.textContent = opt.querySelector('.sort-opt-name').textContent;
+        // switch panel
+        document.querySelectorAll('.results').forEach(r => {
+          r.classList.toggle('on', r.dataset.mode === mode);
+        });
+        closeSortMenu();
+      });
+    });
+
+    document.addEventListener('click', e => {
+      if (!e.target.closest('.sort-wrap')) closeSortMenu();
+    });
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') closeSortMenu();
+    });
+
+    // Section collapse
+    document.querySelectorAll('.sec-h-tg').forEach(btn => {
+      btn.addEventListener('click', e => {
+        e.preventDefault();
+        const sec = btn.closest('.sec');
+        const collapsed = sec.classList.toggle('collapsed');
+        btn.textContent = collapsed ? 'Показать' : 'Скрыть';
+      });
+    });
+
+    // Type pill toggle
+    document.querySelectorAll('.tp-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.tp-btn').forEach(b => b.classList.remove('on'));
+        btn.classList.add('on');
+      });
+    });
+
+    // Tag chip removal
+    document.querySelectorAll('.chip-x').forEach(x => {
+      x.addEventListener('click', () => x.closest('.chip').remove());
+    });
+
+    // Search input clear
+    const searchIn = document.getElementById('searchIn');
+    const clearBtn = document.getElementById('clearBtn');
+    function syncClear() { clearBtn.classList.toggle('hidden', !searchIn.value); }
+    searchIn.addEventListener('input', syncClear);
+    clearBtn.addEventListener('click', () => { searchIn.value = ''; searchIn.focus(); syncClear(); });
+    syncClear();
+  </script>
+</body>
+</html>

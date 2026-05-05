@@ -1,0 +1,537 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Wowhaus Wiki — Палитра ⌘K</title>
+  <meta name="description" content="UI mockup of the command palette ⌘K — actions, navigation, recents. Full search lives on the dedicated Search page." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root{
+      --terra:#dd6731;--terra-d:#b8501f;--terra-bg:#fbeee5;--terra-bd:#e89971;
+      --ink:#1a1a1a;--ink-2:#3d3d3d;--ink-3:#7a7a7a;--ink-4:#b4b2a9;--ink-5:#c0bdb3;
+      --bd:rgba(0,0,0,0.08);--bd-soft:rgba(0,0,0,0.05);--bd-strong:rgba(0,0,0,0.12);
+      --bg:#fafaf7;--surf:#ffffff;--surf-2:#f7f5f0;--surf-3:#efece4;
+      --tp-proj:#8e3a14;--tp-std:#444441;--tp-sol:#0c447c;--tp-art:#3c3489;
+      --good:#4a8a1f;--good-bg:#eef6e3;--good-bd:#b9d491;
+      --warn:#a86a16;--warn-bg:#faecd6;--warn-bd:#e2bf80;
+      --info-bg:#eef3f9;--info-bd:#c4d3e6;--info:#2c5687;
+      --font-sans:'Manrope',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+      --font-mono:ui-monospace,'SF Mono',Monaco,Consolas,monospace;
+      --r-sm:5px;--r-md:7px;--r-lg:10px;--r-pill:999px;
+    }
+    *,*::before,*::after{box-sizing:border-box}
+    html,body{margin:0;padding:0;font-family:var(--font-sans);font-size:14px;color:var(--ink);background:var(--bg);-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+    a{color:inherit;text-decoration:none}
+    button{font-family:inherit;font-size:inherit;color:inherit;background:none;border:none;padding:0;cursor:pointer}
+
+    /* === Behind-the-palette page hint (blurred mock content) === */
+    .behind{
+      position:fixed;inset:0;
+      background:
+        linear-gradient(135deg,#fbeee5 0%,#f7f5f0 35%,#fafaf7 65%,#efece4 100%);
+      filter:blur(2px) saturate(0.9);
+      overflow:hidden;
+      z-index:0;
+    }
+    .behind::before{
+      content:'';position:absolute;inset:0;
+      background:
+        radial-gradient(ellipse at 80% 20%,rgba(221,103,49,0.12) 0%,transparent 50%),
+        radial-gradient(ellipse at 15% 75%,rgba(56,72,128,0.08) 0%,transparent 55%);
+    }
+    .behind-rows{
+      position:absolute;left:24px;right:24px;top:80px;bottom:24px;
+      display:flex;flex-direction:column;gap:14px;opacity:0.55;
+    }
+    .behind-bar{height:30px;background:#fff;border:0.5px solid var(--bd);border-radius:var(--r-md);max-width:1080px;margin:0 auto;width:100%}
+    .behind-card{height:160px;background:#fff;border:0.5px solid var(--bd);border-radius:var(--r-lg);max-width:1080px;margin:0 auto;width:100%}
+    .behind-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;max-width:1080px;margin:0 auto;width:100%}
+    .behind-grid > div{height:120px;background:#fff;border:0.5px solid var(--bd);border-radius:var(--r-md)}
+
+    /* === Backdrop === */
+    .cmdk-bd{
+      position:fixed;inset:0;
+      background:rgba(26,26,26,0.5);
+      backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+      z-index:50;
+      display:flex;align-items:flex-start;justify-content:center;
+      padding:80px 24px 24px;
+      animation:fadeIn .15s ease-out;
+    }
+    @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+
+    /* === Palette === */
+    .cmdk{
+      width:100%;max-width:640px;max-height:calc(100vh - 96px);
+      background:var(--surf);
+      border:0.5px solid var(--bd);
+      border-radius:var(--r-lg);
+      box-shadow:0 24px 70px rgba(0,0,0,0.32),0 0 0 0.5px rgba(0,0,0,0.05);
+      display:flex;flex-direction:column;overflow:hidden;
+      animation:popIn .2s cubic-bezier(.2,.8,.3,1);
+    }
+    @keyframes popIn{from{opacity:0;transform:translateY(-8px) scale(0.985)}to{opacity:1;transform:translateY(0) scale(1)}}
+
+    /* === Header (search input) === */
+    .cmdk-h{
+      display:flex;align-items:center;gap:11px;
+      padding:14px 18px;border-bottom:0.5px solid var(--bd-soft);
+    }
+    .cmdk-h-i{font-size:16px;color:var(--terra);flex-shrink:0;line-height:1}
+    .cmdk-h input{
+      flex:1;background:transparent;border:none;outline:none;
+      font-family:inherit;font-size:16px;color:var(--ink);
+      line-height:1.3;min-width:0;padding:0;letter-spacing:-0.005em;
+    }
+    .cmdk-h input::placeholder{color:var(--ink-4)}
+    .cmdk-h-esc{
+      font-family:var(--font-mono);font-size:11px;
+      color:var(--ink-3);background:var(--surf-2);
+      border:0.5px solid var(--bd);border-radius:4px;
+      padding:2px 7px;font-weight:500;flex-shrink:0;
+      cursor:pointer;transition:border-color .12s,color .12s;
+    }
+    .cmdk-h-esc:hover{border-color:var(--terra-bd);color:var(--ink)}
+
+    /* === Body === */
+    .cmdk-body{
+      flex:1;overflow-y:auto;
+      padding:6px 0 8px;
+      scrollbar-width:thin;
+    }
+    .cat-h{
+      padding:12px 18px 6px;
+      font-size:10px;letter-spacing:.06em;text-transform:uppercase;
+      color:var(--ink-4);font-weight:600;
+      display:flex;align-items:center;gap:8px;
+    }
+    .cat-h-cnt{font-size:10px;color:var(--ink-5);font-weight:500;letter-spacing:0;text-transform:none}
+
+    .cmd-row{
+      display:flex;align-items:center;gap:12px;
+      padding:9px 18px;
+      cursor:pointer;
+      transition:background .08s;
+      position:relative;
+    }
+    .cmd-row:hover{background:var(--surf-2)}
+    .cmd-row.on{background:var(--terra-bg)}
+    .cmd-row.on::before{
+      content:'';position:absolute;left:0;top:8px;bottom:8px;
+      width:2.5px;background:var(--terra);border-radius:2px;
+    }
+    .cmd-row.on .cmd-name{color:var(--terra-d)}
+    .cmd-row.on .cmd-d{color:var(--terra-d);opacity:0.75}
+
+    .cmd-icon{
+      width:28px;height:28px;border-radius:var(--r-sm);
+      background:var(--surf-2);
+      display:inline-flex;align-items:center;justify-content:center;
+      font-size:13px;color:var(--ink-2);flex-shrink:0;
+      border:0.5px solid var(--bd-soft);
+    }
+    .cmd-row.on .cmd-icon{background:#fff;border-color:var(--terra-bd)}
+    .cmd-icon.proj{background:var(--terra-bg);color:var(--tp-proj);border-color:var(--terra-bd)}
+    .cmd-icon.std{background:var(--surf-3);color:var(--tp-std);border-color:var(--bd-strong)}
+    .cmd-icon.sol{background:#e6f1fb;color:var(--tp-sol);border-color:#c4d3e6}
+    .cmd-icon.art{background:#eeedfe;color:var(--tp-art);border-color:#d8d6f0}
+
+    .cmd-body{flex:1;min-width:0;display:flex;align-items:baseline;gap:8px}
+    .cmd-name{
+      font-size:13.5px;color:var(--ink);font-weight:500;
+      letter-spacing:-0.005em;line-height:1.3;
+      overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+    }
+    .cmd-d{
+      font-size:11.5px;color:var(--ink-3);font-weight:400;
+      overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+    }
+    .cmd-meta{
+      display:flex;align-items:center;gap:5px;flex-shrink:0;
+      font-size:10.5px;color:var(--ink-4);font-weight:500;
+    }
+    .cmd-row.on .cmd-meta{color:var(--terra-d);opacity:0.85}
+    .cmd-kbd{
+      font-family:var(--font-mono);font-size:10px;
+      background:var(--surf-2);border:0.5px solid var(--bd);
+      border-radius:3px;padding:1px 5px;font-weight:500;color:var(--ink-3);
+    }
+    .cmd-row.on .cmd-kbd{background:#fff;border-color:var(--terra-bd);color:var(--terra-d)}
+    .cmd-tag{
+      font-size:10px;text-transform:uppercase;letter-spacing:.04em;
+      color:var(--ink-4);font-weight:600;
+    }
+    .cmd-tag.proj{color:var(--tp-proj)}
+    .cmd-tag.std{color:var(--tp-std)}
+    .cmd-tag.sol{color:var(--tp-sol)}
+    .cmd-tag.art{color:var(--tp-art)}
+
+    .cmd-row mark{
+      background:rgba(221,103,49,0.22);color:var(--ink);
+      padding:0 1px;border-radius:2px;font-weight:600;
+    }
+    .cmd-row.on mark{background:rgba(221,103,49,0.4);color:var(--terra-d)}
+
+    /* Type dot for recents */
+    .cmd-dot{
+      width:7px;height:7px;border-radius:50%;flex-shrink:0;
+      background:var(--ink-4);
+    }
+    .cmd-dot.proj{background:var(--tp-proj)}
+    .cmd-dot.std{background:var(--tp-std)}
+    .cmd-dot.sol{background:var(--tp-sol)}
+    .cmd-dot.art{background:var(--tp-art)}
+
+    /* Recents row uses dot instead of icon */
+    .cmd-row.recent .cmd-icon{
+      width:auto;height:28px;background:transparent;border:none;
+      padding:0 2px;
+    }
+
+    /* Handoff hint — explains why ⌘K doesn't do full search */
+    .cmdk-handoff{
+      margin:6px 18px 8px;padding:10px 12px;
+      background:var(--info-bg);border:0.5px solid var(--info-bd);
+      border-radius:var(--r-sm);
+      font-size:11px;color:var(--ink-3);line-height:1.5;
+    }
+    .cmdk-handoff b{color:var(--info);font-weight:600}
+
+    /* Empty state hint */
+    .cmdk-empty{
+      padding:36px 18px;text-align:center;
+      color:var(--ink-3);font-size:13px;line-height:1.55;
+    }
+    .cmdk-empty b{color:var(--ink);font-weight:600}
+    .cmdk-empty kbd{
+      font-family:var(--font-mono);font-size:11px;
+      background:var(--surf-2);border:0.5px solid var(--bd);
+      border-radius:3px;padding:1px 6px;font-weight:500;color:var(--ink-2);
+    }
+
+    /* === Footer === */
+    .cmdk-f{
+      display:flex;align-items:center;gap:14px;
+      padding:9px 18px;
+      background:var(--surf-2);
+      border-top:0.5px solid var(--bd-soft);
+      font-size:11px;color:var(--ink-3);
+      flex-wrap:wrap;
+    }
+    .cmdk-f-item{display:inline-flex;align-items:center;gap:5px;font-weight:500}
+    .cmdk-f-item kbd{
+      font-family:var(--font-mono);font-size:10px;
+      background:var(--surf);border:0.5px solid var(--bd);
+      border-radius:3px;padding:1px 5px;color:var(--ink-2);font-weight:600;
+      min-width:18px;text-align:center;
+    }
+    .cmdk-f-spacer{flex:1}
+    .cmdk-f-brand{
+      display:inline-flex;align-items:center;gap:6px;
+      color:var(--ink-4);font-size:10.5px;font-weight:500;
+    }
+    .cmdk-f-brand .blogo-mini{
+      width:12px;height:12px;border-radius:3px;background:var(--terra);
+      display:inline-block;flex-shrink:0;
+    }
+
+    /* Scrollbar styling */
+    .cmdk-body::-webkit-scrollbar{width:6px}
+    .cmdk-body::-webkit-scrollbar-track{background:transparent}
+    .cmdk-body::-webkit-scrollbar-thumb{background:var(--bd-strong);border-radius:3px}
+    .cmdk-body::-webkit-scrollbar-thumb:hover{background:var(--ink-4)}
+
+    /* === Mode switching ===
+       body.cmdk-search → only "search results" section shown,
+       all other sections hidden. */
+    body.cmdk-search .cat-default{display:none}
+    body:not(.cmdk-search) .cat-search{display:none}
+
+    /* Trigger to toggle (visual demo) */
+    .cmdk-toggle{
+      position:fixed;bottom:20px;right:20px;
+      padding:8px 14px;background:var(--ink);color:#fff;
+      border-radius:var(--r-pill);font-size:11px;font-weight:500;
+      cursor:pointer;z-index:60;
+      box-shadow:0 4px 14px rgba(0,0,0,0.2);
+      letter-spacing:0.01em;
+    }
+    .cmdk-toggle:hover{background:#000}
+    .cmdk-toggle kbd{
+      font-family:var(--font-mono);font-size:9px;
+      background:rgba(255,255,255,0.18);
+      padding:1px 5px;border-radius:3px;margin-left:5px;color:#fff;
+    }
+
+    @media (max-width:540px){
+      .cmdk-bd{padding:24px 12px}
+      .cmdk{max-height:calc(100vh - 48px)}
+      .cmdk-h{padding:12px 14px}
+      .cat-h,.cmd-row,.cmdk-f{padding-left:14px;padding-right:14px}
+      .cmd-d{display:none}
+      .cmdk-f{font-size:10px;gap:10px}
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Mock page behind palette — to show ⌘K opens "over any page" -->
+  <div class="behind" aria-hidden="true">
+    <div class="behind-rows">
+      <div class="behind-bar"></div>
+      <div class="behind-card"></div>
+      <div class="behind-grid">
+        <div></div><div></div><div></div><div></div>
+      </div>
+      <div class="behind-card"></div>
+      <div class="behind-grid">
+        <div></div><div></div><div></div><div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Backdrop + palette -->
+  <div class="cmdk-bd" id="cmdkBd">
+    <div class="cmdk" role="dialog" aria-label="Палитра команд">
+
+      <!-- Search input -->
+      <header class="cmdk-h">
+        <span class="cmdk-h-i" aria-hidden="true">⌕</span>
+        <input id="cmdkInput" type="text" placeholder="Команда или быстрый переход…" autocomplete="off" autofocus />
+        <button class="cmdk-h-esc" id="cmdkEsc" title="Закрыть">Esc</button>
+      </header>
+
+      <!-- Body — sections shift between default and search modes -->
+      <div class="cmdk-body" id="cmdkBody">
+
+        <!-- ============ DEFAULT MODE ============ -->
+
+        <!-- Actions -->
+        <div class="cat-default">
+          <div class="cat-h">Действия</div>
+
+          <a class="cmd-row">
+            <span class="cmd-icon proj" aria-hidden="true">▤</span>
+            <div class="cmd-body"><span class="cmd-name">Создать проект</span><span class="cmd-d">Карточка проекта с фасетами и обложкой</span></div>
+            <span class="cmd-meta"><span class="cmd-kbd">⌘</span><span class="cmd-kbd">N</span><span class="cmd-kbd">P</span></span>
+          </a>
+
+          <a class="cmd-row">
+            <span class="cmd-icon std" aria-hidden="true">⬚</span>
+            <div class="cmd-body"><span class="cmd-name">Создать стандарт</span><span class="cmd-d">Регламент, обязательный к ознакомлению</span></div>
+            <span class="cmd-meta"><span class="cmd-kbd">⌘</span><span class="cmd-kbd">N</span><span class="cmd-kbd">S</span></span>
+          </a>
+
+          <a class="cmd-row">
+            <span class="cmd-icon sol" aria-hidden="true">◇</span>
+            <div class="cmd-body"><span class="cmd-name">Создать решение</span><span class="cmd-d">Узел, приём, рецепт</span></div>
+            <span class="cmd-meta"><span class="cmd-kbd">⌘</span><span class="cmd-kbd">N</span><span class="cmd-kbd">R</span></span>
+          </a>
+
+          <a class="cmd-row">
+            <span class="cmd-icon art" aria-hidden="true">¶</span>
+            <div class="cmd-body"><span class="cmd-name">Создать статью</span><span class="cmd-d">Заметка, гайд, разбор</span></div>
+            <span class="cmd-meta"><span class="cmd-kbd">⌘</span><span class="cmd-kbd">N</span><span class="cmd-kbd">A</span></span>
+          </a>
+
+          <a class="cmd-row">
+            <span class="cmd-icon" aria-hidden="true">▣</span>
+            <div class="cmd-body"><span class="cmd-name">Загрузить изображение</span><span class="cmd-d">Drag-and-drop или из буфера</span></div>
+            <span class="cmd-meta"><span class="cmd-kbd">⌘</span><span class="cmd-kbd">U</span></span>
+          </a>
+        </div>
+
+        <!-- Navigation -->
+        <div class="cat-default">
+          <div class="cat-h">Перейти</div>
+
+          <a class="cmd-row on" href="hub-mockup.html">
+            <span class="cmd-icon" aria-hidden="true">⊞</span>
+            <div class="cmd-body"><span class="cmd-name">Браузер статей</span><span class="cmd-d">Все материалы, фасеты, фильтры</span></div>
+            <span class="cmd-meta"><span class="cmd-kbd">G</span><span class="cmd-kbd">B</span></span>
+          </a>
+
+          <a class="cmd-row" href="images-mockup.html">
+            <span class="cmd-icon" aria-hidden="true">▣</span>
+            <div class="cmd-body"><span class="cmd-name">Изображения</span><span class="cmd-d">Pinterest-style галерея</span></div>
+            <span class="cmd-meta"><span class="cmd-kbd">G</span><span class="cmd-kbd">I</span></span>
+          </a>
+
+          <a class="cmd-row" href="search-mockup.html">
+            <span class="cmd-icon" aria-hidden="true">⌕</span>
+            <div class="cmd-body"><span class="cmd-name">Поиск</span><span class="cmd-d">Полный поиск по базе</span></div>
+            <span class="cmd-meta"><span class="cmd-kbd">G</span><span class="cmd-kbd">S</span></span>
+          </a>
+
+          <a class="cmd-row">
+            <span class="cmd-icon" aria-hidden="true">◆</span>
+            <div class="cmd-body"><span class="cmd-name">Регламенты</span><span class="cmd-d">Compliance — обязательное к ознакомлению</span></div>
+            <span class="cmd-meta"><span class="cmd-kbd">G</span><span class="cmd-kbd">R</span></span>
+          </a>
+
+          <a class="cmd-row">
+            <span class="cmd-icon" aria-hidden="true">★</span>
+            <div class="cmd-body"><span class="cmd-name">Закладки</span><span class="cmd-d">Что вы сохранили на потом</span></div>
+            <span class="cmd-meta"><span class="cmd-kbd">G</span><span class="cmd-kbd">K</span></span>
+          </a>
+
+          <a class="cmd-row" href="admin-mockup.html">
+            <span class="cmd-icon" aria-hidden="true">⚙</span>
+            <div class="cmd-body"><span class="cmd-name">Админ-панель</span><span class="cmd-d">Очередь, теги, фасеты, аналитика</span></div>
+            <span class="cmd-meta"><span class="cmd-kbd">G</span><span class="cmd-kbd">A</span></span>
+          </a>
+        </div>
+
+        <!-- Recents -->
+        <div class="cat-default">
+          <div class="cat-h">Недавнее <span class="cat-h-cnt">— 4 материала</span></div>
+
+          <a class="cmd-row recent" href="article-mockup.html">
+            <span class="cmd-icon"><span class="cmd-dot proj"></span></span>
+            <div class="cmd-body">
+              <span class="cmd-tag proj">Проект</span>
+              <span class="cmd-name">ЖК Северный свет — концепция фасада</span>
+            </div>
+            <span class="cmd-meta">2 ч</span>
+          </a>
+
+          <a class="cmd-row recent">
+            <span class="cmd-icon"><span class="cmd-dot std"></span></span>
+            <div class="cmd-body">
+              <span class="cmd-tag std">Стандарт</span>
+              <span class="cmd-name">Стандарт BIM-моделирования v2.1</span>
+            </div>
+            <span class="cmd-meta">5 ч</span>
+          </a>
+
+          <a class="cmd-row recent">
+            <span class="cmd-icon"><span class="cmd-dot sol"></span></span>
+            <div class="cmd-body">
+              <span class="cmd-tag sol">Решение</span>
+              <span class="cmd-name">Узлы примыканий вентфасада AlucoBond</span>
+            </div>
+            <span class="cmd-meta">вчера</span>
+          </a>
+
+          <a class="cmd-row recent">
+            <span class="cmd-icon"><span class="cmd-dot art"></span></span>
+            <div class="cmd-body">
+              <span class="cmd-tag art">Статья</span>
+              <span class="cmd-name">Сравнение систем вентфасадов — обновление</span>
+            </div>
+            <span class="cmd-meta">вчера</span>
+          </a>
+        </div>
+
+        <!-- ============ SEARCH MODE — filter commands/nav/recents + delegate to Поиск ============ -->
+
+        <div class="cat-search">
+          <div class="cat-h">Действия с «<span style="color:var(--ink-2);">терракот</span>»</div>
+          <a class="cmd-row">
+            <span class="cmd-icon art" aria-hidden="true">¶</span>
+            <div class="cmd-body"><span class="cmd-name">Создать статью «<mark>терракот</mark>»</span><span class="cmd-d">Новая запись с этим заголовком</span></div>
+            <span class="cmd-meta"><span class="cmd-kbd">⌘</span><span class="cmd-kbd">N</span><span class="cmd-kbd">A</span></span>
+          </a>
+          <a class="cmd-row">
+            <span class="cmd-icon" style="background:#eeedfe;color:var(--tp-art);border-color:#d8d6f0" aria-hidden="true">#</span>
+            <div class="cmd-body"><span class="cmd-name">Создать тег «<mark>#терракот</mark>»</span><span class="cmd-d">На одобрение менеджеру</span></div>
+          </a>
+        </div>
+
+        <div class="cat-search">
+          <div class="cat-h">Быстрый переход</div>
+          <a class="cmd-row">
+            <span class="cmd-icon" style="background:#eeedfe;color:var(--tp-art);border-color:#d8d6f0" aria-hidden="true">#</span>
+            <div class="cmd-body"><span class="cmd-name">Тег «<mark>#терракот</mark>а»</span><span class="cmd-d">28 материалов в Браузере</span></div>
+          </a>
+          <a class="cmd-row recent" href="article-mockup.html">
+            <span class="cmd-icon"><span class="cmd-dot proj"></span></span>
+            <div class="cmd-body">
+              <span class="cmd-tag proj">Проект</span>
+              <span class="cmd-name">ЖК Северный свет — <mark>терракот</mark>овые панели Argeton</span>
+            </div>
+            <span class="cmd-meta">недавнее</span>
+          </a>
+        </div>
+
+        <div class="cat-search">
+          <div class="cat-h">Полный поиск</div>
+          <a class="cmd-row on" href="search-mockup.html">
+            <span class="cmd-icon" aria-hidden="true">⌕</span>
+            <div class="cmd-body"><span class="cmd-name">Найти «<mark>терракот</mark>» во всей базе</span><span class="cmd-d">Открыть страницу Поиска — текст, изображения, фасеты</span></div>
+            <span class="cmd-meta"><span class="cmd-kbd">⌘</span><span class="cmd-kbd">↵</span></span>
+          </a>
+          <div class="cmdk-handoff">⌘K — для команд и быстрых переходов. Полнотекстовый поиск, фасетные фильтры и сортировка живут на отдельной странице <b>Поиска</b>.</div>
+        </div>
+
+      </div>
+
+      <!-- Footer -->
+      <footer class="cmdk-f">
+        <span class="cmdk-f-item"><kbd>↑</kbd><kbd>↓</kbd> навигация</span>
+        <span class="cmdk-f-item"><kbd>↵</kbd> открыть</span>
+        <span class="cmdk-f-item"><kbd>⌘</kbd><kbd>↵</kbd> в новой вкладке</span>
+        <span class="cmdk-f-item"><kbd>Esc</kbd> закрыть</span>
+        <span class="cmdk-f-spacer"></span>
+        <span class="cmdk-f-brand"><span class="blogo-mini"></span>Wowhaus Wiki</span>
+      </footer>
+
+    </div>
+  </div>
+
+  <!-- Demo toggle: switches between default and search modes -->
+  <button class="cmdk-toggle" id="cmdkToggle">Состояние: всё <kbd>T</kbd></button>
+
+  <script>
+    // === Demo state toggle: empty input vs. with query ===
+    const body=document.body;
+    const input=document.getElementById('cmdkInput');
+    const toggle=document.getElementById('cmdkToggle');
+
+    function applyMode(query){
+      if(query&&query.length>0){
+        body.classList.add('cmdk-search');
+        toggle.innerHTML='Состояние: с запросом <kbd>T</kbd>';
+      } else {
+        body.classList.remove('cmdk-search');
+        toggle.innerHTML='Состояние: всё <kbd>T</kbd>';
+      }
+    }
+    input.addEventListener('input',()=>applyMode(input.value));
+    toggle.addEventListener('click',()=>{
+      if(body.classList.contains('cmdk-search')){
+        input.value='';applyMode('');
+      } else {
+        input.value='терракот';applyMode('терракот');
+      }
+      input.focus();
+    });
+    document.addEventListener('keydown',e=>{
+      if(e.key==='t'&&!e.metaKey&&!e.ctrlKey&&document.activeElement!==input){
+        toggle.click();e.preventDefault();
+      }
+    });
+
+    // Hover navigation — move .on between rows
+    function attachHover(){
+      document.querySelectorAll('.cmd-row').forEach(r=>{
+        r.addEventListener('mouseenter',()=>{
+          document.querySelectorAll('.cmd-row.on').forEach(x=>x.classList.remove('on'));
+          r.classList.add('on');
+        });
+      });
+    }
+    attachHover();
+
+    // Esc closes the palette (just hides backdrop visually)
+    const bd=document.getElementById('cmdkBd');
+    function close(){bd.style.display='none'}
+    document.getElementById('cmdkEsc').addEventListener('click',close);
+    document.addEventListener('keydown',e=>{if(e.key==='Escape')close()});
+    bd.addEventListener('click',e=>{if(e.target===bd)close()});
+  </script>
+</body>
+</html>
