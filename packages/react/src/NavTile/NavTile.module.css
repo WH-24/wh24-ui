@@ -1,0 +1,65 @@
+.tile {
+  background: var(--surf-2);
+  border: 0.5px solid var(--bd-soft);
+  border-radius: var(--r-lg);
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    border-color 0.15s;
+}
+
+.tile:hover {
+  background: var(--surf-3);
+  border-color: var(--terra-bd);
+}
+
+.icon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--r-md);
+  background: var(--surf);
+  border: 0.5px solid var(--bd);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--terra-d);
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.text {
+  flex: 1;
+  min-width: 0;
+}
+
+.name {
+  display: block;
+  font-size: 14px;
+  font-weight: var(--fw-medium);
+  color: var(--ink);
+  line-height: 1.2;
+}
+
+.sub {
+  display: block;
+  font-size: 12px;
+  color: var(--ink-3);
+  margin-top: 3px;
+}
+
+.arr {
+  color: var(--terra-d);
+  font-size: 16px;
+  transition: transform 0.15s;
+  flex-shrink: 0;
+}
+
+.tile:hover .arr {
+  transform: translateX(2px);
+}
