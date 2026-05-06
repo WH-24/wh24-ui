@@ -48,6 +48,7 @@ export const colors = {
 } as const
 
 export const radii = {
+  xs: 'var(--r-xs)',
   sm: 'var(--r-sm)',
   md: 'var(--r-md)',
   lg: 'var(--r-lg)',
@@ -58,6 +59,54 @@ export const radii = {
 export const fonts = {
   sans: 'var(--font-sans)',
   mono: 'var(--font-mono)',
+} as const
+
+export const fontSizes = {
+  h1: 'var(--fs-h1)',
+  h1Min: 'var(--fs-h1-min)',
+  h2: 'var(--fs-h2)',
+  h3: 'var(--fs-h3)',
+  card: 'var(--fs-card)',
+  body: 'var(--fs-body)',
+  meta: 'var(--fs-meta)',
+  metaSm: 'var(--fs-meta-sm)',
+} as const
+
+export const lineHeights = {
+  tight: 'var(--lh-tight)',
+  snug: 'var(--lh-snug)',
+  body: 'var(--lh-body)',
+} as const
+
+export const fontWeights = {
+  regular: 'var(--fw-regular)',
+  medium: 'var(--fw-medium)',
+  semibold: 'var(--fw-semibold)',
+  bold: 'var(--fw-bold)',
+} as const
+
+export const space = {
+  1: 'var(--sp-1)',
+  2: 'var(--sp-2)',
+  3: 'var(--sp-3)',
+  4: 'var(--sp-4)',
+  5: 'var(--sp-5)',
+  6: 'var(--sp-6)',
+  7: 'var(--sp-7)',
+  8: 'var(--sp-8)',
+  9: 'var(--sp-9)',
+  10: 'var(--sp-10)',
+} as const
+
+export const shadows = {
+  sm: 'var(--shadow-sm)',
+  md: 'var(--shadow-md)',
+} as const
+
+export const zIndex = {
+  mega: 'var(--z-mega)',
+  modal: 'var(--z-modal)',
+  toast: 'var(--z-toast)',
 } as const
 
 export const layout = {
@@ -82,13 +131,31 @@ export const fields = {
 } as const
 
 /** Article type — drives badge/marker color. */
-export type ArticleType = 'project' | 'standard' | 'solution' | 'article'
+export const ARTICLE_TYPES = ['project', 'standard', 'solution', 'article'] as const
+export type ArticleType = (typeof ARTICLE_TYPES)[number]
 
+/** Russian display labels for article types. */
+export const ARTICLE_TYPE_LABELS: Record<ArticleType, string> = {
+  project: 'Проект',
+  standard: 'Стандарт',
+  solution: 'Решение',
+  article: 'Статья',
+}
+
+/** Foreground (text/marker) color per article type. */
 export const articleTypeColor: Record<ArticleType, string> = {
   project: colors.tpProj,
   standard: colors.tpStd,
   solution: colors.tpSol,
   article: colors.tpArt,
+}
+
+/** Background (tint) color per article type — for badges, card covers. */
+export const articleTypeBg: Record<ArticleType, string> = {
+  project: 'var(--tp-proj-bg)',
+  standard: 'var(--tp-std-bg)',
+  solution: 'var(--tp-sol-bg)',
+  article: 'var(--tp-art-bg)',
 }
 
 /** Status tone — drives surface/text/border triad. */

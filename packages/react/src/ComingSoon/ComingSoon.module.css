@@ -1,0 +1,29 @@
+.root {
+  display: grid;
+  gap: 8px;
+  padding: 32px;
+  border: 1px dashed var(--bd);
+  border-radius: var(--r-xl);
+  text-align: center;
+  color: var(--ink-3);
+}
+
+.title {
+  font-size: 28px;
+  color: var(--ink);
+}
+
+.surface {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.note {
+  margin: 8px auto 0;
+  max-width: 480px;
+  font-size: 14px;
+  line-height: 1.5;
+}
