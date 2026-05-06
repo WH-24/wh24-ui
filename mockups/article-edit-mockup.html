@@ -359,34 +359,39 @@
     .crew.open .crew-body{display:block}
     .crew-list{display:flex;flex-direction:column}
     .crew-row{
-      display:flex;align-items:center;gap:10px;
-      padding:5px 0;font-size:12px;
+      display:flex;align-items:baseline;gap:8px;
+      padding:6px 0;border-top:0.5px solid var(--bd-soft);
     }
-    .crew-row + .crew-row{border-top:0.5px solid var(--bd-soft)}
-    .crew-av{
-      width:22px;height:22px;border-radius:50%;
-      background:var(--terra-bg);color:var(--terra-d);
-      display:inline-flex;align-items:center;justify-content:center;
-      font-size:10px;font-weight:600;flex-shrink:0;
+    .crew-row:first-child{border-top:none;padding-top:0}
+    .crew-name{
+      font-size:13px;font-weight:500;color:var(--ink);
+      letter-spacing:-0.005em;
+      outline:none;padding:1px 3px;border-radius:2px;
     }
-    .crew-av.b{background:var(--info-bg);color:var(--info)}
-    .crew-av.c{background:var(--good-bg);color:var(--good)}
-    .crew-av.d{background:#eeedfe;color:var(--tp-art)}
-    .crew-name{font-size:12px;font-weight:500;color:var(--ink);letter-spacing:-0.005em;flex-shrink:0}
-    .crew-role{font-size:11px;color:var(--ink-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .crew-name:focus{background:var(--terra-bg)}
+    .crew-dash{color:var(--ink-3);font-size:12px}
+    .crew-role{
+      font-size:12px;color:var(--ink-2);flex:1;
+      overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+      outline:none;padding:1px 3px;border-radius:2px;
+    }
+    .crew-role:focus{background:var(--terra-bg)}
     .crew-row .crew-x{
-      margin-left:auto;color:var(--ink-4);font-size:13px;cursor:pointer;
+      margin-left:auto;color:var(--ink-4);font-size:14px;cursor:pointer;
+      opacity:0;transition:opacity .15s;
       width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center;border-radius:4px;
     }
-    .crew-row .crew-x:hover{background:var(--surf-2);color:var(--ink-3)}
-    .crew-add{
-      display:inline-flex;align-items:center;gap:6px;
-      margin-top:7px;font-size:11px;
-      color:var(--ink-3);font-weight:500;cursor:pointer;
+    .crew-row:hover .crew-x{opacity:.7}
+    .crew-row .crew-x:hover{opacity:1;color:var(--bad);background:var(--surf-2)}
+    .crew-add-btn{
+      width:100%;padding:8px;
+      background:var(--surf-2);
+      border:0.5px dashed var(--bd-strong);
+      color:var(--ink-3);font-size:12px;
+      border-radius:var(--r-sm);cursor:pointer;
+      margin-top:6px;font-family:inherit;
     }
-    .crew-add:hover{color:var(--terra-d)}
-    .crew-add::before{content:'+';font-size:13px;color:var(--terra-d)}
-    .crew-source{font-size:10px;color:var(--ink-4);margin-top:6px;font-style:italic;font-family:var(--font-mono)}
+    .crew-add-btn:hover{border-color:var(--terra-bd);color:var(--terra-d)}
 
     /* === Universal text block === */
     .text-block{font-size:15px;line-height:1.65;color:var(--ink-2)}
@@ -777,6 +782,9 @@
     html[data-theme="dark"] .topbar,html[data-theme="dark"] .edit-toolbar{background:rgba(15,17,16,0.85)}
     html[data-theme="dark"] .behind{background:linear-gradient(135deg,#15110d 0%,#1c1f1c 35%,#0f1110 65%,#272b27 100%);filter:blur(2px) saturate(0.9)}
     html[data-theme="dark"] .behind-bar,html[data-theme="dark"] .behind-card,html[data-theme="dark"] .behind-grid > div{background:var(--surf)}
+    html[data-theme="dark"] .dp-btn.primary,html[data-theme="dark"] .ip-tab.on,html[data-theme="dark"] .insert-zone.active .iz-plus{color:var(--bg)}
+    html[data-theme="dark"] .dp-btn.primary{border-color:var(--ink)}
+    html[data-theme="dark"] .dp-btn.primary:hover{background:#fff;color:#000;border-color:#fff}
 
   </style>
 </head>
@@ -917,18 +925,37 @@
         <div class="crew-h">
           <span class="crew-h-i">👥</span>
           <span class="crew-h-t">Команда проекта</span>
-          <span class="crew-h-cnt">4 · WH_ID</span>
+          <span class="crew-h-cnt">4 человека</span>
           <span class="crew-h-x">▾</span>
         </div>
         <div class="crew-body">
           <div class="crew-list">
-            <div class="crew-row"><span class="crew-av">АК</span><span class="crew-name">Антон Краснов</span><span class="crew-role">главный архитектор</span><span class="crew-x">×</span></div>
-            <div class="crew-row"><span class="crew-av b">МВ</span><span class="crew-name">Маша Воронцова</span><span class="crew-role">фасадный консультант</span><span class="crew-x">×</span></div>
-            <div class="crew-row"><span class="crew-av c">ИС</span><span class="crew-name">Игорь Серов</span><span class="crew-role">инженер · узлы</span><span class="crew-x">×</span></div>
-            <div class="crew-row"><span class="crew-av d">ЛР</span><span class="crew-name">Лена Романова</span><span class="crew-role">BIM-координатор</span><span class="crew-x">×</span></div>
+            <div class="crew-row">
+              <span class="crew-name" contenteditable>Антон Краснов</span>
+              <span class="crew-dash">—</span>
+              <span class="crew-role" contenteditable>главный архитектор</span>
+              <span class="crew-x">×</span>
+            </div>
+            <div class="crew-row">
+              <span class="crew-name" contenteditable>Маша Воронцова</span>
+              <span class="crew-dash">—</span>
+              <span class="crew-role" contenteditable>фасадный консультант</span>
+              <span class="crew-x">×</span>
+            </div>
+            <div class="crew-row">
+              <span class="crew-name" contenteditable>Игорь Серов</span>
+              <span class="crew-dash">—</span>
+              <span class="crew-role" contenteditable>инженер · узлы</span>
+              <span class="crew-x">×</span>
+            </div>
+            <div class="crew-row">
+              <span class="crew-name" contenteditable>Лена Романова</span>
+              <span class="crew-dash">—</span>
+              <span class="crew-role" contenteditable>BIM-координатор</span>
+              <span class="crew-x">×</span>
+            </div>
           </div>
-          <div class="crew-add">Добавить из WH_ID</div>
-          <div class="crew-source">из corp.wowhaus/wh_id</div>
+          <button class="crew-add-btn">+ Добавить строку</button>
         </div>
       </div>
 

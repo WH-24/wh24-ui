@@ -39,6 +39,9 @@
       --tp-art: #3c3489;
 
       --good: #639922;
+      --bad: #a32d2d;
+      --bad-bg: #fceaea;
+      --bad-bd: #e6a8a8;
 
       --font-sans: 'Manrope', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
       --font-mono: ui-monospace, 'SF Mono', Monaco, Consolas, monospace;
@@ -424,6 +427,47 @@
       height: 7px;
       border-radius: 50%;
       flex-shrink: 0;
+    }
+
+    .card.must-read:has(.mr-item.overdue) {
+      border-color: var(--bad-bd);
+      background: linear-gradient(180deg, var(--bad-bg) 0%, var(--surf) 90%);
+    }
+    .mr-item {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 10px 0;
+      border-top: 0.5px solid var(--bd-soft);
+      cursor: pointer;
+      transition: color 0.15s;
+    }
+    .mr-item:first-of-type {
+      border-top: none;
+      padding-top: 2px;
+    }
+    .mr-item:hover .mr-title {
+      color: var(--terra-d);
+    }
+    .mr-title {
+      font-size: 13px;
+      color: var(--ink);
+      font-weight: 500;
+      flex: 1;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .mr-deadline {
+      font-size: 11px;
+      color: var(--ink-3);
+      flex-shrink: 0;
+      font-variant-numeric: tabular-nums;
+    }
+    .mr-deadline.overdue {
+      color: var(--bad);
+      font-weight: 500;
     }
 
     .read-item {
@@ -855,6 +899,33 @@
 
     <div class="cols">
       <div class="col-stack">
+        <section class="card must-read" aria-label="Нужно прочитать">
+          <header class="card-h">
+            <div class="card-h-l">
+              <span class="card-h-t">Нужно прочитать</span>
+              <span class="card-h-c">3</span>
+            </div>
+            <div class="card-h-r">
+              <button class="chev" aria-label="Свернуть">▾</button>
+            </div>
+          </header>
+          <a class="mr-item overdue" href="article-std-mockup.html">
+            <span class="tm-dot" style="background: var(--tp-std)"></span>
+            <span class="mr-title">Корпоративная этика и режим</span>
+            <span class="mr-deadline overdue">просрочено 3 дня</span>
+          </a>
+          <a class="mr-item" href="article-std-mockup.html">
+            <span class="tm-dot" style="background: var(--tp-std)"></span>
+            <span class="mr-title">Стандарт пожарной безопасности v3</span>
+            <span class="mr-deadline">срок 15 мая · 11 дней</span>
+          </a>
+          <a class="mr-item" href="article-std-mockup.html">
+            <span class="tm-dot" style="background: var(--tp-std)"></span>
+            <span class="mr-title">Стандарт BIM-моделирования v2.1</span>
+            <span class="mr-deadline">срок 22 мая · 18 дней</span>
+          </a>
+        </section>
+
         <section class="card" aria-label="Продолжить чтение">
           <header class="card-h">
             <div class="card-h-l">

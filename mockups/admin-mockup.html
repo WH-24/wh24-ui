@@ -84,14 +84,6 @@ body.role-admin .sb-link[data-admin]{display:flex}body.role-admin .sb-section[da
 .dash-act-t{font-size:13px;color:var(--ink);font-weight:500;letter-spacing:-0.005em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .dash-act-m{font-size:11px;color:var(--ink-3);margin-top:1px}
 .dash-act-time{font-size:11px;color:var(--ink-4);font-variant-numeric:tabular-nums;flex-shrink:0}
-.health-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:0}
-.health-cell{padding:12px 18px;border-right:0.5px solid var(--bd-soft);display:flex;flex-direction:column;gap:4px}
-.health-cell:last-child{border-right:none}
-.health-l{font-size:10px;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-3);font-weight:500}
-.health-v{font-size:16px;font-weight:600;color:var(--ink);letter-spacing:-0.005em;display:inline-flex;align-items:center;gap:7px}
-.health-dot{width:7px;height:7px;border-radius:50%;background:var(--good)}
-.health-dot.warn{background:var(--warn)}.health-dot.bad{background:var(--bad)}
-.health-d{font-size:11px;color:var(--ink-3)}
 .filter-bar{display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap}
 .seg{display:flex;background:var(--surf-2);border-radius:var(--r-md);padding:2px}
 .seg-btn{padding:5px 12px;font-size:12px;color:var(--ink-3);border-radius:5px;font-weight:500;transition:color .15s;display:inline-flex;align-items:center;gap:6px}
@@ -106,6 +98,11 @@ body.role-admin .sb-link[data-admin]{display:flex}body.role-admin .sb-section[da
 .row-h{display:grid;grid-template-columns:30px 1fr 200px 100px 120px 200px;align-items:center;gap:12px;padding:9px 16px;background:var(--surf-2);font-size:10px;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-3);font-weight:500;border-bottom:0.5px solid var(--bd-soft)}
 .review-row{display:grid;grid-template-columns:30px 1fr 200px 100px 120px 200px;align-items:center;gap:12px;padding:12px 16px;border-bottom:0.5px solid var(--bd-soft);transition:background .12s}
 .review-row:hover{background:var(--surf-2)}.review-row:last-child{border-bottom:none}
+.share-link-row{display:grid;grid-template-columns:30px 1fr 200px 100px 120px 200px;align-items:center;gap:12px;padding:12px 16px;border-bottom:0.5px solid var(--bd-soft);transition:background .12s}
+.share-link-row:hover{background:var(--surf-2)}.share-link-row:last-child{border-bottom:none}
+.share-link-row.expired{opacity:0.55}
+.share-link-row .rr-uses{font-size:12px;color:var(--ink-3);font-variant-numeric:tabular-nums}
+.share-link-row .rr-tag{text-transform:none;letter-spacing:0;font-family:var(--font-mono);font-size:10px;color:var(--ink-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block;max-width:100%}
 .rr-icon{width:26px;height:26px;border-radius:var(--r-sm);display:inline-flex;align-items:center;justify-content:center;font-size:12px}
 .rr-icon.proj{background:var(--terra-bg);color:var(--tp-proj)}
 .rr-icon.std{background:var(--surf-3);color:var(--tp-std)}
@@ -231,6 +228,7 @@ body.role-admin .sb-link[data-admin]{display:flex}body.role-admin .sb-section[da
 .tag-btn{padding:4px 9px;font-size:11px;border-radius:var(--r-sm);font-weight:500;color:var(--ink-2);transition:background .12s}
 .tag-btn:hover{background:var(--surf);color:var(--ink)}
 .tag-btn.danger{color:var(--bad)}.tag-btn.danger:hover{background:var(--bad-bg)}
+.tag-btn.primary{background:var(--ink);color:#fff;padding:5px 10px}.tag-btn.primary:hover{background:#000;color:#fff}
 .facets-shell{display:grid;grid-template-columns:220px 1fr;gap:16px}
 .facet-cats{background:var(--surf);border:0.5px solid var(--bd);border-radius:var(--r-lg);overflow:hidden}
 .facet-cat{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;font-size:13px;color:var(--ink-2);cursor:pointer;border-bottom:0.5px solid var(--bd-soft);font-weight:500;transition:background .12s,color .12s}
@@ -460,7 +458,7 @@ body.role-admin .sb-link[data-admin]{display:flex}body.role-admin .sb-section[da
 [data-role-manager-only]{display:inline-flex}body.role-admin [data-role-manager-only]{display:none}
 .dash-row[data-admin]{display:none}body.role-admin .dash-row[data-admin]{display:block}
 @media (max-width:1100px){.compl-grid{grid-template-columns:1fr}.facets-shell,.onb-shell{grid-template-columns:1fr}.facet-cats,.onb-tracks{display:flex;flex-wrap:wrap}.facet-cat,.onb-track{border-bottom:none;border-right:0.5px solid var(--bd-soft);padding:8px 12px}.anal-grid{grid-template-columns:repeat(2,1fr)}.anal-row{grid-template-columns:1fr}.sys-grid{grid-template-columns:1fr}.backup-grid{grid-template-columns:1fr}}
-@media (max-width:880px){.admin-shell{grid-template-columns:1fr}.sidebar{position:sticky;top:57px;z-index:10;border-right:none;border-bottom:0.5px solid var(--bd);padding:12px 16px}.dash-grid{grid-template-columns:1fr 1fr}.health-grid{grid-template-columns:1fr}.health-cell{border-right:none}}
+@media (max-width:880px){.admin-shell{grid-template-columns:1fr}.sidebar{position:sticky;top:57px;z-index:10;border-right:none;border-bottom:0.5px solid var(--bd);padding:12px 16px}.dash-grid{grid-template-columns:1fr 1fr}}
 @media (max-width:540px){.topbar{padding:12px 16px}.pill{display:none}.content{padding:18px 16px 28px}.dash-grid,.anal-grid{grid-template-columns:1fr}.review-list,.trash-list,.sys-list,.logs-list,.tag-list,.compl-list,.onb-newcomers,.backup-history{overflow-x:auto;-webkit-overflow-scrolling:touch}.review-row,.trash-row,.trash-row-h,.sys-row,.logs-row,.compl-row,.nc-row,.nc-row-h,.backup-row,.backup-row-h{min-width:560px}.ph{flex-direction:column;align-items:stretch;gap:10px}.ph-actions{flex-wrap:wrap}.seg{flex-wrap:wrap}.seg-btn{flex:1;min-width:70px;text-align:center}}
 
     /* === Dark theme tokens (matched with styleguide) === */
@@ -468,6 +466,10 @@ body.role-admin .sb-link[data-admin]{display:flex}body.role-admin .sb-section[da
     html[data-theme="dark"] .topbar,html[data-theme="dark"] .edit-toolbar{background:rgba(15,17,16,0.85)}
     html[data-theme="dark"] .behind{background:linear-gradient(135deg,#15110d 0%,#1c1f1c 35%,#0f1110 65%,#272b27 100%);filter:blur(2px) saturate(0.9)}
     html[data-theme="dark"] .behind-bar,html[data-theme="dark"] .behind-card,html[data-theme="dark"] .behind-grid > div{background:var(--surf)}
+    html[data-theme="dark"] .ph-btn.primary,html[data-theme="dark"] .rr-btn.primary,html[data-theme="dark"] .compl-add{color:var(--bg)}
+    html[data-theme="dark"] .ph-btn.primary:hover,html[data-theme="dark"] .rr-btn.primary:hover,html[data-theme="dark"] .compl-add:hover{background:#fff;color:#000}
+    html[data-theme="dark"] .tag-btn.primary{background:var(--ink);color:var(--bg)}
+    html[data-theme="dark"] .tag-btn.primary:hover{background:#fff;color:#000}
 
   </style>
 </head>
@@ -493,13 +495,13 @@ body.role-admin .sb-link[data-admin]{display:flex}body.role-admin .sb-section[da
 <a class="sb-link" data-admin data-pane="trash"><span class="sb-link-i">⊠</span><span>Корзина</span><span class="sb-link-cnt">11</span></a>
 <a class="sb-link" data-pane="facets"><span class="sb-link-i">⌘</span><span>Фасеты</span><span class="sb-link-cnt">3</span></a>
 <a class="sb-link" data-pane="tags"><span class="sb-link-i">#</span><span>Теги</span><span class="sb-link-cnt">156</span></a>
+<a class="sb-link" data-pane="share-links"><span class="sb-link-i">⤴</span><span>Публичные ссылки</span><span class="sb-link-cnt">3</span></a>
 <div class="sb-section">Compliance</div>
 <a class="sb-link" data-pane="compliance"><span class="sb-link-i">◆</span><span>Регламенты</span><span class="sb-link-cnt">8</span></a>
 <a class="sb-link" data-pane="onboarding"><span class="sb-link-i">✦</span><span>Onboarding</span></a>
 <div class="sb-section">Аналитика</div>
 <a class="sb-link" data-pane="analytics"><span class="sb-link-i">⏛</span><span>Аналитика</span></a>
 <div class="sb-section" data-admin>Система</div>
-<a class="sb-link" data-admin data-pane="api-health"><span class="sb-link-i">●</span><span>API health</span></a>
 <a class="sb-link" data-admin data-pane="logs"><span class="sb-link-i">≡</span><span>Логи</span></a>
 <a class="sb-link" data-admin data-pane="backup"><span class="sb-link-i">⇩</span><span>Backup</span></a>
 </aside>
@@ -521,14 +523,6 @@ body.role-admin .sb-link[data-admin]{display:flex}body.role-admin .sb-section[da
 <a class="dash-act-item"><span class="dash-act-icon tag">#</span><div class="dash-act-body"><div class="dash-act-t">Игорь С. создал тег «#витражная-система»</div><div class="dash-act-m">Ждёт подтверждения и запуска</div></div><span class="dash-act-time">11:14</span></a>
 <a class="dash-act-item"><span class="dash-act-icon compl">◆</span><div class="dash-act-body"><div class="dash-act-t">«Стандарт пожарной безопасности v3» прочитал Дима Л.</div><div class="dash-act-m">Compliance: 13 из 25 сотрудников</div></div><span class="dash-act-time">10:42</span></a>
 <a class="dash-act-item"><span class="dash-act-icon review">⏵</span><div class="dash-act-body"><div class="dash-act-t">Лена Р. отправила «Парк Мещерский — этап 2» на ревью</div><div class="dash-act-m">Проект · ожидает 5 часов</div></div><span class="dash-act-time">09:50</span></a>
-</div>
-</div>
-<div class="dash-row" data-admin>
-<header class="dash-row-head"><span class="dash-row-t">Здоровье системы</span><a class="dash-row-link" data-go="api-health">Подробнее →</a></header>
-<div class="health-grid">
-<div class="health-cell"><span class="health-l">API</span><span class="health-v"><span class="health-dot"></span>Работает</span><span class="health-d">/health · 200 ms · 0% ошибок</span></div>
-<div class="health-cell"><span class="health-l">База данных</span><span class="health-v"><span class="health-dot"></span>Работает</span><span class="health-d">PostgreSQL 16 · 124 ms · ready</span></div>
-<div class="health-cell"><span class="health-l">Backup</span><span class="health-v"><span class="health-dot warn"></span>Внимание</span><span class="health-d">Последний 6 ч назад (норма ≤4 ч)</span></div>
 </div>
 </div>
 </section>
@@ -620,8 +614,8 @@ body.role-admin .sb-link[data-admin]{display:flex}body.role-admin .sb-section[da
 <div class="tag-row"><span class="tag-name">конструктив</span><span class="tag-cnt">54</span><span class="tag-status live">● Активен</span><span class="tag-when">2 года назад</span><div class="tag-actions"><button class="tag-btn">Переименовать</button><button class="tag-btn">Слить</button><button class="tag-btn danger">Удалить</button></div></div>
 <div class="tag-row"><span class="tag-name">BIM</span><span class="tag-cnt">42</span><span class="tag-status live">● Активен</span><span class="tag-when">2 года назад</span><div class="tag-actions"><button class="tag-btn">Переименовать</button><button class="tag-btn">Слить</button><button class="tag-btn danger">Удалить</button></div></div>
 <div class="tag-row"><span class="tag-name">терракота</span><span class="tag-cnt">28</span><span class="tag-status live">● Активен</span><span class="tag-when">1 год назад</span><div class="tag-actions"><button class="tag-btn">Переименовать</button><button class="tag-btn">Слить</button><button class="tag-btn danger">Удалить</button></div></div>
-<div class="tag-row"><span class="tag-name">витражная-система</span><span class="tag-cnt">0</span><span class="tag-status pending">○ Ждёт запуска</span><span class="tag-when">3 часа назад · Игорь С.</span><div class="tag-actions"><button class="tag-btn">Открыть</button><button class="tag-btn" style="background:var(--ink);color:#fff;padding:5px 10px;">Запустить</button></div></div>
-<div class="tag-row"><span class="tag-name">биофилия</span><span class="tag-cnt">0</span><span class="tag-status pending">○ Ждёт запуска</span><span class="tag-when">5 часов назад · Лена Р.</span><div class="tag-actions"><button class="tag-btn">Открыть</button><button class="tag-btn" style="background:var(--ink);color:#fff;padding:5px 10px;">Запустить</button></div></div>
+<div class="tag-row"><span class="tag-name">витражная-система</span><span class="tag-cnt">0</span><span class="tag-status pending">○ Ждёт запуска</span><span class="tag-when">3 часа назад · Игорь С.</span><div class="tag-actions"><button class="tag-btn">Открыть</button><button class="tag-btn primary">Запустить</button></div></div>
+<div class="tag-row"><span class="tag-name">биофилия</span><span class="tag-cnt">0</span><span class="tag-status pending">○ Ждёт запуска</span><span class="tag-when">5 часов назад · Лена Р.</span><div class="tag-actions"><button class="tag-btn">Открыть</button><button class="tag-btn primary">Запустить</button></div></div>
 <div class="tag-row"><span class="tag-name">фасады</span><span class="tag-cnt">3</span><span class="tag-status live">● Активен</span><span class="tag-when">3 мес назад</span><div class="tag-actions"><button class="tag-btn">Переименовать</button><button class="tag-btn" style="background:var(--terra-bg);color:var(--terra-d);">Слить с #фасад</button><button class="tag-btn danger">Удалить</button></div></div>
 </div>
 </section>
@@ -673,6 +667,18 @@ body.role-admin .sb-link[data-admin]{display:flex}body.role-admin .sb-section[da
 <div class="trash-row"><span class="trash-checkbox" data-tcb></span><span class="rr-icon" style="background:var(--surf-3);color:var(--ink-3);">▣</span><div><div class="trash-title">IMG_2451.jpg, IMG_2452.jpg, IMG_2453.jpg</div><div class="trash-meta">3 изображения · 18 МБ суммарно</div></div><div class="trash-deleted-by"><span class="rr-av">АК</span>Антон К.</div><span class="trash-when">18 апр</span><span class="trash-expires">18 дней</span><div class="rr-actions"><button class="rr-btn ghost">Восстановить</button><button class="rr-btn ghost" style="color:var(--bad);border-color:var(--bad-bd);">Удалить</button></div></div>
 <div class="trash-row"><span class="trash-checkbox" data-tcb></span><span class="rr-icon std">⬚</span><div><div class="trash-title">Стандарт лестниц v0.5 (черновик)</div><div class="trash-meta">Стандарт · черновик · не публиковался</div></div><div class="trash-deleted-by"><span class="rr-av">ЕС</span>Е. Седова</div><span class="trash-when">15 апр</span><span class="trash-expires">15 дней</span><div class="rr-actions"><button class="rr-btn ghost">Восстановить</button><button class="rr-btn ghost" style="color:var(--bad);border-color:var(--bad-bd);">Удалить</button></div></div>
 <div class="trash-row"><span class="trash-checkbox" data-tcb></span><span class="rr-icon proj">▤</span><div><div class="trash-title">Концепция парка (отвергнутый вариант)</div><div class="trash-meta">Проект · 2 200 слов</div></div><div class="trash-deleted-by"><span class="rr-av">ЛР</span>Лена Р.</div><span class="trash-when">8 апр</span><span class="trash-expires soon">8 дней</span><div class="rr-actions"><button class="rr-btn ghost">Восстановить</button><button class="rr-btn ghost" style="color:var(--bad);border-color:var(--bad-bd);">Удалить</button></div></div>
+</div>
+</section>
+
+<section class="pane" data-pane="share-links">
+<div class="ph"><div class="ph-l"><h1 class="ph-h">Публичные ссылки</h1><span class="ph-meta">Внешние ссылки на проекты для гостей. Срок действия — 24 часа, после автоматически удаляются.</span></div><div class="ph-actions"><a class="ph-btn primary" href="share-link-modal.html">+ Создать ссылку</a></div></div>
+<div class="row-card">
+<div class="row-h"><span></span><span>Проект</span><span>Создатель</span><span>Истекает через</span><span>Использований</span><span style="text-align:right">Действие</span></div>
+<div class="share-link-row"><span class="rr-icon proj">▤</span><div><div class="rr-title">ЖК Северный свет — концепция фасада</div><div class="rr-tag">https://wiki.wowhaus.ru/share/abc123def456</div></div><div class="rr-author"><span class="rr-av">АК</span><span>Антон К.</span></div><span class="rr-when">18 часов</span><span class="rr-uses">7 переходов</span><div class="rr-actions"><button class="rr-btn ghost">Скопировать</button><button class="rr-btn ghost" style="color:var(--bad);border-color:var(--bad-bd);">Отозвать</button></div></div>
+<div class="share-link-row"><span class="rr-icon proj">▤</span><div><div class="rr-title">Парк Мещерский — этап 2</div><div class="rr-tag">https://wiki.wowhaus.ru/share/m4xy7p2qk9</div></div><div class="rr-author"><span class="rr-av">ЛР</span><span>Лена Р.</span></div><span class="rr-when">4 часа</span><span class="rr-uses">14 переходов</span><div class="rr-actions"><button class="rr-btn ghost">Скопировать</button><button class="rr-btn ghost" style="color:var(--bad);border-color:var(--bad-bd);">Отозвать</button></div></div>
+<div class="share-link-row"><span class="rr-icon proj">▤</span><div><div class="rr-title">Тушинский берег — набережная</div><div class="rr-tag">https://wiki.wowhaus.ru/share/n8r1zb6yqx</div></div><div class="rr-author"><span class="rr-av">МВ</span><span>Маша В.</span></div><span class="rr-when">22 часа</span><span class="rr-uses">2 перехода</span><div class="rr-actions"><button class="rr-btn ghost">Скопировать</button><button class="rr-btn ghost" style="color:var(--bad);border-color:var(--bad-bd);">Отозвать</button></div></div>
+<div class="share-link-row expired"><span class="rr-icon proj">▤</span><div><div class="rr-title">Реновация Нагатино</div><div class="rr-tag">срок действия истёк, удалится автоматически</div></div><div class="rr-author"><span class="rr-av">АК</span><span>Антон К.</span></div><span class="rr-when">просрочено</span><span class="rr-uses">3 перехода</span><div class="rr-actions"><span style="color:var(--ink-4);font-size:11px;">удаляется</span></div></div>
+<div class="share-link-row expired"><span class="rr-icon proj">▤</span><div><div class="rr-title">Концепция бизнес-центра — М11</div><div class="rr-tag">отозвано редактором, удалится автоматически</div></div><div class="rr-author"><span class="rr-av">ИС</span><span>Игорь С.</span></div><span class="rr-when">отозвано</span><span class="rr-uses">0 переходов</span><div class="rr-actions"><span style="color:var(--ink-4);font-size:11px;">удаляется</span></div></div>
 </div>
 </section>
 
@@ -796,28 +802,6 @@ body.role-admin .sb-link[data-admin]{display:flex}body.role-admin .sb-section[da
 <div class="anal-bar"><span class="anal-bar-name">Электрика — нормы</span><div class="anal-bar-track"><div class="anal-bar-fill" style="background:var(--good);width:86%"></div></div><span class="anal-bar-cnt">86%</span></div>
 </div>
 </div>
-</div>
-</section>
-
-<section class="pane" data-pane="api-health">
-<div class="ph"><div class="ph-l"><h1 class="ph-h">API health</h1><span class="ph-meta">Состояние сервиса в реальном времени.</span></div><div class="ph-actions"><button class="ph-btn ghost">↻ Обновить</button></div></div>
-<div class="sys-grid">
-<div class="sys-stat"><header class="sys-stat-h"><span class="sys-stat-t">API</span><span class="sys-stat-status"><span class="health-dot"></span>Работает</span></header><div class="sys-stat-v">200<span style="font-size:14px;color:var(--ink-3);"> ms</span></div><div class="sys-stat-d">/health · 0% ошибок · uptime 99.98%</div></div>
-<div class="sys-stat"><header class="sys-stat-h"><span class="sys-stat-t">База данных</span><span class="sys-stat-status"><span class="health-dot"></span>Работает</span></header><div class="sys-stat-v">124<span style="font-size:14px;color:var(--ink-3);"> ms</span></div><div class="sys-stat-d">PostgreSQL 16 · ready · 41% памяти</div></div>
-<div class="sys-stat warn-card"><header class="sys-stat-h"><span class="sys-stat-t">Backup</span><span class="sys-stat-status warn"><span class="health-dot warn"></span>Внимание</span></header><div class="sys-stat-v">6<span style="font-size:14px;color:var(--ink-3);"> ч назад</span></div><div class="sys-stat-d">Норма ≤4 ч · последний 08:42</div></div>
-</div>
-<div class="sys-list">
-<header class="sys-list-h"><span>Эндпоинты</span><span style="font-size:10px;color:var(--ink-3);font-weight:500;">за последний час</span></header>
-<div class="sys-row" style="background:var(--surf-2);font-size:10px;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-3);font-weight:500;padding:9px 16px;cursor:default;"><span>Эндпоинт</span><span>Описание</span><span>Запросов</span><span>Латентность</span><span>Ошибок</span></div>
-<div class="sys-row"><div class="sys-ep-row"><span class="sys-method get">GET</span><span class="sys-ep">/articles</span></div><span class="sys-desc">Список статей с фильтром</span><span class="sys-num">2 184</span><span class="sys-num">142 ms</span><span class="sys-pct">0%</span></div>
-<div class="sys-row"><div class="sys-ep-row"><span class="sys-method get">GET</span><span class="sys-ep">/articles/{slug}</span></div><span class="sys-desc">Получить статью</span><span class="sys-num">1 056</span><span class="sys-num">98 ms</span><span class="sys-pct">0%</span></div>
-<div class="sys-row"><div class="sys-ep-row"><span class="sys-method post">POST</span><span class="sys-ep">/articles/{slug}/blocks</span></div><span class="sys-desc">Добавить блок</span><span class="sys-num">312</span><span class="sys-num">220 ms</span><span class="sys-pct">0%</span></div>
-<div class="sys-row"><div class="sys-ep-row"><span class="sys-method get">GET</span><span class="sys-ep">/search</span></div><span class="sys-desc">Поиск с подсветкой</span><span class="sys-num">486</span><span class="sys-num">312 ms</span><span class="sys-pct warn">0.4%</span></div>
-<div class="sys-row"><div class="sys-ep-row"><span class="sys-method get">GET</span><span class="sys-ep">/media</span></div><span class="sys-desc">Медиа-библиотека</span><span class="sys-num">128</span><span class="sys-num">186 ms</span><span class="sys-pct">0%</span></div>
-<div class="sys-row"><div class="sys-ep-row"><span class="sys-method post">POST</span><span class="sys-ep">/media/upload</span></div><span class="sys-desc">Загрузить файл</span><span class="sys-num">42</span><span class="sys-num">1 240 ms</span><span class="sys-pct">0%</span></div>
-<div class="sys-row"><div class="sys-ep-row"><span class="sys-method put">PUT</span><span class="sys-ep">/articles/{slug}</span></div><span class="sys-desc">Обновить статью</span><span class="sys-num">94</span><span class="sys-num">340 ms</span><span class="sys-pct">0%</span></div>
-<div class="sys-row"><div class="sys-ep-row"><span class="sys-method delete">DELETE</span><span class="sys-ep">/articles/{slug}</span></div><span class="sys-desc">Мягкое удаление</span><span class="sys-num">3</span><span class="sys-num">98 ms</span><span class="sys-pct">0%</span></div>
-<div class="sys-row"><div class="sys-ep-row"><span class="sys-method get">GET</span><span class="sys-ep">/compliance/coverage</span></div><span class="sys-desc">Покрытие compliance</span><span class="sys-num">28</span><span class="sys-num">1 850 ms</span><span class="sys-pct bad">2.1%</span></div>
 </div>
 </section>
 
@@ -1065,7 +1049,7 @@ document.querySelectorAll('[data-go]').forEach(el=>el.addEventListener('click',e
 
 const roleToggle=document.getElementById('roleToggle'),rtIcon=document.getElementById('rtIcon'),rtLabel=document.getElementById('rtLabel');
 let role='manager';
-function applyRole(r){role=r;document.body.classList.toggle('role-admin',r==='admin');document.body.classList.toggle('role-manager',r==='manager');rtIcon.textContent=r==='admin'?'А':'М';rtLabel.textContent=r==='admin'?'Админ':'Менеджер';if(r!=='admin'){const ap=document.querySelector('.pane.on');if(ap&&['api-health','logs','backup','trash'].includes(ap.dataset.pane))switchPane('dashboard')}}
+function applyRole(r){role=r;document.body.classList.toggle('role-admin',r==='admin');document.body.classList.toggle('role-manager',r==='manager');rtIcon.textContent=r==='admin'?'А':'М';rtLabel.textContent=r==='admin'?'Админ':'Менеджер';if(r!=='admin'){const ap=document.querySelector('.pane.on');if(ap&&['logs','backup','trash'].includes(ap.dataset.pane))switchPane('dashboard')}}
 roleToggle.addEventListener('click',()=>applyRole(role==='manager'?'admin':'manager'));applyRole('manager');
 
 // Review return-with-comment toggle

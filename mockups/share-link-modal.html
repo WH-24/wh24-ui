@@ -1,0 +1,345 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Wowhaus Wiki — Публичная ссылка на проект</title>
+  <meta name="description" content="UI mockup of the share-link modal — anonymous guest access to a project for 24 hours, fixed TTL." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root{
+      --terra:#dd6731;--terra-d:#b8501f;--terra-bg:#fbeee5;--terra-bd:#e89971;
+      --ink:#1a1a1a;--ink-2:#3d3d3d;--ink-3:#7a7a7a;--ink-4:#b4b2a9;--ink-5:#c0bdb3;
+      --bd:rgba(0,0,0,0.08);--bd-soft:rgba(0,0,0,0.05);--bd-strong:rgba(0,0,0,0.12);
+      --bg:#fafaf7;--surf:#ffffff;--surf-2:#f7f5f0;--surf-3:#efece4;
+      --tp-proj:#8e3a14;--tp-std:#444441;--tp-sol:#0c447c;--tp-art:#3c3489;
+      --good:#4a8a1f;--good-bg:#eef6e3;--good-bd:#b9d491;
+      --warn:#a86a16;--warn-bg:#faecd6;--warn-bd:#e2bf80;
+      --info-bg:#eef3f9;--info-bd:#c4d3e6;--info:#2c5687;
+      --bad:#a32d2d;--bad-bg:#fceaea;--bad-bd:#e6a8a8;
+      --font-sans:'Manrope',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+      --font-mono:ui-monospace,'SF Mono',Monaco,Consolas,monospace;
+      --r-sm:5px;--r-md:7px;--r-lg:10px;--r-pill:999px;
+    }
+    *,*::before,*::after{box-sizing:border-box}
+    html,body{margin:0;padding:0;font-family:var(--font-sans);font-size:14px;color:var(--ink);background:var(--bg);-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+    a{color:inherit;text-decoration:none}
+    button{font-family:inherit;font-size:inherit;color:inherit;background:none;border:none;padding:0;cursor:pointer}
+
+    /* === Behind-the-modal page hint (admin blurred) === */
+    .behind{
+      position:fixed;inset:0;
+      background:linear-gradient(135deg,#fbeee5 0%,#f7f5f0 35%,#fafaf7 65%,#efece4 100%);
+      filter:blur(2px) saturate(0.9);
+      overflow:hidden;z-index:0;
+    }
+    .behind::before{
+      content:'';position:absolute;inset:0;
+      background:
+        radial-gradient(ellipse at 80% 20%,rgba(221,103,49,0.10) 0%,transparent 50%),
+        radial-gradient(ellipse at 15% 75%,rgba(56,72,128,0.07) 0%,transparent 55%);
+    }
+    .behind-rows{
+      position:absolute;left:24px;right:24px;top:80px;bottom:24px;
+      display:flex;flex-direction:column;gap:14px;opacity:0.5;
+    }
+    .behind-bar{height:30px;background:#fff;border:0.5px solid var(--bd);border-radius:var(--r-md);max-width:1080px;margin:0 auto;width:100%}
+    .behind-card{height:160px;background:#fff;border:0.5px solid var(--bd);border-radius:var(--r-lg);max-width:1080px;margin:0 auto;width:100%}
+    .behind-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;max-width:1080px;margin:0 auto;width:100%}
+    .behind-grid > div{height:120px;background:#fff;border:0.5px solid var(--bd);border-radius:var(--r-md)}
+
+    /* === Backdrop === */
+    .share-bd{
+      position:fixed;inset:0;
+      background:rgba(26,26,26,0.5);
+      backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);
+      z-index:50;
+      display:flex;align-items:flex-start;justify-content:center;
+      padding:80px 24px 24px;
+      animation:fadeIn .15s ease-out;
+    }
+    @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+
+    /* === Modal === */
+    .share-modal{
+      width:100%;max-width:560px;max-height:90vh;
+      background:var(--surf);
+      border:0.5px solid var(--bd);
+      border-radius:var(--r-lg);
+      box-shadow:0 24px 70px rgba(0,0,0,0.32),0 0 0 0.5px rgba(0,0,0,0.05);
+      display:flex;flex-direction:column;overflow:hidden;
+      animation:popIn .2s cubic-bezier(.2,.8,.3,1);
+    }
+    @keyframes popIn{from{opacity:0;transform:translateY(-8px) scale(0.985)}to{opacity:1;transform:translateY(0) scale(1)}}
+
+    /* === Header === */
+    .share-h{
+      display:flex;align-items:center;justify-content:space-between;
+      padding:14px 18px;
+      border-bottom:0.5px solid var(--bd-soft);
+    }
+    .share-h h2{
+      margin:0;font-size:14px;font-weight:600;color:var(--ink);
+      letter-spacing:-0.005em;
+    }
+    .share-close{
+      width:26px;height:26px;border-radius:var(--r-sm);
+      color:var(--ink-3);font-size:18px;line-height:1;
+      display:inline-flex;align-items:center;justify-content:center;
+    }
+    .share-close:hover{background:var(--surf-2);color:var(--ink)}
+
+    /* === Body === */
+    .share-body{
+      padding:16px 18px;display:flex;flex-direction:column;gap:14px;
+      overflow-y:auto;
+    }
+    .share-desc{
+      margin:0;font-size:12px;line-height:1.55;color:var(--ink-2);
+    }
+    .share-desc b{font-weight:600;color:var(--ink)}
+
+    /* === Field === */
+    .share-field{
+      display:flex;flex-direction:column;gap:6px;
+    }
+    .share-field label{
+      font-size:11px;font-weight:500;color:var(--ink-3);
+      letter-spacing:0.01em;text-transform:uppercase;
+    }
+    .share-field select{
+      font-family:inherit;font-size:13px;color:var(--ink);
+      padding:9px 12px;
+      background:var(--surf);
+      border:0.5px solid var(--bd-strong);border-radius:var(--r-sm);
+      outline:none;cursor:pointer;
+      appearance:none;-webkit-appearance:none;
+      background-image:linear-gradient(45deg,transparent 50%,var(--ink-3) 50%),linear-gradient(135deg,var(--ink-3) 50%,transparent 50%);
+      background-position:calc(100% - 16px) 14px,calc(100% - 11px) 14px;
+      background-size:5px 5px,5px 5px;
+      background-repeat:no-repeat;
+      padding-right:32px;
+    }
+    .share-field select:focus{border-color:var(--terra)}
+    .share-ttl-label{
+      font-size:11px;font-weight:500;color:var(--ink-3);
+      letter-spacing:0.01em;text-transform:uppercase;
+    }
+    .share-ttl-value{
+      font-size:13px;color:var(--ink);
+      padding:9px 12px;
+      background:var(--surf-2);
+      border:0.5px solid var(--bd);border-radius:var(--r-sm);
+      font-variant-numeric:tabular-nums;
+    }
+    .share-url-preview{
+      font-size:12px;color:var(--ink-2);
+      padding:9px 12px;
+      background:var(--surf-2);
+      border:0.5px solid var(--bd);border-radius:var(--r-sm);
+      font-family:var(--font-mono);
+      overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+    }
+
+    /* === Actions === */
+    .share-actions{
+      display:flex;justify-content:flex-end;gap:8px;
+      margin-top:4px;
+    }
+    .share-actions button{
+      padding:8px 14px;font-size:12px;font-weight:500;
+      border-radius:var(--r-sm);
+      transition:background .12s,border-color .12s;
+    }
+    .share-actions .ghost{
+      color:var(--ink-2);border:0.5px solid var(--bd-strong);
+      background:var(--surf);
+    }
+    .share-actions .ghost:hover{background:var(--surf-2)}
+    .share-actions .primary{
+      background:var(--terra);color:#fff;border:0.5px solid var(--terra);
+    }
+    .share-actions .primary:hover{background:var(--terra-d);border-color:var(--terra-d)}
+
+    /* === Divider + active list === */
+    .share-divider{
+      padding:11px 18px;
+      background:var(--surf-2);
+      border-top:0.5px solid var(--bd-soft);
+      border-bottom:0.5px solid var(--bd-soft);
+      font-size:11px;font-weight:600;color:var(--ink-2);
+      letter-spacing:0.02em;text-transform:uppercase;
+      display:flex;align-items:center;gap:8px;
+    }
+    .share-cnt{
+      font-size:10px;color:var(--ink-3);
+      background:var(--surf);
+      padding:1px 7px;border-radius:var(--r-pill);
+      border:0.5px solid var(--bd);
+      font-weight:500;letter-spacing:0;
+    }
+    .share-list{
+      padding:6px 0;display:flex;flex-direction:column;
+      overflow-y:auto;
+    }
+    .share-row{
+      display:grid;
+      grid-template-columns:1fr 110px 90px 28px;
+      gap:10px;align-items:center;
+      padding:10px 18px;
+      border-bottom:0.5px solid var(--bd-soft);
+      font-size:12px;
+    }
+    .share-row:last-child{border-bottom:none}
+    .share-row-t{
+      color:var(--ink);font-weight:500;
+      overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+    }
+    .share-row-when{
+      color:var(--ink-3);font-variant-numeric:tabular-nums;
+    }
+    .share-row-author{
+      color:var(--ink-3);
+      overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+    }
+    .share-revoke{
+      width:24px;height:24px;border-radius:var(--r-sm);
+      color:var(--ink-4);font-size:13px;line-height:1;
+      display:inline-flex;align-items:center;justify-content:center;
+    }
+    .share-revoke:hover{background:var(--bad-bg);color:var(--bad)}
+    .share-row.expired{opacity:0.4}
+    .share-row.expired .share-row-t{color:var(--ink-3)}
+    .share-row-expired{
+      color:var(--ink-4);font-size:14px;text-align:center;
+    }
+
+    @media (max-width:540px){
+      .share-bd{padding:24px 12px}
+      .share-modal{max-height:calc(100vh - 48px)}
+      .share-row{grid-template-columns:1fr 90px 24px;}
+      .share-row-author{display:none}
+    }
+
+    /* === Dark theme tokens === */
+    html[data-theme="dark"]{color-scheme:dark;--bg:#0f1110;--surf:#161816;--surf-2:#1c1f1c;--surf-3:#272b27;--ink:#f2f2ef;--ink-2:#d8d8d1;--ink-3:#a9aa9f;--ink-4:#7b7d74;--ink-5:#5d5f58;--bd:rgba(255,255,255,0.10);--bd-soft:rgba(255,255,255,0.07);--bd-strong:rgba(255,255,255,0.16);--terra-bg:rgba(221,103,49,0.20);--terra-bd:rgba(221,103,49,0.36);--good-bg:rgba(74,138,31,0.18);--good-bd:rgba(185,212,145,0.30);--warn-bg:rgba(168,106,22,0.20);--warn-bd:rgba(226,191,128,0.30);--info-bg:rgba(44,86,135,0.20);--info-bd:rgba(196,211,230,0.28);--bad-bg:rgba(163,45,45,0.18);--bad-bd:rgba(230,168,168,0.30)}
+    html[data-theme="dark"] .behind{background:linear-gradient(135deg,#15110d 0%,#1c1f1c 35%,#0f1110 65%,#272b27 100%)}
+    html[data-theme="dark"] .behind-bar,html[data-theme="dark"] .behind-card,html[data-theme="dark"] .behind-grid > div{background:var(--surf)}
+  </style>
+</head>
+<body>
+
+  <!-- Mock admin page behind modal -->
+  <div class="behind" aria-hidden="true">
+    <div class="behind-rows">
+      <div class="behind-bar"></div>
+      <div class="behind-card"></div>
+      <div class="behind-grid">
+        <div></div><div></div><div></div><div></div>
+      </div>
+      <div class="behind-card"></div>
+    </div>
+  </div>
+
+  <!-- Backdrop + modal -->
+  <div class="share-bd" id="shareBd">
+    <div class="share-modal" role="dialog" aria-label="Публичная ссылка на проект">
+
+      <header class="share-h">
+        <h2>Публичная ссылка на проект</h2>
+        <button class="share-close" id="shareClose" title="Закрыть">×</button>
+      </header>
+
+      <div class="share-body">
+        <p class="share-desc">
+          Получатель видит только выбранный проект и связанные с ним
+          изображения. Срок действия — <b>24 часа</b>. После
+          автоматически удалится.
+        </p>
+
+        <div class="share-field">
+          <label>Проект</label>
+          <select>
+            <option>ЖК Северный свет — концепция фасада</option>
+            <option>Парк Мещерский — этап 2</option>
+            <option>Реновация Нагатино</option>
+            <option>Тушинский берег — набережная</option>
+          </select>
+        </div>
+
+        <div class="share-field">
+          <label>Будущая ссылка</label>
+          <span class="share-url-preview">https://wiki.wowhaus.ru/share/abc123def456</span>
+        </div>
+
+        <div class="share-field">
+          <span class="share-ttl-label">Срок действия</span>
+          <span class="share-ttl-value">24 часа · истекает завтра, 14:32</span>
+        </div>
+
+        <div class="share-actions">
+          <button class="ghost" id="shareCancel">Закрыть</button>
+          <button class="primary">Создать и скопировать ссылку</button>
+        </div>
+      </div>
+
+      <div class="share-divider">Активные ссылки <span class="share-cnt">3</span></div>
+      <div class="share-list">
+        <div class="share-row">
+          <span class="share-row-t">ЖК Северный свет — концепция фасада</span>
+          <span class="share-row-when">истекает через 18 ч</span>
+          <span class="share-row-author">создал АК</span>
+          <button class="share-revoke" title="Отозвать">⊠</button>
+        </div>
+        <div class="share-row">
+          <span class="share-row-t">Парк Мещерский — этап 2</span>
+          <span class="share-row-when">истекает через 4 ч</span>
+          <span class="share-row-author">создала ЛР</span>
+          <button class="share-revoke" title="Отозвать">⊠</button>
+        </div>
+        <div class="share-row expired">
+          <span class="share-row-t">Реновация Нагатино</span>
+          <span class="share-row-when">просрочено · удаляется</span>
+          <span class="share-row-author">создал АК</span>
+          <span class="share-row-expired">○</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    // Esc / backdrop / close → return to admin (where the modal was opened from)
+    const bd = document.getElementById('shareBd');
+    function close(){ window.location.href = 'admin-mockup.html'; }
+    document.getElementById('shareClose').addEventListener('click', close);
+    document.getElementById('shareCancel').addEventListener('click', close);
+    document.addEventListener('keydown', e=>{ if(e.key==='Escape') close(); });
+    bd.addEventListener('click', e=>{ if(e.target===bd) close(); });
+
+    // Revoke buttons — visually fade row to .expired state
+    document.querySelectorAll('.share-revoke').forEach(btn=>{
+      btn.addEventListener('click', e=>{
+        e.stopPropagation();
+        const row = btn.closest('.share-row');
+        row.classList.add('expired');
+        const when = row.querySelector('.share-row-when');
+        if(when) when.textContent = 'отозвано · удаляется';
+        btn.replaceWith(Object.assign(document.createElement('span'),{className:'share-row-expired',textContent:'○'}));
+      });
+    });
+
+    // === Dark theme toggle (shared key: wh-theme) ===
+    (function(){
+      var KEY='wh-theme', root=document.documentElement;
+      function applyTheme(t){
+        if(t==='dark') root.setAttribute('data-theme','dark');
+        else root.removeAttribute('data-theme');
+      }
+      applyTheme(localStorage.getItem(KEY) || 'light');
+    })();
+  </script>
+</body>
+</html>

@@ -50,6 +50,8 @@ body.role-admin .sb-link[data-admin]{display:flex}body.role-admin .sb-section[da
 .rr-btn{--btn-h:28px;--btn-px:11px;--btn-r:var(--r-sm);font-size:11px}
 .ph-btn.primary,.rr-btn.primary{background:var(--ink);color:#fff}
 .ph-btn.primary:hover,.rr-btn.primary:hover{background:#000}
+html[data-theme="dark"] .ph-btn.primary,html[data-theme="dark"] .rr-btn.primary{color:var(--bg)}
+html[data-theme="dark"] .ph-btn.primary:hover,html[data-theme="dark"] .rr-btn.primary:hover{background:#fff;color:#000}
 .ph-btn.ghost,.rr-btn.ghost{background:var(--surf);border:0.5px solid var(--bd-strong);color:var(--ink-2)}
 .ph-btn.ghost:hover,.rr-btn.ghost:hover{border-color:var(--terra-bd);color:var(--ink)}
 .rr-btn.warn{background:var(--warn-bg);color:var(--warn);border:0.5px solid var(--warn-bd)}
