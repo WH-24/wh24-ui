@@ -106,11 +106,18 @@ open styleguide/index.html
 | SVG-библиотека `icons/` (lucide-subset) | ⏳ |
 | Публикация в npm (private registry или GitHub Packages) | ⏳ |
 
-## Связанные репо
+## Связанные репо (org `WOWHAUS-24`)
 
-- `wiki-api` — Go-бэкенд вики (отдельный git)
-- `wiki-web` — React-фронт вики, первый consumer wh-ui
-- `wiki-docs` — координационная docs-репа, ADR живут там
+- [`wh24-wiki-docs`](https://github.com/WOWHAUS-24/wh24-wiki-docs) —
+  координационная docs-репа: spec, ADR, ROADMAP
+- [`wh24-wiki-api`](https://github.com/WOWHAUS-24/wh24-wiki-api) —
+  Go-бэкенд вики
+- [`wh24-wiki-web`](https://github.com/WOWHAUS-24/wh24-wiki-web) —
+  React-фронт вики, первый consumer wh24-ui
 
-ADR-0006 (TBD) в `wiki-docs/docs/adr/` фиксирует решение о выделении
-wh-ui в отдельный репо и общий стек.
+[`ADR-0006`](https://github.com/WOWHAUS-24/wh24-wiki-docs/blob/main/docs/adr/0006-frontend-stack-and-style-provider.md)
+фиксирует решение о выделении wh24-ui в отдельный репо и общий
+стек для всех React-сервисов Wowhaus.
+
+[`ADR-0007`](https://github.com/WOWHAUS-24/wh24-wiki-docs/blob/main/docs/adr/0007-wh-id-contract.md)
+описывает интеграцию с identity provider (WH ID).
