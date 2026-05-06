@@ -1,6 +1,6 @@
 {
   "name": "@wowhaus-24/ui-tokens",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Frame-agnostic design tokens for Wowhaus services",
   "repository": {
     "type": "git",
