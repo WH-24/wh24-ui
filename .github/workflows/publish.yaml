@@ -28,7 +28,10 @@ jobs:
           cache: npm
 
       - name: Install
-        run: npm ci
+        # `npm install` (не `npm ci`): wh-ui обычно разрабатывается из
+        # workspace в deploy/ — package-lock.json там, а не в репо.
+        # Для CI этого пакета свежий resolve нормален.
+        run: npm install
 
       - name: Build all packages
         run: npm run build
