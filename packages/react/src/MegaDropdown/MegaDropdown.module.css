@@ -1,0 +1,25 @@
+.panel {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%;
+  z-index: var(--z-mega);
+  padding: 18px 20px;
+  background: var(--surf-2);
+  border-top: 1px solid var(--bd);
+  border-bottom: 1px solid var(--bd);
+  box-shadow: var(--shadow-md);
+}
+
+.cols {
+  display: grid;
+  gap: var(--sp-7);
+}
+
+.footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: var(--sp-6);
+  padding-top: var(--sp-5);
+  border-top: 1px solid var(--bd);
+}

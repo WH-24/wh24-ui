@@ -4,7 +4,8 @@
   "private": true,
   "description": "Wowhaus design system — tokens, themes, React primitives",
   "workspaces": [
-    "packages/*"
+    "packages/*",
+    "apps/*"
   ],
   "scripts": {
     "build": "tsc -b",

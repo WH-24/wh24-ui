@@ -1,5 +1,5 @@
 /*
- * @wowhaus/ui-tokens — design tokens
+ * @wowhaus-24/ui-tokens — design tokens
  *
  * Source of truth for colors, spacing, typography, radii.
  * Light theme is default. Dark theme via html[data-theme="dark"].
@@ -143,7 +143,7 @@
 
 /*
  * Dark theme.
- * Triggered by html[data-theme="dark"]. Toggle via @wowhaus/ui-tokens/theme.
+ * Triggered by html[data-theme="dark"]. Toggle via @wowhaus-24/ui-tokens/theme.
  *
  * Brand terracotta is intentionally unchanged — it works on both themes.
  * Background tints (terra-bg, terra-bd, status -bg/-bd) become translucent

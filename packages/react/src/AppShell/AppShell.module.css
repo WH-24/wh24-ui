@@ -1,0 +1,83 @@
+.root {
+  min-height: 100svh;
+  background: var(--bg);
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-7);
+  padding: 16px 32px;
+  border-bottom: 0.5px solid var(--bd);
+  background: rgba(250, 250, 247, 0.85);
+  backdrop-filter: saturate(180%) blur(8px);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: inherit;
+}
+
+.blogo {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  background: var(--terra);
+  position: relative;
+  flex-shrink: 0;
+}
+
+.blogo::after {
+  content: '';
+  position: absolute;
+  inset: 5px 5px 9px 5px;
+  border: 1.5px solid #fff;
+  border-bottom: none;
+  border-radius: 1px 1px 0 0;
+}
+
+.blogo::before {
+  content: '';
+  position: absolute;
+  bottom: 5px;
+  left: 5px;
+  right: 5px;
+  height: 1.5px;
+  background: #fff;
+  border-radius: 1px;
+}
+
+.bname {
+  font-size: 14px;
+  font-weight: var(--fw-semibold);
+  color: var(--ink);
+  letter-spacing: -0.01em;
+}
+
+.right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.page {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 36px 32px 40px;
+}
+
+@media (max-width: 520px) {
+  .topbar {
+    padding: 12px 18px;
+  }
+  .page {
+    padding: 22px 18px 28px;
+  }
+}

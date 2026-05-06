@@ -7,9 +7,9 @@
 
 Монорепо (npm workspaces) с двумя пакетами:
 
-- `@wowhaus/ui-tokens` — frame-agnostic CSS-переменные, базовые стили,
+- `@wowhaus-24/ui-tokens` — frame-agnostic CSS-переменные, базовые стили,
   типизированный экспорт токенов, vanilla theme API.
-- `@wowhaus/ui-react` — React-обёртки (ThemeProvider, headless примитивы).
+- `@wowhaus-24/ui-react` — React-обёртки (ThemeProvider, headless примитивы).
 
 Плюс:
 - `mockups/` — HTML-эталоны UI. **Источник истины** по визуальному

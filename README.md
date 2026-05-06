@@ -5,8 +5,8 @@
 
 | Пакет | Что внутри | Зависит от |
 |---|---|---|
-| `@wowhaus/ui-tokens` | CSS-переменные (light + dark), базовые стили, типизированные токены, vanilla theme API | — |
-| `@wowhaus/ui-react` | React-обёртки: `ThemeProvider`, headless примитивы | tokens, React 18+ |
+| `@wowhaus-24/ui-tokens` | CSS-переменные (light + dark), базовые стили, типизированные токены, vanilla theme API | — |
+| `@wowhaus-24/ui-react` | React-обёртки: `ThemeProvider`, headless примитивы | tokens, React 18+ |
 
 ## Источники истины
 
@@ -20,7 +20,7 @@
 ## Принципы
 
 1. **Token-first.** Никаких хардкоженных цветов или размеров в коде. Только
-   CSS-переменные и типизированный экспорт из `@wowhaus/ui-tokens`.
+   CSS-переменные и типизированный экспорт из `@wowhaus-24/ui-tokens`.
 2. **Frame-agnostic ядро.** `ui-tokens` не зависит от React, Vue или чего бы
    то ни было. Vanilla CSS + vanilla JS API для смены темы.
 3. **Headless React.** `ui-react` использует Radix Primitives для a11y и
@@ -35,8 +35,8 @@
 ```
 wh-ui/
 ├── packages/
-│   ├── tokens/          @wowhaus/ui-tokens (frame-agnostic)
-│   └── react/           @wowhaus/ui-react (React headless)
+│   ├── tokens/          @wowhaus-24/ui-tokens (frame-agnostic)
+│   └── react/           @wowhaus-24/ui-react (React headless)
 ├── mockups/             HTML-эталоны UI
 ├── styleguide/          живой preview примитивов
 ├── icons/               SVG (lucide-subset, kebab-case, currentColor)
@@ -49,9 +49,9 @@ wh-ui/
 
 ```ts
 // main.tsx или app entrypoint
-import '@wowhaus/ui-tokens/tokens.css'
-import '@wowhaus/ui-tokens/base.css'
-import { ThemeProvider } from '@wowhaus/ui-react'
+import '@wowhaus-24/ui-tokens/tokens.css'
+import '@wowhaus-24/ui-tokens/base.css'
+import { ThemeProvider } from '@wowhaus-24/ui-react'
 
 createRoot(...).render(
   <ThemeProvider>
@@ -63,10 +63,10 @@ createRoot(...).render(
 В сервисе без React (Go-templates, plain HTML):
 
 ```html
-<link rel="stylesheet" href="/path/to/@wowhaus/ui-tokens/tokens.css">
-<link rel="stylesheet" href="/path/to/@wowhaus/ui-tokens/base.css">
+<link rel="stylesheet" href="/path/to/@wowhaus-24/ui-tokens/tokens.css">
+<link rel="stylesheet" href="/path/to/@wowhaus-24/ui-tokens/base.css">
 <script type="module">
-  import { setTheme } from '/path/to/@wowhaus/ui-tokens/theme.js'
+  import { setTheme } from '/path/to/@wowhaus-24/ui-tokens/theme.js'
   setTheme('dark')
 </script>
 ```

@@ -1,0 +1,64 @@
+.card {
+  position: relative;
+  background: var(--surf);
+  border: 1px solid var(--bd);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.card.interactive {
+  cursor: pointer;
+}
+
+.card.interactive:hover {
+  border-color: var(--bd-strong);
+}
+
+.card.bp {
+  border-color: var(--terra-bd);
+  box-shadow: 0 0 0 1px var(--terra-bd);
+}
+
+.cover {
+  position: relative;
+  height: 84px;
+  flex-shrink: 0;
+}
+
+.card.bp .cover {
+  border-bottom: 3px solid var(--terra);
+}
+
+.body {
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+
+.body.noCover {
+  padding: 14px;
+  gap: 7px;
+  min-height: 108px;
+  border-top: 0;
+}
+
+.card.bp .body.noCover {
+  border-top: 3px solid var(--terra);
+}
+
+.markerSlot {
+  position: absolute;
+  top: 9px;
+  left: 9px;
+  z-index: 2;
+}
+
+.bpSlot {
+  position: absolute;
+  top: 9px;
+  right: 9px;
+  z-index: 2;
+}

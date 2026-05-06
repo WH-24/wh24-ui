@@ -3,12 +3,12 @@
 Все заметные изменения в wh-ui фиксируются здесь. Формат — [Keep a Changelog](https://keepachangelog.com/),
 версионирование — [SemVer](https://semver.org/).
 
-Каждый пакет (`@wowhaus/ui-tokens`, `@wowhaus/ui-react`) бампается
+Каждый пакет (`@wowhaus-24/ui-tokens`, `@wowhaus-24/ui-react`) бампается
 независимо. В разделе версии указывается какие пакеты затронуты.
 
 ## [Unreleased]
 
-### Added — `@wowhaus/ui-tokens@0.1.0`, `@wowhaus/ui-react@0.1.0`
+### Added — `@wowhaus-24/ui-tokens@0.1.0`, `@wowhaus-24/ui-react@0.1.0`
 - Первичный scaffold монорепо.
 - `tokens.css` с полной палитрой Wowhaus (terra, ink, surf, type colors,
   status tones), радиусы, шрифты.
@@ -26,7 +26,7 @@
 - CI workflow (typecheck + build на push/PR в main).
 
 ### Pending
-- Миграция примитивов из `wiki-web/src/shared/ui/` в `@wowhaus/ui-react`.
+- Миграция примитивов из `wiki-web/src/shared/ui/` в `@wowhaus-24/ui-react`.
 - SVG icon library в `icons/`.
 - Headless обёртки на Radix.
 - Публикация в private npm registry.

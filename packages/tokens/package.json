@@ -1,8 +1,17 @@
 {
-  "name": "@wowhaus/ui-tokens",
+  "name": "@wowhaus-24/ui-tokens",
   "version": "0.1.0",
-  "private": true,
   "description": "Frame-agnostic design tokens for Wowhaus services",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/WOWHAUS-24/wh24-ui.git",
+    "directory": "packages/tokens"
+  },
+  "homepage": "https://github.com/WOWHAUS-24/wh24-ui#readme",
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com",
+    "access": "restricted"
+  },
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
