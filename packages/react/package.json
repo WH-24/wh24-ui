@@ -18,6 +18,8 @@
   "scripts": {
     "build": "tsc -b tsconfig.json",
     "typecheck": "tsc -b tsconfig.json --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "clean": "tsc -b tsconfig.json --clean && rm -rf dist *.tsbuildinfo"
   },
   "peerDependencies": {
@@ -28,10 +30,15 @@
     "@wowhaus/ui-tokens": "*"
   },
   "devDependencies": {
+    "@testing-library/jest-dom": "^6.6.0",
+    "@testing-library/react": "^16.1.0",
+    "@testing-library/user-event": "^14.5.2",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
+    "happy-dom": "^15.11.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "typescript": "^5.4.5"
+    "typescript": "^5.4.5",
+    "vitest": "^2.1.8"
   }
 }

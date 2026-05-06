@@ -1,0 +1,32 @@
+.dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--ink-3);
+  flex-shrink: 0;
+}
+
+.dot.active {
+  background: var(--terra);
+}
+
+.dot.project {
+  background: var(--tp-proj-fg);
+}
+.dot.standard {
+  background: var(--tp-std-fg);
+}
+.dot.solution {
+  background: var(--tp-sol-fg);
+}
+.dot.article {
+  background: var(--tp-art-fg);
+}
+
+.dot.project.active,
+.dot.standard.active,
+.dot.solution.active,
+.dot.article.active {
+  background: var(--terra);
+}

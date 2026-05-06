@@ -36,10 +36,20 @@
   --surf-3: #efece4;
 
   /* ─── Article types ─── */
-  --tp-proj: #8e3a14; /* Проект */
+  /* Foreground (text/marker color) */
+  --tp-proj: #8e3a14; /* Проект — alias for --tp-proj-fg */
   --tp-std: #444441;  /* Стандарт */
   --tp-sol: #0c447c;  /* Решение */
   --tp-art: #3c3489;  /* Статья */
+  --tp-proj-fg: #8e3a14;
+  --tp-std-fg: #444441;
+  --tp-sol-fg: #0c447c;
+  --tp-art-fg: #3c3489;
+  /* Background tints (badge / card cover) */
+  --tp-proj-bg: #fbeee5;
+  --tp-std-bg: #efece4;
+  --tp-sol-bg: #e6f1fb;
+  --tp-art-bg: #eeedfe;
 
   /* ─── Status: good/warn/info/bad ─── */
   --good: #4a8a1f;
@@ -56,15 +66,58 @@
   --bad-bd: #e6a8a8;
 
   /* ─── Typography ─── */
-  --font-sans: 'Manrope', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-sans: 'Manrope Variable', 'Manrope', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   --font-mono: ui-monospace, 'SF Mono', Monaco, Consolas, monospace;
 
+  /* Type scale */
+  --fs-h1: 38px;
+  --fs-h1-min: 26px;
+  --fs-h2: 22px;
+  --fs-h3: 18px;
+  --fs-card: 14px;
+  --fs-body: 15px;
+  --fs-meta: 12px;
+  --fs-meta-sm: 11px;
+
+  /* Line heights */
+  --lh-tight: 1.2;
+  --lh-snug: 1.3;
+  --lh-body: 1.7;
+
+  /* Font weights */
+  --fw-regular: 400;
+  --fw-medium: 500;
+  --fw-semibold: 600;
+  --fw-bold: 700;
+
+  /* ─── Spacing scale ─── */
+  --sp-1: 4px;
+  --sp-2: 6px;
+  --sp-3: 8px;
+  --sp-4: 10px;
+  --sp-5: 12px;
+  --sp-6: 14px;
+  --sp-7: 16px;
+  --sp-8: 20px;
+  --sp-9: 24px;
+  --sp-10: 32px;
+
   /* ─── Radii ─── */
+  --r-xs: 3px;
   --r-sm: 5px;
   --r-md: 7px;
   --r-lg: 10px;
   --r-xl: 12px;
   --r-pill: 999px;
+
+  /* ─── Shadows ─── */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.06);
+
+  /* ─── Z-index layering ─── */
+  --z-mega: 50;
+  --z-modal: 100;
+  --z-toast: 200;
 
   /* ─── Layout ─── */
   --sb-w: 220px;       /* sidebar width (admin) */

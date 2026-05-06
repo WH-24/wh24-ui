@@ -1,0 +1,20 @@
+.av {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--surf-3);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: var(--fw-medium);
+  color: var(--ink-2);
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.av:hover {
+  background: var(--surf-2);
+}

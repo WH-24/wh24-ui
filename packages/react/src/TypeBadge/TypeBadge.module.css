@@ -1,0 +1,29 @@
+.tp {
+  display: inline-flex;
+  align-items: center;
+  font-size: var(--fs-meta-sm);
+  font-weight: var(--fw-medium);
+  padding: 3px 8px;
+  white-space: nowrap;
+  border-radius: var(--r-xs);
+}
+
+.project {
+  background: var(--tp-proj-bg);
+  color: var(--tp-proj-fg);
+}
+
+.standard {
+  background: var(--tp-std-bg);
+  color: var(--tp-std-fg);
+}
+
+.solution {
+  background: var(--tp-sol-bg);
+  color: var(--tp-sol-fg);
+}
+
+.article {
+  background: var(--tp-art-bg);
+  color: var(--tp-art-fg);
+}

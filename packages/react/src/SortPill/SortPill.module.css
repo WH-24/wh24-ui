@@ -1,0 +1,29 @@
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  background: var(--surf-2);
+  border: none;
+  border-radius: var(--r-sm);
+  font-family: inherit;
+  font-size: 11px;
+  color: var(--ink-2);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.pill:hover {
+  background: var(--surf-3);
+}
+
+.iconLeft {
+  font-size: 11px;
+  line-height: 1;
+}
+
+.chev {
+  font-size: 10px;
+  color: var(--ink-3);
+  margin-left: 2px;
+}
