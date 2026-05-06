@@ -25,7 +25,6 @@ jobs:
           node-version: '20'
           registry-url: 'https://npm.pkg.github.com'
           scope: '@wowhaus-24'
-          cache: npm
 
       - name: Install
         # `npm install` (не `npm ci`): wh-ui обычно разрабатывается из
