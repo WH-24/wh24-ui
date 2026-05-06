@@ -16,7 +16,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsc -b tsconfig.json",
+    "build": "tsc -b tsconfig.json && node scripts/copy-css.mjs",
     "typecheck": "tsc -b tsconfig.json --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",

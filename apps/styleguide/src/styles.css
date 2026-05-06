@@ -1,0 +1,123 @@
+.sg {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 32px;
+}
+
+.sg-h {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 0.5px solid var(--bd);
+}
+
+.sg-h h1 {
+  font-size: 24px;
+  font-weight: var(--fw-semibold);
+  letter-spacing: -0.015em;
+  margin: 0;
+}
+
+.sg-h p {
+  color: var(--ink-3);
+  font-size: 13px;
+  margin: 4px 0 0;
+}
+
+.sg-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sg-toggle {
+  background: var(--surf);
+  border: 0.5px solid var(--bd-strong);
+  border-radius: var(--r-pill);
+  padding: 6px 14px;
+  font-family: inherit;
+  font-size: 12px;
+  color: var(--ink-2);
+  cursor: pointer;
+}
+.sg-toggle:hover {
+  border-color: var(--terra-bd);
+}
+.sg-toggle.active {
+  background: var(--terra-bg);
+  border-color: var(--terra-bd);
+  color: var(--terra-d);
+}
+
+.sg-section {
+  margin-bottom: 36px;
+}
+.sg-section h2 {
+  font-size: 16px;
+  font-weight: var(--fw-semibold);
+  margin: 0 0 12px;
+  color: var(--ink);
+}
+.sg-section .desc {
+  color: var(--ink-3);
+  font-size: 13px;
+  margin: 0 0 16px;
+}
+
+.sg-row {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  align-items: center;
+  padding: 16px;
+  background: var(--surf);
+  border: 0.5px solid var(--bd);
+  border-radius: var(--r-md);
+  margin-bottom: 12px;
+}
+.sg-row + .sg-label {
+  margin-top: 4px;
+}
+
+.sg-label {
+  font-size: 11px;
+  color: var(--ink-3);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: var(--fw-medium);
+  margin: 0 0 8px;
+}
+
+.sg-grid-4 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+@media (max-width: 880px) {
+  .sg-grid-4 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.sg-mock-cover {
+  background: linear-gradient(135deg, var(--tp-proj-bg), var(--terra-bd));
+  width: 100%;
+  height: 100%;
+}
+
+.sg-mock-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sg-mega-wrap {
+  position: relative;
+  background: var(--surf);
+  border: 0.5px solid var(--bd);
+  border-radius: var(--r-md);
+  padding: 16px;
+  min-height: 260px;
+}
