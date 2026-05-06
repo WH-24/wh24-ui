@@ -16,7 +16,7 @@ import {
   toggleTheme as toggleThemeInternal,
   type Theme,
   type ThemeMode,
-} from '@wowhaus/ui-tokens/theme'
+} from '@wowhaus-24/ui-tokens/theme'
 
 interface ThemeContextValue {
   /** Resolved theme currently applied to <html>. */

@@ -1,4 +1,4 @@
-import { ARTICLE_TYPE_LABELS, type ArticleType } from '@wowhaus/ui-tokens'
+import { ARTICLE_TYPE_LABELS, type ArticleType } from '@wowhaus-24/ui-tokens'
 
 import styles from './TypeMarker.module.css'
 

@@ -1,8 +1,8 @@
 {
-  "name": "@wowhaus/ui-styleguide",
+  "name": "@wowhaus-24/ui-styleguide",
   "version": "0.1.0",
   "private": true,
-  "description": "Live preview app for @wowhaus/ui-react primitives",
+  "description": "Live preview app for @wowhaus-24/ui-react primitives",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -11,8 +11,8 @@
     "typecheck": "tsc -b --noEmit"
   },
   "dependencies": {
-    "@wowhaus/ui-react": "*",
-    "@wowhaus/ui-tokens": "*",
+    "@wowhaus-24/ui-react": "*",
+    "@wowhaus-24/ui-tokens": "*",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },

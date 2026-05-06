@@ -1,4 +1,4 @@
-# @wowhaus/ui-tokens
+# @wowhaus-24/ui-tokens
 
 Frame-agnostic design tokens and theme API. Used by every Wowhaus service
 that needs the brand look.
@@ -6,7 +6,7 @@ that needs the brand look.
 ## Install
 
 ```bash
-npm install @wowhaus/ui-tokens
+npm install @wowhaus-24/ui-tokens
 ```
 
 ## Use the styles
@@ -14,8 +14,8 @@ npm install @wowhaus/ui-tokens
 Import once at app entry, before any other CSS:
 
 ```ts
-import '@wowhaus/ui-tokens/tokens.css'
-import '@wowhaus/ui-tokens/base.css'
+import '@wowhaus-24/ui-tokens/tokens.css'
+import '@wowhaus-24/ui-tokens/base.css'
 ```
 
 `tokens.css` declares `:root` custom properties + dark-theme overrides.
@@ -24,7 +24,7 @@ import '@wowhaus/ui-tokens/base.css'
 ## Theme switching
 
 ```ts
-import { initTheme, setMode, toggleTheme, subscribe } from '@wowhaus/ui-tokens/theme'
+import { initTheme, setMode, toggleTheme, subscribe } from '@wowhaus-24/ui-tokens/theme'
 
 // Apply persisted/system theme as early as possible (avoids FOUC).
 initTheme()
@@ -48,7 +48,7 @@ For TS code that needs to reference a token (inline style, CSS-in-JS
 escape hatch):
 
 ```ts
-import { colors, radii, fonts, articleTypeColor, statusToneTriad } from '@wowhaus/ui-tokens'
+import { colors, radii, fonts, articleTypeColor, statusToneTriad } from '@wowhaus-24/ui-tokens'
 
 // Each token is a string like 'var(--terra)' — works in `style={{...}}`
 <div style={{ background: colors.terraBg, borderRadius: radii.md }} />

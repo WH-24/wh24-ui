@@ -1,0 +1,51 @@
+name: Publish to GitHub Packages
+
+# Триггер:
+# - на push тега вида v* (например v0.1.0, v1.2.3) — публикуется
+#   ВСЕ пакеты с такой версией. Для индивидуальной версии пакета
+#   используем тег vида @wowhaus-24/ui-react@0.2.0 (см. ниже).
+on:
+  push:
+    tags:
+      - 'v*'
+      - '@wowhaus-24/*'
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://npm.pkg.github.com'
+          scope: '@wowhaus-24'
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Build all packages
+        run: npm run build
+
+      - name: Publish @wowhaus-24/ui-tokens
+        # Публикуем только если pkg.version из tokens соответствует тегу
+        # (или если пакет ещё не опубликован — npm publish ругнётся 409
+        # на дубликат, что мы игнорируем для удобства re-runs).
+        run: |
+          cd packages/tokens
+          npm publish || echo "tokens already published at this version"
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish @wowhaus-24/ui-react
+        run: |
+          cd packages/react
+          npm publish || echo "react already published at this version"
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,11 +1,11 @@
 /**
- * @wowhaus/ui-tokens
+ * @wowhaus-24/ui-tokens
  *
  * Tokens, types, and a vanilla theme API. CSS files are exposed via
  * package.json `exports` and imported separately:
  *
- *   import '@wowhaus/ui-tokens/tokens.css'
- *   import '@wowhaus/ui-tokens/base.css'
+ *   import '@wowhaus-24/ui-tokens/tokens.css'
+ *   import '@wowhaus-24/ui-tokens/base.css'
  */
 
 export * from './tokens.js'

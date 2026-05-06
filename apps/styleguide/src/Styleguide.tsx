@@ -16,7 +16,7 @@ import {
   TypeMarker,
   UtilChip,
   useTheme,
-} from '@wowhaus/ui-react'
+} from '@wowhaus-24/ui-react'
 
 export function Styleguide() {
   const { theme, toggle } = useTheme()
@@ -27,7 +27,7 @@ export function Styleguide() {
       <header className="sg-h">
         <div>
           <h1>WH UI · Styleguide</h1>
-          <p>Live preview всех примитивов из @wowhaus/ui-react</p>
+          <p>Live preview всех примитивов из @wowhaus-24/ui-react</p>
         </div>
         <div className="sg-controls">
           <button

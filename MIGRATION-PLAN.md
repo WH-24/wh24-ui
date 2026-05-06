@@ -1,8 +1,8 @@
-# Миграция UI-примитивов: wiki-web → @wowhaus/ui-react
+# Миграция UI-примитивов: wiki-web → @wowhaus-24/ui-react
 
 **Дата:** 6 мая 2026
 **Цель:** Перенести 15 примитивов из `wiki-web/src/shared/ui/` в
-`@wowhaus/ui-react`. После миграции wiki-web импортирует их из
+`@wowhaus-24/ui-react`. После миграции wiki-web импортирует их из
 workspace package, а не дублирует код.
 
 ## Inventory — что мигрируем
@@ -32,12 +32,12 @@ S = Simple (≤30 строк), M = Medium (30-80), L = Large (80+).
 ### Q1. CSS Modules vs vanilla CSS
 
 Wiki-web использует CSS Modules (`*.module.css`). Это требует webpack/vite
-plugin у consumer'а. В `@wowhaus/ui-react` оставляем CSS Modules или
+plugin у consumer'а. В `@wowhaus-24/ui-react` оставляем CSS Modules или
 переходим на vanilla CSS?
 
 **Решение:** оставляем CSS Modules. Все consumer-сервисы будут на Vite
 (или будут указывать css-modules plugin в bundler-config). Для
-non-React consumer'ов есть `@wowhaus/ui-tokens/tokens.css` — там нет
+non-React consumer'ов есть `@wowhaus-24/ui-tokens/tokens.css` — там нет
 CSS Modules. Это разделение ответственностей.
 
 ### Q2. React Router зависимость
@@ -71,20 +71,20 @@ Wiki-web имеет 13 *.test.tsx файлов на vitest+@testing-library/reac
 ### Q4. Storybook / playground
 
 Сейчас примитивы видны только через `KitchenSinkSurface` в wiki-web.
-В @wowhaus/ui-react нужно отдельное место для preview.
+В @wowhaus-24/ui-react нужно отдельное место для preview.
 
 **Решение:** styleguide app (Vite app в `apps/styleguide/`) —
-отдельный workspace package, импортирует из `@wowhaus/ui-react` и
+отдельный workspace package, импортирует из `@wowhaus-24/ui-react` и
 отрисовывает каждый примитив в галерее. Storybook — overkill для нашего
 размера.
 
 ### Q5. Обратная совместимость в wiki-web
 
-После миграции wiki-web должен импортировать из `@wowhaus/ui-react`,
+После миграции wiki-web должен импортировать из `@wowhaus-24/ui-react`,
 не из локального `shared/ui/`.
 
 **Решение:** в wiki-web `package.json` добавить
-`"@wowhaus/ui-react": "file:../wh-ui/packages/react"` (или git
+`"@wowhaus-24/ui-react": "file:../wh-ui/packages/react"` (или git
 submodule, или npm publish — на этапе deploy решаем). Локальные
 `shared/ui/` файлы удаляем за раз с миграцией каждого примитива.
 
@@ -92,7 +92,7 @@ submodule, или npm publish — на этапе deploy решаем). Лока
 
 ### Этап 0 — подготовка (✅ сделано в этом коммите)
 
-- [x] Расширить `@wowhaus/ui-tokens/tokens.css` до надмножества
+- [x] Расширить `@wowhaus-24/ui-tokens/tokens.css` до надмножества
   wiki-web токенов (`--tp-proj-fg/-bg`, fs/sp/shadow/z, lineHeights,
   fontWeights)
 - [x] Обновить `tokens.ts` — `ARTICLE_TYPES`, `ARTICLE_TYPE_LABELS`,
@@ -100,7 +100,7 @@ submodule, или npm publish — на этапе deploy решаем). Лока
   `space`, `shadows`, `zIndex`
 - [x] Build verified
 
-### Этап 1 — vitest в @wowhaus/ui-react
+### Этап 1 — vitest в @wowhaus-24/ui-react
 
 - [ ] Установить `vitest`, `@testing-library/react`, `@testing-library/jest-dom`
   в `packages/react/`
@@ -138,7 +138,7 @@ submodule, или npm publish — на этапе deploy решаем). Лока
 
 ### Этап 3 — styleguide app
 
-- [ ] `apps/styleguide/` — Vite + React + workspace dep `@wowhaus/ui-react`
+- [ ] `apps/styleguide/` — Vite + React + workspace dep `@wowhaus-24/ui-react`
 - [ ] Каркас: галерея с категориями, dark/light toggle
 - [ ] Прогон через все 15 примитивов
 
@@ -146,11 +146,11 @@ submodule, или npm publish — на этапе deploy решаем). Лока
 
 В отдельной сессии (в `wiki-web/`):
 
-- [ ] `package.json` — добавить `"@wowhaus/ui-react": "file:..."` или
+- [ ] `package.json` — добавить `"@wowhaus-24/ui-react": "file:..."` или
   workspace symlink
-- [ ] `package.json` — добавить `"@wowhaus/ui-tokens": "file:..."`
+- [ ] `package.json` — добавить `"@wowhaus-24/ui-tokens": "file:..."`
 - [ ] Заменить импорты `import { TypeMarker } from '@/shared/ui/TypeMarker/TypeMarker'`
-  на `import { TypeMarker } from '@wowhaus/ui-react'` по всем файлам
+  на `import { TypeMarker } from '@wowhaus-24/ui-react'` по всем файлам
   (codemod через jscodeshift или ручной grep+sed)
 - [ ] Удалить `wiki-web/src/shared/ui/<Primitive>/` после успешной замены
 - [ ] Сохранить только `wiki-web/src/shared/ui/AppShell/` и
@@ -164,8 +164,8 @@ submodule, или npm publish — на этапе deploy решаем). Лока
 
 ### Этап 5 — публикация (когда появится второй consumer)
 
-- [ ] Версионирование `@wowhaus/ui-tokens@1.0.0`,
-  `@wowhaus/ui-react@1.0.0`
+- [ ] Версионирование `@wowhaus-24/ui-tokens@1.0.0`,
+  `@wowhaus-24/ui-react@1.0.0`
 - [ ] CHANGELOG обновить
 - [ ] Решить про npm registry: GitHub Packages (Lenivedz scope) vs
   publish private package
@@ -221,5 +221,5 @@ submodule, или npm publish — на этапе deploy решаем). Лока
 - cmdk-обёртка
 - SVG icon library
 
-Эти штуки появятся в `@wowhaus/ui-react` отдельными PR'ами, не в
+Эти штуки появятся в `@wowhaus-24/ui-react` отдельными PR'ами, не в
 рамках migration.

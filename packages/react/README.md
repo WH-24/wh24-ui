@@ -1,13 +1,13 @@
-# @wowhaus/ui-react
+# @wowhaus-24/ui-react
 
-React-side helpers over `@wowhaus/ui-tokens`. Currently exports a
+React-side helpers over `@wowhaus-24/ui-tokens`. Currently exports a
 `ThemeProvider` + `useTheme` hook. Headless primitives (Pill, NavTile,
 StatBar, etc.) will land here as we migrate them out of `wiki-web`.
 
 ## Install
 
 ```bash
-npm install @wowhaus/ui-react @wowhaus/ui-tokens
+npm install @wowhaus-24/ui-react @wowhaus-24/ui-tokens
 ```
 
 `react` and `react-dom` are peer dependencies — your app provides them.
@@ -15,9 +15,9 @@ npm install @wowhaus/ui-react @wowhaus/ui-tokens
 ## Usage
 
 ```tsx
-import '@wowhaus/ui-tokens/tokens.css'
-import '@wowhaus/ui-tokens/base.css'
-import { ThemeProvider, useTheme } from '@wowhaus/ui-react'
+import '@wowhaus-24/ui-tokens/tokens.css'
+import '@wowhaus-24/ui-tokens/base.css'
+import { ThemeProvider, useTheme } from '@wowhaus-24/ui-react'
 
 function App() {
   return (

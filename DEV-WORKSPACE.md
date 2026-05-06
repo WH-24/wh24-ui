@@ -6,8 +6,8 @@
 ## Зачем
 
 `wh-ui` (дизайн-система) — отдельный git-репозиторий. `wiki-web`
-(фронт вики) импортирует из него `@wowhaus/ui-react` и
-`@wowhaus/ui-tokens`. Чтобы изменения в wh-ui мгновенно подхватывались
+(фронт вики) импортирует из него `@wowhaus-24/ui-react` и
+`@wowhaus-24/ui-tokens`. Чтобы изменения в wh-ui мгновенно подхватывались
 в wiki-web без публикации в npm-registry — настраиваем локальный
 npm workspace на уровне общей директории.
 
@@ -38,10 +38,10 @@ npm workspace на уровне общей директории.
     "wh-ui/apps/*"
   ],
   "scripts": {
-    "build:ui": "npm run build -w @wowhaus/ui-tokens -w @wowhaus/ui-react",
-    "test:ui": "npm test -w @wowhaus/ui-react",
+    "build:ui": "npm run build -w @wowhaus-24/ui-tokens -w @wowhaus-24/ui-react",
+    "test:ui": "npm test -w @wowhaus-24/ui-react",
     "dev:wiki-web": "npm run dev -w wiki-web",
-    "dev:styleguide": "npm run dev -w @wowhaus/ui-styleguide"
+    "dev:styleguide": "npm run dev -w @wowhaus-24/ui-styleguide"
   }
 }
 ```
@@ -54,9 +54,9 @@ npm install
 
 Это создаст:
 - `deploy/node_modules/` — общий, hoisted
-- `deploy/node_modules/@wowhaus/ui-react` → симлинк на `wh-ui/packages/react`
-- `deploy/node_modules/@wowhaus/ui-tokens` → симлинк на `wh-ui/packages/tokens`
-- `deploy/node_modules/@wowhaus/ui-styleguide` → симлинк на `wh-ui/apps/styleguide`
+- `deploy/node_modules/@wowhaus-24/ui-react` → симлинк на `wh-ui/packages/react`
+- `deploy/node_modules/@wowhaus-24/ui-tokens` → симлинк на `wh-ui/packages/tokens`
+- `deploy/node_modules/@wowhaus-24/ui-styleguide` → симлинк на `wh-ui/apps/styleguide`
 - `wiki-web/node_modules/` минимальный (только wiki-web-specific deps,
   всё остальное hoisted в корень)
 
@@ -75,7 +75,7 @@ npm run build:ui
 1. Правишь файл в `wh-ui/packages/react/src/Card/`
 2. Запускаешь rebuild ui-react:
    ```bash
-   npm run build -w @wowhaus/ui-react
+   npm run build -w @wowhaus-24/ui-react
    # или watch:
    cd wh-ui && tsc -b -w
    ```
@@ -116,7 +116,7 @@ npm run dev:wiki-web  # → http://localhost:5173 (или какой указа�
 
 ## Troubleshooting
 
-**`Cannot find module '@wowhaus/ui-react'`** — сделай
+**`Cannot find module '@wowhaus-24/ui-react'`** — сделай
 `npm run build:ui` из `deploy/`. tsc не запустится автоматически на
 install.
 
