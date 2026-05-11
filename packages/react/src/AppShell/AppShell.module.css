@@ -10,7 +10,13 @@
   gap: var(--sp-7);
   padding: 16px 32px;
   border-bottom: 0.5px solid var(--bd);
-  background: rgba(250, 250, 247, 0.85);
+  /* Token-driven topbar surface — auto-flips with html[data-theme="dark"].
+     --bg is the page background; sticking with it keeps the sticky header
+     visually continuous with the content beneath while the backdrop-filter
+     adds saturation/blur. Hardcoded rgba(250,250,247,0.85) used to leave a
+     light wash over dark themes, making the dark-on-light wordmark stack
+     unreadable. */
+  background: color-mix(in srgb, var(--bg) 85%, transparent);
   backdrop-filter: saturate(180%) blur(8px);
   position: sticky;
   top: 0;
