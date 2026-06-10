@@ -22,6 +22,7 @@
     },
     "./tokens.css": "./src/tokens.css",
     "./base.css": "./src/base.css",
+    "./button.css": "./src/button.css",
     "./theme": {
       "types": "./dist/theme.d.ts",
       "import": "./dist/theme.js"
@@ -30,7 +31,8 @@
   "files": [
     "dist",
     "src/tokens.css",
-    "src/base.css"
+    "src/base.css",
+    "src/button.css"
   ],
   "scripts": {
     "build": "tsc -b tsconfig.json",

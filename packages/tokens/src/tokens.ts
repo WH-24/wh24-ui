@@ -130,6 +130,14 @@ export const fields = {
   borderFocus: 'var(--field-bd-focus)',
 } as const
 
+/** Buttons — глобальные классы .btn/.btn-primary/… см. button.css. */
+export const buttons = {
+  height: 'var(--btn-h)',
+  heightSm: 'var(--btn-h-sm)',
+  fontSize: 'var(--btn-fs)',
+  radius: 'var(--btn-r)',
+} as const
+
 /** Article type — drives badge/marker color. */
 export const ARTICLE_TYPES = ['project', 'standard', 'solution', 'article'] as const
 export type ArticleType = (typeof ARTICLE_TYPES)[number]
