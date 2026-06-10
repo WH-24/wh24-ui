@@ -139,6 +139,12 @@
 
   /* ─── Disabled state ─── */
   --disabled-opacity: 0.45;
+
+  /* ─── Buttons (см. button.css) ─── */
+  --btn-h: 36px;
+  --btn-h-sm: 32px;
+  --btn-fs: 13px;
+  --btn-r: var(--r-sm);
 }
 
 /*

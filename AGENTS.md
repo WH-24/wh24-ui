@@ -40,6 +40,8 @@ Wh-ui используется во всех будущих сервисах Wow
 | Цвета, радиусы, типографика | `packages/tokens/src/tokens.css` |
 | Типизированные алиасы токенов | `packages/tokens/src/tokens.ts` (синхрон с CSS вручную) |
 | Vanilla theme API | `packages/tokens/src/theme.ts` |
+| Глобальные кнопки (все сервисы) | `packages/tokens/src/button.css` |
+| Правила стилей для модулей-потребителей | `STYLEGUIDE.md` |
 | Визуальное поведение surface | `mockups/<surface>-mockup.html` |
 | Live-preview примитивов | `styleguide/index.html` |
 
