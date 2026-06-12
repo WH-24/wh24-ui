@@ -124,6 +124,14 @@
   --content-w: 680px;  /* article reading column */
   --drawer-w: 340px;   /* right-side drawer */
 
+  /* ─── Touch ergonomics ─── */
+  /* Минимальный размер сенсорной цели (WCAG 2.5.5 / Apple HIG = 44px).
+     Применять в `@media (pointer: coarse)` через min-height/min-width,
+     не трогая десктопные размеры. См. STYLEGUIDE → Breakpoints & touch. */
+  --tap-min: 44px;          /* стандартная сенсорная цель */
+  --tap-min-compact: 36px;  /* компактные контролы в плотных рядах/таблицах */
+  --tap-gap: 8px;           /* минимальный зазор между соседними целями */
+
   /* ─── Focus ring ─── */
   --focus: var(--terra);
   --focus-ring-w: 2px;
