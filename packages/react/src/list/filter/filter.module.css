@@ -1,0 +1,702 @@
+/* ======================================================================
+   Универсальный фильтр (Bitrix24-style), CSS-модуль. Самодостаточный: токены
+   определяются прямо на корнях (.filterBar / .filterPop) и на портальном меню
+   мультивыбора (.msMenu — рендерится в <body>, вне scope страницы). Значения —
+   из WH_Portale design-system (light); dark — через [data-theme="dark"].
+   ====================================================================== */
+
+.filterBar,
+.filterPop,
+.msMenu {
+  --fg-primary: #1a1a1a;
+  --fg-secondary: #3d3d3d;
+  --fg-tertiary: #7a7a7a;
+  --fg-muted: #b4b2a9;
+  --accent-50: #fbeee5;
+  --accent-400: #dd6731;
+  --accent-500: #dd6731;
+  --accent-600: #b8501f;
+  --accent-700: #b8501f;
+  --bg-surface: #ffffff;
+  --bg-subtle: #f7f5f0;
+  --bg-muted: #efece4;
+  --bg-hover: #f7f5f0;
+  --bg-active: #efece4;
+  --border-subtle: rgba(0, 0, 0, 0.05);
+  --border-default: rgba(0, 0, 0, 0.08);
+  --border-strong: rgba(0, 0, 0, 0.12);
+  --radius-sm: 5px;
+  --radius-md: 7px;
+  --radius-lg: 10px;
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.1), 0 2px 6px rgba(0, 0, 0, 0.04);
+}
+
+:where([data-theme='dark']) .filterBar,
+:where([data-theme='dark']) .filterPop,
+:where([data-theme='dark']) .msMenu {
+  --fg-primary: #f2f2ef;
+  --fg-secondary: #d8d8d1;
+  --fg-tertiary: #a9aa9f;
+  --fg-muted: #7b7d74;
+  --accent-50: rgba(221, 103, 49, 0.2);
+  --bg-surface: #161816;
+  --bg-subtle: #1c1f1c;
+  --bg-muted: #272b27;
+  --bg-hover: #1c1f1c;
+  --bg-active: #272b27;
+  --border-subtle: rgba(255, 255, 255, 0.07);
+  --border-default: rgba(255, 255, 255, 0.1);
+  --border-strong: rgba(255, 255, 255, 0.16);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.45), 0 1px 2px rgba(0, 0, 0, 0.35);
+  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.55), 0 2px 6px rgba(0, 0, 0, 0.35);
+}
+
+/* Базовый input (.form-input) — нужен для дейтрейнджа и переименования пресета. */
+.formInput {
+  appearance: none;
+  width: 100%;
+  height: 36px;
+  padding: 0 10px;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  background: var(--bg-surface);
+  color: var(--fg-primary);
+  font: inherit;
+  font-size: 13px;
+  outline: none;
+  transition:
+    border-color 0.1s,
+    box-shadow 0.1s;
+}
+.formInput:focus {
+  border-color: var(--accent-500);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+
+.filterBar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  position: relative;
+  /* Контейнер ровно 50% ширины тулбара (без роста) — внутри поле заполняет его целиком. */
+  flex: 0 0 50%;
+  max-width: 50%;
+}
+
+/* Единый контрол «Фильтр и поиск» (пилюля): лупа + чипы + ввод + сброс + воронка. */
+.filterSearch {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  flex: 1 1 auto;
+  min-width: 0;
+  width: 100%;
+  min-height: 36px;
+  padding: 4px 6px 4px 11px;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  background: var(--bg-surface);
+  cursor: text;
+  transition:
+    border-color 0.1s,
+    box-shadow 0.1s;
+}
+.filterSearch[data-active='true'] {
+  border-color: var(--accent-500);
+  box-shadow: 0 0 0 3px var(--accent-50);
+}
+:where([data-theme='dark']) .filterSearch[data-active='true'] {
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.14);
+}
+.filterSearchIcon {
+  display: flex;
+  flex: none;
+  color: var(--fg-muted);
+}
+.filterSearchInput {
+  flex: 1 1 80px;
+  min-width: 80px;
+  height: 26px;
+  border: none;
+  background: transparent;
+  font-size: 13.5px;
+  color: var(--fg-primary);
+  outline: none;
+  padding: 0;
+}
+.filterSearchInput::placeholder {
+  color: var(--fg-muted);
+}
+.filterSearchInput:focus,
+.filterSearchInput:focus-visible {
+  outline: none;
+}
+.filterSearchClear {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 26px;
+  height: 26px;
+  border: none;
+  background: transparent;
+  border-radius: var(--radius-sm);
+  color: var(--fg-muted);
+  transition:
+    color 0.1s,
+    background 0.1s;
+}
+.filterSearchClear:hover {
+  color: var(--fg-primary);
+  background: var(--bg-hover);
+}
+
+/* Применённые условия — компактными чипами ВНУТРИ поля. */
+.filterApplied {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 4px 2px 8px;
+  font-size: 12px;
+  border-radius: 999px;
+  background: var(--accent-50);
+  color: var(--accent-700);
+  max-width: 220px;
+}
+:where([data-theme='dark']) .filterApplied {
+  background: rgba(59, 130, 246, 0.14);
+  color: var(--accent-400);
+}
+.filterAppliedPreset {
+  font-weight: 500;
+}
+.filterAppliedLabel {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* chip-x (крестик внутри чипа активного пресета). */
+.chipX {
+  display: grid;
+  place-items: center;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  color: var(--fg-muted);
+  cursor: pointer;
+}
+.chipX:hover {
+  color: var(--fg-primary);
+  background: var(--bg-active);
+}
+
+/* ===== Поповер (две колонки: пресеты | поля) ===== */
+.filterPop {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 200;
+  display: grid;
+  grid-template-columns: 250px 1fr;
+  width: 760px;
+  max-width: calc(100vw - 32px);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+}
+
+/* Левая колонка — пресеты. */
+.filterPresets {
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--border-subtle);
+  background: var(--bg-subtle);
+  padding: 8px;
+  gap: 2px;
+  min-height: 320px;
+}
+.filterPresetsTitle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--fg-muted);
+  padding: 2px 4px 2px 8px;
+}
+.filterPreset {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 11px 10px;
+  font-size: 14.5px;
+  text-align: left;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--border-subtle);
+  border-radius: 0;
+  color: var(--fg-secondary);
+  transition: background 0.08s;
+}
+.filterPresets > .filterPreset:last-child {
+  border-bottom: none;
+}
+.filterPreset:hover {
+  background: var(--bg-hover);
+  color: var(--fg-primary);
+}
+.filterPreset[data-active='true'] {
+  color: var(--accent-700);
+  font-weight: 500;
+}
+:where([data-theme='dark']) .filterPreset[data-active='true'] {
+  color: var(--accent-400);
+}
+.filterPresetName {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.filterPresetActions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex: none;
+}
+.filterPresetActions [role='button'] {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: var(--radius-sm);
+  color: var(--fg-muted);
+  cursor: pointer;
+}
+.filterPresetActions [role='button']:hover {
+  color: var(--fg-primary);
+  background: var(--bg-active);
+}
+.filterPresetDefault {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 20px;
+  height: 20px;
+  color: var(--accent-600);
+}
+.filterPresetPin[data-pinned='true'] {
+  color: var(--accent-600);
+}
+.filterPresetPin[data-pinned='true']:hover {
+  color: var(--accent-700);
+}
+.filterPresetRename {
+  flex: 1;
+  min-width: 0;
+  height: 28px;
+}
+
+.filterPresetsFoot {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.filterPresetSave {
+  flex: 1;
+  border-bottom: none;
+}
+.filterGear {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  border-radius: var(--radius-sm);
+  color: var(--fg-muted);
+  cursor: pointer;
+  transition:
+    color 0.1s,
+    background 0.1s;
+}
+.filterGear:hover,
+.filterGear[data-active='true'] {
+  color: var(--accent-600);
+  background: var(--bg-hover);
+}
+
+/* Правая колонка — поля. */
+.filterBody {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.filterFields {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  overflow-y: auto;
+  max-height: 60vh;
+}
+.filterFieldsActions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 4px;
+}
+.filterResetfields {
+  font-size: 13px;
+  color: var(--fg-tertiary);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+.filterResetfields:hover {
+  color: var(--fg-primary);
+  text-decoration: underline;
+}
+.filterFieldsEmpty {
+  font-size: 13px;
+  color: var(--fg-muted);
+  padding: 8px 2px;
+}
+
+/* Сетка всех полей: чекбоксы в несколько колонок (Bitrix-style). */
+.filterAddgrid {
+  position: absolute;
+  bottom: 110px;
+  left: 12px;
+  right: 12px;
+  z-index: 20;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px 10px;
+  padding: 12px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  max-height: 360px;
+  overflow-y: auto;
+}
+.filterAddgridItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 6px;
+  font-size: 13px;
+  text-align: left;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--fg-secondary);
+  cursor: pointer;
+  transition: background 0.08s;
+}
+.filterAddgridItem:hover {
+  background: var(--bg-hover);
+  color: var(--fg-primary);
+}
+.filterAddgridLabel {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.filterField {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  column-gap: 10px;
+  row-gap: 5px;
+}
+.filterField[data-dragging='true'] {
+  opacity: 0.5;
+}
+.filterFieldLabel {
+  grid-column: 1 / -1;
+  font-size: 12px;
+  color: var(--fg-secondary);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: grab;
+}
+.filterFieldGrip {
+  color: var(--fg-muted);
+  letter-spacing: -1px;
+}
+.filterFieldRemove {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: var(--radius-sm);
+  border: none;
+  background: transparent;
+  color: var(--fg-muted);
+  opacity: 0;
+  cursor: pointer;
+  transition:
+    opacity 0.1s,
+    color 0.1s,
+    background 0.1s;
+}
+.filterField:hover .filterFieldRemove,
+.filterFieldRemove:focus-visible {
+  opacity: 1;
+}
+.filterFieldRemove:hover {
+  color: var(--fg-primary);
+  background: var(--bg-hover);
+}
+
+/* Редакторы. */
+.filterDaterange {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.filterDaterange input {
+  flex: 1;
+  min-width: 0;
+}
+.filterDaterangeDash {
+  color: var(--fg-muted);
+}
+
+/* Мультивыбор. */
+.filterMs {
+  position: relative;
+}
+.filterMsTrigger {
+  text-align: left;
+  overflow: hidden;
+  padding-right: 36px;
+  cursor: pointer;
+}
+.filterMsTrigger[data-empty='true'] .filterMsSummary {
+  color: var(--fg-muted);
+}
+.filterMsSummary {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.comboControl {
+  position: relative;
+}
+.comboToggle {
+  position: absolute;
+  top: 1px;
+  right: 1px;
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  color: var(--fg-tertiary);
+  border: 0;
+  border-left: 1px solid var(--border-subtle);
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+  background: transparent;
+  cursor: pointer;
+}
+.comboToggle:hover {
+  color: var(--fg-primary);
+  background: var(--bg-hover);
+}
+
+/* Портальное меню мультивыбора. */
+.msMenu {
+  z-index: 1000;
+  padding: 4px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  overflow: auto;
+  max-height: 240px;
+}
+.filterMsOption {
+  width: 100%;
+  min-height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  padding: 7px 8px;
+  text-align: left;
+  color: var(--fg-primary);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+}
+.filterMsOption:hover,
+.filterMsOption[aria-selected='true'] {
+  background: var(--bg-hover);
+}
+.filterMsOptionTitle {
+  flex: 0 1 auto;
+  max-width: none;
+  text-align: left;
+}
+.filterMsCheck {
+  display: grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  border: 1px solid var(--border-strong);
+  border-radius: 4px;
+  color: #fff;
+  flex: none;
+}
+.filterMsCheck[data-on='true'] {
+  background: var(--accent-500);
+  border-color: var(--accent-500);
+}
+
+/* «Добавить поле». */
+.filterAddfield {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  align-self: flex-start;
+  padding: 6px 4px;
+  font-size: 13px;
+  color: var(--accent-600);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+.filterAddfield:hover {
+  color: var(--accent-700);
+  text-decoration: underline;
+}
+
+/* Футер действий — прижат к низу модуля. Кнопки по центру. */
+.filterFoot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 16px;
+  margin-top: auto;
+  border-top: 1px solid var(--border-subtle);
+}
+.filterFoot .filterFootReset {
+  border: 1px solid var(--border-default);
+}
+
+/* Сохранение пресета: поле названия строкой в левой колонке. */
+.filterPresetSaving {
+  padding: 6px 8px;
+}
+.filterPresetNameInput {
+  flex: 1;
+  min-width: 0;
+  height: 32px;
+  padding: 0 10px;
+  font: inherit;
+  font-size: 14px;
+  color: var(--fg-primary);
+  background: var(--bg-surface);
+  border: 1px solid var(--accent-400);
+  border-radius: var(--radius-sm);
+  outline: none;
+}
+.filterPresetNameInput::placeholder {
+  color: var(--fg-muted);
+  text-transform: none;
+  letter-spacing: normal;
+}
+.filterSaveall {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-right: auto;
+  font-size: 13px;
+  color: var(--fg-secondary);
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+}
+.filterSaveall input {
+  cursor: pointer;
+}
+
+/* ===== Кнопки (.btn*) — нужны в футере поповера ===== */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 14px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+  text-decoration: none;
+  transition:
+    background 0.15s,
+    color 0.15s,
+    border-color 0.15s,
+    box-shadow 0.15s;
+}
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+.btnSm {
+  height: 30px;
+  padding: 0 10px;
+  font-size: 0.8125rem;
+}
+.btnPrimary {
+  background: var(--accent-500);
+  color: #fff;
+  border-color: var(--accent-500);
+}
+.btnPrimary:hover {
+  background: var(--accent-600);
+  border-color: var(--accent-600);
+}
+.btnGhost {
+  background: transparent;
+  color: var(--fg-secondary);
+  border-color: transparent;
+}
+.btnGhost:hover {
+  background: var(--bg-hover);
+  color: var(--fg-primary);
+}

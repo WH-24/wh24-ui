@@ -1,0 +1,174 @@
+/* ======================================================================
+   Combobox — выпадающий список с поиском. Самодостаточные стили: токены
+   определяются прямо на корне и на портальном меню (оно рендерится в
+   <body>, вне scope страницы), поэтому потребителю НЕ нужно подключать
+   токены дизайн-системы. Значения взяты из WH_Portale design-system
+   (light), dark — через [data-theme="dark"].
+   ====================================================================== */
+
+.combo,
+.menu {
+  --fg-primary: #1a1a1a;
+  --fg-secondary: #3d3d3d;
+  --fg-tertiary: #7a7a7a;
+  --fg-muted: #b4b2a9;
+  --accent-50: #fbeee5;
+  --accent-400: #dd6731;
+  --accent-500: #dd6731;
+  --accent-600: #b8501f;
+  --accent-700: #b8501f;
+  --bg-surface: #ffffff;
+  --bg-subtle: #f7f5f0;
+  --bg-muted: #efece4;
+  --bg-hover: #f7f5f0;
+  --bg-active: #efece4;
+  --border-subtle: rgba(0, 0, 0, 0.05);
+  --border-default: rgba(0, 0, 0, 0.08);
+  --border-strong: rgba(0, 0, 0, 0.12);
+  --radius-sm: 5px;
+  --radius-md: 7px;
+  --radius-lg: 10px;
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.1), 0 2px 6px rgba(0, 0, 0, 0.04);
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+:where([data-theme='dark']) .combo,
+:where([data-theme='dark']) .menu {
+  --fg-primary: #f2f2ef;
+  --fg-secondary: #d8d8d1;
+  --fg-tertiary: #a9aa9f;
+  --fg-muted: #7b7d74;
+  --accent-50: rgba(221, 103, 49, 0.2);
+  --bg-surface: #161816;
+  --bg-subtle: #1c1f1c;
+  --bg-muted: #272b27;
+  --bg-hover: #1c1f1c;
+  --bg-active: #272b27;
+  --border-subtle: rgba(255, 255, 255, 0.07);
+  --border-default: rgba(255, 255, 255, 0.1);
+  --border-strong: rgba(255, 255, 255, 0.16);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.45), 0 1px 2px rgba(0, 0, 0, 0.35);
+  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.55), 0 2px 6px rgba(0, 0, 0, 0.35);
+}
+
+/* ===== Базовый input (.form-input аналог) ===== */
+.formInput {
+  appearance: none;
+  width: 100%;
+  height: 36px;
+  padding: 0 10px;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  background: var(--bg-surface);
+  color: var(--fg-primary);
+  font: inherit;
+  font-size: 13px;
+  outline: none;
+  transition:
+    border-color 0.1s,
+    box-shadow 0.1s;
+}
+.formInput:focus {
+  border-color: var(--accent-500);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+.formInput:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* ===== Combobox ===== */
+.combo {
+  position: relative;
+}
+.control {
+  position: relative;
+}
+.input {
+  padding-right: 36px;
+}
+.toggle {
+  position: absolute;
+  top: 1px;
+  right: 1px;
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  color: var(--fg-tertiary);
+  border: 0;
+  border-left: 1px solid var(--border-subtle);
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+  background: transparent;
+  cursor: pointer;
+}
+.toggle:hover {
+  color: var(--fg-primary);
+  background: var(--bg-hover);
+}
+.combo:has(.input:disabled) {
+  opacity: 0.6;
+}
+.combo:has(.input:disabled) .toggle {
+  cursor: not-allowed;
+}
+
+/* Меню рендерится в портал → стилизуем по классу .menu напрямую. */
+.menu {
+  z-index: 90;
+  padding: 4px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  overflow: auto;
+  max-height: 240px;
+}
+.option {
+  width: 100%;
+  min-height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 7px 8px;
+  text-align: left;
+  color: var(--fg-primary);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+}
+.option:hover,
+.option[aria-selected='true'] {
+  background: var(--bg-hover);
+}
+.optionTitle {
+  flex: 0 0 auto;
+  max-width: 60%;
+  white-space: normal;
+  overflow-wrap: break-word;
+}
+/* Опция без кода: подпись на всю ширину (нет .optionCode рядом). */
+.optionTitle:only-child {
+  max-width: 100%;
+}
+.optionCode {
+  flex: 1 1 auto;
+  min-width: 0;
+  text-align: right;
+  white-space: normal;
+  overflow-wrap: break-word;
+  line-height: 1.35;
+  color: var(--fg-tertiary);
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+.empty {
+  padding: 9px 8px;
+  color: var(--fg-tertiary);
+  font-size: 13px;
+}

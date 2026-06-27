@@ -68,6 +68,22 @@ export type {
   UtilChipLinkRendererProps,
 } from './UtilChip/UtilChip.js'
 
+// Config-driven list/filter page (ListPage<T> + universal Bitrix24-style filter).
+export { ListPage } from './list/ListPage.js'
+export type { ListColumn, ListPageProps } from './list/ListPage.js'
+export type {
+  FilterBarConfig,
+  FilterFieldDef,
+  FieldType,
+  FilterState,
+  FilterValue,
+  FilterPreset,
+  FilterSettings,
+  FilterSettingsProvider,
+} from './list/filter/types.js'
+export { matchItem, activeCount } from './list/filter/matchItem.js'
+export type { ComboboxOption } from './list/Combobox.js'
+
 // Re-export token types for convenience so consumers don't need a
 // separate import for typing purposes.
 export type {
