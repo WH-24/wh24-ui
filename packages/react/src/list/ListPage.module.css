@@ -1,0 +1,314 @@
+/* ======================================================================
+   ListPage — страница-список. Самодостаточные стили: токены дизайн-системы
+   определяются прямо на корне `.page` через :where() (специфичность 0 — можно
+   переопределить из host-приложения, но дефолты не зависят от него). Значения —
+   из WH_Portale design-system (light); dark — через [data-theme="dark"].
+   ====================================================================== */
+
+.page:where(.page) {
+  --fg-primary: #1a1a1a;
+  --fg-secondary: #3d3d3d;
+  --fg-tertiary: #7a7a7a;
+  --fg-muted: #b4b2a9;
+  --accent-50: #fbeee5;
+  --accent-400: #dd6731;
+  --accent-500: #dd6731;
+  --accent-600: #b8501f;
+  --accent-700: #b8501f;
+  --bg-surface: #ffffff;
+  --bg-subtle: #f7f5f0;
+  --bg-muted: #efece4;
+  --bg-hover: #f7f5f0;
+  --bg-active: #efece4;
+  --border-subtle: rgba(0, 0, 0, 0.05);
+  --border-default: rgba(0, 0, 0, 0.08);
+  --border-strong: rgba(0, 0, 0, 0.12);
+  --radius-sm: 5px;
+  --radius-md: 7px;
+  --radius-lg: 10px;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.1), 0 2px 6px rgba(0, 0, 0, 0.04);
+}
+
+:where([data-theme='dark']) .page:where(.page) {
+  --fg-primary: #f2f2ef;
+  --fg-secondary: #d8d8d1;
+  --fg-tertiary: #a9aa9f;
+  --fg-muted: #7b7d74;
+  --accent-50: rgba(221, 103, 49, 0.2);
+  --bg-surface: #161816;
+  --bg-subtle: #1c1f1c;
+  --bg-muted: #272b27;
+  --bg-hover: #1c1f1c;
+  --bg-active: #272b27;
+  --border-subtle: rgba(255, 255, 255, 0.07);
+  --border-default: rgba(255, 255, 255, 0.1);
+  --border-strong: rgba(255, 255, 255, 0.16);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.45), 0 1px 2px rgba(0, 0, 0, 0.35);
+  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.55), 0 2px 6px rgba(0, 0, 0, 0.35);
+}
+
+/* ===== Шапка ===== */
+.page {
+  flex: 1;
+  overflow: auto;
+  padding: 8px 28px 40px;
+  min-width: 0;
+}
+.pageHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 16px;
+}
+.pageTitle {
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--fg-primary);
+  letter-spacing: -0.01em;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.pageTitleCount {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--fg-tertiary);
+  padding: 2px 8px;
+  background: var(--bg-muted);
+  border-radius: 999px;
+  font-variant-numeric: tabular-nums;
+}
+.pageSubtitle {
+  font-size: 13px;
+  color: var(--fg-tertiary);
+  margin-top: 4px;
+}
+
+/* ===== Тулбар ===== */
+.toolbar {
+  display: flex;
+  align-items: center;
+  padding: 10px 0;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.dividerV {
+  width: 1px;
+  height: 16px;
+  background: var(--border-default);
+}
+.viewSwitch {
+  display: inline-flex;
+  background: var(--bg-muted);
+  border-radius: var(--radius-md);
+  padding: 2px;
+}
+.viewSwitch button {
+  padding: 5px 8px;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  color: var(--fg-tertiary);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+.viewSwitch button[data-active='true'] {
+  background: var(--bg-surface);
+  color: var(--fg-primary);
+  box-shadow: var(--shadow-sm);
+}
+
+/* ===== Таблица ===== */
+.tableWrap {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+table.tbl {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+.tbl thead th {
+  text-align: left;
+  font-weight: 500;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--fg-muted);
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border-default);
+  background: var(--bg-subtle);
+  position: sticky;
+  top: 0;
+  user-select: none;
+}
+.tbl thead th[data-sortable] {
+  cursor: pointer;
+}
+.tbl thead th[data-sortable]:hover {
+  color: var(--fg-secondary);
+}
+.tbl thead th .sortArrow {
+  opacity: 0;
+  margin-left: 4px;
+  display: inline-block;
+  transition: opacity 0.1s;
+}
+.tbl thead th[data-sort] .sortArrow {
+  opacity: 1;
+  color: var(--fg-secondary);
+}
+.tbl tbody td {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border-subtle);
+  font-size: 13px;
+  color: var(--fg-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tbl tbody tr {
+  transition: background 0.08s;
+  cursor: pointer;
+}
+.tbl tbody tr:hover {
+  background: var(--bg-hover);
+}
+.tbl tbody tr[data-selected='true'] {
+  background: var(--accent-50);
+}
+:where([data-theme='dark']) .tbl tbody tr[data-selected='true'] {
+  background: rgba(59, 130, 246, 0.12);
+}
+.tbl tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Чекбокс выбора (виден по наведению/выбору), без отдельной колонки. */
+.tbl .colSelectHost {
+  position: relative;
+  padding-left: 40px;
+}
+.tbl .cellSelectBox {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: inline-flex;
+  opacity: 0;
+  transition: opacity 0.1s;
+}
+.tbl tbody tr:hover .cellSelectBox,
+.tbl tbody tr:focus-within .cellSelectBox,
+.tbl tbody tr[data-selected='true'] .cellSelectBox {
+  opacity: 1;
+}
+
+/* ===== Пустое состояние ===== */
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  text-align: center;
+  color: var(--fg-tertiary);
+}
+.emptyIcon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: var(--bg-muted);
+  color: var(--fg-tertiary);
+  display: grid;
+  place-items: center;
+  margin-bottom: 14px;
+}
+.emptyTitle {
+  font-size: 14px;
+  color: var(--fg-primary);
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+.emptyDesc {
+  font-size: 12.5px;
+  max-width: 320px;
+}
+
+/* ===== Карточный вид ===== */
+.listCardsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+  padding: 4px 0;
+}
+
+/* ===== Пагинация ===== */
+.pager {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 4px 0;
+  font-size: 12.5px;
+  color: var(--fg-tertiary);
+}
+.pagerNav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.selectionCount {
+  font-size: 12.5px;
+  color: var(--fg-tertiary);
+}
+
+/* ===== Кнопки (.btn*) — для пагинации ===== */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 14px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+  text-decoration: none;
+  transition:
+    background 0.15s,
+    color 0.15s,
+    border-color 0.15s,
+    box-shadow 0.15s;
+}
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+.btnSm {
+  height: 30px;
+  padding: 0 10px;
+  font-size: 0.8125rem;
+}
+.btnGhost {
+  background: transparent;
+  color: var(--fg-secondary);
+  border-color: transparent;
+}
+.btnGhost:hover {
+  background: var(--bg-hover);
+  color: var(--fg-primary);
+}
