@@ -86,6 +86,10 @@ export type { ComboboxOption } from './list/Combobox.js'
 export { Icon } from './list/Icon.js'
 export type { IconName } from './list/Icon.js'
 
+// Бренд-настройки сервиса (логотип/цвет/шрифт/радиусы) + применение в рантайме.
+export { applyBrand, BRAND_FONTS, BRAND_RADIUS_SCALES } from './brand/brand.js'
+export type { BrandSettings } from './brand/brand.js'
+
 // Re-export token types for convenience so consumers don't need a
 // separate import for typing purposes.
 export type {
