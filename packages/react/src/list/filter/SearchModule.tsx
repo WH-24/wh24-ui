@@ -138,12 +138,37 @@ export function SearchModule<T>({
     setState({ ...p.state })
     setFields(p.fields ?? config.defaultFields ?? [])
     setActivePresetId?.(p.id) // подсвечиваем именно выбранный
-    if (editMode) setEditingPresetId(p.id) // в режиме шестерёнки — цель сохранения
+    if (editMode) {
+      setEditingPresetId(p.id) // в режиме шестерёнки — цель сохранения
+      setSaveForAll(!!p.global) // галочка «Для всех» отражает область пресета
+    }
   }
 
-  // Сохранить текущие значения полей в редактируемый пресет (режим шестерёнки).
-  const saveEditedPreset = (id: string) =>
-    mutatePreset(id, (p) => ({ ...p, state: { ...state }, fields: [...fields] }))
+  // Сохранить редактируемый пресет (режим шестерёнки): пишем текущие значения и
+  // учитываем галочку «Для всех» — при смене области переносим между хранилищами.
+  const saveEditedPreset = (id: string) => {
+    const preset = allPresets.find((p) => p.id === id)
+    if (!preset || preset.system) return
+    const forAll = saveForAll && canEditFields && !!onGlobalPresetsChange
+    const next: FilterPreset = {
+      ...preset,
+      state: { ...state },
+      fields: [...fields],
+      global: forAll,
+    }
+    if (forAll === !!preset.global) {
+      // Область не меняется — обновляем на месте (id сохраняется).
+      mutatePreset(id, () => next)
+    } else if (forAll) {
+      // Личный → «для всех»: переносим в глобальные настройки.
+      writeUserPresets(userPresets.filter((p) => p.id !== id))
+      onGlobalPresetsChange!([...globalPresets.filter((p) => p.id !== id), next])
+    } else {
+      // «Для всех» → личный: возвращаем в localStorage.
+      onGlobalPresetsChange!(globalPresets.filter((p) => p.id !== id))
+      writeUserPresets([...userPresets.filter((p) => p.id !== id), next])
+    }
+  }
 
   // Первый пресет, совпадающий по содержимому (fallback, когда явного выбора нет).
   // Берём ОДИН — иначе при одинаковом state подсвечивались бы несколько.
@@ -262,6 +287,8 @@ export function SearchModule<T>({
                 setEditMode(true)
                 setRenamingId(null)
                 setEditingPresetId(activePresetId) // текущий пресет — цель правки
+                // Галочка «Для всех» отражает область текущего пресета.
+                setSaveForAll(!!allPresets.find((p) => p.id === activePresetId)?.global)
               }}
             >
               <Icon name="settings" size={15} />
@@ -515,6 +542,17 @@ export function SearchModule<T>({
           ) : editMode ? (
             // Режим редактирования: «Сохранить» пишет текущие значения в пресет.
             <>
+              {/* «Для всех» — область редактируемого пресета (личный ↔ глобальный). */}
+              {canEditFields && !!onGlobalPresetsChange && (
+                <label className={styles.filterSaveall}>
+                  <input
+                    type="checkbox"
+                    checked={saveForAll}
+                    onChange={(e) => setSaveForAll(e.target.checked)}
+                  />
+                  <span>Для всех</span>
+                </label>
+              )}
               <button
                 className={cx(styles.btn, styles.btnPrimary, styles.btnSm)}
                 onClick={() => {
@@ -522,6 +560,7 @@ export function SearchModule<T>({
                   setEditMode(false)
                   setRenamingId(null)
                   setEditingPresetId(null)
+                  setSaveForAll(false)
                 }}
               >
                 <Icon name="save" size={14} />
@@ -533,6 +572,7 @@ export function SearchModule<T>({
                   setEditMode(false)
                   setRenamingId(null)
                   setEditingPresetId(null)
+                  setSaveForAll(false)
                 }}
               >
                 Отмена
