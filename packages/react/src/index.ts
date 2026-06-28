@@ -83,6 +83,8 @@ export type {
 } from './list/filter/types.js'
 export { matchItem, activeCount } from './list/filter/matchItem.js'
 export type { ComboboxOption } from './list/Combobox.js'
+export { Icon } from './list/Icon.js'
+export type { IconName } from './list/Icon.js'
 
 // Re-export token types for convenience so consumers don't need a
 // separate import for typing purposes.
