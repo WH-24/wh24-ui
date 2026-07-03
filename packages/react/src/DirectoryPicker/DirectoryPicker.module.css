@@ -1,0 +1,268 @@
+/* DirectoryPicker — поиск-справочник (люди/отделы) с вкладками.
+   Все цвета/радиусы — из дизайн-токенов (@wowhaus-24/ui-tokens). */
+
+.picker {
+  position: relative;
+  width: 100%;
+  font-family: var(--font-sans);
+}
+
+/* ── Поле поиска ─────────────────────────────────────────── */
+.search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 10px 0 14px;
+  background: var(--surf-2);
+  border: 0.5px solid var(--bd-soft);
+  border-radius: var(--r-pill);
+  color: var(--ink-4);
+}
+.search[data-active='true'],
+.search:focus-within {
+  background: var(--surf);
+  border-color: var(--terra);
+  box-shadow: 0 0 0 3px var(--terra-bg);
+}
+/* Встраивание в готовый контейнер: убираем собственную рамку/фон/кольцо. */
+.searchPlain,
+.searchPlain[data-active='true'],
+.searchPlain:focus-within {
+  padding-left: 0;
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+}
+.searchIcon {
+  display: inline-flex;
+  flex: 0 0 auto;
+}
+.input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-family: inherit;
+  font-size: 14px;
+  color: var(--ink);
+}
+/* Гасим глобальный focus-outline (:focus-visible из токенов) на самом инпуте —
+   поле не «выделяется» рыжей рамкой при фокусе. */
+.input:focus,
+.input:focus-visible {
+  outline: none;
+}
+.input::placeholder {
+  color: var(--ink-4);
+}
+.clear {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: none;
+  border-radius: var(--r-pill);
+  background: transparent;
+  color: var(--ink-4);
+  cursor: pointer;
+  transition:
+    background 0.12s ease,
+    color 0.12s ease;
+}
+.clear:hover {
+  background: var(--surf-3);
+  color: var(--ink-2);
+}
+
+/* ── Дропдаун-панель ─────────────────────────────────────── */
+.panel {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: var(--z-mega, 900);
+  display: flex;
+  /* Фиксированная ширина — дропдаун не «прыгает» при смене вкладки/фильтра. */
+  width: 440px;
+  max-width: 92vw;
+  background: var(--surf);
+  border: 0.5px solid var(--bd-soft);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-lg, 0 12px 32px -12px rgba(0, 0, 0, 0.25));
+  overflow: hidden;
+  animation: dp-in 0.16s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+@keyframes dp-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ── Левый рельс вкладок ─────────────────────────────────── */
+.rail {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px;
+  background: var(--surf-2);
+  border-right: 0.5px solid var(--bd-soft);
+}
+.tab {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border: none;
+  border-radius: var(--r-pill);
+  background: transparent;
+  color: var(--ink-3);
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background 0.12s ease,
+    color 0.12s ease;
+}
+.tab:hover {
+  background: var(--surf-3);
+  color: var(--ink-2);
+}
+.tabActive,
+.tabActive:hover {
+  background: var(--terra);
+  color: #fff;
+}
+.tabIcon {
+  display: inline-flex;
+  flex: 0 0 auto;
+}
+
+/* ── Список результатов ──────────────────────────────────── */
+.list {
+  flex: 1;
+  min-width: 0;
+  padding: 6px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 10px;
+  border: none;
+  border-radius: var(--r-md);
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.1s ease;
+}
+.rowActive {
+  background: var(--terra-bg);
+}
+.rowDisabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.avatar {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+}
+.avatarFallback {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--r-pill);
+  background: var(--surf-3);
+  color: var(--ink-3);
+  font-size: 12px;
+  font-weight: 600;
+}
+.text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: 1px;
+}
+.meta {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-4);
+  line-height: 1.2;
+}
+.title {
+  font-size: 13.5px;
+  font-weight: 550;
+  color: var(--ink);
+  line-height: 1.25;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.subtitle {
+  font-size: 12px;
+  color: var(--ink-3);
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* Шеврон раскрытия узла дерева — прижат к правому краю строки. */
+.twisty {
+  flex: 0 0 auto;
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--r-sm);
+  color: var(--ink-4);
+  cursor: pointer;
+  transition:
+    transform 0.15s ease,
+    background 0.12s ease,
+    color 0.12s ease;
+}
+.twisty:hover {
+  background: var(--surf-3);
+  color: var(--ink-2);
+}
+.twistyOpen {
+  transform: rotate(90deg);
+}
+.empty {
+  padding: 28px 16px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--ink-4);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .panel {
+    animation: none;
+  }
+}
