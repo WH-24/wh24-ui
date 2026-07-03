@@ -86,6 +86,15 @@ export type { ComboboxOption } from './list/Combobox.js'
 export { Icon } from './list/Icon.js'
 export type { IconName } from './list/Icon.js'
 
+// DirectoryPicker — поиск-справочник (люди/отделы/…) с вкладками, режим
+// быстрого поиска. Data-agnostic: данные/аватары/onSelect — через props.
+export { DirectoryPicker } from './DirectoryPicker/DirectoryPicker.js'
+export type {
+  DirectoryPickerProps,
+  DirectoryItem,
+  DirectoryTab,
+} from './DirectoryPicker/DirectoryPicker.js'
+
 // Бренд-настройки сервиса (логотип/цвет/шрифт/радиусы) + применение в рантайме.
 export { applyBrand, BRAND_FONTS, BRAND_RADIUS_SCALES } from './brand/brand.js'
 export type { BrandSettings } from './brand/brand.js'
