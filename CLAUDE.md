@@ -50,3 +50,17 @@ npm run dev -w @wowhaus-24/ui-styleguide     # живой styleguide → http://
 4. `dev:styleguide` из `CONSUMER-SETUP.md` — скрипт deploy-workspace (`DEV-WORKSPACE.md`), его НЕТ в root `package.json`. Внутри репо используй `npm run dev -w @wowhaus-24/ui-styleguide`.
 
 Платформенный контекст и память — в зонтике `../CLAUDE.md` и `../memory/` (см. `memory/wh24_ui_design_system.md`, `ui_styleguide.md`).
+
+
+## Changelog (правило WH-24)
+
+Все заметные пользовательские изменения фиксируй в `CHANGELOG.md` по мере работы,
+в секции `## [Unreleased]`. Формат — Keep a Changelog (RU) + SemVer, записи на
+русском с точки зрения пользователя (не «bump lib», а «Добавлен экспорт в PDF»).
+Внутреннее (CI, зависимости, рефакторинг) в changelog не пиши.
+
+Релиз: перенеси `[Unreleased]` → `## [X.Y.Z] — ГГГГ-ММ-ДД`, поставь git-тег
+`vX.Y.Z` и запушь — workflow `.github/workflows/release-on-tag.yml` создаст GitHub
+Release из секции changelog (портал публикует его в «Что нового»).
+Полная политика: https://github.com/WH-24/WH_Portale/blob/main/docs/CHANGELOG_POLICY.md
+Продукт: none
