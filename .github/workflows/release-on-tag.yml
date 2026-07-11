@@ -1,0 +1,45 @@
+name: release-on-tag
+
+# Создаёт GitHub Release из секции CHANGELOG.md при пуше тега vX.Y.Z.
+# Тело релиза = секция changelog → портал публикует «Что нового».
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Извлечь секцию changelog
+        id: notes
+        run: |
+          set -euo pipefail
+          version="${GITHUB_REF_NAME#v}"          # v1.2.0 -> 1.2.0
+          bash .github/scripts/extract-changelog-section.sh "$version" CHANGELOG.md > release-notes.md
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          # пометить pre-release для тегов вида v1.2.0-rc.1
+          if printf '%s' "$version" | grep -q '-'; then
+            echo "prerelease=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "prerelease=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Создать/обновить GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          tag="${GITHUB_REF_NAME}"
+          flags=(--title "$tag" --notes-file release-notes.md)
+          [ "${{ steps.notes.outputs.prerelease }}" = "true" ] && flags+=(--prerelease)
+          if gh release view "$tag" >/dev/null 2>&1; then
+            gh release edit "$tag" "${flags[@]}"
+          else
+            gh release create "$tag" "${flags[@]}"
+          fi
