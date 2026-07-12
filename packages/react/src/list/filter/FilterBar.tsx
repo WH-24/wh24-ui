@@ -2,8 +2,9 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 
 import { Icon } from '../Icon.js'
 import { SearchModule } from './SearchModule.js'
-import { activeCount } from './matchItem.js'
+import { activeCount, isEmptyValue } from './matchItem.js'
 import type {
+  DateRange,
   FilterBarConfig,
   FilterPreset,
   FilterSettingsProvider,
@@ -130,6 +131,35 @@ export function FilterBar<T>({
 
   const hasAny = count > 0 || (typeof state.q === 'string' && state.q.length > 0)
 
+  // Применённые ad-hoc условия (не пресет) → чипы в строке: «Поле: значение».
+  // Клик по × сбрасывает условие конкретного поля.
+  const conditionChips = useMemo(() => {
+    const out: { key: string; text: string }[] = []
+    for (const field of config.fields) {
+      const v = state[field.key]
+      if (v === undefined || isEmptyValue(v)) continue
+      const labelOf = (val: string) => field.options?.find((o) => o.value === val)?.label ?? val
+      let text = ''
+      if (field.type === 'multiselect' && Array.isArray(v)) text = v.map(labelOf).join(', ')
+      else if (field.type === 'select' && typeof v === 'string') text = labelOf(v)
+      else if (field.type === 'text' && typeof v === 'string') text = v
+      else if (field.type === 'boolean') text = v ? 'Да' : 'Нет'
+      else if (field.type === 'daterange') {
+        const r = v as DateRange
+        text = [r.from, r.to].filter(Boolean).join(' – ')
+      }
+      out.push({ key: field.key, text: `${field.label}: ${text}` })
+    }
+    return out
+  }, [config.fields, state])
+
+  const clearField = (key: string) => {
+    const next = { ...state }
+    delete next[key]
+    setState(next)
+    setActivePresetId(null)
+  }
+
   return (
     <div className={styles.filterBar} ref={barRef}>
       {/* Единый контрол «Фильтр и поиск» (Bitrix24): название активного пресета +
@@ -139,8 +169,8 @@ export function FilterBar<T>({
         data-active={String(open || count > 0)}
         onMouseDown={() => setOpen(true)}
       >
-        {/* В строке показываем ТОЛЬКО название активного пресета (не чипы полей). */}
-        {activePreset && (
+        {/* Активный пресет → его название; иначе — чипы применённых условий полей. */}
+        {activePreset ? (
           <span className={[styles.filterApplied, styles.filterAppliedPreset].join(' ')}>
             <span className={styles.filterAppliedLabel}>{activePreset.name}</span>
             <span
@@ -158,6 +188,24 @@ export function FilterBar<T>({
               <Icon name="close" size={12} />
             </span>
           </span>
+        ) : (
+          conditionChips.map((chip) => (
+            <span key={chip.key} className={styles.filterApplied}>
+              <span className={styles.filterAppliedLabel}>{chip.text}</span>
+              <span
+                className={styles.chipX}
+                role="button"
+                aria-label={`Сбросить условие «${chip.text}»`}
+                onMouseDown={(e) => e.stopPropagation()}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  clearField(chip.key)
+                }}
+              >
+                <Icon name="close" size={12} />
+              </span>
+            </span>
+          ))
         )}
 
         <input
