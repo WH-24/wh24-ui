@@ -82,6 +82,12 @@ export type {
   FilterSettingsProvider,
 } from './list/filter/types.js'
 export { matchItem, activeCount } from './list/filter/matchItem.js'
+// Standalone-версии универсального фильтра — чтобы использовать «+ Поиск»-бар
+// поверх нетабличных экранов (напр. матрица «Загрузка проектов»), а не только
+// внутри ListPage.
+export { FilterBar } from './list/filter/FilterBar.js'
+export type { FilterBarProps } from './list/filter/FilterBar.js'
+export { useFilterState } from './list/filter/useFilterState.js'
 export type { ComboboxOption } from './list/Combobox.js'
 export { Icon } from './list/Icon.js'
 export type { IconName } from './list/Icon.js'
