@@ -319,11 +319,12 @@ table.tbl {
 }
 
 /* ── Настройка колонок: служебная колонка-шестерёнка в конце шапки + панель ── */
+/* Служебная колонка настройки — первая в таблице. */
 .colGear {
   width: 44px;
   text-align: center;
-  padding-left: 0;
-  padding-right: 8px;
+  padding-left: 8px;
+  padding-right: 0;
 }
 .gearBtn {
   display: inline-flex;

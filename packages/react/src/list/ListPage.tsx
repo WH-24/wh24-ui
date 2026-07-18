@@ -475,13 +475,26 @@ export function ListPage<T>({
         <div className={styles.tableWrap} ref={wrapRef}>
           <table className={styles.tbl} style={{ minWidth: tableMinWidth }}>
             <colgroup>
+              <col style={{ width: ACTIONS_COL_WIDTH }} />
               {visibleColumns.map((c) => (
                 <col key={c.key} style={{ width: overflowCols ? colMinWidth(c) : c.width }} />
               ))}
-              <col style={{ width: ACTIONS_COL_WIDTH }} />
             </colgroup>
             <thead>
               <tr>
+                <th className={styles.colGear}>
+                  <button
+                    ref={gearRef}
+                    type="button"
+                    className={styles.gearBtn}
+                    title="Настроить колонки"
+                    aria-label="Настроить колонки"
+                    aria-expanded={colsOpen}
+                    onClick={openCols}
+                  >
+                    <Icon name="settings" size={14} />
+                  </button>
+                </th>
                 {visibleColumns.map((c, i) => {
                   // Первая колонка резервирует место под чекбокс-по-наведению.
                   const hostCls = selectable && i === 0 ? styles.colSelectHost : undefined
@@ -504,19 +517,6 @@ export function ListPage<T>({
                     </th>
                   )
                 })}
-                <th className={styles.colGear}>
-                  <button
-                    ref={gearRef}
-                    type="button"
-                    className={styles.gearBtn}
-                    title="Настроить колонки"
-                    aria-label="Настроить колонки"
-                    aria-expanded={colsOpen}
-                    onClick={openCols}
-                  >
-                    <Icon name="settings" size={14} />
-                  </button>
-                </th>
               </tr>
             </thead>
             <tbody>
@@ -533,6 +533,7 @@ export function ListPage<T>({
                       data-selected={selectable ? String(selected.has(id)) : undefined}
                       onClick={onRowClick ? () => onRowClick(row) : undefined}
                     >
+                      <td className={styles.colGear} />
                       {visibleColumns.map((c, i) => {
                         // В первой ячейке — чекбокс выбора (виден при наведении/выборе),
                         // отдельной колонки чекбоксов нет.
@@ -561,7 +562,6 @@ export function ListPage<T>({
                           </td>
                         )
                       })}
-                      <td className={styles.colGear} />
                     </tr>
                   )
                 })
