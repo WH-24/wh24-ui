@@ -129,6 +129,11 @@
   border: 1px solid var(--border-default);
   border-radius: var(--radius-lg);
   overflow: hidden;
+  /* Набор колонок настраивается пользователем (доп-поля модулей), поэтому
+     таблица может стать шире контейнера. При table-layout:fixed и процентных
+     ширинах штатных колонок лишние иначе обрезаются намертво — доскроллить до
+     них нельзя. overflow-y остаётся hidden ради скругления углов. */
+  overflow-x: auto;
   box-shadow: var(--shadow-sm);
 }
 table.tbl {
