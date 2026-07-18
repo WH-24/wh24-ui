@@ -29,6 +29,23 @@ export interface ListColumn<T> {
    * решение по колонке не переигрывается (см. `known` в localStorage).
    */
   defaultHidden?: boolean
+  /**
+   * Минимальная ширина в px. Из суммы минимумов видимых колонок считается
+   * min-width таблицы: пока колонок мало — работает `width` (проценты), когда
+   * перестают помещаться — таблица растёт и появляется горизонтальная
+   * прокрутка, вместо того чтобы сплющивать колонки в нечитаемые полоски.
+   */
+  minWidth?: number
+}
+
+/** Минимум на колонку, если не задан явно. */
+const DEFAULT_COL_MIN_WIDTH = 150
+/** Служебная колонка справа (шестерёнка настройки). */
+const ACTIONS_COL_WIDTH = 44
+
+/** Минимальная ширина колонки в px: явная, либо width в px, либо дефолт. */
+function colMinWidth<T>(c: ListColumn<T>): number {
+  return c.minWidth ?? (typeof c.width === 'number' ? c.width : DEFAULT_COL_MIN_WIDTH)
 }
 
 /** Сохранённая настройка колонок. */
@@ -172,6 +189,35 @@ export function ListPage<T>({
     () => columns.filter((c) => !hiddenCols.has(c.key)),
     [columns, hiddenCols],
   )
+
+  // Пока сумма минимумов меньше контейнера — таблица занимает 100% и раскладка
+  // прежняя (проценты в width). Как только колонок становится много, таблица
+  // растёт до этой ширины, и .tableWrap прокручивается по горизонтали.
+  const tableMinWidth = useMemo(
+    () => visibleColumns.reduce((sum, c) => sum + colMinWidth(c), ACTIONS_COL_WIDTH),
+    [visibleColumns],
+  )
+
+  // Ширина области таблицы — чтобы понять, помещаются ли колонки.
+  const wrapRef = useRef<HTMLDivElement>(null)
+  const [wrapWidth, setWrapWidth] = useState(0)
+  useEffect(() => {
+    const el = wrapRef.current
+    if (!el || typeof ResizeObserver === 'undefined') return
+    setWrapWidth(el.clientWidth)
+    const ro = new ResizeObserver((entries) => {
+      const w = entries[0]?.contentRect.width
+      if (w != null) setWrapWidth(w)
+    })
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [viewMode])
+
+  // Не помещаемся: проценты в width рассчитаны на несколько колонок и в сумме
+  // дают сильно больше 100% — при table-layout:fixed они съедают всю ширину, а
+  // колонки без явной width схлопываются в ноль. В этом режиме раздаём каждой
+  // колонке её минимум в px, а таблица уезжает в горизонтальную прокрутку.
+  const overflowCols = wrapWidth > 0 && tableMinWidth > wrapWidth
 
   // Пишем и hidden, и known (все текущие колонки): иначе колонка, добавленная
   // позже, не отличалась бы от «пользователь её включил».
@@ -370,13 +416,13 @@ export function ListPage<T>({
       </div>
 
       {viewMode === 'list' && (
-        <div className={styles.tableWrap}>
-          <table className={styles.tbl}>
+        <div className={styles.tableWrap} ref={wrapRef}>
+          <table className={styles.tbl} style={{ minWidth: tableMinWidth }}>
             <colgroup>
               {visibleColumns.map((c) => (
-                <col key={c.key} style={{ width: c.width }} />
+                <col key={c.key} style={{ width: overflowCols ? colMinWidth(c) : c.width }} />
               ))}
-              <col style={{ width: 44 }} />
+              <col style={{ width: ACTIONS_COL_WIDTH }} />
             </colgroup>
             <thead>
               <tr>
