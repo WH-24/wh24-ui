@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useMemo, useState, type ReactNode } from 'react'
+import { Fragment, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 
 import { Icon, type IconName } from './Icon.js'
 import { FilterBar } from './filter/FilterBar.js'
@@ -107,6 +107,50 @@ export function ListPage<T>({
   const [viewMode, setViewMode] = useState<'list' | 'cards'>('list')
   const [page, setPage] = useState(1)
 
+  // ── Настройка колонок (шестерёнка в конце шапки) ──────────────────────────
+  // Скрытые колонки запоминаются per-user в localStorage по scope фильтра.
+  const colsKey = `wh24:list-cols:${filterConfig.scope}`
+  const [hiddenCols, setHiddenCols] = useState<Set<string>>(() => {
+    try {
+      const raw = localStorage.getItem(colsKey)
+      return new Set(raw ? (JSON.parse(raw) as string[]) : [])
+    } catch {
+      return new Set()
+    }
+  })
+  const [colsOpen, setColsOpen] = useState(false)
+  const [colsPos, setColsPos] = useState<{ top: number; right: number } | null>(null)
+  const gearRef = useRef<HTMLButtonElement>(null)
+
+  // Переключать можно только именованные колонки (у служебных, напр. аватара,
+  // label пустой — они всегда видимы).
+  const toggleableCols = useMemo(() => columns.filter((c) => c.label.trim() !== ''), [columns])
+  const visibleColumns = useMemo(
+    () => columns.filter((c) => !hiddenCols.has(c.key)),
+    [columns, hiddenCols],
+  )
+  const visibleToggleableCount = toggleableCols.filter((c) => !hiddenCols.has(c.key)).length
+
+  const toggleCol = (key: string) =>
+    setHiddenCols((prev) => {
+      const next = new Set(prev)
+      if (next.has(key)) next.delete(key)
+      else next.add(key)
+      try {
+        localStorage.setItem(colsKey, JSON.stringify([...next]))
+      } catch {
+        /* приватный режим — настройка не сохранится, но UI работает */
+      }
+      return next
+    })
+
+  const openCols = () => {
+    const r = gearRef.current?.getBoundingClientRect()
+    // position:fixed — панель не режется overflow-прокруткой таблицы.
+    if (r) setColsPos({ top: r.bottom + 4, right: Math.max(8, window.innerWidth - r.right) })
+    setColsOpen((v) => !v)
+  }
+
   const colByKey = useMemo(() => new Map(columns.map((c) => [c.key, c])), [columns])
 
   // Любое изменение фильтра/поиска возвращает на первую страницу.
@@ -155,7 +199,8 @@ export function ListPage<T>({
     [filtered, selected, getId],
   )
 
-  const colSpan = columns.length + (selectable ? 1 : 0)
+  // +1 — служебная колонка с шестерёнкой в конце шапки.
+  const colSpan = visibleColumns.length + 1 + (selectable ? 1 : 0)
 
   const empty = (
     <div className={styles.empty}>
@@ -228,13 +273,14 @@ export function ListPage<T>({
         <div className={styles.tableWrap}>
           <table className={styles.tbl}>
             <colgroup>
-              {columns.map((c) => (
+              {visibleColumns.map((c) => (
                 <col key={c.key} style={{ width: c.width }} />
               ))}
+              <col style={{ width: 44 }} />
             </colgroup>
             <thead>
               <tr>
-                {columns.map((c, i) => {
+                {visibleColumns.map((c, i) => {
                   // Первая колонка резервирует место под чекбокс-по-наведению.
                   const hostCls = selectable && i === 0 ? styles.colSelectHost : undefined
                   return c.sortValue ? (
@@ -256,6 +302,19 @@ export function ListPage<T>({
                     </th>
                   )
                 })}
+                <th className={styles.colGear}>
+                  <button
+                    ref={gearRef}
+                    type="button"
+                    className={styles.gearBtn}
+                    title="Настроить колонки"
+                    aria-label="Настроить колонки"
+                    aria-expanded={colsOpen}
+                    onClick={openCols}
+                  >
+                    <Icon name="settings" size={14} />
+                  </button>
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -272,7 +331,7 @@ export function ListPage<T>({
                       data-selected={selectable ? String(selected.has(id)) : undefined}
                       onClick={onRowClick ? () => onRowClick(row) : undefined}
                     >
-                      {columns.map((c, i) => {
+                      {visibleColumns.map((c, i) => {
                         // В первой ячейке — чекбокс выбора (виден при наведении/выборе),
                         // отдельной колонки чекбоксов нет.
                         const host = selectable && i === 0
@@ -300,6 +359,7 @@ export function ListPage<T>({
                           </td>
                         )
                       })}
+                      <td className={styles.colGear} />
                     </tr>
                   )
                 })
@@ -307,6 +367,36 @@ export function ListPage<T>({
             </tbody>
           </table>
         </div>
+      )}
+
+      {colsOpen && colsPos && (
+        <>
+          <div className={styles.colsBackdrop} onClick={() => setColsOpen(false)} />
+          <div
+            className={styles.colsMenu}
+            style={{ position: 'fixed', top: colsPos.top, right: colsPos.right }}
+            role="dialog"
+            aria-label="Настройка колонок"
+          >
+            <div className={styles.colsMenuTitle}>Колонки</div>
+            {toggleableCols.map((c) => {
+              const on = !hiddenCols.has(c.key)
+              // Последнюю видимую колонку скрыть нельзя — иначе пустая таблица.
+              const lockLast = on && visibleToggleableCount === 1
+              return (
+                <label key={c.key} className={styles.colsMenuItem}>
+                  <input
+                    type="checkbox"
+                    checked={on}
+                    disabled={lockLast}
+                    onChange={() => toggleCol(c.key)}
+                  />
+                  <span>{c.label}</span>
+                </label>
+              )
+            })}
+          </div>
+        </>
       )}
 
       {viewMode === 'cards' &&

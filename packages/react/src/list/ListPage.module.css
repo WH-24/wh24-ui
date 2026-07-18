@@ -312,3 +312,72 @@ table.tbl {
   background: var(--bg-hover);
   color: var(--fg-primary);
 }
+
+/* ── Настройка колонок: служебная колонка-шестерёнка в конце шапки + панель ── */
+.colGear {
+  width: 44px;
+  text-align: center;
+  padding-left: 0;
+  padding-right: 8px;
+}
+.gearBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-sm, 6px);
+  background: transparent;
+  color: var(--fg-tertiary);
+  cursor: pointer;
+  transition:
+    background 0.12s,
+    color 0.12s;
+}
+.gearBtn:hover,
+.gearBtn[aria-expanded='true'] {
+  background: var(--bg-hover);
+  color: var(--fg-primary);
+}
+.colsBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 900;
+}
+.colsMenu {
+  z-index: 901;
+  min-width: 200px;
+  max-height: 320px;
+  overflow: auto;
+  padding: 6px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md, 8px);
+  box-shadow: var(--shadow-lg);
+}
+.colsMenuTitle {
+  padding: 4px 8px 6px;
+  color: var(--fg-tertiary);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.colsMenuItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: var(--radius-sm, 6px);
+  font-size: 13px;
+  color: var(--fg-primary);
+  cursor: pointer;
+}
+.colsMenuItem:hover {
+  background: var(--bg-hover);
+}
+.colsMenuItem input:disabled {
+  cursor: not-allowed;
+}
