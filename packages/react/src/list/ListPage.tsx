@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 
 import { Icon, type IconName } from './Icon.js'
 import { FilterBar } from './filter/FilterBar.js'
@@ -20,6 +20,39 @@ export interface ListColumn<T> {
   render: (row: T) => ReactNode
   /** Значение для сортировки. Есть → колонка сортируемая. */
   sortValue?: (row: T) => string
+  /**
+   * Колонка есть в списке настройки, но по умолчанию выключена. Нужно, когда
+   * колонок много (все поля сущности + пользовательские доп-поля): показывать
+   * их все сразу — сломать таблицу.
+   *
+   * Применяется только к НОВЫМ для пользователя колонкам: однажды принятое им
+   * решение по колонке не переигрывается (см. `known` в localStorage).
+   */
+  defaultHidden?: boolean
+}
+
+/** Сохранённая настройка колонок. */
+interface ColsPrefs {
+  /** Выключенные пользователем (или скрытые по умолчанию) колонки. */
+  hidden: string[]
+  /**
+   * Колонки, которые пользователь уже видел в меню. Без этого списка колонка,
+   * добавленная позже (напр. новое доп-поле), не смогла бы прийти скрытой:
+   * её просто нет в hidden — и она бы вылезла в таблицу у всех.
+   */
+  known: string[]
+}
+
+// Старый формат — просто массив скрытых ключей.
+function parseColsPrefs(raw: string | null): ColsPrefs {
+  if (!raw) return { hidden: [], known: [] }
+  try {
+    const v = JSON.parse(raw) as string[] | ColsPrefs
+    if (Array.isArray(v)) return { hidden: v, known: v }
+    return { hidden: v.hidden ?? [], known: v.known ?? [] }
+  } catch {
+    return { hidden: [], known: [] }
+  }
 }
 
 interface SortState {
@@ -111,12 +144,19 @@ export function ListPage<T>({
   // Скрытые колонки запоминаются per-user в localStorage по scope фильтра.
   const colsKey = `wh24:list-cols:${filterConfig.scope}`
   const [hiddenCols, setHiddenCols] = useState<Set<string>>(() => {
+    let prefs: ColsPrefs = { hidden: [], known: [] }
     try {
-      const raw = localStorage.getItem(colsKey)
-      return new Set(raw ? (JSON.parse(raw) as string[]) : [])
+      prefs = parseColsPrefs(localStorage.getItem(colsKey))
     } catch {
-      return new Set()
+      /* приватный режим — настройка не сохранится, но UI работает */
     }
+    const hidden = new Set(prefs.hidden)
+    // Новая для пользователя колонка с defaultHidden приходит выключенной.
+    const known = new Set(prefs.known)
+    for (const c of columns) {
+      if (c.defaultHidden && !known.has(c.key)) hidden.add(c.key)
+    }
+    return hidden
   })
   const [colsOpen, setColsOpen] = useState(false)
   const [colsPos, setColsPos] = useState<{ top: number; right: number } | null>(null)
@@ -131,16 +171,32 @@ export function ListPage<T>({
   )
   const visibleToggleableCount = toggleableCols.filter((c) => !hiddenCols.has(c.key)).length
 
+  // Пишем и hidden, и known (все текущие колонки): иначе колонка, добавленная
+  // позже, не отличалась бы от «пользователь её включил».
+  const persistCols = useCallback(
+    (hidden: Set<string>) => {
+      try {
+        const prefs: ColsPrefs = { hidden: [...hidden], known: columns.map((c) => c.key) }
+        localStorage.setItem(colsKey, JSON.stringify(prefs))
+      } catch {
+        /* приватный режим — настройка не сохранится, но UI работает */
+      }
+    },
+    [colsKey, columns],
+  )
+
+  // Запоминаем показанный пользователю набор колонок, даже если он ничего не
+  // трогал: иначе новое доп-поле каждый раз считалось бы «новым».
+  useEffect(() => {
+    persistCols(hiddenCols)
+  }, [persistCols, hiddenCols])
+
   const toggleCol = (key: string) =>
     setHiddenCols((prev) => {
       const next = new Set(prev)
       if (next.has(key)) next.delete(key)
       else next.add(key)
-      try {
-        localStorage.setItem(colsKey, JSON.stringify([...next]))
-      } catch {
-        /* приватный режим — настройка не сохранится, но UI работает */
-      }
+      persistCols(next)
       return next
     })
 
