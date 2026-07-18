@@ -159,8 +159,11 @@ export function ListPage<T>({
     return hidden
   })
   const [colsOpen, setColsOpen] = useState(false)
-  const [colsPos, setColsPos] = useState<{ top: number; right: number } | null>(null)
+  // Черновик: галочки в окне применяются только по кнопке «Применить».
+  const [draftHidden, setDraftHidden] = useState<Set<string>>(new Set())
+  const [colsQuery, setColsQuery] = useState('')
   const gearRef = useRef<HTMLButtonElement>(null)
+  const selectAllRef = useRef<HTMLInputElement>(null)
 
   // Переключать можно только именованные колонки (у служебных, напр. аватара,
   // label пустой — они всегда видимы).
@@ -169,7 +172,6 @@ export function ListPage<T>({
     () => columns.filter((c) => !hiddenCols.has(c.key)),
     [columns, hiddenCols],
   )
-  const visibleToggleableCount = toggleableCols.filter((c) => !hiddenCols.has(c.key)).length
 
   // Пишем и hidden, и known (все текущие колонки): иначе колонка, добавленная
   // позже, не отличалась бы от «пользователь её включил».
@@ -191,21 +193,63 @@ export function ListPage<T>({
     persistCols(hiddenCols)
   }, [persistCols, hiddenCols])
 
-  const toggleCol = (key: string) =>
-    setHiddenCols((prev) => {
+  const colsTitle = `Настройка списка «${title}»`
+
+  const openCols = () => {
+    setDraftHidden(new Set(hiddenCols))
+    setColsQuery('')
+    setColsOpen(true)
+  }
+  const closeCols = () => setColsOpen(false)
+
+  // Поиск по названию поля — при полусотне колонок листать глазами уже тяжело.
+  const shownCols = useMemo(() => {
+    const q = colsQuery.trim().toLowerCase()
+    return q ? toggleableCols.filter((c) => c.label.toLowerCase().includes(q)) : toggleableCols
+  }, [toggleableCols, colsQuery])
+
+  const draftVisibleCount = toggleableCols.filter((c) => !draftHidden.has(c.key)).length
+
+  const toggleDraft = (key: string) =>
+    setDraftHidden((prev) => {
       const next = new Set(prev)
       if (next.has(key)) next.delete(key)
       else next.add(key)
-      persistCols(next)
       return next
     })
 
-  const openCols = () => {
-    const r = gearRef.current?.getBoundingClientRect()
-    // position:fixed — панель не режется overflow-прокруткой таблицы.
-    if (r) setColsPos({ top: r.bottom + 4, right: Math.max(8, window.innerWidth - r.right) })
-    setColsOpen((v) => !v)
+  // «Выбрать все» действует на то, что сейчас в списке (с учётом поиска).
+  const toggleAllDraft = () => {
+    const allOn = draftVisibleCount === toggleableCols.length
+    setDraftHidden((prev) => {
+      const next = new Set(prev)
+      if (allOn) {
+        // Снимаем всё, кроме первой — пустая таблица бессмысленна.
+        toggleableCols.forEach((c, i) => (i === 0 ? next.delete(c.key) : next.add(c.key)))
+      } else {
+        toggleableCols.forEach((c) => next.delete(c.key))
+      }
+      return next
+    })
   }
+
+  // «По умолчанию» — вернуть набор, заданный модулем (defaultHidden).
+  const resetCols = () =>
+    setDraftHidden(new Set(columns.filter((c) => c.defaultHidden).map((c) => c.key)))
+
+  const applyCols = () => {
+    setHiddenCols(new Set(draftHidden))
+    persistCols(draftHidden)
+    setColsOpen(false)
+  }
+
+  // Промежуточное состояние «выбрать все», когда включена только часть.
+  useEffect(() => {
+    if (selectAllRef.current) {
+      selectAllRef.current.indeterminate =
+        draftVisibleCount > 0 && draftVisibleCount < toggleableCols.length
+    }
+  }, [draftVisibleCount, toggleableCols.length, colsOpen])
 
   const colByKey = useMemo(() => new Map(columns.map((c) => [c.key, c])), [columns])
 
@@ -425,32 +469,84 @@ export function ListPage<T>({
         </div>
       )}
 
-      {colsOpen && colsPos && (
+      {colsOpen && (
         <>
-          <div className={styles.colsBackdrop} onClick={() => setColsOpen(false)} />
-          <div
-            className={styles.colsMenu}
-            style={{ position: 'fixed', top: colsPos.top, right: colsPos.right }}
-            role="dialog"
-            aria-label="Настройка колонок"
-          >
-            <div className={styles.colsMenuTitle}>Колонки</div>
-            {toggleableCols.map((c) => {
-              const on = !hiddenCols.has(c.key)
-              // Последнюю видимую колонку скрыть нельзя — иначе пустая таблица.
-              const lockLast = on && visibleToggleableCount === 1
-              return (
-                <label key={c.key} className={styles.colsMenuItem}>
-                  <input
-                    type="checkbox"
-                    checked={on}
-                    disabled={lockLast}
-                    onChange={() => toggleCol(c.key)}
-                  />
-                  <span>{c.label}</span>
-                </label>
-              )
-            })}
+          <div className={styles.colsBackdrop} onClick={closeCols} />
+          <div className={styles.colsModal} role="dialog" aria-modal="true" aria-label={colsTitle}>
+            <div className={styles.colsModalHead}>
+              <div className={styles.colsModalTitle}>{colsTitle}</div>
+              <button
+                type="button"
+                className={styles.colsModalClose}
+                onClick={closeCols}
+                aria-label="Закрыть"
+              >
+                <Icon name="close" size={16} />
+              </button>
+            </div>
+
+            <div className={styles.colsSearchRow}>
+              <input
+                className={styles.colsSearch}
+                value={colsQuery}
+                onChange={(e) => setColsQuery(e.target.value)}
+                placeholder="Поиск по полям"
+                autoFocus
+              />
+            </div>
+
+            <div className={styles.colsModalBody}>
+              {shownCols.length === 0 ? (
+                <div className={styles.colsNothing}>Поля не найдены</div>
+              ) : (
+                <div className={styles.colsGrid}>
+                  {shownCols.map((c) => {
+                    const on = !draftHidden.has(c.key)
+                    // Последнюю видимую колонку выключить нельзя — иначе таблица пустая.
+                    const lockLast = on && draftVisibleCount === 1
+                    return (
+                      <label
+                        key={c.key}
+                        className={styles.colsGridItem}
+                        data-on={on || undefined}
+                        title={c.label}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={on}
+                          disabled={lockLast}
+                          onChange={() => toggleDraft(c.key)}
+                        />
+                        <span>{c.label}</span>
+                      </label>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+
+            <div className={styles.colsModalFoot}>
+              <label className={styles.colsSelectAll}>
+                <input
+                  type="checkbox"
+                  ref={selectAllRef}
+                  checked={draftVisibleCount === toggleableCols.length}
+                  onChange={toggleAllDraft}
+                />
+                <span>выбрать все</span>
+              </label>
+              <div className={styles.colsFootActions}>
+                <button type="button" className={`${styles.btn} ${styles.btnPrimary}`} onClick={applyCols}>
+                  Применить
+                </button>
+                <button type="button" className={`${styles.btn} ${styles.btnGhost}`} onClick={closeCols}>
+                  Отменить
+                </button>
+              </div>
+              <button type="button" className={styles.colsReset} onClick={resetCols}>
+                по умолчанию
+              </button>
+            </div>
           </div>
         </>
       )}
