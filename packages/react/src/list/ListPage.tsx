@@ -58,6 +58,21 @@ interface ColsPrefs {
    * её просто нет в hidden — и она бы вылезла в таблицу у всех.
    */
   known: string[]
+  /**
+   * Пользователь сам настроил колонки (нажал «Применить»). Отличать это от
+   * «мы просто запомнили состав колонок при заходе» обязательно: иначе общая
+   * настройка «для всех» переставала бы действовать после первого же визита.
+   */
+  own?: boolean
+}
+
+/** Настроил ли пользователь колонки сам (а не просто открывал список). */
+function hasOwnStoredCols(key: string): boolean {
+  try {
+    return parseColsPrefs(localStorage.getItem(key)).own === true
+  } catch {
+    return false
+  }
 }
 
 // Старый формат — просто массив скрытых ключей.
@@ -65,8 +80,9 @@ function parseColsPrefs(raw: string | null): ColsPrefs {
   if (!raw) return { hidden: [], known: [] }
   try {
     const v = JSON.parse(raw) as string[] | ColsPrefs
-    if (Array.isArray(v)) return { hidden: v, known: v }
-    return { hidden: v.hidden ?? [], known: v.known ?? [] }
+    // Старый формат (просто массив) — это была ручная настройка пользователя.
+    if (Array.isArray(v)) return { hidden: v, known: v, own: true }
+    return { hidden: v.hidden ?? [], known: v.known ?? [], own: v.own === true }
   } catch {
     return { hidden: [], known: [] }
   }
@@ -179,6 +195,10 @@ export function ListPage<T>({
   // Черновик: галочки в окне применяются только по кнопке «Применить».
   const [draftHidden, setDraftHidden] = useState<Set<string>>(new Set())
   const [colsQuery, setColsQuery] = useState('')
+  // «Для всех» — сохранить набор колонок как общий (доступно админу модуля).
+  const [colsForAll, setColsForAll] = useState(false)
+  // У пользователя уже есть своя настройка → общая на него не действует.
+  const hasOwnCols = useRef(hasOwnStoredCols(colsKey))
   const gearRef = useRef<HTMLButtonElement>(null)
   const selectAllRef = useRef<HTMLInputElement>(null)
 
@@ -222,9 +242,9 @@ export function ListPage<T>({
   // Пишем и hidden, и known (все текущие колонки): иначе колонка, добавленная
   // позже, не отличалась бы от «пользователь её включил».
   const persistCols = useCallback(
-    (hidden: Set<string>) => {
+    (hidden: Set<string>, own = hasOwnCols.current) => {
       try {
-        const prefs: ColsPrefs = { hidden: [...hidden], known: columns.map((c) => c.key) }
+        const prefs: ColsPrefs = { hidden: [...hidden], known: columns.map((c) => c.key), own }
         localStorage.setItem(colsKey, JSON.stringify(prefs))
       } catch {
         /* приватный режим — настройка не сохранится, но UI работает */
@@ -232,6 +252,25 @@ export function ListPage<T>({
     },
     [colsKey, columns],
   )
+
+  // Общий набор колонок («для всех»), сохранённый админом модуля. Действует
+  // только на тех, у кого нет своей настройки.
+  useEffect(() => {
+    if (!filterSettings || hasOwnCols.current) return
+    let alive = true
+    void filterSettings
+      .load(filterConfig.scope)
+      .then((s) => {
+        if (!alive || !s.columns) return
+        setHiddenCols(new Set(s.columns))
+      })
+      .catch(() => {
+        /* нет общей настройки — остаются дефолты колонок */
+      })
+    return () => {
+      alive = false
+    }
+  }, [filterSettings, filterConfig.scope])
 
   // Запоминаем показанный пользователю набор колонок, даже если он ничего не
   // трогал: иначе новое доп-поле каждый раз считалось бы «новым».
@@ -244,6 +283,7 @@ export function ListPage<T>({
   const openCols = () => {
     setDraftHidden(new Set(hiddenCols))
     setColsQuery('')
+    setColsForAll(false)
     setColsOpen(true)
   }
   const closeCols = () => setColsOpen(false)
@@ -285,7 +325,23 @@ export function ListPage<T>({
 
   const applyCols = () => {
     setHiddenCols(new Set(draftHidden))
-    persistCols(draftHidden)
+    // Явный выбор пользователя: с этого момента общая настройка его не трогает.
+    hasOwnCols.current = true
+    persistCols(draftHidden, true)
+
+    // «Для всех» — тот же набор становится общим. Пресеты и поля фильтра
+    // перечитываем и кладём обратно как есть, чтобы не затереть их.
+    if (colsForAll && filterSettings) {
+      const scope = filterConfig.scope
+      void filterSettings
+        .load(scope)
+        .then((cur) =>
+          filterSettings.save(scope, { ...cur, columns: [...draftHidden] }),
+        )
+        .catch(() => {
+          /* сохранение общей настройки не должно ломать личную */
+        })
+    }
     setColsOpen(false)
   }
 
@@ -581,6 +637,19 @@ export function ListPage<T>({
                 />
                 <span>выбрать все</span>
               </label>
+              {canEditFields && filterSettings && (
+                <label
+                  className={styles.colsSelectAll}
+                  title="Набор колонок станет общим — его увидят все, кто не настраивал колонки под себя"
+                >
+                  <input
+                    type="checkbox"
+                    checked={colsForAll}
+                    onChange={(e) => setColsForAll(e.target.checked)}
+                  />
+                  <span>для всех</span>
+                </label>
+              )}
               <div className={styles.colsFootActions}>
                 <button type="button" className={`${styles.btn} ${styles.btnPrimary}`} onClick={applyCols}>
                   Применить
