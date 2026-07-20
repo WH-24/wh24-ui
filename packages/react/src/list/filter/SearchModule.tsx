@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 
 import { Icon } from '../Icon.js'
 import { FieldEditor } from './FieldEditor.js'
@@ -83,6 +83,43 @@ export function SearchModule<T>({
   const dragKey = useRef<string | null>(null)
   const addGridRef = useRef<HTMLDivElement>(null)
   const addBtnRef = useRef<HTMLButtonElement>(null)
+  const popRef = useRef<HTMLDivElement>(null)
+
+  // Поповер шире фильтр-бара (760px), и на узком окне он вылезал за правый край:
+  // left: 0 отсчитывается от бара, а бар смещён вправо сайдбаром — offset в CSS
+  // не известен, max-width во vw этого не лечит. Держим поповер в границах
+  // контейнера бара (не окна: за краем окна начинается сайдбар, под который
+  // поповер уезжал бы точно так же) — сначала сужаем, потом сдвигаем влево.
+  useLayoutEffect(() => {
+    const el = popRef.current
+    if (!el) return
+    const GAP = 12
+    const MIN_WIDTH = 560 // уже — ломается сетка «пресеты + поля»
+    const fit = () => {
+      // Границы — первый предок бара, который шире его самого (у потребителя это
+      // тулбар списка). offsetParent тут не годится: позиционированных предков в
+      // разметке может не быть вовсе, и он вернёт <body> со шириной окна.
+      const bar = el.parentElement
+      const barWidth = bar?.getBoundingClientRect().width ?? 0
+      let host = bar?.parentElement ?? null
+      for (let i = 0; host && i < 6; i++) {
+        if (host.getBoundingClientRect().width > barWidth) break
+        host = host.parentElement
+      }
+      const b = host?.getBoundingClientRect()
+      const left = b && b.width > 0 ? b.left : 0
+      const right = b && b.width > 0 ? b.right : window.innerWidth
+
+      el.style.left = '0px'
+      el.style.maxWidth = `${Math.max(MIN_WIDTH, right - left - GAP * 2)}px`
+      const r = el.getBoundingClientRect()
+      const over = r.right - (right - GAP)
+      if (over > 0) el.style.left = `${-Math.min(over, Math.max(r.left - (left + GAP), 0))}px`
+    }
+    fit()
+    window.addEventListener('resize', fit)
+    return () => window.removeEventListener('resize', fit)
+  }, [])
 
   // Закрытие сетки «Добавить поле» по клику вне неё. Capture-фаза — потому что
   // .filterPop делает stopPropagation на mousedown (обычный листенер не сработал бы).
@@ -271,7 +308,7 @@ export function SearchModule<T>({
   const canSave = count > 0 || fieldsCustomized
 
   return (
-    <div className={styles.filterPop} onMouseDown={(e) => e.stopPropagation()}>
+    <div ref={popRef} className={styles.filterPop} onMouseDown={(e) => e.stopPropagation()}>
       {/* Левая колонка — пресеты. */}
       <div className={styles.filterPresets}>
         <div className={styles.filterPresetsTitle}>
@@ -496,6 +533,9 @@ export function SearchModule<T>({
                   type="button"
                   className={styles.filterAddgridItem}
                   onClick={() => toggleField(f.key)}
+                  // На узком окне колонка сжимается и длинное название режется
+                  // многоточием — подсказка возвращает его целиком.
+                  title={f.label}
                 >
                   <span className={styles.filterMsCheck} data-on={String(on)}>
                     {on && <Icon name="check" size={12} />}
