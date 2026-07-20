@@ -77,6 +77,11 @@ export interface FilterBarConfig<T> {
 export interface FilterSettings {
   presets: FilterPreset[]
   fields: string[]
+  /**
+   * Ключи колонок, скрытых «для всех». Применяются пользователю, у которого нет
+   * своей настройки колонок. Сохраняется админом модуля из окна настройки.
+   */
+  columns?: string[]
   /** Id пресета по умолчанию (pin). Пусто = нет. */
   defaultPresetId: string
 }

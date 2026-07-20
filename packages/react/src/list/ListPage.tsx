@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 
 import { Icon, type IconName } from './Icon.js'
 import { FilterBar } from './filter/FilterBar.js'
@@ -20,6 +20,72 @@ export interface ListColumn<T> {
   render: (row: T) => ReactNode
   /** Значение для сортировки. Есть → колонка сортируемая. */
   sortValue?: (row: T) => string
+  /**
+   * Колонка есть в списке настройки, но по умолчанию выключена. Нужно, когда
+   * колонок много (все поля сущности + пользовательские доп-поля): показывать
+   * их все сразу — сломать таблицу.
+   *
+   * Применяется только к НОВЫМ для пользователя колонкам: однажды принятое им
+   * решение по колонке не переигрывается (см. `known` в localStorage).
+   */
+  defaultHidden?: boolean
+  /**
+   * Минимальная ширина в px. Из суммы минимумов видимых колонок считается
+   * min-width таблицы: пока колонок мало — работает `width` (проценты), когда
+   * перестают помещаться — таблица растёт и появляется горизонтальная
+   * прокрутка, вместо того чтобы сплющивать колонки в нечитаемые полоски.
+   */
+  minWidth?: number
+}
+
+/** Минимум на колонку, если не задан явно. */
+const DEFAULT_COL_MIN_WIDTH = 150
+/** Служебная колонка справа (шестерёнка настройки). */
+const ACTIONS_COL_WIDTH = 44
+
+/** Минимальная ширина колонки в px: явная, либо width в px, либо дефолт. */
+function colMinWidth<T>(c: ListColumn<T>): number {
+  return c.minWidth ?? (typeof c.width === 'number' ? c.width : DEFAULT_COL_MIN_WIDTH)
+}
+
+/** Сохранённая настройка колонок. */
+interface ColsPrefs {
+  /** Выключенные пользователем (или скрытые по умолчанию) колонки. */
+  hidden: string[]
+  /**
+   * Колонки, которые пользователь уже видел в меню. Без этого списка колонка,
+   * добавленная позже (напр. новое доп-поле), не смогла бы прийти скрытой:
+   * её просто нет в hidden — и она бы вылезла в таблицу у всех.
+   */
+  known: string[]
+  /**
+   * Пользователь сам настроил колонки (нажал «Применить»). Отличать это от
+   * «мы просто запомнили состав колонок при заходе» обязательно: иначе общая
+   * настройка «для всех» переставала бы действовать после первого же визита.
+   */
+  own?: boolean
+}
+
+/** Настроил ли пользователь колонки сам (а не просто открывал список). */
+function hasOwnStoredCols(key: string): boolean {
+  try {
+    return parseColsPrefs(localStorage.getItem(key)).own === true
+  } catch {
+    return false
+  }
+}
+
+// Старый формат — просто массив скрытых ключей.
+function parseColsPrefs(raw: string | null): ColsPrefs {
+  if (!raw) return { hidden: [], known: [] }
+  try {
+    const v = JSON.parse(raw) as string[] | ColsPrefs
+    // Старый формат (просто массив) — это была ручная настройка пользователя.
+    if (Array.isArray(v)) return { hidden: v, known: v, own: true }
+    return { hidden: v.hidden ?? [], known: v.known ?? [], own: v.own === true }
+  } catch {
+    return { hidden: [], known: [] }
+  }
 }
 
 interface SortState {
@@ -111,16 +177,30 @@ export function ListPage<T>({
   // Скрытые колонки запоминаются per-user в localStorage по scope фильтра.
   const colsKey = `wh24:list-cols:${filterConfig.scope}`
   const [hiddenCols, setHiddenCols] = useState<Set<string>>(() => {
+    let prefs: ColsPrefs = { hidden: [], known: [] }
     try {
-      const raw = localStorage.getItem(colsKey)
-      return new Set(raw ? (JSON.parse(raw) as string[]) : [])
+      prefs = parseColsPrefs(localStorage.getItem(colsKey))
     } catch {
-      return new Set()
+      /* приватный режим — настройка не сохранится, но UI работает */
     }
+    const hidden = new Set(prefs.hidden)
+    // Новая для пользователя колонка с defaultHidden приходит выключенной.
+    const known = new Set(prefs.known)
+    for (const c of columns) {
+      if (c.defaultHidden && !known.has(c.key)) hidden.add(c.key)
+    }
+    return hidden
   })
   const [colsOpen, setColsOpen] = useState(false)
-  const [colsPos, setColsPos] = useState<{ top: number; right: number } | null>(null)
+  // Черновик: галочки в окне применяются только по кнопке «Применить».
+  const [draftHidden, setDraftHidden] = useState<Set<string>>(new Set())
+  const [colsQuery, setColsQuery] = useState('')
+  // «Для всех» — сохранить набор колонок как общий (доступно админу модуля).
+  const [colsForAll, setColsForAll] = useState(false)
+  // У пользователя уже есть своя настройка → общая на него не действует.
+  const hasOwnCols = useRef(hasOwnStoredCols(colsKey))
   const gearRef = useRef<HTMLButtonElement>(null)
+  const selectAllRef = useRef<HTMLInputElement>(null)
 
   // Переключать можно только именованные колонки (у служебных, напр. аватара,
   // label пустой — они всегда видимы).
@@ -129,27 +209,149 @@ export function ListPage<T>({
     () => columns.filter((c) => !hiddenCols.has(c.key)),
     [columns, hiddenCols],
   )
-  const visibleToggleableCount = toggleableCols.filter((c) => !hiddenCols.has(c.key)).length
 
-  const toggleCol = (key: string) =>
-    setHiddenCols((prev) => {
-      const next = new Set(prev)
-      if (next.has(key)) next.delete(key)
-      else next.add(key)
+  // Пока сумма минимумов меньше контейнера — таблица занимает 100% и раскладка
+  // прежняя (проценты в width). Как только колонок становится много, таблица
+  // растёт до этой ширины, и .tableWrap прокручивается по горизонтали.
+  const tableMinWidth = useMemo(
+    () => visibleColumns.reduce((sum, c) => sum + colMinWidth(c), ACTIONS_COL_WIDTH),
+    [visibleColumns],
+  )
+
+  // Ширина области таблицы — чтобы понять, помещаются ли колонки.
+  const wrapRef = useRef<HTMLDivElement>(null)
+  const [wrapWidth, setWrapWidth] = useState(0)
+  useEffect(() => {
+    const el = wrapRef.current
+    if (!el || typeof ResizeObserver === 'undefined') return
+    setWrapWidth(el.clientWidth)
+    const ro = new ResizeObserver((entries) => {
+      const w = entries[0]?.contentRect.width
+      if (w != null) setWrapWidth(w)
+    })
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [viewMode])
+
+  // Не помещаемся: проценты в width рассчитаны на несколько колонок и в сумме
+  // дают сильно больше 100% — при table-layout:fixed они съедают всю ширину, а
+  // колонки без явной width схлопываются в ноль. В этом режиме раздаём каждой
+  // колонке её минимум в px, а таблица уезжает в горизонтальную прокрутку.
+  const overflowCols = wrapWidth > 0 && tableMinWidth > wrapWidth
+
+  // Пишем и hidden, и known (все текущие колонки): иначе колонка, добавленная
+  // позже, не отличалась бы от «пользователь её включил».
+  const persistCols = useCallback(
+    (hidden: Set<string>, own = hasOwnCols.current) => {
       try {
-        localStorage.setItem(colsKey, JSON.stringify([...next]))
+        const prefs: ColsPrefs = { hidden: [...hidden], known: columns.map((c) => c.key), own }
+        localStorage.setItem(colsKey, JSON.stringify(prefs))
       } catch {
         /* приватный режим — настройка не сохранится, но UI работает */
       }
+    },
+    [colsKey, columns],
+  )
+
+  // Общий набор колонок («для всех»), сохранённый админом модуля. Действует
+  // только на тех, у кого нет своей настройки.
+  useEffect(() => {
+    if (!filterSettings || hasOwnCols.current) return
+    let alive = true
+    void filterSettings
+      .load(filterConfig.scope)
+      .then((s) => {
+        if (!alive || !s.columns) return
+        setHiddenCols(new Set(s.columns))
+      })
+      .catch(() => {
+        /* нет общей настройки — остаются дефолты колонок */
+      })
+    return () => {
+      alive = false
+    }
+  }, [filterSettings, filterConfig.scope])
+
+  // Запоминаем показанный пользователю набор колонок, даже если он ничего не
+  // трогал: иначе новое доп-поле каждый раз считалось бы «новым».
+  useEffect(() => {
+    persistCols(hiddenCols)
+  }, [persistCols, hiddenCols])
+
+  const colsTitle = `Настройка списка «${title}»`
+
+  const openCols = () => {
+    setDraftHidden(new Set(hiddenCols))
+    setColsQuery('')
+    setColsForAll(false)
+    setColsOpen(true)
+  }
+  const closeCols = () => setColsOpen(false)
+
+  // Поиск по названию поля — при полусотне колонок листать глазами уже тяжело.
+  const shownCols = useMemo(() => {
+    const q = colsQuery.trim().toLowerCase()
+    return q ? toggleableCols.filter((c) => c.label.toLowerCase().includes(q)) : toggleableCols
+  }, [toggleableCols, colsQuery])
+
+  const draftVisibleCount = toggleableCols.filter((c) => !draftHidden.has(c.key)).length
+
+  const toggleDraft = (key: string) =>
+    setDraftHidden((prev) => {
+      const next = new Set(prev)
+      if (next.has(key)) next.delete(key)
+      else next.add(key)
       return next
     })
 
-  const openCols = () => {
-    const r = gearRef.current?.getBoundingClientRect()
-    // position:fixed — панель не режется overflow-прокруткой таблицы.
-    if (r) setColsPos({ top: r.bottom + 4, right: Math.max(8, window.innerWidth - r.right) })
-    setColsOpen((v) => !v)
+  // «Выбрать все» действует на то, что сейчас в списке (с учётом поиска).
+  const toggleAllDraft = () => {
+    const allOn = draftVisibleCount === toggleableCols.length
+    setDraftHidden((prev) => {
+      const next = new Set(prev)
+      if (allOn) {
+        // Снимаем всё, кроме первой — пустая таблица бессмысленна.
+        toggleableCols.forEach((c, i) => (i === 0 ? next.delete(c.key) : next.add(c.key)))
+      } else {
+        toggleableCols.forEach((c) => next.delete(c.key))
+      }
+      return next
+    })
   }
+
+  // «По умолчанию» — вернуть набор, заданный модулем (defaultHidden).
+  const resetCols = () =>
+    setDraftHidden(new Set(columns.filter((c) => c.defaultHidden).map((c) => c.key)))
+
+  const applyCols = () => {
+    setHiddenCols(new Set(draftHidden))
+    // Явный выбор пользователя: с этого момента общая настройка его не трогает.
+    hasOwnCols.current = true
+    persistCols(draftHidden, true)
+
+    // «Для всех» — тот же набор становится общим. Пресеты и поля фильтра
+    // перечитываем и кладём обратно как есть, чтобы не затереть их.
+    if (colsForAll && filterSettings) {
+      const scope = filterConfig.scope
+      void filterSettings
+        .load(scope)
+        .then((cur) =>
+          filterSettings.save(scope, { ...cur, columns: [...draftHidden] }),
+        )
+        .catch(() => {
+          /* сохранение общей настройки не должно ломать личную */
+        })
+    }
+    setColsOpen(false)
+  }
+
+  // Промежуточное состояние «выбрать все», когда включена только часть.
+  useEffect(() => {
+    if (selectAllRef.current) {
+      selectAllRef.current.indeterminate =
+        draftVisibleCount > 0 && draftVisibleCount < toggleableCols.length
+    }
+  }, [draftVisibleCount, toggleableCols.length, colsOpen])
 
   const colByKey = useMemo(() => new Map(columns.map((c) => [c.key, c])), [columns])
 
@@ -270,16 +472,29 @@ export function ListPage<T>({
       </div>
 
       {viewMode === 'list' && (
-        <div className={styles.tableWrap}>
-          <table className={styles.tbl}>
+        <div className={styles.tableWrap} ref={wrapRef}>
+          <table className={styles.tbl} style={{ minWidth: tableMinWidth }}>
             <colgroup>
+              <col style={{ width: ACTIONS_COL_WIDTH }} />
               {visibleColumns.map((c) => (
-                <col key={c.key} style={{ width: c.width }} />
+                <col key={c.key} style={{ width: overflowCols ? colMinWidth(c) : c.width }} />
               ))}
-              <col style={{ width: 44 }} />
             </colgroup>
             <thead>
               <tr>
+                <th className={styles.colGear}>
+                  <button
+                    ref={gearRef}
+                    type="button"
+                    className={styles.gearBtn}
+                    title="Настроить колонки"
+                    aria-label="Настроить колонки"
+                    aria-expanded={colsOpen}
+                    onClick={openCols}
+                  >
+                    <Icon name="settings" size={14} />
+                  </button>
+                </th>
                 {visibleColumns.map((c, i) => {
                   // Первая колонка резервирует место под чекбокс-по-наведению.
                   const hostCls = selectable && i === 0 ? styles.colSelectHost : undefined
@@ -302,19 +517,6 @@ export function ListPage<T>({
                     </th>
                   )
                 })}
-                <th className={styles.colGear}>
-                  <button
-                    ref={gearRef}
-                    type="button"
-                    className={styles.gearBtn}
-                    title="Настроить колонки"
-                    aria-label="Настроить колонки"
-                    aria-expanded={colsOpen}
-                    onClick={openCols}
-                  >
-                    <Icon name="settings" size={14} />
-                  </button>
-                </th>
               </tr>
             </thead>
             <tbody>
@@ -331,6 +533,7 @@ export function ListPage<T>({
                       data-selected={selectable ? String(selected.has(id)) : undefined}
                       onClick={onRowClick ? () => onRowClick(row) : undefined}
                     >
+                      <td className={styles.colGear} />
                       {visibleColumns.map((c, i) => {
                         // В первой ячейке — чекбокс выбора (виден при наведении/выборе),
                         // отдельной колонки чекбоксов нет.
@@ -359,7 +562,6 @@ export function ListPage<T>({
                           </td>
                         )
                       })}
-                      <td className={styles.colGear} />
                     </tr>
                   )
                 })
@@ -369,32 +571,97 @@ export function ListPage<T>({
         </div>
       )}
 
-      {colsOpen && colsPos && (
+      {colsOpen && (
         <>
-          <div className={styles.colsBackdrop} onClick={() => setColsOpen(false)} />
-          <div
-            className={styles.colsMenu}
-            style={{ position: 'fixed', top: colsPos.top, right: colsPos.right }}
-            role="dialog"
-            aria-label="Настройка колонок"
-          >
-            <div className={styles.colsMenuTitle}>Колонки</div>
-            {toggleableCols.map((c) => {
-              const on = !hiddenCols.has(c.key)
-              // Последнюю видимую колонку скрыть нельзя — иначе пустая таблица.
-              const lockLast = on && visibleToggleableCount === 1
-              return (
-                <label key={c.key} className={styles.colsMenuItem}>
+          <div className={styles.colsBackdrop} onClick={closeCols} />
+          <div className={styles.colsModal} role="dialog" aria-modal="true" aria-label={colsTitle}>
+            <div className={styles.colsModalHead}>
+              <div className={styles.colsModalTitle}>{colsTitle}</div>
+              <button
+                type="button"
+                className={styles.colsModalClose}
+                onClick={closeCols}
+                aria-label="Закрыть"
+              >
+                <Icon name="close" size={16} />
+              </button>
+            </div>
+
+            <div className={styles.colsSearchRow}>
+              <input
+                className={styles.colsSearch}
+                value={colsQuery}
+                onChange={(e) => setColsQuery(e.target.value)}
+                placeholder="Поиск по полям"
+                autoFocus
+              />
+            </div>
+
+            <div className={styles.colsModalBody}>
+              {shownCols.length === 0 ? (
+                <div className={styles.colsNothing}>Поля не найдены</div>
+              ) : (
+                <div className={styles.colsGrid}>
+                  {shownCols.map((c) => {
+                    const on = !draftHidden.has(c.key)
+                    // Последнюю видимую колонку выключить нельзя — иначе таблица пустая.
+                    const lockLast = on && draftVisibleCount === 1
+                    return (
+                      <label
+                        key={c.key}
+                        className={styles.colsGridItem}
+                        data-on={on || undefined}
+                        title={c.label}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={on}
+                          disabled={lockLast}
+                          onChange={() => toggleDraft(c.key)}
+                        />
+                        <span>{c.label}</span>
+                      </label>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+
+            <div className={styles.colsModalFoot}>
+              <label className={styles.colsSelectAll}>
+                <input
+                  type="checkbox"
+                  ref={selectAllRef}
+                  checked={draftVisibleCount === toggleableCols.length}
+                  onChange={toggleAllDraft}
+                />
+                <span>выбрать все</span>
+              </label>
+              {canEditFields && filterSettings && (
+                <label
+                  className={styles.colsSelectAll}
+                  title="Набор колонок станет общим — его увидят все, кто не настраивал колонки под себя"
+                >
                   <input
                     type="checkbox"
-                    checked={on}
-                    disabled={lockLast}
-                    onChange={() => toggleCol(c.key)}
+                    checked={colsForAll}
+                    onChange={(e) => setColsForAll(e.target.checked)}
                   />
-                  <span>{c.label}</span>
+                  <span>для всех</span>
                 </label>
-              )
-            })}
+              )}
+              <div className={styles.colsFootActions}>
+                <button type="button" className={`${styles.btn} ${styles.btnPrimary}`} onClick={applyCols}>
+                  Применить
+                </button>
+                <button type="button" className={`${styles.btn} ${styles.btnGhost}`} onClick={closeCols}>
+                  Отменить
+                </button>
+              </div>
+              <button type="button" className={styles.colsReset} onClick={resetCols}>
+                по умолчанию
+              </button>
+            </div>
           </div>
         </>
       )}

@@ -129,6 +129,11 @@
   border: 1px solid var(--border-default);
   border-radius: var(--radius-lg);
   overflow: hidden;
+  /* Набор колонок настраивается пользователем (доп-поля модулей), поэтому
+     таблица может стать шире контейнера. При table-layout:fixed и процентных
+     ширинах штатных колонок лишние иначе обрезаются намертво — доскроллить до
+     них нельзя. overflow-y остаётся hidden ради скругления углов. */
+  overflow-x: auto;
   box-shadow: var(--shadow-sm);
 }
 table.tbl {
@@ -314,11 +319,12 @@ table.tbl {
 }
 
 /* ── Настройка колонок: служебная колонка-шестерёнка в конце шапки + панель ── */
+/* Служебная колонка настройки — первая в таблице. */
 .colGear {
   width: 44px;
   text-align: center;
-  padding-left: 0;
-  padding-right: 8px;
+  padding-left: 8px;
+  padding-right: 0;
 }
 .gearBtn {
   display: inline-flex;
@@ -345,39 +351,167 @@ table.tbl {
   position: fixed;
   inset: 0;
   z-index: 900;
+  background: rgba(0, 0, 0, 0.35);
 }
-.colsMenu {
+
+/* Окно настройки колонок: список полей сущности бывает в несколько десятков,
+   поэтому не выпадашка, а модальное окно с поиском и сеткой. */
+.colsModal {
+  position: fixed;
   z-index: 901;
-  min-width: 200px;
-  max-height: 320px;
-  overflow: auto;
-  padding: 6px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(1100px, calc(100vw - 32px));
+  max-height: min(760px, calc(100vh - 48px));
+  display: flex;
+  flex-direction: column;
   background: var(--bg-surface);
   border: 1px solid var(--border-default);
-  border-radius: var(--radius-md, 8px);
+  border-radius: var(--radius-lg);
   box-shadow: var(--shadow-lg);
 }
-.colsMenuTitle {
-  padding: 4px 8px 6px;
-  color: var(--fg-tertiary);
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+.colsModalHead {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px 12px;
 }
-.colsMenuItem {
+.colsModalTitle {
+  flex: 1;
+  min-width: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--fg-primary);
+}
+.colsModalClose {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--fg-tertiary);
+  cursor: pointer;
+}
+.colsModalClose:hover {
+  background: var(--bg-hover);
+  color: var(--fg-primary);
+}
+.colsSearchRow {
+  padding: 0 20px 12px;
+}
+.colsSearch {
+  width: 100%;
+  height: 36px;
+  padding: 0 12px;
+  font: inherit;
+  font-size: 13px;
+  color: var(--fg-primary);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+}
+.colsSearch:focus {
+  outline: none;
+  border-color: var(--accent-500);
+}
+.colsModalBody {
+  flex: 1;
+  overflow: auto;
+  padding: 4px 20px 12px;
+  border-top: 1px solid var(--border-subtle);
+}
+/* Колоночная раскладка: поля идут сверху вниз, затем в следующий столбец. */
+.colsGrid {
+  columns: 4;
+  column-gap: 8px;
+  padding-top: 12px;
+}
+@media (max-width: 900px) {
+  .colsGrid {
+    columns: 2;
+  }
+}
+@media (max-width: 560px) {
+  .colsGrid {
+    columns: 1;
+  }
+}
+.colsGridItem {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 6px 8px;
-  border-radius: var(--radius-sm, 6px);
+  padding: 7px 10px;
+  margin-bottom: 2px;
+  border-radius: var(--radius-sm);
   font-size: 13px;
   color: var(--fg-primary);
   cursor: pointer;
+  break-inside: avoid;
 }
-.colsMenuItem:hover {
+.colsGridItem:hover {
   background: var(--bg-hover);
 }
-.colsMenuItem input:disabled {
+.colsGridItem[data-on] {
+  background: var(--accent-50);
+}
+.colsGridItem span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.colsGridItem input:disabled {
   cursor: not-allowed;
+}
+.colsNothing {
+  padding: 32px 0;
+  text-align: center;
+  font-size: 13px;
+  color: var(--fg-tertiary);
+}
+.colsModalFoot {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 20px 16px;
+  border-top: 1px solid var(--border-default);
+}
+.colsSelectAll {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--fg-secondary);
+  cursor: pointer;
+}
+.colsFootActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+.colsReset {
+  border: none;
+  background: transparent;
+  font: inherit;
+  font-size: 13px;
+  color: var(--fg-tertiary);
+  cursor: pointer;
+}
+.colsReset:hover {
+  color: var(--fg-secondary);
+}
+
+
+/* Основное действие в модалках списка (Применить). */
+.btnPrimary {
+  background: var(--accent-500);
+  color: #fff;
+  border-color: var(--accent-500);
+}
+.btnPrimary:hover {
+  background: var(--accent-600);
+  border-color: var(--accent-600);
 }
