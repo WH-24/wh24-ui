@@ -134,10 +134,15 @@ export function SearchModule<T>({
     return () => document.removeEventListener('mousedown', onDown, true)
   }, [addOpen])
 
-  const allPresets = useMemo<FilterPreset[]>(
-    () => [...(config.presets ?? []), ...globalPresets, ...userPresets],
-    [config.presets, globalPresets, userPresets],
-  )
+  // Пресет по умолчанию (с булавкой) поднимается в начало: им пользуются чаще
+  // всего, и искать его глазами в общем списке незачем. Порядок остальных не
+  // трогаем — он предсказуем: встроенные, общие, личные.
+  const allPresets = useMemo<FilterPreset[]>(() => {
+    const list = [...(config.presets ?? []), ...globalPresets, ...userPresets]
+    if (!defaultPresetId) return list
+    const pinned = list.filter((p) => p.id === defaultPresetId)
+    return pinned.length ? [...pinned, ...list.filter((p) => p.id !== defaultPresetId)] : list
+  }, [config.presets, globalPresets, userPresets, defaultPresetId])
 
   // Видимый набор полей задаётся списком `fields` (чекбоксы «Добавить поле»).
   const fieldByKey = useMemo(() => {
