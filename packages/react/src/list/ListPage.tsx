@@ -172,6 +172,11 @@ export function ListPage<T>({
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [viewMode, setViewMode] = useState<'list' | 'cards'>('list')
   const [page, setPage] = useState(1)
+  // Карточки не листаются постранично: показываем растущий срез и догружаем
+  // очередную порцию, когда низ грида появляется в зоне видимости. Пагинация
+  // остаётся только у таблицы. Размер порции = pageSize.
+  const [cardsShown, setCardsShown] = useState(pageSize)
+  const cardsSentinelRef = useRef<HTMLDivElement>(null)
 
   // ── Настройка колонок (шестерёнка в конце шапки) ──────────────────────────
   // Скрытые колонки запоминаются per-user в localStorage по scope фильтра.
@@ -380,6 +385,31 @@ export function ListPage<T>({
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize))
   const currentPage = Math.min(page, totalPages)
   const paginated = filtered.slice((currentPage - 1) * pageSize, currentPage * pageSize)
+
+  // Карточки: срез от начала до cardsShown. Меняется состав (фильтр/сортировка/
+  // сами данные) — начинаем показ заново с первой порции.
+  const cards = filtered.slice(0, cardsShown)
+  const hasMoreCards = cardsShown < filtered.length
+  useEffect(() => {
+    setCardsShown(pageSize)
+  }, [filtered, pageSize])
+  // Догрузка по появлению сентинела в зоне видимости. IntersectionObserver
+  // подхватывает и «низ уже виден» (мало карточек), и обычный скролл.
+  useEffect(() => {
+    if (viewMode !== 'cards' || !hasMoreCards) return
+    const el = cardsSentinelRef.current
+    if (!el || typeof IntersectionObserver === 'undefined') return
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) {
+          setCardsShown((n) => Math.min(n + pageSize, filtered.length))
+        }
+      },
+      { rootMargin: '400px' },
+    )
+    io.observe(el)
+    return () => io.disconnect()
+  }, [viewMode, hasMoreCards, pageSize, filtered.length])
 
   const toggleSort = (k: string) => {
     setSort((s) =>
@@ -668,40 +698,53 @@ export function ListPage<T>({
 
       {viewMode === 'cards' &&
         renderCard &&
-        (paginated.length === 0 ? (
+        (cards.length === 0 ? (
           empty
         ) : (
-          <div className={styles.listCardsGrid}>
-            {paginated.map((row) => (
-              <Fragment key={getId(row)}>{renderCard(row)}</Fragment>
-            ))}
-          </div>
+          <>
+            <div className={styles.listCardsGrid}>
+              {cards.map((row) => (
+                <Fragment key={getId(row)}>{renderCard(row)}</Fragment>
+              ))}
+            </div>
+            {/* Сентинел: как только виден — догружаем следующую порцию. */}
+            {hasMoreCards && <div ref={cardsSentinelRef} className={styles.cardsSentinel} />}
+          </>
         ))}
 
-      <div className={styles.pager}>
-        <div>
-          Показано {paginated.length} из {filtered.length}
+      {/* Пагинация — только у таблицы. Карточки догружаются по скроллу. */}
+      {viewMode === 'cards' ? (
+        <div className={styles.pager}>
+          <div>
+            Показано {cards.length} из {filtered.length}
+          </div>
         </div>
-        <div className={styles.pagerNav}>
-          <button
-            className={[styles.btn, styles.btnGhost, styles.btnSm].join(' ')}
-            disabled={currentPage === 1}
-            onClick={() => setPage((p) => p - 1)}
-          >
-            ← Назад
-          </button>
-          <span>
-            Стр. {currentPage} из {totalPages}
-          </span>
-          <button
-            className={[styles.btn, styles.btnGhost, styles.btnSm].join(' ')}
-            disabled={currentPage >= totalPages}
-            onClick={() => setPage((p) => p + 1)}
-          >
-            Далее →
-          </button>
+      ) : (
+        <div className={styles.pager}>
+          <div>
+            Показано {paginated.length} из {filtered.length}
+          </div>
+          <div className={styles.pagerNav}>
+            <button
+              className={[styles.btn, styles.btnGhost, styles.btnSm].join(' ')}
+              disabled={currentPage === 1}
+              onClick={() => setPage((p) => p - 1)}
+            >
+              ← Назад
+            </button>
+            <span>
+              Стр. {currentPage} из {totalPages}
+            </span>
+            <button
+              className={[styles.btn, styles.btnGhost, styles.btnSm].join(' ')}
+              disabled={currentPage >= totalPages}
+              onClick={() => setPage((p) => p + 1)}
+            >
+              Далее →
+            </button>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   )
 }
