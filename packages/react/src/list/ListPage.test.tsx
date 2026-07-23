@@ -23,6 +23,7 @@ const filterConfig: FilterBarConfig<Row> = {
 // Управляемый мок IntersectionObserver: тест сам «показывает» сентинел.
 let triggerIntersect: (() => void) | null = null
 beforeEach(() => {
+  localStorage.clear()
   triggerIntersect = null
   vi.stubGlobal(
     'IntersectionObserver',
@@ -76,5 +77,22 @@ describe('ListPage — карточки без пагинации', () => {
     renderList()
     // По умолчанию режим — таблица.
     expect(screen.getByRole('button', { name: /Далее/ })).toBeInTheDocument()
+  })
+
+  it('defaultView="cards" открывает список сразу карточками', () => {
+    render(
+      <ListPage<Row>
+        title="Проекты"
+        data={rows}
+        getId={(r) => r.id}
+        columns={[{ key: 'name', label: 'Название', render: (r) => r.name }]}
+        filterConfig={filterConfig}
+        pageSize={20}
+        renderCard={(r) => <div data-testid="card">{r.name}</div>}
+        defaultView="cards"
+      />,
+    )
+    expect(screen.getAllByTestId('card').length).toBeGreaterThan(0)
+    expect(screen.queryByRole('button', { name: /Далее/ })).toBeNull()
   })
 })

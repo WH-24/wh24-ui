@@ -122,6 +122,12 @@ export interface ListPageProps<T> {
 
   // Карточный вид (если задан — появляется переключатель список/карточки).
   renderCard?: (row: T) => ReactNode
+  /**
+   * Стартовый режим показа. По умолчанию таблица; для списков, где важнее
+   * визуал (превью, обложки), потребитель ставит 'cards'. Выбор пользователя
+   * запоминается (localStorage по scope фильтра) и перекрывает это значение.
+   */
+  defaultView?: 'list' | 'cards'
 
   // Пустое состояние.
   emptyTitle?: string
@@ -155,6 +161,7 @@ export function ListPage<T>({
   pageSize = 20,
   defaultSort,
   renderCard,
+  defaultView = 'list',
   emptyTitle = 'Ничего не найдено',
   emptyIcon = 'search',
   toolbarStart,
@@ -170,7 +177,27 @@ export function ListPage<T>({
     defaultSort ?? { key: columns[0]?.key ?? '', dir: 'asc' },
   )
   const [selected, setSelected] = useState<Set<string>>(new Set())
-  const [viewMode, setViewMode] = useState<'list' | 'cards'>('list')
+  // Режим показа: сохранённый выбор пользователя (по scope) важнее defaultView.
+  // Переключатель есть только когда задан renderCard — иначе всегда таблица.
+  const viewKey = `wh24:list-view:${filterConfig.scope}`
+  const [viewMode, setViewMode] = useState<'list' | 'cards'>(() => {
+    if (!renderCard) return 'list'
+    try {
+      const saved = localStorage.getItem(viewKey)
+      if (saved === 'list' || saved === 'cards') return saved
+    } catch {
+      /* приватный режим — просто берём defaultView */
+    }
+    return defaultView
+  })
+  useEffect(() => {
+    if (!renderCard) return
+    try {
+      localStorage.setItem(viewKey, viewMode)
+    } catch {
+      /* приватный режим — выбор не сохранится, UI работает */
+    }
+  }, [viewMode, viewKey, renderCard])
   const [page, setPage] = useState(1)
   // Карточки не листаются постранично: показываем растущий срез и догружаем
   // очередную порцию, когда низ грида появляется в зоне видимости. Пагинация
