@@ -422,6 +422,13 @@ export function ListPage<T>({
   }, [filtered, pageSize])
   // Догрузка по появлению сентинела в зоне видимости. IntersectionObserver
   // подхватывает и «низ уже виден» (мало карточек), и обычный скролл.
+  //
+  // cardsShown в зависимостях НАМЕРЕННО: observer срабатывает только на смену
+  // видимости, а после подгрузки сентинел часто остаётся в кадре (короткий
+  // список, большой rootMargin) и второй раз не триггерит — показ застревал на
+  // второй порции. Пересоздаём observer после каждой подгрузки: `observe()`
+  // сразу зовёт колбэк, если сентинел всё ещё виден, и грузим дальше — пока он
+  // не уйдёт за пределы rootMargin или не покажем всё.
   useEffect(() => {
     if (viewMode !== 'cards' || !hasMoreCards) return
     const el = cardsSentinelRef.current
@@ -436,7 +443,7 @@ export function ListPage<T>({
     )
     io.observe(el)
     return () => io.disconnect()
-  }, [viewMode, hasMoreCards, pageSize, filtered.length])
+  }, [viewMode, hasMoreCards, pageSize, filtered.length, cardsShown])
 
   const toggleSort = (k: string) => {
     setSort((s) =>
