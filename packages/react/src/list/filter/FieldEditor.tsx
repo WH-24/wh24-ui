@@ -1,17 +1,17 @@
-import { useLayoutEffect, useRef, useState } from 'react'
-import { createPortal } from 'react-dom'
+import { useLayoutEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
-import { Combobox, type ComboboxOption } from '../Combobox.js'
-import { Icon } from '../Icon.js'
-import type { DateRange, FieldType, FilterValue } from './types.js'
-import styles from './filter.module.css'
+import { Combobox, type ComboboxOption } from "../Combobox.js";
+import { Icon } from "../Icon.js";
+import type { DateRange, FieldType, FilterValue } from "./types.js";
+import styles from "./filter.module.css";
 
 interface FieldEditorProps {
-  type: FieldType
-  value: FilterValue
-  onChange: (v: FilterValue) => void
-  options?: ComboboxOption[]
-  placeholder?: string
+  type: FieldType;
+  value: FilterValue;
+  onChange: (v: FilterValue) => void;
+  options?: ComboboxOption[];
+  placeholder?: string;
 }
 
 /** Рендерит редактор по типу поля. */
@@ -23,45 +23,45 @@ export function FieldEditor({
   placeholder,
 }: FieldEditorProps) {
   switch (type) {
-    case 'text':
+    case "text":
       return (
         <input
           className={styles.formInput}
-          placeholder={placeholder ?? 'Введите значение'}
-          value={typeof value === 'string' ? value : ''}
+          placeholder={placeholder ?? "Введите значение"}
+          value={typeof value === "string" ? value : ""}
           onChange={(e) => onChange(e.target.value)}
         />
-      )
+      );
 
-    case 'select':
+    case "select":
       return (
         <Combobox
           options={options}
-          value={typeof value === 'string' ? value : ''}
+          value={typeof value === "string" ? value : ""}
           onChange={(v) => onChange(v)}
-          placeholder={placeholder ?? '— любое —'}
+          placeholder={placeholder ?? "— любое —"}
         />
-      )
+      );
 
-    case 'multiselect':
+    case "multiselect":
       return (
         <MultiSelect
           options={options}
           value={Array.isArray(value) ? value : []}
           onChange={(v) => onChange(v.length ? v : null)}
-          placeholder={placeholder ?? '— любые —'}
+          placeholder={placeholder ?? "— любые —"}
         />
-      )
+      );
 
-    case 'daterange': {
+    case "daterange": {
       const r: DateRange =
-        value && typeof value === 'object' && !Array.isArray(value)
+        value && typeof value === "object" && !Array.isArray(value)
           ? (value as DateRange)
-          : { from: '', to: '' }
+          : { from: "", to: "" };
       const patch = (p: Partial<DateRange>) => {
-        const next = { ...r, ...p }
-        onChange(next.from || next.to ? next : null)
-      }
+        const next = { ...r, ...p };
+        onChange(next.from || next.to ? next : null);
+      };
       return (
         <div className={styles.filterDaterange}>
           <input
@@ -78,35 +78,35 @@ export function FieldEditor({
             onChange={(e) => patch({ to: e.target.value })}
           />
         </div>
-      )
+      );
     }
 
-    case 'boolean': {
+    case "boolean": {
       // Поле с выбором из значений — выпадающим списком (общий Combobox).
       // «— любое —» (пустое) = null/не фильтруем; Да = true, Нет = false.
-      const v: boolean | null = typeof value === 'boolean' ? value : null
+      const v: boolean | null = typeof value === "boolean" ? value : null;
       return (
         <Combobox
           options={[
-            { value: 'true', label: 'Да' },
-            { value: 'false', label: 'Нет' },
+            { value: "true", label: "Да" },
+            { value: "false", label: "Нет" },
           ]}
-          value={v === null ? '' : v ? 'true' : 'false'}
-          onChange={(s) => onChange(s === '' ? null : s === 'true')}
-          placeholder={placeholder ?? '— любое —'}
+          value={v === null ? "" : v ? "true" : "false"}
+          onChange={(s) => onChange(s === "" ? null : s === "true")}
+          placeholder={placeholder ?? "— любое —"}
         />
-      )
+      );
     }
 
     default:
-      return null
+      return null;
   }
 }
 
 interface MenuRect {
-  top: number
-  left: number
-  width: number
+  top: number;
+  left: number;
+  width: number;
 }
 
 /** Мультивыбор: кнопка со сводкой + портальное меню чекбоксов. */
@@ -116,45 +116,45 @@ function MultiSelect({
   onChange,
   placeholder,
 }: {
-  options: ComboboxOption[]
-  value: string[]
-  onChange: (v: string[]) => void
-  placeholder: string
+  options: ComboboxOption[];
+  value: string[];
+  onChange: (v: string[]) => void;
+  placeholder: string;
 }) {
-  const [open, setOpen] = useState(false)
-  const ref = useRef<HTMLDivElement>(null)
-  const [rect, setRect] = useState<MenuRect | null>(null)
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const [rect, setRect] = useState<MenuRect | null>(null);
 
   useLayoutEffect(() => {
     if (!open) {
-      setRect(null)
-      return
+      setRect(null);
+      return;
     }
     const place = () => {
-      const el = ref.current
-      if (!el) return
-      const r = el.getBoundingClientRect()
-      setRect({ top: r.bottom + 4, left: r.left, width: r.width })
-    }
-    place()
-    window.addEventListener('scroll', place, true)
-    window.addEventListener('resize', place)
+      const el = ref.current;
+      if (!el) return;
+      const r = el.getBoundingClientRect();
+      setRect({ top: r.bottom + 4, left: r.left, width: r.width });
+    };
+    place();
+    window.addEventListener("scroll", place, true);
+    window.addEventListener("resize", place);
     return () => {
-      window.removeEventListener('scroll', place, true)
-      window.removeEventListener('resize', place)
-    }
-  }, [open])
+      window.removeEventListener("scroll", place, true);
+      window.removeEventListener("resize", place);
+    };
+  }, [open]);
 
   const toggle = (val: string) => {
-    onChange(value.includes(val) ? value.filter((x) => x !== val) : [...value, val])
-  }
+    onChange(value.includes(val) ? value.filter((x) => x !== val) : [...value, val]);
+  };
 
   const summary = value.length
     ? options
         .filter((o) => value.includes(o.value))
         .map((o) => o.label)
-        .join(', ')
-    : placeholder
+        .join(", ")
+    : placeholder;
 
   const menu =
     open && rect
@@ -164,7 +164,7 @@ function MultiSelect({
             role="listbox"
             // zIndex 1000 — над модулем поиска (.filterPop = 200), как у Combobox.
             style={{
-              position: 'fixed',
+              position: "fixed",
               top: rect.top,
               left: rect.left,
               minWidth: rect.width,
@@ -172,7 +172,7 @@ function MultiSelect({
             }}
           >
             {options.map((o) => {
-              const on = value.includes(o.value)
+              const on = value.includes(o.value);
               return (
                 <button
                   key={o.value}
@@ -186,14 +186,23 @@ function MultiSelect({
                   <span className={styles.filterMsCheck} data-on={String(on)}>
                     {on && <Icon name="check" size={12} />}
                   </span>
+                  {o.avatar || o.initials ? (
+                    <span className={styles.filterMsAvatar} aria-hidden="true">
+                      {o.avatar ? (
+                        <img src={o.avatar} alt="" loading="lazy" />
+                      ) : (
+                        <span className={styles.filterMsAvatarInitials}>{o.initials}</span>
+                      )}
+                    </span>
+                  ) : null}
                   <span className={styles.filterMsOptionTitle}>{o.label}</span>
                 </button>
-              )
+              );
             })}
           </div>,
           document.body,
         )
-      : null
+      : null;
 
   return (
     <div
@@ -204,7 +213,7 @@ function MultiSelect({
       <div className={styles.comboControl}>
         <button
           type="button"
-          className={[styles.formInput, styles.filterMsTrigger].join(' ')}
+          className={[styles.formInput, styles.filterMsTrigger].join(" ")}
           data-empty={String(value.length === 0)}
           onClick={() => setOpen((v) => !v)}
         >
@@ -222,7 +231,7 @@ function MultiSelect({
       </div>
       {menu}
     </div>
-  )
+  );
 }
 
-export default FieldEditor
+export default FieldEditor;
