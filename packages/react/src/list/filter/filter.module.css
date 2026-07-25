@@ -32,9 +32,9 @@
   --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.1), 0 2px 6px rgba(0, 0, 0, 0.04);
 }
 
-:where([data-theme='dark']) .filterBar,
-:where([data-theme='dark']) .filterPop,
-:where([data-theme='dark']) .msMenu {
+:where([data-theme="dark"]) .filterBar,
+:where([data-theme="dark"]) .filterPop,
+:where([data-theme="dark"]) .msMenu {
   --fg-primary: #f2f2ef;
   --fg-secondary: #d8d8d1;
   --fg-tertiary: #a9aa9f;
@@ -104,11 +104,11 @@
     border-color 0.1s,
     box-shadow 0.1s;
 }
-.filterSearch[data-active='true'] {
+.filterSearch[data-active="true"] {
   border-color: var(--accent-500);
   box-shadow: 0 0 0 3px var(--accent-50);
 }
-:where([data-theme='dark']) .filterSearch[data-active='true'] {
+:where([data-theme="dark"]) .filterSearch[data-active="true"] {
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.14);
 }
 .filterSearchIcon {
@@ -165,7 +165,7 @@
   color: var(--accent-700);
   max-width: 220px;
 }
-:where([data-theme='dark']) .filterApplied {
+:where([data-theme="dark"]) .filterApplied {
   background: rgba(59, 130, 246, 0.14);
   color: var(--accent-400);
 }
@@ -218,7 +218,10 @@
   background: var(--bg-subtle);
   padding: 8px;
   gap: 2px;
-  min-height: 320px;
+  /* Задаёт минимальную высоту поповера. От неё зависит и высота панели «добавить
+     поле» (.filterAddgrid = 100% - 122px): при большом числе полей запаса должно
+     хватать, чтобы список не был слишком куцым. */
+  min-height: 420px;
 }
 .filterPresetsTitle {
   display: flex;
@@ -254,11 +257,11 @@
   background: var(--bg-hover);
   color: var(--fg-primary);
 }
-.filterPreset[data-active='true'] {
+.filterPreset[data-active="true"] {
   color: var(--accent-700);
   font-weight: 500;
 }
-:where([data-theme='dark']) .filterPreset[data-active='true'] {
+:where([data-theme="dark"]) .filterPreset[data-active="true"] {
   color: var(--accent-400);
 }
 .filterPresetName {
@@ -282,7 +285,7 @@
   gap: 2px;
   flex: none;
 }
-.filterPresetActions [role='button'] {
+.filterPresetActions [role="button"] {
   display: grid;
   place-items: center;
   width: 22px;
@@ -291,7 +294,7 @@
   color: var(--fg-muted);
   cursor: pointer;
 }
-.filterPresetActions [role='button']:hover {
+.filterPresetActions [role="button"]:hover {
   color: var(--fg-primary);
   background: var(--bg-active);
 }
@@ -303,10 +306,10 @@
   height: 20px;
   color: var(--accent-600);
 }
-.filterPresetPin[data-pinned='true'] {
+.filterPresetPin[data-pinned="true"] {
   color: var(--accent-600);
 }
-.filterPresetPin[data-pinned='true']:hover {
+.filterPresetPin[data-pinned="true"]:hover {
   color: var(--accent-700);
 }
 .filterPresetRename {
@@ -340,7 +343,7 @@
     background 0.1s;
 }
 .filterGear:hover,
-.filterGear[data-active='true'] {
+.filterGear[data-active="true"] {
   color: var(--accent-600);
   background: var(--bg-hover);
 }
@@ -401,7 +404,12 @@
   border: 1px solid var(--border-default);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-lg);
-  max-height: 360px;
+  /* Панель спозиционирована absolute (bottom:110px) и растёт вверх. Её высоту
+     ограничиваем размером контейнера (.filterBody), а не константой: при большом
+     числа полей фиксированные 360px вылезали над поповером, а .filterPop с
+     overflow:hidden обрезал верхние поля — внутренний скролл до них не докручивал.
+     calc(100% - 122px) = высота body минус нижний отступ (110px) и зазор сверху. */
+  max-height: calc(100% - 122px);
   overflow-x: hidden;
   overflow-y: auto;
 }
@@ -439,7 +447,7 @@
   column-gap: 10px;
   row-gap: 5px;
 }
-.filterField[data-dragging='true'] {
+.filterField[data-dragging="true"] {
   opacity: 0.5;
 }
 .filterFieldLabel {
@@ -505,7 +513,7 @@
   padding-right: 36px;
   cursor: pointer;
 }
-.filterMsTrigger[data-empty='true'] .filterMsSummary {
+.filterMsTrigger[data-empty="true"] .filterMsSummary {
   color: var(--fg-muted);
 }
 .filterMsSummary {
@@ -566,7 +574,7 @@
   font-size: 13px;
 }
 .filterMsOption:hover,
-.filterMsOption[aria-selected='true'] {
+.filterMsOption[aria-selected="true"] {
   background: var(--bg-hover);
 }
 .filterMsOptionTitle {
@@ -584,7 +592,7 @@
   color: #fff;
   flex: none;
 }
-.filterMsCheck[data-on='true'] {
+.filterMsCheck[data-on="true"] {
   background: var(--accent-500);
   border-color: var(--accent-500);
 }
