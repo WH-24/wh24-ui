@@ -252,9 +252,13 @@ export function FilterBar<T>({
           setFields={setFields}
           canEditFields={canEditFields}
           globalPresets={globalPresets}
-          onGlobalPresetsChange={persistGlobalPresets}
+          // Без провайдера настроек общих пресетов не существует: не отдаём
+          // колбэки вовсе, чтобы окно не показывало «Для всех» и булавку —
+          // раньше они рисовались, срабатывали в пределах сессии и молча
+          // терялись при перезагрузке.
+          onGlobalPresetsChange={settings ? persistGlobalPresets : undefined}
           defaultPresetId={defaultPresetId}
-          onSetDefaultPreset={persistDefaultPreset}
+          onSetDefaultPreset={settings ? persistDefaultPreset : undefined}
           activePresetId={activePresetId}
           setActivePresetId={setActivePresetId}
           onClose={() => setOpen(false)}
