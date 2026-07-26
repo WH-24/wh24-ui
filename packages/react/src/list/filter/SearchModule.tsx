@@ -393,8 +393,10 @@ export function SearchModule<T>({
                       </span>
                     </>
                   )}
-                  {/* pin — сделать пресет фильтром по умолчанию (любой пресет, только админ). */}
-                  {canEditFields && (
+                  {/* pin — сделать пресет фильтром по умолчанию (любой пресет,
+                      только админ). Как и «Для всех», требует хранилища: без него
+                      выбор дефолта не переживёт перезагрузку страницы. */}
+                  {canEditFields && !!onSetDefaultPreset && (
                     <span
                       role="button"
                       className={styles.filterPresetPin}
@@ -555,8 +557,11 @@ export function SearchModule<T>({
         <div className={styles.filterFoot}>
           {saving ? (
             <>
-              {/* «Для всех» — пресет уйдёт в глобальные настройки (видят все). Только админ. */}
-              {canEditFields && (
+              {/* «Для всех» — пресет уйдёт в глобальные настройки (видят все).
+                  Только админ И только когда список подключён к хранилищу
+                  настроек: без провайдера общий пресет некуда сохранить, он
+                  пропадал при перезагрузке, а галочка об этом не говорила. */}
+              {canEditFields && !!onGlobalPresetsChange && (
                 <label className={styles.filterSaveall}>
                   <input
                     type="checkbox"
