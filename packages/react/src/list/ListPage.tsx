@@ -217,12 +217,38 @@ export function ListPage<T>({
     }
     const hidden = new Set(prefs.hidden)
     // Новая для пользователя колонка с defaultHidden приходит выключенной.
-    const known = new Set(prefs.known)
+    // known уважаем только при own=true: без явного «Применить» список known —
+    // просто «что уже показывали», и он не должен отменять defaultHidden
+    // (иначе колонка, однажды утёкшая в таблицу, остаётся там навсегда).
+    const known = new Set(prefs.own ? prefs.known : [])
     for (const c of columns) {
       if (c.defaultHidden && !known.has(c.key)) hidden.add(c.key)
     }
     return hidden
   })
+  // Колонки из асинхронных источников (справочники, доп-поля) появляются ПОСЛЕ
+  // маунта — initializer выше их не видел. Новые для пользователя defaultHidden-
+  // колонки скрываем и здесь, иначе они вылезают в таблицу сами по себе.
+  useEffect(() => {
+    let known: Set<string>
+    try {
+      const prefs = parseColsPrefs(localStorage.getItem(colsKey))
+      known = new Set(prefs.own ? prefs.known : [])
+    } catch {
+      known = new Set()
+    }
+    setHiddenCols((prev) => {
+      let changed = false
+      const next = new Set(prev)
+      for (const c of columns) {
+        if (c.defaultHidden && !known.has(c.key) && !next.has(c.key)) {
+          next.add(c.key)
+          changed = true
+        }
+      }
+      return changed ? next : prev
+    })
+  }, [columns, colsKey])
   const [colsOpen, setColsOpen] = useState(false)
   // Черновик: галочки в окне применяются только по кнопке «Применить».
   const [draftHidden, setDraftHidden] = useState<Set<string>>(new Set())
@@ -293,7 +319,9 @@ export function ListPage<T>({
     void filterSettings
       .load(filterConfig.scope)
       .then((s) => {
-        if (!alive || !s.columns) return
+        // Пустой список — это авто-созданная запись «настройки нет», а не
+        // «админ велел показать все колонки»: не затираем дефолтные скрытия.
+        if (!alive || !s.columns || s.columns.length === 0) return
         setHiddenCols(new Set(s.columns))
       })
       .catch(() => {
