@@ -3,11 +3,22 @@ name: CI
 on:
   push:
     branches: [main]
+    # Docs-коммиты в main не гоняют проверки (PR-проверки не трогаем).
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+
   pull_request:
     branches: [main]
 
 permissions:
   contents: read
+
+# Новый пуш в ту же ветку отменяет предыдущий прогон — досчитывать
+# заведомо устаревший смысла нет.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build:
