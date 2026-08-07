@@ -97,9 +97,6 @@ export interface ListPageProps<T> {
   // Шапка.
   title: string
   subtitle?: string
-  /** Число в бейдже у заголовка. По умолчанию — общее число строк (data.length). */
-  count?: number
-
   // Данные.
   data: T[]
   getId: (row: T) => string
@@ -148,7 +145,6 @@ export interface ListPageProps<T> {
 export function ListPage<T>({
   title,
   subtitle,
-  count,
   data,
   getId,
   columns,
@@ -510,10 +506,7 @@ export function ListPage<T>({
     <div className={styles.page}>
       <div className={styles.pageHeader}>
         <div>
-          <div className={styles.pageTitle}>
-            {title}
-            <span className={styles.pageTitleCount}>{count ?? data.length}</span>
-          </div>
+          <div className={styles.pageTitle}>{title}</div>
           {subtitle && <div className={styles.pageSubtitle}>{subtitle}</div>}
         </div>
       </div>
