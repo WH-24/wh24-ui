@@ -56,7 +56,11 @@ export function matchItem<T>(item: T, state: FilterState, config: FilterBarConfi
         break
       }
       case 'multiselect': {
-        const wanted = (value as string[]).map(norm)
+        // Значение бывает скаляром: поле раньше объявляли `select`, а сохранённый
+        // выбор пользователя и глобальные пресеты живут дольше типа поля. Строку
+        // трактуем как список из одного элемента — иначе `.map` роняет рендер,
+        // и страница не открывается, пока не вычистишь localStorage вручную.
+        const wanted = (Array.isArray(value) ? value : [value as string]).map(norm)
         const have = Array.isArray(got) ? got.map(norm) : [norm(got)]
         if (!have.some((h) => wanted.includes(h))) return false
         break
