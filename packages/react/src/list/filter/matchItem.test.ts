@@ -86,6 +86,15 @@ describe('matchItem', () => {
     expect(m({ tags: ['go', 'vue'] })).toBe(false)
   })
 
+  // Поле могло раньше быть `select`, и в localStorage/пресете у пользователя
+  // осталось скалярное значение. После смены типа на `multiselect` такое
+  // значение не должно ронять фильтр — иначе страница падает при открытии,
+  // и починить её изнутри нельзя: состояние читается снова при каждой загрузке.
+  it('multiselect — переживает скалярное значение из старого select', () => {
+    expect(m({ tags: 'react' as unknown as string[] })).toBe(true)
+    expect(m({ tags: 'vue' as unknown as string[] })).toBe(false)
+  })
+
   it('daterange — обе границы опциональны', () => {
     expect(m({ hired: { from: '2024-01-01', to: '2024-12-31' } })).toBe(true)
     expect(m({ hired: { from: '2024-04-01', to: '' } })).toBe(false) // принят раньше from
