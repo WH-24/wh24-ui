@@ -73,15 +73,6 @@
   align-items: center;
   gap: 10px;
 }
-.pageTitleCount {
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--fg-tertiary);
-  padding: 2px 8px;
-  background: var(--bg-muted);
-  border-radius: 999px;
-  font-variant-numeric: tabular-nums;
-}
 .pageSubtitle {
   font-size: 13px;
   color: var(--fg-tertiary);
