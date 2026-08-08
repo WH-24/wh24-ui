@@ -62,6 +62,22 @@ describe('AppShell', () => {
     expect(screen.getByRole('link', { name: 'На главную' })).toHaveAttribute('href', '/dashboard')
   })
 
+  // Apps embedded into the portal drop the topbar: the portal's own —
+  // same brand, same pill, same avatar — already sits right above.
+  it('renders no topbar when showTopbar is false', () => {
+    render(
+      <AppShell user={{ initials: 'АА', name: 'A' }} onSearchClick={() => {}} showTopbar={false}>
+        <span>content</span>
+      </AppShell>,
+    )
+    expect(screen.queryByRole('banner')).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'На главную' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Открыть палитру команд' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Профиль A' })).not.toBeInTheDocument()
+    // Содержимое приложения на месте — убирается только шапка.
+    expect(screen.getByText('content')).toBeInTheDocument()
+  })
+
   it('renders rightExtras before avatar', () => {
     render(
       <AppShell
