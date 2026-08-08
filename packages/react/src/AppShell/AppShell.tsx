@@ -32,6 +32,17 @@ export interface AppShellProps {
   homeHref?: string
 
   /**
+   * Render the topbar. Default true.
+   *
+   * Turn it off in apps embedded into the portal: the portal's own topbar
+   * — with the same brand, the same command-palette pill and the same
+   * avatar — already sits right above, so a second one reads as a
+   * duplicated header. The command palette stays reachable by ⌘K: the
+   * shortcut is owned by the app, not by this pill.
+   */
+  showTopbar?: boolean
+
+  /**
    * Optional custom link renderer for the brand. Default — plain `<a>`.
    * Pass a router-aware Link for SPA navigation:
    * `renderLink={(p) => <Link to={p.href} className={p.className} aria-label={p.ariaLabel}>{p.children}</Link>}`
@@ -71,6 +82,7 @@ export function AppShell({
   onSearchClick,
   onThemeToggle,
   homeHref = '/',
+  showTopbar = true,
   renderLink = defaultLink,
   rightExtras,
   searchPlaceholder = 'Поиск, навигация, действия',
@@ -90,28 +102,30 @@ export function AppShell({
 
   return (
     <div className={styles.root}>
-      <header className={styles.topbar}>
-        {brand}
+      {showTopbar ? (
+        <header className={styles.topbar}>
+          {brand}
 
-        <Pill
-          ariaLabel="Открыть палитру команд"
-          icon={<SearchGlyph />}
-          kbd={searchKbd}
-          onClick={onSearchClick}
-        >
-          {searchPlaceholder}
-        </Pill>
+          <Pill
+            ariaLabel="Открыть палитру команд"
+            icon={<SearchGlyph />}
+            kbd={searchKbd}
+            onClick={onSearchClick}
+          >
+            {searchPlaceholder}
+          </Pill>
 
-        <div className={styles.right}>
-          {rightExtras}
-          {onThemeToggle ? (
-            <IconButton ariaLabel="Переключить тему" onClick={onThemeToggle}>
-              <SunGlyph />
-            </IconButton>
-          ) : null}
-          <Avatar initials={user.initials} ariaLabel={`Профиль ${user.name}`} />
-        </div>
-      </header>
+          <div className={styles.right}>
+            {rightExtras}
+            {onThemeToggle ? (
+              <IconButton ariaLabel="Переключить тему" onClick={onThemeToggle}>
+                <SunGlyph />
+              </IconButton>
+            ) : null}
+            <Avatar initials={user.initials} ariaLabel={`Профиль ${user.name}`} />
+          </div>
+        </header>
+      ) : null}
 
       <main className={styles.page}>{children}</main>
     </div>
