@@ -2,7 +2,7 @@ import { render, screen, act, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { ListPage } from './ListPage'
+import { ListPage, needsPxWidths } from './ListPage'
 import type { FilterBarConfig } from './filter/types'
 
 interface Row {
@@ -95,6 +95,64 @@ describe('ListPage — карточки без пагинации', () => {
     renderList()
     await userEvent.click(screen.getByTitle('Карточки'))
     await waitFor(() => expect(screen.getAllByTestId('card')).toHaveLength(55))
+  })
+
+  it('колонке названия (primary) достаётся минимум 350px, остальным — 150px', () => {
+    // Минимум колонки видно в min-width таблицы: это сумма минимумов видимых
+    // колонок плюс служебная колонка с шестерёнкой (44). Регрессия: без primary
+    // название получало общие 150px и обрезалось многоточием, хотя соседние
+    // колонки стояли свободно.
+    render(
+      <ListPage<Row>
+        title="Проекты"
+        data={rows}
+        getId={(r) => r.id}
+        columns={[
+          { key: 'name', label: 'Название', primary: true, render: (r) => r.name },
+          { key: 'city', label: 'Город', render: () => 'Москва' },
+        ]}
+        filterConfig={filterConfig}
+        pageSize={20}
+        renderCard={(r) => <div data-testid="card">{r.name}</div>}
+      />,
+    )
+    // 350 (название) + 150 (город) + 44 (шестерёнка).
+    expect(screen.getByRole('table')).toHaveStyle({ minWidth: '544px' })
+  })
+
+  it('явный minWidth сильнее primary', () => {
+    render(
+      <ListPage<Row>
+        title="Проекты"
+        data={rows}
+        getId={(r) => r.id}
+        columns={[
+          { key: 'name', label: 'Название', primary: true, minWidth: 200, render: (r) => r.name },
+        ]}
+        filterConfig={filterConfig}
+        pageSize={20}
+        renderCard={(r) => <div data-testid="card">{r.name}</div>}
+      />,
+    )
+    expect(screen.getByRole('table')).toHaveStyle({ minWidth: '244px' })
+  })
+
+  // Переход «проценты → px» проверяем на функции, а не на DOM: в jsdom ширина
+  // контейнера всегда 0, и ResizeObserver'а нет — режим просто не включится.
+  it('на узком контейнере уходит в px, чтобы название не сжалось процентом', () => {
+    const name = { key: 'name', label: 'Название', width: '34%', primary: true, render: () => null }
+    const city = { key: 'city', label: 'Город', width: '20%', render: () => null }
+    const cols = [name, city]
+    // 34% от 990 — это ~337px, меньше минимума названия (350).
+    expect(needsPxWidths(cols, 990, 544)).toBe(true)
+    // 34% от 1400 — 476px, минимум перекрыт, проценты остаются.
+    expect(needsPxWidths(cols, 1400, 544)).toBe(false)
+    // Сумма минимумов не влезает — прежнее условие продолжает работать.
+    expect(needsPxWidths(cols, 400, 544)).toBe(true)
+    // Ширина контейнера ещё не измерена — режим не включаем.
+    expect(needsPxWidths(cols, 0, 544)).toBe(false)
+    // Колонка без primary процентом не проверяется.
+    expect(needsPxWidths([city], 990, 194)).toBe(false)
   })
 
   it('defaultView="cards" открывает список сразу карточками', () => {
