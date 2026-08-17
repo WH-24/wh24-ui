@@ -69,7 +69,7 @@ export type {
 } from './UtilChip/UtilChip.js'
 
 // Config-driven list/filter page (ListPage<T> + universal Bitrix24-style filter).
-export { ListPage } from './list/ListPage.js'
+export { ListPage, NAME_COL_MIN_WIDTH } from './list/ListPage.js'
 export type { ListColumn, ListPageProps } from './list/ListPage.js'
 export type {
   FilterBarConfig,

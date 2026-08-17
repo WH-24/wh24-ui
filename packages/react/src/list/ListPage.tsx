@@ -36,16 +36,66 @@ export interface ListColumn<T> {
    * прокрутка, вместо того чтобы сплющивать колонки в нечитаемые полоски.
    */
   minWidth?: number
+  /**
+   * Колонка с названием сущности — та, по которой строку узнают. Ей достаётся
+   * повышенный минимум (NAME_COL_MIN_WIDTH), потому что в ней, кроме самого
+   * названия, обычно стоят миниатюра, бейджи и вторая строка (почта, тип): на
+   * общих 150px название обрезалось многоточием, хотя соседние «Год» и «Город»
+   * стояли свободно. Задавать вместе с minWidth незачем — явное значение
+   * сильнее флага.
+   */
+  primary?: boolean
 }
 
 /** Минимум на колонку, если не задан явно. */
 const DEFAULT_COL_MIN_WIDTH = 150
+/**
+ * Минимум для колонки названия (primary) — в неё смотрят в первую очередь.
+ * Экспортируется: списки, которые задают минимумы всем колонкам вручную,
+ * сравнивают остальные колонки с этим числом, а не со своей копией.
+ */
+export const NAME_COL_MIN_WIDTH = 350
 /** Служебная колонка справа (шестерёнка настройки). */
 const ACTIONS_COL_WIDTH = 44
 
 /** Минимальная ширина колонки в px: явная, либо width в px, либо дефолт. */
 function colMinWidth<T>(c: ListColumn<T>): number {
-  return c.minWidth ?? (typeof c.width === 'number' ? c.width : DEFAULT_COL_MIN_WIDTH)
+  if (c.minWidth != null) return c.minWidth
+  if (typeof c.width === 'number') return c.width
+  return c.primary ? NAME_COL_MIN_WIDTH : DEFAULT_COL_MIN_WIDTH
+}
+
+/** Процент из width колонки ("34%" → 34); не процент — null. */
+function widthPercent<T>(c: ListColumn<T>): number | null {
+  if (typeof c.width !== 'string' || !c.width.trim().endsWith('%')) return null
+  const pct = Number.parseFloat(c.width)
+  return Number.isFinite(pct) ? pct : null
+}
+
+/**
+ * Пора ли раздать колонкам px-минимумы вместо процентов из `width`.
+ *
+ * Да в двух случаях. Первый — сумма минимумов не влезает в контейнер: проценты
+ * там дают нечитаемые полоски, а так таблица растёт и уезжает в горизонтальную
+ * прокрутку. Второй — процент колонки названия не дотягивает до её минимума:
+ * 34% на контейнере 990px — это ~330px, и название обрезается многоточием.
+ * Поставить `max(34%, 350px)` в colgroup не выходит: при table-layout:fixed
+ * браузер нормализует ширины и всё равно сжимает колонку. Зато в px-режиме
+ * лишнее место (когда минимумы суммарно уже контейнера) браузер раскладывает по
+ * колонкам сам — таблица занимает всю ширину и без процентов.
+ */
+export function needsPxWidths<T>(
+  cols: ListColumn<T>[],
+  wrapWidth: number,
+  tableMinWidth: number,
+): boolean {
+  if (wrapWidth <= 0) return false
+  if (tableMinWidth > wrapWidth) return true
+  return cols.some((c) => {
+    if (!c.primary) return false
+    const pct = widthPercent(c)
+    return pct != null && (wrapWidth * pct) / 100 < colMinWidth(c)
+  })
 }
 
 /** Сохранённая настройка колонок. */
@@ -287,11 +337,10 @@ export function ListPage<T>({
     return () => ro.disconnect()
   }, [viewMode])
 
-  // Не помещаемся: проценты в width рассчитаны на несколько колонок и в сумме
-  // дают сильно больше 100% — при table-layout:fixed они съедают всю ширину, а
-  // колонки без явной width схлопываются в ноль. В этом режиме раздаём каждой
-  // колонке её минимум в px, а таблица уезжает в горизонтальную прокрутку.
-  const overflowCols = wrapWidth > 0 && tableMinWidth > wrapWidth
+  // Проценты в width рассчитаны на несколько колонок и в сумме дают сильно
+  // больше 100% — при table-layout:fixed они съедают всю ширину, а колонки без
+  // явной width схлопываются в ноль. Условия перехода на px — в needsPxWidths.
+  const pxWidths = needsPxWidths(visibleColumns, wrapWidth, tableMinWidth)
 
   // Пишем и hidden, и known (все текущие колонки): иначе колонка, добавленная
   // позже, не отличалась бы от «пользователь её включил».
@@ -562,7 +611,7 @@ export function ListPage<T>({
             <colgroup>
               <col style={{ width: ACTIONS_COL_WIDTH }} />
               {visibleColumns.map((c) => (
-                <col key={c.key} style={{ width: overflowCols ? colMinWidth(c) : c.width }} />
+                <col key={c.key} style={{ width: pxWidths ? colMinWidth(c) : c.width }} />
               ))}
             </colgroup>
             <thead>
