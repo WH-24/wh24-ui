@@ -39,3 +39,30 @@ jobs:
 
       - name: Build
         run: npm run build
+
+  # Отдельный job, а не шаг в build: тесты должны краснеть сами по себе и
+  # попасть в обязательные проверки ветки отдельной строкой.
+  # Без continue-on-error — иначе прогон зелёный при мёртвом наборе тестов.
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install
+        run: npm ci
+
+      # Тестам нужен собранный dist: TypeBadge и TypeMarker импортируют
+      # ARTICLE_TYPE_LABELS из @wowhaus-24/ui-tokens, а его exports["."]
+      # смотрит в ./dist/index.js, которого в гите нет. Без этого шага два
+      # файла не стартуют вовсе — и прогон врёт «78 passed», а не краснеет
+      # на утверждении. Команда та же, что в job build выше.
+      - name: Build
+        run: npm run build
+
+      - name: Test
+        run: npm test --workspaces --if-present
