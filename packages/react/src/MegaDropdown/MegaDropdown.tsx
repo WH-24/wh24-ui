@@ -35,7 +35,7 @@ export function MegaDropdown({ open, onClose, ariaLabel, children, footer }: Meg
   useEffect(() => {
     if (!open) return
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Enter') onClose()
+      if (e.key === 'Escape') onClose()
     }
     document.addEventListener('keydown', onKey)
     const focusable = panelRef.current?.querySelector<HTMLElement>(

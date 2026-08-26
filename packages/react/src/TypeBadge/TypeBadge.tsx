@@ -17,7 +17,7 @@ export interface TypeBadgeProps {
 export function TypeBadge({ type, label }: TypeBadgeProps) {
   return (
     <span className={`${styles.tp} ${styles[type]}`}>
-      {label ?? ARTICLE_TYPE_LABELS['article']}
+      {label ?? ARTICLE_TYPE_LABELS[type]}
     </span>
   )
 }
