@@ -56,5 +56,13 @@ jobs:
       - name: Install
         run: npm ci
 
+      # Тестам нужен собранный dist: TypeBadge и TypeMarker импортируют
+      # ARTICLE_TYPE_LABELS из @wowhaus-24/ui-tokens, а его exports["."]
+      # смотрит в ./dist/index.js, которого в гите нет. Без этого шага два
+      # файла не стартуют вовсе — и прогон врёт «78 passed», а не краснеет
+      # на утверждении. Команда та же, что в job build выше.
+      - name: Build
+        run: npm run build
+
       - name: Test
         run: npm test --workspaces --if-present
