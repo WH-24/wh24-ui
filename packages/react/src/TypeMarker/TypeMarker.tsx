@@ -19,7 +19,7 @@ export function TypeMarker({ type, active = false }: TypeMarkerProps) {
   const className = [
     styles.dot,
     type ? styles[type] : '',
-    active ? styles.active : '',
+    active ? '' : '', // MUTANT
   ]
     .filter(Boolean)
     .join(' ')
