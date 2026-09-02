@@ -7,6 +7,7 @@ export type IconName =
   | 'briefcase'
   | 'chart'
   | 'grid'
+  | 'board'
   | 'settings'
   | 'plus'
   | 'filter'
@@ -204,6 +205,15 @@ const paths: Record<Exclude<IconName, 'telegram'>, ReactNode> = {
       <rect x="13" y="3" width="8" height="8" rx="1.5" />
       <rect x="3" y="13" width="8" height="8" rx="1.5" />
       <rect x="13" y="13" width="8" height="8" rx="1.5" />
+    </>
+  ),
+  // Доска (канбан): три колонки разной высоты — так вид отличим от «карточек»
+  // (сетка одинаковых квадратов) с одного взгляда.
+  board: (
+    <>
+      <rect x="3" y="4" width="5" height="16" rx="1.5" />
+      <rect x="10" y="4" width="5" height="11" rx="1.5" />
+      <rect x="17" y="4" width="4" height="7" rx="1.5" />
     </>
   ),
   more: (
