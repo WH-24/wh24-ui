@@ -143,6 +143,9 @@ interface SortState {
   dir: 'asc' | 'desc'
 }
 
+/** Режимы показа списка. 'cards' и 'board' доступны, только если заданы. */
+export type ListView = 'list' | 'cards' | 'board'
+
 export interface ListPageProps<T> {
   // Шапка.
   title: string
@@ -167,14 +170,25 @@ export interface ListPageProps<T> {
   pageSize?: number
   defaultSort?: SortState
 
-  // Карточный вид (если задан — появляется переключатель список/карточки).
+  // Карточный вид (если задан — появляется переключатель видов).
   renderCard?: (row: T) => ReactNode
+  /**
+   * Доска (канбан): вид, который сам решает, как разложить строки — по
+   * колонкам статуса, стадии и т.п. Получает УЖЕ отфильтрованные и
+   * отсортированные строки целиком, без пагинации: доска теряет смысл, если
+   * половина карточек осталась на второй странице.
+   *
+   * ListPage про раскладку ничего не знает — только даёт ей место и общий
+   * тулбар, чтобы фильтр, поиск и кнопки были те же, что у таблицы.
+   */
+  renderBoard?: (rows: T[]) => ReactNode
   /**
    * Стартовый режим показа. По умолчанию таблица; для списков, где важнее
    * визуал (превью, обложки), потребитель ставит 'cards'. Выбор пользователя
    * запоминается (localStorage по scope фильтра) и перекрывает это значение.
+   * Недоступный вид (не задан его рендерер) откатывается к таблице.
    */
-  defaultView?: 'list' | 'cards'
+  defaultView?: ListView
 
   // Пустое состояние.
   emptyTitle?: string
@@ -207,6 +221,7 @@ export function ListPage<T>({
   pageSize = 20,
   defaultSort,
   renderCard,
+  renderBoard,
   defaultView = 'list',
   emptyTitle = 'Ничего не найдено',
   emptyIcon = 'search',
@@ -224,26 +239,37 @@ export function ListPage<T>({
   )
   const [selected, setSelected] = useState<Set<string>>(new Set())
   // Режим показа: сохранённый выбор пользователя (по scope) важнее defaultView.
-  // Переключатель есть только когда задан renderCard — иначе всегда таблица.
+  // Переключатель есть только там, где кроме таблицы задан хоть один вид.
+  const hasCards = Boolean(renderCard)
+  const hasBoard = Boolean(renderBoard)
   const viewKey = `wh24:list-view:${filterConfig.scope}`
-  const [viewMode, setViewMode] = useState<'list' | 'cards'>(() => {
-    if (!renderCard) return 'list'
+  const viewAvailable = useCallback(
+    (v: string): v is ListView =>
+      v === 'list' || (v === 'cards' && hasCards) || (v === 'board' && hasBoard),
+    [hasCards, hasBoard],
+  )
+  const [viewMode, setViewMode] = useState<ListView>(() => {
     try {
       const saved = localStorage.getItem(viewKey)
-      if (saved === 'list' || saved === 'cards') return saved
+      if (saved !== null && viewAvailable(saved)) return saved
     } catch {
       /* приватный режим — просто берём defaultView */
     }
-    return defaultView
+    return viewAvailable(defaultView) ? defaultView : 'list'
   })
+  // Вид мог исчезнуть у потребителя между релизами (убрали карточки, доску) —
+  // сохранённый выбор тогда оставил бы пустой экран.
   useEffect(() => {
-    if (!renderCard) return
+    if (!viewAvailable(viewMode)) setViewMode('list')
+  }, [viewMode, viewAvailable])
+  useEffect(() => {
+    if (!hasCards && !hasBoard) return
     try {
       localStorage.setItem(viewKey, viewMode)
     } catch {
       /* приватный режим — выбор не сохранится, UI работает */
     }
-  }, [viewMode, viewKey, renderCard])
+  }, [viewMode, viewKey, hasCards, hasBoard])
   const [page, setPage] = useState(1)
   // Карточки не листаются постранично: показываем растущий срез и догружаем
   // очередную порцию, когда низ грида появляется в зоне видимости. Пагинация
@@ -585,7 +611,7 @@ export function ListPage<T>({
           </>
         )}
 
-        {renderCard && (
+        {(hasCards || hasBoard) && (
           <div className={styles.viewSwitch}>
             <button
               data-active={String(viewMode === 'list')}
@@ -594,13 +620,24 @@ export function ListPage<T>({
             >
               <Icon name="list" size={14} />
             </button>
-            <button
-              data-active={String(viewMode === 'cards')}
-              title="Карточки"
-              onClick={() => setViewMode('cards')}
-            >
-              <Icon name="cards" size={14} />
-            </button>
+            {hasCards && (
+              <button
+                data-active={String(viewMode === 'cards')}
+                title="Карточки"
+                onClick={() => setViewMode('cards')}
+              >
+                <Icon name="cards" size={14} />
+              </button>
+            )}
+            {hasBoard && (
+              <button
+                data-active={String(viewMode === 'board')}
+                title="Доска"
+                onClick={() => setViewMode('board')}
+              >
+                <Icon name="board" size={14} />
+              </button>
+            )}
           </div>
         )}
       </div>
@@ -816,12 +853,21 @@ export function ListPage<T>({
           </>
         ))}
 
-      {/* Пагинация — только у таблицы. Карточки догружаются по скроллу. */}
+      {viewMode === 'board' &&
+        renderBoard &&
+        (filtered.length === 0 ? empty : <>{renderBoard(filtered)}</>)}
+
+      {/* Пагинация — только у таблицы. Карточки догружаются по скроллу, доска
+          показывает всё сразу. */}
       {viewMode === 'cards' ? (
         <div className={styles.pager}>
           <div>
             Показано {cards.length} из {filtered.length}
           </div>
+        </div>
+      ) : viewMode === 'board' ? (
+        <div className={styles.pager}>
+          <div>Показано {filtered.length}</div>
         </div>
       ) : (
         <div className={styles.pager}>

@@ -172,3 +172,56 @@ describe('ListPage — карточки без пагинации', () => {
     expect(screen.queryByRole('button', { name: /Далее/ })).toBeNull()
   })
 })
+
+describe('ListPage — доска', () => {
+  const renderBoard = (props: { defaultView?: 'list' | 'cards' | 'board' } = {}) =>
+    render(
+      <ListPage<Row>
+        title="Проекты"
+        data={rows.slice(0, 3)}
+        getId={(r) => r.id}
+        columns={[{ key: 'name', label: 'Название', render: (r) => r.name }]}
+        filterConfig={filterConfig}
+        pageSize={20}
+        renderBoard={(list) => <div data-testid="board">доска: {list.length}</div>}
+        {...props}
+      />,
+    )
+
+  it('доска получает ВСЕ отфильтрованные строки, а не страницу', async () => {
+    renderBoard({ defaultView: 'board' })
+    expect(await screen.findByTestId('board')).toHaveTextContent('доска: 3')
+    // Таблицы в этом режиме нет — иначе строки показывались бы дважды.
+    expect(screen.queryByRole('table')).toBeNull()
+  })
+
+  it('переключатель появляется даже без карточек', async () => {
+    renderBoard()
+    expect(screen.getByRole('table')).toBeTruthy()
+    await userEvent.click(screen.getByTitle('Доска'))
+    expect(await screen.findByTestId('board')).toBeTruthy()
+  })
+
+  it('вид, исчезнувший у списка на ходу, откатывается к таблице', async () => {
+    // Доску потребитель может отдавать не всегда (права, ещё не загруженная
+    // схема). Без отката экран остался бы пустым: режим 'board' есть, рисовать
+    // его нечем.
+    const view = (withBoard: boolean) => (
+      <ListPage<Row>
+        title="Проекты"
+        data={rows.slice(0, 3)}
+        getId={(r) => r.id}
+        columns={[{ key: 'name', label: 'Название', render: (r) => r.name }]}
+        filterConfig={filterConfig}
+        renderBoard={withBoard ? (list) => <div data-testid="board">доска: {list.length}</div> : undefined}
+      />
+    )
+    const { rerender } = render(view(true))
+    await userEvent.click(screen.getByTitle('Доска'))
+    expect(screen.getByTestId('board')).toBeTruthy()
+
+    rerender(view(false))
+    await waitFor(() => expect(screen.getByRole('table')).toBeTruthy())
+    expect(screen.queryByTestId('board')).toBeNull()
+  })
+})
