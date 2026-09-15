@@ -23,7 +23,7 @@
 
 .cover {
   position: relative;
-  height: 84px;
+  height: var(--card-cover-h, 84px);
   flex-shrink: 0;
 }
 
