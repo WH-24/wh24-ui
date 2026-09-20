@@ -4,6 +4,7 @@
  * карточке выглядело одинаково.
  */
 import type { Field, FormFile, MoneyConfig, OrgOption, SelectConfig, SelectOption } from '../types.js'
+import type { FormCatalog } from '../api.js'
 
 export interface FormatContext {
   staff?: OrgOption[]
@@ -154,4 +155,18 @@ export function plural(n: number, one: string, few: string, many: string): strin
         ? few
         : many
   return `${formatNumber(n)}\u00a0${word}`
+}
+
+/** Опции поля catalog из справочника: значение — id строки (так проверяет бэкенд), подпись — display_column. */
+export function catalogOptions(cat: FormCatalog): SelectOption[] {
+  return cat.items.map((it) => {
+    const raw = it.values[cat.display_column]
+    const label = raw == null || raw === '' ? it.id : String(raw)
+    return { value: it.id, label }
+  })
+}
+
+/** catalog_key → опции, для FormatContext.catalogs. */
+export function catalogsToContext(cats: FormCatalog[]): Record<string, SelectOption[]> {
+  return Object.fromEntries(cats.map((c) => [c.key, catalogOptions(c)]))
 }

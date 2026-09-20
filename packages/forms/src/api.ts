@@ -94,6 +94,26 @@ export interface FormWithSchema {
   version: number
 }
 
+/** PUT /admin/forms/:id — метаданные формы (схема — отдельно, saveDraft). */
+export interface UpdateFormBody {
+  name?: string
+  nav_label?: string
+  page_title?: string
+  description?: string
+  icon?: string
+  record_access?: RecordAccess
+  sort_order?: number
+}
+
+/** Справочник глазами модуля: только активные строки, значение поля catalog — id строки. */
+export interface FormCatalog {
+  id: string
+  key: string
+  name: string
+  display_column: string
+  items: { id: string; values: Record<string, unknown> }[]
+}
+
 export interface PublishResult {
   form: Form
   version: FormVersion
@@ -183,6 +203,8 @@ export function createFormsApi(opts: FormsApiOptions) {
           request<Form[]>('GET', `/admin/forms${toQuery({ module_key: moduleKey })}`),
         create: (body: CreateFormBody) => request<Form>('POST', '/admin/forms', body),
         get: (id: string) => request<Form>('GET', `/admin/forms/${id}`),
+        update: (id: string, body: UpdateFormBody) =>
+          request<Form>('PUT', `/admin/forms/${id}`, body),
         saveDraft: (id: string, schema: SchemaDocument) =>
           request<Form>('PUT', `/admin/forms/${id}/draft`, schema),
         /** 422 → FormsApiError.blockers — чек-лист, показывать списком. */
@@ -228,6 +250,8 @@ export function createFormsApi(opts: FormsApiOptions) {
       /** Снапшот схемы версии — для записей старше текущей. */
       version: (formId: string, version: number) =>
         request<FormVersion>('GET', `/forms/${formId}/versions/${version}`),
+      /** Справочники, на которые ссылаются поля catalog текущей версии (под owning-guard, без гранта «Форм»). */
+      catalogs: (formId: string) => request<FormCatalog[]>('GET', `/forms/${formId}/catalogs`),
     },
 
     records: {

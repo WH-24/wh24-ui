@@ -9,11 +9,14 @@ export * from './types.js'
 export { evaluate, isEmptyValue, UnknownOpError } from './conditions/conditions.js'
 export type { Values } from './conditions/conditions.js'
 export { validateRecord, isEmpty } from './validate.js'
+export { normalize, validateForPublish, visibilityDeps, chainDepth, conditionFieldRefs } from './schema.js'
 export { createFormsApi, FormsApiError } from './api.js'
 export type {
   FormsApi,
   FormsApiOptions,
   FormWithSchema,
+  FormCatalog,
+  UpdateFormBody,
   ListRecordsQuery,
   ListResult,
   CreateFormBody,
@@ -36,6 +39,8 @@ export {
   formatSize,
   optionLabel,
   fieldOptions,
+  catalogOptions,
+  catalogsToContext,
   initials,
   isBlank,
   isNumericType,
