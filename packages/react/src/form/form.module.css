@@ -1,0 +1,552 @@
+/* ======================================================================
+   Примитивы формы — Input, Textarea, FieldRow/FieldGrid, MultiCombobox,
+   DateField, FileDrop.
+
+   Цвета/радиусы берутся из дизайн-токенов (@wowhaus-24/ui-tokens) —
+   как в DirectoryPicker, а не self-contained-бриджем как в старом
+   list/Combobox.module.css: потребитель пакета всё равно обязан
+   подключить tokens.css ради темизации, а второй набор значений
+   разъезжается с первым при любой правке палитры.
+
+   Портальные слои (меню мультивыбора, календарь) рендерятся в <body>,
+   вне поддерева страницы — токены им видны, потому что объявлены на
+   :root, а не на контейнере.
+   ====================================================================== */
+
+/* ─── Ряд поля: подпись · контрол · подсказка · ошибка ─────────────── */
+.row {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+
+.label {
+  font-size: 12px;
+  font-weight: var(--fw-medium);
+  color: var(--ink-2);
+}
+
+.req {
+  margin-left: 2px;
+  color: var(--terra);
+}
+
+.hint {
+  font-size: 11.5px;
+  line-height: 1.35;
+  color: var(--ink-3);
+}
+
+.error {
+  font-size: 12px;
+  line-height: 1.35;
+  color: var(--bad);
+}
+
+/* ─── Сетка 12 колонок ────────────────────────────────────────────────
+   span поля — 3/4/6/12 (schema.validSpans на бэкенде). На среднем
+   экране 3 и 4 нечитаемы (контрол сжимается до ~90px) — схлопываем до
+   6, НЕ трогая настройку администратора формы; на узком всё в одну. */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 12px 16px;
+}
+.grid > .row {
+  grid-column: span 6;
+}
+.grid > .row[data-span='3'] {
+  grid-column: span 3;
+}
+.grid > .row[data-span='4'] {
+  grid-column: span 4;
+}
+.grid > .row[data-span='12'] {
+  grid-column: span 12;
+}
+@media (max-width: 1100px) {
+  .grid > .row[data-span='3'],
+  .grid > .row[data-span='4'] {
+    grid-column: span 6;
+  }
+}
+@media (max-width: 768px) {
+  .grid > .row,
+  .grid > .row[data-span='3'],
+  .grid > .row[data-span='4'] {
+    grid-column: span 12;
+  }
+}
+
+/* ─── Базовый контрол ─────────────────────────────────────────────── */
+.control {
+  appearance: none;
+  width: 100%;
+  min-width: 0;
+  height: 36px;
+  padding: 0 10px;
+  border: 1px solid var(--bd-strong);
+  border-radius: var(--r-md);
+  background: var(--surf);
+  color: var(--ink);
+  font: inherit;
+  font-size: 13px;
+  outline: none;
+  transition:
+    border-color 0.1s,
+    box-shadow 0.1s;
+}
+.control::placeholder {
+  color: var(--ink-4);
+}
+.control:focus {
+  border-color: var(--terra);
+  box-shadow: 0 0 0 3px var(--terra-bg);
+}
+.control:disabled {
+  opacity: var(--disabled-opacity);
+  cursor: default;
+}
+.control[aria-invalid='true'] {
+  border-color: var(--bad-bd);
+}
+.control[aria-invalid='true']:focus {
+  border-color: var(--bad);
+  box-shadow: 0 0 0 3px var(--bad-bg);
+}
+
+/* Многострочное поле: базовый .control рассчитан на однострочный input
+   (фиксированная высота, нулевой вертикальный padding). */
+.textarea {
+  height: auto;
+  min-height: 76px;
+  padding: 8px 10px;
+  line-height: 1.45;
+  resize: vertical;
+}
+
+/* Значение только для чтения: выглядит как контрол, но приглушено фоном,
+   а не opacity — список read-only полей иначе выглядит «сломанным». */
+.static {
+  display: flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 7px 10px;
+  border: 1px solid var(--bd-soft);
+  border-radius: var(--r-md);
+  background: var(--surf-2);
+  color: var(--ink-2);
+  font-size: 13px;
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+/* ─── MultiCombobox ───────────────────────────────────────────────────
+   Контрол выглядит как .control, но растёт по высоте под чипы. */
+.mc {
+  position: relative;
+}
+.mcControl {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px;
+  min-height: 36px;
+  height: auto;
+  padding: 4px 36px 4px 6px;
+  cursor: text;
+}
+.mcControl[data-disabled='true'] {
+  opacity: var(--disabled-opacity);
+  cursor: default;
+}
+.mcChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  max-width: 100%;
+  padding: 3px 4px 3px 9px;
+  background: var(--surf-2);
+  color: var(--ink);
+  border-radius: var(--r-pill);
+  font-size: 12px;
+  font-weight: var(--fw-semibold);
+  line-height: 1.3;
+}
+.mcChipRm {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--ink-3);
+  cursor: pointer;
+  transition:
+    background 0.12s,
+    color 0.12s;
+}
+.mcChipRm:hover {
+  background: var(--bad-bg);
+  color: var(--bad);
+}
+.mcInput {
+  flex: 1 1 60px;
+  min-width: 60px;
+  height: 26px;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-size: 13px;
+}
+.mcInput::placeholder {
+  color: var(--ink-4);
+}
+.mcToggle {
+  position: absolute;
+  top: 0;
+  right: 1px;
+  bottom: 0;
+  width: 34px;
+  display: grid;
+  place-items: center;
+  color: var(--ink-3);
+  border: 0;
+  border-left: 1px solid var(--bd-soft);
+  border-radius: 0 var(--r-md) var(--r-md) 0;
+  background: transparent;
+  cursor: pointer;
+}
+.mcToggle:hover:not(:disabled) {
+  color: var(--ink);
+  background: var(--surf-2);
+}
+/* Чек-индикатор слева в пункте выпадашки мультивыбора. */
+.mcCheck {
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px solid var(--bd-strong);
+  border-radius: var(--r-sm);
+  color: #fff;
+}
+.mcCheckOn {
+  background: var(--terra);
+  border-color: var(--terra);
+}
+
+/* ─── Портальное меню (мультивыбор) ───────────────────────────────── */
+.menu {
+  z-index: var(--z-toast);
+  padding: 4px;
+  background: var(--surf);
+  border: 1px solid var(--bd);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-md);
+  overflow: auto;
+  max-height: 240px;
+}
+.option {
+  width: 100%;
+  min-height: 34px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 8px;
+  text-align: left;
+  color: var(--ink);
+  border: 0;
+  border-radius: var(--r-sm);
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+}
+.option:hover {
+  background: var(--surf-2);
+}
+.optionTitle {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-wrap: break-word;
+}
+.optionCode {
+  flex: 0 0 auto;
+  color: var(--ink-3);
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+.empty {
+  padding: 9px 8px;
+  color: var(--ink-3);
+  font-size: 13px;
+}
+
+/* ─── DateField ───────────────────────────────────────────────────── */
+.dpControl {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  text-align: left;
+  color: var(--ink);
+}
+.dpInput {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  background: transparent;
+  font: inherit;
+  color: inherit;
+  outline: none;
+}
+.dpInput::placeholder {
+  color: var(--ink-4);
+}
+.dpIcon {
+  display: inline-flex;
+  flex-shrink: 0;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
+  color: var(--ink-3);
+}
+.dpIcon:disabled {
+  cursor: default;
+}
+.dpPop {
+  width: 268px;
+  padding: 10px;
+  background: var(--surf);
+  border: 1px solid var(--bd);
+  border-radius: var(--r-xl);
+  box-shadow: var(--shadow-md);
+  user-select: none;
+  z-index: var(--z-toast);
+}
+.dpHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.dpTitle {
+  font-size: 13.5px;
+  font-weight: var(--fw-semibold);
+  color: var(--ink);
+}
+.dpNav {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  font-size: 18px;
+  line-height: 1;
+  color: var(--ink-2);
+  background: transparent;
+  border: none;
+  border-radius: var(--r-lg);
+  cursor: pointer;
+}
+.dpNav:hover {
+  background: var(--surf-2);
+  color: var(--ink);
+}
+.dpGrid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+.dpGridWd {
+  margin-bottom: 2px;
+}
+.dpWd {
+  display: grid;
+  place-items: center;
+  height: 26px;
+  font-size: 11px;
+  color: var(--ink-3);
+}
+.dpEmpty {
+  height: 32px;
+}
+.dpDay {
+  height: 32px;
+  font-size: 13px;
+  color: var(--ink);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--r-lg);
+  cursor: pointer;
+  font-variant-numeric: tabular-nums;
+}
+.dpDay:hover {
+  background: var(--surf-2);
+}
+.dpToday {
+  border-color: var(--terra-bd);
+  color: var(--terra-d);
+  font-weight: var(--fw-semibold);
+}
+.dpSel,
+.dpSel:hover {
+  background: var(--terra);
+  border-color: var(--terra);
+  color: #fff;
+  font-weight: var(--fw-semibold);
+}
+.dpOff {
+  color: var(--ink-3);
+  opacity: 0.4;
+  cursor: default;
+}
+.dpOff:hover {
+  background: transparent;
+}
+.dpFoot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--bd-soft);
+}
+.dpLink {
+  font-size: 12.5px;
+  font-weight: var(--fw-medium);
+  color: var(--terra-d);
+  background: transparent;
+  border: none;
+  padding: 4px 6px;
+  border-radius: var(--r-sm);
+  cursor: pointer;
+}
+.dpLink:hover {
+  background: var(--terra-bg);
+}
+.dpLinkMuted {
+  color: var(--ink-3);
+}
+.dpLinkMuted:hover {
+  background: var(--surf-2);
+}
+.dpLink:disabled {
+  opacity: 0.4;
+  cursor: default;
+  background: transparent;
+}
+
+/* ─── FileDrop ────────────────────────────────────────────────────── */
+.fd {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.fdZone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 18px 16px;
+  border: 1px dashed var(--bd-strong);
+  border-radius: var(--r-lg);
+  background: var(--surf-2);
+  color: var(--ink-3);
+  cursor: pointer;
+  text-align: center;
+  transition:
+    border-color 0.12s,
+    background 0.12s;
+}
+.fdZone:hover,
+.fdZone:focus-visible {
+  border-color: var(--terra-bd);
+}
+.fdZone[data-over='true'] {
+  border-color: var(--terra);
+  background: var(--terra-bg);
+}
+.fdZone[data-disabled='true'] {
+  opacity: var(--disabled-opacity);
+  cursor: default;
+}
+.fdIcon {
+  color: var(--ink-4);
+}
+.fdTitle {
+  font-size: 13px;
+  font-weight: var(--fw-medium);
+  color: var(--ink-2);
+}
+.fdSub {
+  font-size: 12px;
+  color: var(--ink-3);
+}
+.fdLink {
+  color: var(--terra-d);
+  text-decoration: underline;
+}
+.fdList {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.fdItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border: 1px solid var(--bd-soft);
+  border-radius: var(--r-md);
+  background: var(--surf);
+  font-size: 12.5px;
+  color: var(--ink);
+}
+.fdName {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: inherit;
+  text-decoration: none;
+}
+.fdName[href]:hover {
+  color: var(--terra-d);
+  text-decoration: underline;
+}
+.fdSize {
+  flex: 0 0 auto;
+  color: var(--ink-3);
+  font-size: 11.5px;
+  font-variant-numeric: tabular-nums;
+}
+.fdRm {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3px;
+  border: 0;
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--ink-3);
+  cursor: pointer;
+}
+.fdRm:hover {
+  background: var(--bad-bg);
+  color: var(--bad);
+}

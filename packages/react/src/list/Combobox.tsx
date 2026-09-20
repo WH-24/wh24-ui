@@ -1,4 +1,12 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import {
+  Fragment,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+} from "react";
 import { createPortal } from "react-dom";
 
 import { Icon } from "./Icon.js";
@@ -12,13 +20,22 @@ export interface ComboboxOption {
   value: string; // стабильный id (department_id / position_id / …)
   label: string; // основной текст
   hint?: string | null; // вторичный текст (код), участвует в поиске
-  // Аватар опции (для списков сотрудников): фото или инициалы-фолбэк. Когда
-  // заданы — перед подписью рисуется кружок аватарки.
-  avatar?: string | null; // URL фото
+  /**
+   * Аватар опции (для списков сотрудников). Если задан (в т.ч. null или пустой
+   * строкой) — перед подписью рисуется кружок: фото по URL, иначе инициалы
+   * (`initials`, а без них — из первых букв label). `undefined` — без кружка.
+   */
+  avatar?: string | null;
   initials?: string; // фолбэк-инициалы, если фото нет
+  /**
+   * Заголовок группы. Перед первой опцией каждой новой группы рисуется
+   * разделитель — список смешанных сущностей иначе читается как одна свалка.
+   * Опции одной группы должны идти подряд: группировка — по смене значения.
+   */
+  group?: string;
 }
 
-interface ComboboxProps {
+export interface ComboboxProps {
   options: ComboboxOption[];
   value: string;
   onChange: (value: string) => void;
@@ -28,15 +45,27 @@ interface ComboboxProps {
   ariaLabel?: string;
   /** Доп. класс на корень `.combo` (например для тулбара). */
   className?: string;
+  /** Доп. класс на портальное меню — чтобы стилизовать опции точечно. */
+  menuClassName?: string;
   /** Инлайн-стиль корня (например ширина в тулбаре-фильтре). */
   style?: CSSProperties;
   disabled?: boolean;
+  /** Значение не прошло проверку — красная рамка + aria-invalid. */
+  invalid?: boolean;
   /**
    * Можно ли сбросить значение в пустое (опция-плейсхолдер в меню). true для
    * фильтров и необязательных полей; false для обязательных enum (статус и т.п.),
    * где пустого значения быть не должно. По умолчанию true.
    */
   clearable?: boolean;
+  /**
+   * Можно ли печатать в поле для фильтрации. false — поле только для чтения,
+   * работает как обычный дропдаун (клик открывает список, поиска нет). По
+   * умолчанию true. Полезно для коротких списков вроде выбора версии.
+   */
+  searchable?: boolean;
+  /** Текст пустого меню. */
+  emptyText?: string;
 }
 
 interface MenuRect {
@@ -44,6 +73,29 @@ interface MenuRect {
   left: number;
   width: number;
   maxWidth: number;
+}
+
+/** Инициалы из ФИО для аватара-заглушки: первые буквы 1–2 слов. */
+function optionInitials(label: string): string {
+  const w = label
+    .replace(/[«»"'()]/g, " ")
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
+  if (!w.length) return "?";
+  return (w[0]![0]! + (w[1]?.[0] ?? "")).toUpperCase();
+}
+
+function OptionAvatar({ opt }: { opt: ComboboxOption }) {
+  return (
+    <span className={styles.avatar} aria-hidden>
+      {opt.avatar ? (
+        <img src={opt.avatar} alt="" loading="lazy" />
+      ) : (
+        opt.initials ?? optionInitials(opt.label)
+      )}
+    </span>
+  );
 }
 
 /**
@@ -63,9 +115,13 @@ export function Combobox({
   id,
   ariaLabel = "Открыть список",
   className,
+  menuClassName,
   style,
   disabled = false,
+  invalid = false,
   clearable = true,
+  searchable = true,
+  emptyText = "Ничего не найдено",
 }: ComboboxProps) {
   const selected = options.find((o) => o.value === value) ?? null;
   const [open, setOpen] = useState(false);
@@ -79,6 +135,8 @@ export function Combobox({
   }, [selected?.value, selected?.label]);
 
   const filtered = useMemo(() => {
+    // Без поиска — всегда весь список (поле только для чтения).
+    if (!searchable) return options;
     const q = query.trim().toLowerCase();
     // Пока в поле — выбранное значение (пользователь ещё не начал печатать
     // новое), показываем весь список: можно просто открыть и выбрать.
@@ -86,7 +144,7 @@ export function Combobox({
     return options.filter(
       (o) => o.label.toLowerCase().includes(q) || (o.hint ?? "").toLowerCase().includes(q),
     );
-  }, [options, query, selected?.label]);
+  }, [options, query, selected?.label, searchable]);
 
   // Позиционируем портальное меню под контролом и держим в пределах вьюпорта.
   useLayoutEffect(() => {
@@ -130,11 +188,13 @@ export function Combobox({
     setOpen(false);
   };
 
+  const withAvatar = selected?.avatar !== undefined;
+
   const menu =
     open && rect
       ? createPortal(
           <div
-            className={styles.menu}
+            className={[styles.menu, menuClassName].filter(Boolean).join(" ")}
             role="listbox"
             style={{
               position: "fixed",
@@ -145,12 +205,15 @@ export function Combobox({
               zIndex: 1000,
             }}
           >
-            {clearable && (
+            {/* Сброс показываем, только когда есть что сбрасывать: при пустом
+                значении эта строка повторяла плейсхолдер и читалась как обычный
+                пункт списка. */}
+            {clearable && value !== "" && (
               <button
                 type="button"
-                className={styles.option}
+                className={[styles.option, styles.optionClear].join(" ")}
                 role="option"
-                aria-selected={!value}
+                aria-selected={false}
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => choose(null)}
               >
@@ -158,21 +221,26 @@ export function Combobox({
               </button>
             )}
             {filtered.length === 0 ? (
-              <div className={styles.empty}>Ничего не найдено</div>
+              <div className={styles.empty}>{emptyText}</div>
             ) : (
-              filtered.map((o) => (
-                <button
-                  key={o.value}
-                  type="button"
-                  className={styles.option}
-                  role="option"
-                  aria-selected={o.value === value}
-                  onMouseDown={(e) => e.preventDefault()}
-                  onClick={() => choose(o)}
-                >
-                  <span className={styles.optionTitle}>{o.label}</span>
-                  {o.hint && <span className={styles.optionCode}>{o.hint}</span>}
-                </button>
+              filtered.map((o, i) => (
+                <Fragment key={o.value}>
+                  {o.group && o.group !== filtered[i - 1]?.group && (
+                    <div className={styles.group}>{o.group}</div>
+                  )}
+                  <button
+                    type="button"
+                    className={styles.option}
+                    role="option"
+                    aria-selected={o.value === value}
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={() => choose(o)}
+                  >
+                    {o.avatar !== undefined && <OptionAvatar opt={o} />}
+                    <span className={styles.optionTitle}>{o.label}</span>
+                    {o.hint && <span className={styles.optionCode}>{o.hint}</span>}
+                  </button>
+                </Fragment>
               ))
             )}
           </div>,
@@ -187,17 +255,29 @@ export function Combobox({
       onBlur={disabled ? undefined : closeAndReset}
     >
       <div className={styles.control} ref={controlRef}>
+        {withAvatar && selected && (
+          <span className={styles.controlAvatar}>
+            <OptionAvatar opt={selected} />
+          </span>
+        )}
         <input
           id={id}
-          className={[styles.formInput, styles.input].join(" ")}
+          className={[styles.formInput, styles.input, withAvatar ? styles.inputAvatar : ""]
+            .filter(Boolean)
+            .join(" ")}
           role="combobox"
           aria-expanded={open}
-          aria-autocomplete="list"
+          aria-autocomplete={searchable ? "list" : "none"}
+          aria-invalid={invalid || undefined}
           disabled={disabled}
+          readOnly={!searchable}
           value={query}
           placeholder={placeholder}
+          style={!searchable ? { cursor: "pointer" } : undefined}
           onFocus={() => !disabled && setOpen(true)}
+          onClick={() => !disabled && !searchable && setOpen(true)}
           onChange={(e) => {
+            if (!searchable) return;
             setQuery(e.target.value);
             setOpen(true);
           }}

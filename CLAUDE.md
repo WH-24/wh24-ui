@@ -9,7 +9,7 @@
 | `@wowhaus-24/ui-tokens` | 0.1.1 | Frame-agnostic CSS-переменные + базовые стили + vanilla theme API. CSS-экспорты: `./tokens.css` (палитра/радиусы/типографика), `./base.css`, `./button.css` (канонические `.btn-*`, primary = терракот `--terra`). JS: `.` (типизир. токены), `./theme` (`setTheme`) |
 | `@wowhaus-24/ui-react` | 0.1.1 | React 18+ headless-компоненты (Radix Primitives + Floating UI, без CSS-in-JS, без Tailwind). Зависит от `ui-tokens` |
 
-Компоненты `ui-react`: `ThemeProvider`/`useTheme`, `AppShell`, `Avatar` (только инициалы), `Card`, `Chip`, `IconButton`, `MegaDropdown`, `NavTile`, `Pill`, `SortPill`, `StatBar`, `BestPracticeBadge`, `TypeBadge`, `TypeMarker`, `UtilChip`, `ComingSoon`.
+Компоненты `ui-react`: `ThemeProvider`/`useTheme`, `AppShell`, `Avatar` (только инициалы), `Card`, `Chip`, `IconButton`, `MegaDropdown`, `NavTile`, `Pill`, `SortPill`, `StatBar`, `BestPracticeBadge`, `TypeBadge`, `TypeMarker`, `UtilChip`, `ComingSoon`, `ListPage`/`FilterBar`, `DirectoryPicker`, примитивы формы (`src/form/`: `Input`, `Textarea`, `FieldRow`/`FieldGrid`/`StaticValue`, `MultiCombobox`, `DateField`, `FileDrop`) и общий `Combobox` (`src/list/`).
 
 Тема: `html[data-theme="dark"]`. Persistence — `localStorage['wh-ui-theme']`, cross-tab sync. Терракот не меняется между темами.
 
