@@ -1,0 +1,11 @@
+{
+  "name": "all_group_requires_every_condition",
+  "group": {
+    "all": [
+      { "field": "type", "op": "eq", "value": "urgent" },
+      { "field": "amount", "op": "gt", "value": 1000 }
+    ]
+  },
+  "values": { "type": "urgent", "amount": 5000 },
+  "expect": true
+}

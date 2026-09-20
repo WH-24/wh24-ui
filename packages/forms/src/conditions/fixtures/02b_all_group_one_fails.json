@@ -1,0 +1,11 @@
+{
+  "name": "all_group_one_condition_fails",
+  "group": {
+    "all": [
+      { "field": "type", "op": "eq", "value": "urgent" },
+      { "field": "amount", "op": "gt", "value": 1000 }
+    ]
+  },
+  "values": { "type": "urgent", "amount": 10 },
+  "expect": false
+}

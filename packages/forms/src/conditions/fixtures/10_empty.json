@@ -1,0 +1,6 @@
+{
+  "name": "empty_operator_on_absent_field",
+  "group": { "all": [ { "field": "comment", "op": "empty" } ] },
+  "values": {},
+  "expect": true
+}

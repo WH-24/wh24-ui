@@ -1,0 +1,11 @@
+{
+  "name": "any_group_one_of_two",
+  "group": {
+    "any": [
+      { "field": "region", "op": "eq", "value": "msk" },
+      { "field": "region", "op": "eq", "value": "spb" }
+    ]
+  },
+  "values": { "region": "spb" },
+  "expect": true
+}

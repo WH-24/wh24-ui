@@ -1,0 +1,6 @@
+{
+  "name": "contains_substring",
+  "group": { "all": [ { "field": "title", "op": "contains", "value": "срочно" } ] },
+  "values": { "title": "Заявка: срочно нужен пропуск" },
+  "expect": true
+}
