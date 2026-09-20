@@ -20,3 +20,24 @@ export type {
   PyrusImportBody,
   PyrusImportResult,
 } from './api.js'
+
+// React-рендер записи: реестр контролов по типу поля + тело формы.
+export { fieldRegistry, FieldControl } from './render/registry.js'
+export type { FieldRenderer, FieldRenderProps, RenderContext, RenderMode } from './render/registry.js'
+export { FormRenderer, errorsByField, visibleFields } from './render/FormRenderer.js'
+export type { FormRendererProps, FieldErrors } from './render/FormRenderer.js'
+export {
+  formatValue,
+  formatNumber,
+  formatMoney,
+  formatDate,
+  formatDateTime,
+  formatSize,
+  optionLabel,
+  fieldOptions,
+  initials,
+  isBlank,
+  isNumericType,
+  plural,
+} from './render/format.js'
+export type { FormatContext } from './render/format.js'
