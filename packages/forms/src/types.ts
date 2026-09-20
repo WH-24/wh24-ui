@@ -324,6 +324,7 @@ export type RecordErrorCode =
   | 'not_in_options'
   | 'not_in_catalog'
   | 'max_files'
+  | 'max_rows'
   | 'unknown_field'
   | 'unknown_column'
 

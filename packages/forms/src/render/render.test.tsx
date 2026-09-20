@@ -21,7 +21,10 @@ const f = (over: Partial<Field> & Pick<Field, 'id' | 'type'>): Field => ({
   ...over,
 })
 
-const doc = (fields: Field[], sections = [{ id: 's1', title: 'Основное', sort: 0 }]): SchemaDocument => ({
+const doc = (
+  fields: Field[],
+  sections = [{ id: 's1', title: 'Основное', sort: 0 }],
+): SchemaDocument => ({
   schema_version: 1,
   title_field: fields[0]?.id ?? '',
   sections,
@@ -57,6 +60,20 @@ function Harness({
 const out = () => JSON.parse(screen.getByTestId('out').textContent || '{}') as RecordData
 
 describe('fieldRegistry', () => {
+  it('link во view: http(s) — ссылкой, остальное — текстом', () => {
+    const d = doc([f({ id: 'l', type: 'link', label: 'Сайт' })])
+    const { rerender } = render(
+      <FormRenderer doc={d} values={{ l: 'https://ok.example' }} mode="view" />,
+    )
+    expect(screen.getByRole('link', { name: 'https://ok.example' })).toHaveAttribute(
+      'href',
+      'https://ok.example',
+    )
+    rerender(<FormRenderer doc={d} values={{ l: 'javascript:alert(1)' }} mode="view" />)
+    expect(screen.queryByRole('link')).toBeNull()
+    expect(screen.getByText('javascript:alert(1)')).toBeInTheDocument()
+  })
+
   it('покрывает все типы поля из контракта', () => {
     for (const t of FIELD_TYPES) {
       expect(fieldRegistry[t], t).toBeDefined()
@@ -69,7 +86,10 @@ describe('fieldRegistry', () => {
 describe('FormRenderer — структура', () => {
   it('секции в порядке sort, пустая секция не рисуется', () => {
     const d = doc(
-      [f({ id: 'a', type: 'text', section_id: 'b' }), f({ id: 'c', type: 'text', section_id: 'a' })],
+      [
+        f({ id: 'a', type: 'text', section_id: 'b' }),
+        f({ id: 'c', type: 'text', section_id: 'a' }),
+      ],
       [
         { id: 'a', title: 'Вторая', sort: 2 },
         { id: 'b', title: 'Первая', sort: 1 },
@@ -83,7 +103,9 @@ describe('FormRenderer — структура', () => {
   })
 
   it('label связан с контролом, звёздочка только в edit, ошибка вытесняет подсказку', () => {
-    const d = doc([f({ id: 'a', type: 'text', label: 'Название', required: true, hint: 'Коротко' })])
+    const d = doc([
+      f({ id: 'a', type: 'text', label: 'Название', required: true, hint: 'Коротко' }),
+    ])
     const { rerender } = render(<Harness d={d} />)
     expect(screen.getByLabelText('Название*')).toBeInstanceOf(HTMLInputElement)
     expect(screen.getByText('Коротко')).toBeInTheDocument()
@@ -93,7 +115,13 @@ describe('FormRenderer — структура', () => {
         doc={d}
         values={{}}
         mode="edit"
-        errors={[{ field_id: 'a', code: 'required', message: 'поле «Название» обязательно для заполнения' }]}
+        errors={[
+          {
+            field_id: 'a',
+            code: 'required',
+            message: 'поле «Название» обязательно для заполнения',
+          },
+        ]}
       />,
     )
     expect(screen.getByText('поле «Название» обязательно для заполнения')).toBeInTheDocument()
@@ -180,12 +208,22 @@ describe('FormRenderer — контролы пишут значения нужн
     const user = userEvent.setup()
     const d = doc([
       f({ id: 'c', type: 'checkbox', label: 'Флаг' }),
-      f({ id: 's', type: 'select', label: 'Стадия', config: { options: [{ value: 'rd', label: 'РД' }] } }),
+      f({
+        id: 's',
+        type: 'select',
+        label: 'Стадия',
+        config: { options: [{ value: 'rd', label: 'РД' }] },
+      }),
       f({
         id: 'm',
         type: 'multiselect',
         label: 'Разделы',
-        config: { options: [{ value: 'ar', label: 'АР' }, { value: 'kr', label: 'КР' }] },
+        config: {
+          options: [
+            { value: 'ar', label: 'АР' },
+            { value: 'kr', label: 'КР' },
+          ],
+        },
       }),
     ])
     render(<Harness d={d} />)
@@ -201,7 +239,10 @@ describe('FormRenderer — контролы пишут значения нужн
 
   it('date: ISO; datetime: RFC 3339 с локальной зоной', async () => {
     const user = userEvent.setup()
-    const d = doc([f({ id: 'd', type: 'date', label: 'Дата' }), f({ id: 'dt', type: 'datetime', label: 'Когда' })])
+    const d = doc([
+      f({ id: 'd', type: 'date', label: 'Дата' }),
+      f({ id: 'dt', type: 'datetime', label: 'Когда' }),
+    ])
     render(<Harness d={d} />)
     await user.type(screen.getByLabelText('Дата'), '15032026')
     expect(out().d).toBe('2026-03-15')
@@ -253,8 +294,12 @@ describe('FormRenderer — контролы пишут значения нужн
     expect(screen.getByRole('button', { name: '+ Строка' })).toBeDisabled()
     const sums = screen.getAllByRole('textbox', { name: 'Сумма' })
     await user.type(sums[0]!, '3200000')
+    // Дробь набирается: «12,» не превращается в 12 на полпути.
+    await user.type(sums[1]!, '5400000,5')
+    expect(out().t).toEqual([{ c2: 3200000 }, { c2: 5400000.5 }])
+    expect((sums[1] as HTMLInputElement).value).toBe('5400000,5')
+    await user.clear(sums[1]!)
     await user.type(sums[1]!, '5400000')
-    expect(out().t).toEqual([{ c2: 3200000 }, { c2: 5400000 }])
     expect(screen.getByText('8 600 000 ₽')).toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: 'Удалить строку 2' }))
     await user.click(screen.getByRole('button', { name: 'Удалить строку 1' }))
@@ -276,7 +321,21 @@ describe('FormRenderer — контролы пишут значения нужн
         doc={d}
         values={{ fl: ['f1'] }}
         mode="view"
-        ctx={{ filesById: { f1: { id: 'f1', record_id: 'r', field_id: 'fl', name: 'смета.pdf', size: 2048, mime: '', uploaded_by: '', uploaded_at: '', deleted_at: null } } }}
+        ctx={{
+          filesById: {
+            f1: {
+              id: 'f1',
+              record_id: 'r',
+              field_id: 'fl',
+              name: 'смета.pdf',
+              size: 2048,
+              mime: '',
+              uploaded_by: '',
+              uploaded_at: '',
+              deleted_at: null,
+            },
+          },
+        }}
       />,
     )
     expect(screen.getByText('смета.pdf')).toBeInTheDocument()

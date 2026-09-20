@@ -133,6 +133,9 @@ export interface PyrusImportResult {
   report: { field?: string; reason: string }[]
 }
 
+/** Сегмент пути: id из адреса страницы не должен уметь дописать маршрут. */
+const seg = (v: string) => encodeURIComponent(v)
+
 async function parseBody(res: Response): Promise<unknown> {
   const text = await res.text()
   if (!text) return null
@@ -202,37 +205,41 @@ export function createFormsApi(opts: FormsApiOptions) {
         list: (moduleKey?: string) =>
           request<Form[]>('GET', `/admin/forms${toQuery({ module_key: moduleKey })}`),
         create: (body: CreateFormBody) => request<Form>('POST', '/admin/forms', body),
-        get: (id: string) => request<Form>('GET', `/admin/forms/${id}`),
+        get: (id: string) => request<Form>('GET', `/admin/forms/${seg(id)}`),
         update: (id: string, body: UpdateFormBody) =>
-          request<Form>('PUT', `/admin/forms/${id}`, body),
+          request<Form>('PUT', `/admin/forms/${seg(id)}`, body),
         saveDraft: (id: string, schema: SchemaDocument) =>
-          request<Form>('PUT', `/admin/forms/${id}/draft`, schema),
+          request<Form>('PUT', `/admin/forms/${seg(id)}/draft`, schema),
         /** 422 → FormsApiError.blockers — чек-лист, показывать списком. */
         publish: (id: string, changeNote: string) =>
-          request<PublishResult>('POST', `/admin/forms/${id}/publish`, { change_note: changeNote }),
-        versions: (id: string) => request<FormVersion[]>('GET', `/admin/forms/${id}/versions`),
+          request<PublishResult>('POST', `/admin/forms/${seg(id)}/publish`, {
+            change_note: changeNote,
+          }),
+        versions: (id: string) => request<FormVersion[]>('GET', `/admin/forms/${seg(id)}/versions`),
         version: (id: string, version: number) =>
-          request<FormVersion>('GET', `/admin/forms/${id}/versions/${version}`),
-        archive: (id: string) => request<Form>('POST', `/admin/forms/${id}/archive`),
+          request<FormVersion>('GET', `/admin/forms/${seg(id)}/versions/${seg(String(version))}`),
+        archive: (id: string) => request<Form>('POST', `/admin/forms/${seg(id)}/archive`),
       },
       catalogs: {
         list: () => request<Catalog[]>('GET', '/admin/catalogs'),
         create: (body: { key: string; name: string; columns?: unknown; display_column?: string }) =>
           request<Catalog>('POST', '/admin/catalogs', body),
-        get: (id: string) => request<Catalog>('GET', `/admin/catalogs/${id}`),
+        get: (id: string) => request<Catalog>('GET', `/admin/catalogs/${seg(id)}`),
         update: (id: string, body: { name?: string; columns?: unknown; display_column?: string }) =>
-          request<Catalog>('PUT', `/admin/catalogs/${id}`, body),
-        archive: (id: string) => request<Catalog>('POST', `/admin/catalogs/${id}/archive`),
-        items: (id: string) => request<CatalogItem[]>('GET', `/admin/catalogs/${id}/items`),
+          request<Catalog>('PUT', `/admin/catalogs/${seg(id)}`, body),
+        archive: (id: string) => request<Catalog>('POST', `/admin/catalogs/${seg(id)}/archive`),
+        items: (id: string) => request<CatalogItem[]>('GET', `/admin/catalogs/${seg(id)}/items`),
         addItem: (id: string, body: { values: Record<string, unknown>; sort_order?: number }) =>
-          request<CatalogItem>('POST', `/admin/catalogs/${id}/items`, body),
-        updateItem: (itemId: string, body: { values: Record<string, unknown>; sort_order?: number }) =>
-          request<CatalogItem>('PUT', `/admin/catalogs/items/${itemId}`, body),
+          request<CatalogItem>('POST', `/admin/catalogs/${seg(id)}/items`, body),
+        updateItem: (
+          itemId: string,
+          body: { values: Record<string, unknown>; sort_order?: number },
+        ) => request<CatalogItem>('PUT', `/admin/catalogs/items/${seg(itemId)}`, body),
         archiveItem: (itemId: string) =>
-          request<CatalogItem>('POST', `/admin/catalogs/items/${itemId}/archive`),
+          request<CatalogItem>('POST', `/admin/catalogs/items/${seg(itemId)}/archive`),
       },
       audit: (entityType: 'form' | 'catalog', entityId: string) =>
-        request<AuditLogEntry[]>('GET', `/admin/audit/${entityType}/${entityId}`),
+        request<AuditLogEntry[]>('GET', `/admin/audit/${seg(entityType)}/${seg(entityId)}`),
       importPyrus: (body: PyrusImportBody) =>
         request<PyrusImportResult>('POST', '/admin/import/pyrus', body, { raw: true }),
     },
@@ -246,53 +253,70 @@ export function createFormsApi(opts: FormsApiOptions) {
       listForModule: (moduleKey: string) =>
         request<Form[]>('GET', `/forms${toQuery({ module_key: moduleKey })}`),
       /** Форма + схема текущей опубликованной версии. */
-      get: (formId: string) => request<FormWithSchema>('GET', `/forms/${formId}`),
+      get: (formId: string) => request<FormWithSchema>('GET', `/forms/${seg(formId)}`),
       /** Снапшот схемы версии — для записей старше текущей. */
       version: (formId: string, version: number) =>
-        request<FormVersion>('GET', `/forms/${formId}/versions/${version}`),
+        request<FormVersion>('GET', `/forms/${seg(formId)}/versions/${seg(String(version))}`),
       /** Справочники, на которые ссылаются поля catalog текущей версии (под owning-guard, без гранта «Форм»). */
-      catalogs: (formId: string) => request<FormCatalog[]>('GET', `/forms/${formId}/catalogs`),
+      catalogs: (formId: string) => request<FormCatalog[]>('GET', `/forms/${seg(formId)}/catalogs`),
     },
 
     records: {
       /** Метаданные вложений записи (имена, размеры) — ссылок здесь нет, только через fileUrl. */
       files: (formId: string, id: string) =>
-        request<FormFile[]>('GET', `/forms/${formId}/records/${id}/files`),
+        request<FormFile[]>('GET', `/forms/${seg(formId)}/records/${seg(id)}/files`),
       list: (formId: string, q: ListRecordsQuery = {}) =>
         request<ListResult<FormRecord>>(
           'GET',
-          `/forms/${formId}/records${toQuery({ search: q.search, page: q.page, limit: q.limit, sort: q.sort })}`,
+          `/forms/${seg(formId)}/records${toQuery({ search: q.search, page: q.page, limit: q.limit, sort: q.sort })}`,
           undefined,
           { raw: true },
         ),
       /** 400 → FormsApiError.fields — ошибки заполнения списком; 409 — форма не опубликована. */
       create: (formId: string, body: { title: string; data: RecordData }) =>
-        request<FormRecord>('POST', `/forms/${formId}/records`, body),
+        request<FormRecord>('POST', `/forms/${seg(formId)}/records`, body),
       get: (formId: string, id: string) =>
-        request<FormRecord>('GET', `/forms/${formId}/records/${id}`),
+        request<FormRecord>('GET', `/forms/${seg(formId)}/records/${seg(id)}`),
       update: (formId: string, id: string, body: { title: string; data: RecordData }) =>
-        request<FormRecord>('PUT', `/forms/${formId}/records/${id}`, body),
+        request<FormRecord>('PUT', `/forms/${seg(formId)}/records/${seg(id)}`, body),
       remove: (formId: string, id: string) =>
-        request<{ status: string }>('DELETE', `/forms/${formId}/records/${id}`, undefined, {
-          raw: true,
-        }),
+        request<{ status: string }>(
+          'DELETE',
+          `/forms/${seg(formId)}/records/${seg(id)}`,
+          undefined,
+          {
+            raw: true,
+          },
+        ),
       restore: (formId: string, id: string) =>
-        request<{ status: string }>('POST', `/forms/${formId}/records/${id}/restore`, undefined, {
-          raw: true,
-        }),
+        request<{ status: string }>(
+          'POST',
+          `/forms/${seg(formId)}/records/${seg(id)}/restore`,
+          undefined,
+          {
+            raw: true,
+          },
+        ),
       history: (formId: string, id: string) =>
-        request<RecordHistoryEntry[]>('GET', `/forms/${formId}/records/${id}/history`),
+        request<RecordHistoryEntry[]>('GET', `/forms/${seg(formId)}/records/${seg(id)}/history`),
       /** multipart, поле `file`; только в поле типа file из схемы версии записи. */
       uploadFile: (formId: string, id: string, fieldId: string, file: File) => {
         const fd = new FormData()
         fd.append('file', file, file.name)
-        return request<FormFile>('POST', `/forms/${formId}/records/${id}/files/${fieldId}`, fd)
+        return request<FormFile>(
+          'POST',
+          `/forms/${seg(formId)}/records/${seg(id)}/files/${seg(fieldId)}`,
+          fd,
+        )
       },
       /** presigned-GET на 10 минут. Файл чужой записи — 404 (не 403): перебор id не выдаёт существование. */
       fileUrl: (formId: string, id: string, fileId: string) =>
-        request<FileUrl>('GET', `/forms/${formId}/records/${id}/files/${fileId}/url`),
+        request<FileUrl>(
+          'GET',
+          `/forms/${seg(formId)}/records/${seg(id)}/files/${seg(fileId)}/url`,
+        ),
       /** URL выгрузки CSV — открывать как ссылку; заголовки авторизации хост передаёт сам. */
-      exportCsvUrl: (formId: string) => `${opts.baseUrl}/forms/${formId}/export.csv`,
+      exportCsvUrl: (formId: string) => `${opts.baseUrl}/forms/${seg(formId)}/export.csv`,
     },
 
     options: {

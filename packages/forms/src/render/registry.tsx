@@ -77,8 +77,6 @@ export interface FieldRenderProps {
 export interface FieldRenderer {
   Edit: ComponentType<FieldRenderProps>
   View: ComponentType<FieldRenderProps>
-  /** Значение по умолчанию для новой записи (undefined — ключа нет). */
-  empty?: () => unknown
   /** Числовые типы выравниваются вправо (список, таблица). */
   align?: 'left' | 'right'
 }
@@ -218,7 +216,7 @@ const number: FieldRenderer = {
       id={id}
       value={value}
       onChange={onChange}
-      suffix={(field.config as NumberConfig & { suffix?: string } | undefined)?.suffix}
+      suffix={(field.config as (NumberConfig & { suffix?: string }) | undefined)?.suffix}
       placeholder={field.placeholder}
       invalid={invalid}
       disabled={disabled}
@@ -345,7 +343,10 @@ const datetime: FieldRenderer = {
 
 function CheckGlyph({ on }: { on: boolean }) {
   return (
-    <span className={[styles.checkBox, on ? styles.checkBoxOn : ''].filter(Boolean).join(' ')} aria-hidden>
+    <span
+      className={[styles.checkBox, on ? styles.checkBoxOn : ''].filter(Boolean).join(' ')}
+      aria-hidden
+    >
       {on && <Icon name="check" size={11} stroke={2.4} />}
     </span>
   )
@@ -376,7 +377,6 @@ const checkbox: FieldRenderer = {
       {value === true ? 'Да' : 'Нет'}
     </StaticValue>
   ),
-  empty: () => false,
 }
 
 const email: FieldRenderer = {
@@ -431,6 +431,17 @@ const phone: FieldRenderer = {
   ),
 }
 
+/** Ссылкой рендерим только http(s): остальное — текстом, как есть. */
+function isHttpUrl(v: unknown): v is string {
+  if (typeof v !== 'string') return false
+  try {
+    const u = new URL(v)
+    return (u.protocol === 'http:' || u.protocol === 'https:') && u.host !== ''
+  } catch {
+    return false
+  }
+}
+
 const link: FieldRenderer = {
   Edit: ({ field, value, onChange, id, invalid, disabled }) => (
     <Input
@@ -448,10 +459,12 @@ const link: FieldRenderer = {
     <StaticValue>
       {isBlank(value) ? (
         '—'
-      ) : (
-        <a className={styles.link} href={str(value)} target="_blank" rel="noreferrer">
-          {str(value)}
+      ) : isHttpUrl(value) ? (
+        <a className={styles.link} href={value} target="_blank" rel="noreferrer">
+          {value}
         </a>
+      ) : (
+        str(value)
       )}
     </StaticValue>
   ),
@@ -499,7 +512,6 @@ const multiselect: FieldRenderer = {
       </StaticValue>
     )
   },
-  empty: () => [],
 }
 
 /** Справочник без загруженного содержимого — свободный ввод: лучше, чем
@@ -575,15 +587,19 @@ const file: FieldRenderer = {
       return <StaticValue>Прикрепить файлы можно после сохранения записи</StaticValue>
     }
     return (
-    <FileDrop
-      id={id}
-      files={fileItems(value, ctx.filesById)}
-      maxFiles={(field.config as FileConfig | undefined)?.max_files}
-      disabled={disabled}
-      onAdd={ctx.onUploadFiles ? (files) => ctx.onUploadFiles!(field, files) : undefined}
-      onRemove={ctx.onRemoveFile ? (item: FileDropItem) => ctx.onRemoveFile!(field, item.id) : undefined}
-      onOpen={ctx.onOpenFile ? (item: FileDropItem) => ctx.onOpenFile!(field, item.id) : undefined}
-    />
+      <FileDrop
+        id={id}
+        files={fileItems(value, ctx.filesById)}
+        maxFiles={(field.config as FileConfig | undefined)?.max_files}
+        disabled={disabled}
+        onAdd={ctx.onUploadFiles ? (files) => ctx.onUploadFiles!(field, files) : undefined}
+        onRemove={
+          ctx.onRemoveFile ? (item: FileDropItem) => ctx.onRemoveFile!(field, item.id) : undefined
+        }
+        onOpen={
+          ctx.onOpenFile ? (item: FileDropItem) => ctx.onOpenFile!(field, item.id) : undefined
+        }
+      />
     )
   },
   View: ({ field, value, ctx }) => {
@@ -621,7 +637,6 @@ const file: FieldRenderer = {
       </div>
     )
   },
-  empty: () => [],
 }
 
 // ─── Таблица ───────────────────────────────────────────────────────────
@@ -741,13 +756,12 @@ function TableCell({
     case 'number':
     case 'money':
       return (
-        <input
+        <NumberCell
           className={cls}
-          inputMode="decimal"
-          aria-label={col.label || col.key}
-          value={numberText(value)}
+          label={col.label || col.key}
+          value={value}
           disabled={disabled}
-          onChange={(e) => onChange(parseNumber(e.target.value))}
+          onChange={onChange}
         />
       )
     case 'date':
@@ -790,10 +804,45 @@ function TableCell({
   }
 }
 
+/** Числовая ячейка с локальным текстом — та же причина, что у SuffixInput:
+ *  round-trip через число съедал бы «12,» и дробь было бы не набрать. */
+function NumberCell({
+  className,
+  label: aria,
+  value,
+  onChange,
+  disabled,
+}: {
+  className: string
+  label: string
+  value: unknown
+  onChange: (v: unknown) => void
+  disabled?: boolean
+}) {
+  const [text, setText] = useState(() => numberText(value))
+  useEffect(() => {
+    if (parseNumber(text) !== value) setText(numberText(value))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value])
+  return (
+    <input
+      className={className}
+      inputMode="decimal"
+      aria-label={aria}
+      value={text}
+      disabled={disabled}
+      onChange={(e) => {
+        setText(e.target.value)
+        onChange(parseNumber(e.target.value))
+      }}
+    />
+  )
+}
+
 function TableEdit({ field, value, onChange, disabled, ctx }: FieldRenderProps) {
   const cols = tableColumns(field)
   const rows: Row[] = Array.isArray(value) ? (value as Row[]) : []
-  const cfg = field.config as TableConfig & MoneyConfig | undefined
+  const cfg = field.config as (TableConfig & MoneyConfig) | undefined
   const max = cfg?.max_rows
   const full = max != null && rows.length >= max
   const total = sums(cols, rows)
@@ -896,7 +945,6 @@ function TableEdit({ field, value, onChange, disabled, ctx }: FieldRenderProps) 
 const table: FieldRenderer = {
   Edit: TableEdit,
   View: TableView,
-  empty: () => [],
 }
 
 // ─── Презентационные ───────────────────────────────────────────────────

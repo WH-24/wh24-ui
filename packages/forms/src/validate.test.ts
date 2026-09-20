@@ -38,11 +38,29 @@ describe('validateRecord — контрольный прогон на корре
       f({ id: 'phone', type: 'phone' }),
       f({ id: 'link', type: 'link' }),
       f({ id: 'select', type: 'select', config: { options: [{ value: 'a', label: 'A' }] } }),
-      f({ id: 'multi', type: 'multiselect', config: { options: [{ value: 'a', label: 'A' }, { value: 'b', label: 'B' }] } }),
+      f({
+        id: 'multi',
+        type: 'multiselect',
+        config: {
+          options: [
+            { value: 'a', label: 'A' },
+            { value: 'b', label: 'B' },
+          ],
+        },
+      }),
       f({ id: 'catalog', type: 'catalog' }),
       f({ id: 'user', type: 'user' }),
       f({ id: 'dept', type: 'department' }),
-      f({ id: 'table', type: 'table', config: { columns: [{ id: 'c1', key: 'sum', label: 'Сумма', type: 'money' }, { id: 'c2', key: 'd', label: 'Срок', type: 'date' }] } }),
+      f({
+        id: 'table',
+        type: 'table',
+        config: {
+          columns: [
+            { id: 'c1', key: 'sum', label: 'Сумма', type: 'money' },
+            { id: 'c2', key: 'd', label: 'Срок', type: 'date' },
+          ],
+        },
+      }),
       f({ id: 'file', type: 'file', config: { max_files: 2 } }),
       f({ id: 'sec', type: 'section' }),
       f({ id: 'note', type: 'note' }),
@@ -157,10 +175,30 @@ describe('validateRecord — типы', () => {
     expect(codes(validateRecord(d, { a: 'true' }))).toEqual(['type'])
   })
 
-  it('link: нужны схема и хост', () => {
+  it('link: только http(s) с хостом — javascript:/data:/file: отклоняются', () => {
     const d = doc(f({ id: 'a', type: 'link' }))
     expect(codes(validateRecord(d, { a: 'example.com' }))).toEqual(['format'])
+    expect(codes(validateRecord(d, { a: 'javascript://example.com/%0aalert(1)' }))).toEqual([
+      'format',
+    ])
+    expect(codes(validateRecord(d, { a: 'data:text/html,hi' }))).toEqual(['format'])
+    expect(codes(validateRecord(d, { a: 'file:///etc/passwd' }))).toEqual(['format'])
     expect(validateRecord(d, { a: 'http://example.com' })).toEqual([])
+    expect(validateRecord(d, { a: 'https://example.com/x?y=1' })).toEqual([])
+  })
+
+  it('table: max_rows — серверный предел, не только кнопка', () => {
+    const d = doc(
+      f({
+        id: 't',
+        type: 'table',
+        config: { max_rows: 2, columns: [{ id: 'c', key: 'c', label: 'C', type: 'text' }] },
+      }),
+    )
+    expect(codes(validateRecord(d, { t: [{ c: '1' }, { c: '2' }, { c: '3' }] }))).toEqual([
+      'max_rows',
+    ])
+    expect(validateRecord(d, { t: [{ c: '1' }, { c: '2' }] })).toEqual([])
   })
 
   it('phone: хотя бы одна цифра', () => {

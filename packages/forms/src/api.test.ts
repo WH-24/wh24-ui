@@ -34,10 +34,17 @@ describe('createFormsApi', () => {
   it('список записей отдаёт data+total и кладёт query-параметры', async () => {
     const { fn, calls } = mockFetch(200, { data: [{ id: '1' }], total: 1284 })
     const api = createFormsApi({ baseUrl: '/api/v1', fetch: fn })
-    const res = await api.records.list('f1', { page: 2, limit: 50, search: 'Ло', sort: 'number_desc' })
+    const res = await api.records.list('f1', {
+      page: 2,
+      limit: 50,
+      search: 'Ло',
+      sort: 'number_desc',
+    })
     expect(res.total).toBe(1284)
     expect(res.data).toHaveLength(1)
-    expect(calls[0]!.url).toBe('/api/v1/forms/f1/records?search=%D0%9B%D0%BE&page=2&limit=50&sort=number_desc')
+    expect(calls[0]!.url).toBe(
+      '/api/v1/forms/f1/records?search=%D0%9B%D0%BE&page=2&limit=50&sort=number_desc',
+    )
   })
 
   it('400 с fields → FormsApiError.fields списком', async () => {
@@ -65,7 +72,10 @@ describe('createFormsApi', () => {
   })
 
   it('404/403/503 различимы — 503 это авария, не отказ', async () => {
-    const api503 = createFormsApi({ baseUrl: '/x', fetch: mockFetch(503, { error: 'модуль недоступен' }).fn })
+    const api503 = createFormsApi({
+      baseUrl: '/x',
+      fetch: mockFetch(503, { error: 'модуль недоступен' }).fn,
+    })
     const e = await api503.records.get('f', 'r').catch((x) => x as FormsApiError)
     expect(e.unavailable).toBe(true)
     expect(e.forbidden).toBe(false)
@@ -88,10 +98,19 @@ describe('createFormsApi', () => {
   })
 
   it('ответ не-JSON при ошибке → текст как сообщение', async () => {
-    const fn = vi.fn(async () => new Response('Bad Gateway', { status: 502 })) as unknown as typeof fetch
+    const fn = vi.fn(
+      async () => new Response('Bad Gateway', { status: 502 }),
+    ) as unknown as typeof fetch
     const api = createFormsApi({ baseUrl: '/api/v1', fetch: fn })
     const e = await api.me.access().catch((x) => x as FormsApiError)
     expect(e.status).toBe(502)
     expect(e.message).toBe('Bad Gateway')
+  })
+
+  it('id в пути экранируются — сегмент из адреса не дописывает маршрут', async () => {
+    const { fn, calls } = mockFetch(200, { data: {} })
+    const api = createFormsApi({ baseUrl: '/api/v1', fetch: fn })
+    await api.records.get('f/1', '..%2Fadmin')
+    expect(calls[0]!.url).toBe('/api/v1/forms/f%2F1/records/..%252Fadmin')
   })
 })

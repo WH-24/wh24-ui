@@ -62,7 +62,10 @@ function validDate(s: string): boolean {
 /**
  * Проверка записи. Возвращает СПИСОК ошибок (пустой — можно отправлять).
  */
-export function validateRecord(doc: SchemaDocument, data: RecordData | null | undefined): RecordFieldError[] {
+export function validateRecord(
+  doc: SchemaDocument,
+  data: RecordData | null | undefined,
+): RecordFieldError[] {
   const values: RecordData = data ?? {}
   const byId = new Map<string, Field>()
   for (const f of doc.fields) {
@@ -153,7 +156,13 @@ function checkValue(f: Field, value: unknown): RecordFieldError[] {
       if (typeof value !== 'string') return [typeErr(f, 'адрес почты')]
       // net/mail.ParseAddress мягче RFC-полного regexp: достаточно «что-то@домен».
       if (!/^[^\s@]+@[^\s@]+$/.test(value.trim())) {
-        return [{ field_id: f.id, code: 'format', message: `поле «${label(f)}»: непохоже на адрес почты` }]
+        return [
+          {
+            field_id: f.id,
+            code: 'format',
+            message: `поле «${label(f)}»: непохоже на адрес почты`,
+          },
+        ]
       }
       return []
     }
@@ -172,10 +181,13 @@ function checkValue(f: Field, value: unknown): RecordFieldError[] {
     }
     case 'link': {
       if (typeof value !== 'string') return [typeErr(f, 'ссылка')]
+      // Только http(s): new URL принимает и javascript://host/%0a…, и data:, и
+      // file: — такая «ссылка» хранилась бы в записи и уходила бы в письма,
+      // уведомления и любой не-React рендер как рабочий XSS/фишинг.
       let ok = false
       try {
         const u = new URL(value)
-        ok = u.protocol !== '' && u.host !== ''
+        ok = (u.protocol === 'http:' || u.protocol === 'https:') && u.host !== ''
       } catch {
         ok = false
       }
@@ -234,6 +246,16 @@ function colLabel(c: TableColumn): string {
  *  поэтому ячейка проверяется тем же checkValue, что и обычное поле. */
 function checkTable(f: Field, value: unknown): RecordFieldError[] {
   if (!Array.isArray(value)) return [typeErr(f, 'строки таблицы')]
+  const maxRows = cfg<TableConfig>(f).max_rows
+  if (maxRows != null && value.length > maxRows) {
+    return [
+      {
+        field_id: f.id,
+        code: 'max_rows',
+        message: `поле «${label(f)}»: не больше ${maxRows} строк`,
+      },
+    ]
+  }
   const cols = cfg<TableConfig>(f).columns ?? []
   const byId = new Map(cols.map((c) => [c.id, c]))
   const errs: RecordFieldError[] = []

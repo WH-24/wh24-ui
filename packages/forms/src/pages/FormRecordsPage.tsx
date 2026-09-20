@@ -135,12 +135,18 @@ function Cell({ field, value, ctx }: { field: Field; value: unknown; ctx: Format
         </span>
       )
     }
-    case 'link':
-      return (
-        <a href={String(value)} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()}>
-          {String(value)}
+    case 'link': {
+      const v = String(value)
+      // Ссылкой — только http(s); остальное текстом (валидатор такое не пускает,
+      // но данные могли прийти из импорта).
+      return /^https?:\/\//i.test(v) ? (
+        <a href={v} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()}>
+          {v}
         </a>
+      ) : (
+        <>{v}</>
       )
+    }
     default:
       return <>{formatValue(field, value, ctx)}</>
   }
@@ -225,8 +231,7 @@ export function FormRecordsPage({
   }
   const visibleCols = columns.filter((c) => !hidden.includes(c.key))
 
-  const toggleSort = () =>
-    setSort((s) => (s === 'number_desc' ? 'number_asc' : 'number_desc'))
+  const toggleSort = () => setSort((s) => (s === 'number_desc' ? 'number_asc' : 'number_desc'))
 
   const csv = exportHref === undefined ? api.records.exportCsvUrl(form.id) : exportHref
   const published = form.status === 'published'
@@ -248,7 +253,13 @@ export function FormRecordsPage({
         )
       }
       if (e instanceof FormsApiError && e.notFound) {
-        return <StateBox icon="search" title="Форма не найдена" text="Возможно, она удалена или перенесена." />
+        return (
+          <StateBox
+            icon="search"
+            title="Форма не найдена"
+            text="Возможно, она удалена или перенесена."
+          />
+        )
       }
       if (e instanceof FormsApiError && e.unavailable) {
         return (
@@ -302,7 +313,11 @@ export function FormRecordsPage({
           title="Ничего не найдено"
           text="Попробуйте другую формулировку."
           action={
-            <button type="button" className="btn btn-secondary btn-sm" onClick={() => setSearchText('')}>
+            <button
+              type="button"
+              className="btn btn-secondary btn-sm"
+              onClick={() => setSearchText('')}
+            >
               Сбросить
             </button>
           }
@@ -325,7 +340,13 @@ export function FormRecordsPage({
                     <th
                       key={c.key}
                       className={[styles.sortable, styles.numCol].join(' ')}
-                      aria-sort={sort === 'number_asc' ? 'ascending' : sort === 'number_desc' ? 'descending' : 'none'}
+                      aria-sort={
+                        sort === 'number_asc'
+                          ? 'ascending'
+                          : sort === 'number_desc'
+                            ? 'descending'
+                            : 'none'
+                      }
                       onClick={toggleSort}
                     >
                       {c.label}
@@ -384,7 +405,13 @@ export function FormRecordsPage({
             </tbody>
           </table>
         </div>
-        <Pager page={page} pageSize={pageSize} total={load.total} onPage={setPage} onPageSize={setPageSize} />
+        <Pager
+          page={page}
+          pageSize={pageSize}
+          total={load.total}
+          onPage={setPage}
+          onPageSize={setPageSize}
+        />
       </>
     )
   }
@@ -395,7 +422,9 @@ export function FormRecordsPage({
         <div className={styles.headText}>
           <h1 className={styles.title}>
             {heading}
-            {total != null && <span className={styles.count}>{plural(total, 'запись', 'записи', 'записей')}</span>}
+            {total != null && (
+              <span className={styles.count}>{plural(total, 'запись', 'записи', 'записей')}</span>
+            )}
           </h1>
           {form.description && <p className={styles.subtitle}>{form.description}</p>}
         </div>
