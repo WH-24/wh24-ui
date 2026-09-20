@@ -19,6 +19,7 @@ import {
   StaticValue,
   Textarea,
   type ComboboxOption,
+  type FileDropItem,
 } from '@wowhaus-24/ui-react'
 
 import type {
@@ -580,8 +581,8 @@ const file: FieldRenderer = {
       maxFiles={(field.config as FileConfig | undefined)?.max_files}
       disabled={disabled}
       onAdd={ctx.onUploadFiles ? (files) => ctx.onUploadFiles!(field, files) : undefined}
-      onRemove={ctx.onRemoveFile ? (item) => ctx.onRemoveFile!(field, item.id) : undefined}
-      onOpen={ctx.onOpenFile ? (item) => ctx.onOpenFile!(field, item.id) : undefined}
+      onRemove={ctx.onRemoveFile ? (item: FileDropItem) => ctx.onRemoveFile!(field, item.id) : undefined}
+      onOpen={ctx.onOpenFile ? (item: FileDropItem) => ctx.onOpenFile!(field, item.id) : undefined}
     />
     )
   },
@@ -753,7 +754,7 @@ function TableCell({
       return (
         <DateField
           value={str(value)}
-          onChange={(v) => onChange(v || undefined)}
+          onChange={(v: string) => onChange(v || undefined)}
           ariaLabel={col.label || col.key}
           disabled={disabled}
         />
