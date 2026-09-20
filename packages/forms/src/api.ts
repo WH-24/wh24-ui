@@ -87,6 +87,13 @@ export interface CreateFormBody {
   record_access?: RecordAccess
 }
 
+/** Ответ GET /forms/:id: форма и схема её текущей опубликованной версии. */
+export interface FormWithSchema {
+  form: Form
+  schema: SchemaDocument
+  version: number
+}
+
 export interface PublishResult {
   form: Form
   version: FormVersion
@@ -208,7 +215,25 @@ export function createFormsApi(opts: FormsApiOptions) {
         request<PyrusImportResult>('POST', '/admin/import/pyrus', body, { raw: true }),
     },
 
+    /**
+     * Формы глазами модуля-владельца — без админского гранта «Форм»: право
+     * даёт роль пользователя в модуле (owning-guard, как у записей).
+     */
+    forms: {
+      /** Опубликованные формы модуля — для пунктов меню; никогда не должен ломать навигацию. */
+      listForModule: (moduleKey: string) =>
+        request<Form[]>('GET', `/forms${toQuery({ module_key: moduleKey })}`),
+      /** Форма + схема текущей опубликованной версии. */
+      get: (formId: string) => request<FormWithSchema>('GET', `/forms/${formId}`),
+      /** Снапшот схемы версии — для записей старше текущей. */
+      version: (formId: string, version: number) =>
+        request<FormVersion>('GET', `/forms/${formId}/versions/${version}`),
+    },
+
     records: {
+      /** Метаданные вложений записи (имена, размеры) — ссылок здесь нет, только через fileUrl. */
+      files: (formId: string, id: string) =>
+        request<FormFile[]>('GET', `/forms/${formId}/records/${id}/files`),
       list: (formId: string, q: ListRecordsQuery = {}) =>
         request<ListResult<FormRecord>>(
           'GET',

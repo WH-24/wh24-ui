@@ -567,7 +567,13 @@ function fileItems(value: unknown, byId: Record<string, FormFile> | undefined) {
 }
 
 const file: FieldRenderer = {
-  Edit: ({ field, value, id, disabled, ctx }) => (
+  Edit: ({ field, value, id, disabled, ctx }) => {
+    // Без загрузчика (новая запись — id ещё нет, вложениям некуда лечь) —
+    // объяснить, а не показать пустоту.
+    if (!ctx.onUploadFiles && !(Array.isArray(value) && value.length)) {
+      return <StaticValue>Прикрепить файлы можно после сохранения записи</StaticValue>
+    }
+    return (
     <FileDrop
       id={id}
       files={fileItems(value, ctx.filesById)}
@@ -577,7 +583,8 @@ const file: FieldRenderer = {
       onRemove={ctx.onRemoveFile ? (item) => ctx.onRemoveFile!(field, item.id) : undefined}
       onOpen={ctx.onOpenFile ? (item) => ctx.onOpenFile!(field, item.id) : undefined}
     />
-  ),
+    )
+  },
   View: ({ field, value, ctx }) => {
     const items = fileItems(value, ctx.filesById)
     if (items.length === 0) return <StaticValue>—</StaticValue>

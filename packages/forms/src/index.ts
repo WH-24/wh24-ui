@@ -13,6 +13,7 @@ export { createFormsApi, FormsApiError } from './api.js'
 export type {
   FormsApi,
   FormsApiOptions,
+  FormWithSchema,
   ListRecordsQuery,
   ListResult,
   CreateFormBody,
@@ -41,3 +42,19 @@ export {
   plural,
 } from './render/format.js'
 export type { FormatContext } from './render/format.js'
+
+// Страницы записей (экраны B и C): без роутинга и chrome — контейнер даёт хост.
+export { FormRecordsPage } from './pages/FormRecordsPage.js'
+export type { FormRecordsPageProps } from './pages/FormRecordsPage.js'
+export { FormRecordView } from './pages/FormRecordView.js'
+export type { FormRecordViewProps } from './pages/FormRecordView.js'
+export { FormRecordEditor } from './pages/FormRecordEditor.js'
+export type { FormRecordEditorProps } from './pages/FormRecordEditor.js'
+export { RecordHistory } from './pages/RecordHistory.js'
+export type { RecordHistoryProps } from './pages/RecordHistory.js'
+export { Pager, pageItems } from './pages/Pager.js'
+export type { PagerProps } from './pages/Pager.js'
+export { StatusPill, statusLabel, DEFAULT_RECORD_STATUSES } from './pages/StatusPill.js'
+export type { StatusPillProps, StatusTone, StatusLabel } from './pages/StatusPill.js'
+export { StateBox, Skeleton, Banner } from './pages/states.js'
+export type { StateBoxProps, BannerProps } from './pages/states.js'
