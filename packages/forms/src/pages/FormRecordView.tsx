@@ -76,7 +76,7 @@ export function FormRecordView({
   const outdated = currentVersion != null && record.form_version < currentVersion
 
   return (
-    <div className={styles.page}>
+    <div className={[styles.page, styles.record].join(' ')}>
       {onBack && (
         <div>
           <button type="button" className={['btn', 'btn-ghost', 'btn-sm', styles.back].join(' ')} onClick={onBack}>

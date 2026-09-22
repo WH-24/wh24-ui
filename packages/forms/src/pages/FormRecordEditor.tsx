@@ -211,7 +211,7 @@ export function FormRecordEditor({
   const generalErrors = errors.filter((e) => !e.field_id)
 
   return (
-    <div className={styles.page} ref={topRef}>
+    <div className={[styles.page, styles.record].join(' ')} ref={topRef}>
       {onBack && (
         <div>
           <button type="button" className={['btn', 'btn-ghost', 'btn-sm', styles.back].join(' ')} onClick={onBack}>
