@@ -31,7 +31,7 @@
   --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.1), 0 2px 6px rgba(0, 0, 0, 0.04);
 }
 
-:where([data-theme='dark']) .page:where(.page) {
+:where([data-theme="dark"]) .page:where(.page) {
   --fg-primary: #f2f2ef;
   --fg-secondary: #d8d8d1;
   --fg-tertiary: #a9aa9f;
@@ -108,7 +108,7 @@
   place-items: center;
   cursor: pointer;
 }
-.viewSwitch button[data-active='true'] {
+.viewSwitch button[data-active="true"] {
   background: var(--bg-surface);
   color: var(--fg-primary);
   box-shadow: var(--shadow-sm);
@@ -127,6 +127,25 @@
   overflow-x: auto;
   box-shadow: var(--shadow-sm);
 }
+/* Липкая горизонтальная полоса прокрутки таблицы.
+   Настоящая полоса .tableWrap стоит под таблицей — то есть в конце страницы;
+   эта прижата к нижнему краю ЭКРАНА, пока таблица на виду. Высота 0, когда
+   колонки помещаются: пустая полоса под таблицей выглядела бы поломкой. */
+.hScroll {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  overflow-x: auto;
+  overflow-y: hidden;
+  height: 0;
+}
+.hScroll[data-visible] {
+  height: 14px;
+}
+.hScroll > div {
+  height: 1px;
+}
+
 table.tbl {
   width: 100%;
   border-collapse: collapse;
@@ -178,10 +197,10 @@ table.tbl {
 .tbl tbody tr:hover {
   background: var(--bg-hover);
 }
-.tbl tbody tr[data-selected='true'] {
+.tbl tbody tr[data-selected="true"] {
   background: var(--accent-50);
 }
-:where([data-theme='dark']) .tbl tbody tr[data-selected='true'] {
+:where([data-theme="dark"]) .tbl tbody tr[data-selected="true"] {
   background: rgba(59, 130, 246, 0.12);
 }
 .tbl tbody tr:last-child td {
@@ -204,7 +223,7 @@ table.tbl {
 }
 .tbl tbody tr:hover .cellSelectBox,
 .tbl tbody tr:focus-within .cellSelectBox,
-.tbl tbody tr[data-selected='true'] .cellSelectBox {
+.tbl tbody tr[data-selected="true"] .cellSelectBox {
   opacity: 1;
 }
 
@@ -339,7 +358,7 @@ table.tbl {
     color 0.12s;
 }
 .gearBtn:hover,
-.gearBtn[aria-expanded='true'] {
+.gearBtn[aria-expanded="true"] {
   background: var(--bg-hover);
   color: var(--fg-primary);
 }
@@ -499,7 +518,6 @@ table.tbl {
 .colsReset:hover {
   color: var(--fg-secondary);
 }
-
 
 /* Основное действие в модалках списка (Применить). */
 .btnPrimary {
