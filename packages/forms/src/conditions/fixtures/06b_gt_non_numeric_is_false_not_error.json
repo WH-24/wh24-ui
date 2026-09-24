@@ -1,0 +1,6 @@
+{
+  "name": "gt_non_numeric_string_is_false",
+  "group": { "all": [ { "field": "amount", "op": "gt", "value": 100 } ] },
+  "values": { "amount": "здание 5" },
+  "expect": false
+}

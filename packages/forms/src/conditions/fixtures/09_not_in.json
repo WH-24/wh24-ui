@@ -1,0 +1,6 @@
+{
+  "name": "not_in_operator_excludes",
+  "group": { "all": [ { "field": "city", "op": "not_in", "value": ["msk", "spb"] } ] },
+  "values": { "city": "kzn" },
+  "expect": true
+}

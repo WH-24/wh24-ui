@@ -88,9 +88,25 @@ export { matchItem, activeCount } from './list/filter/matchItem.js'
 export { FilterBar } from './list/filter/FilterBar.js'
 export type { FilterBarProps } from './list/filter/FilterBar.js'
 export { useFilterState } from './list/filter/useFilterState.js'
-export type { ComboboxOption } from './list/Combobox.js'
+export { Combobox } from './list/Combobox.js'
+export type { ComboboxOption, ComboboxProps } from './list/Combobox.js'
 export { Icon } from './list/Icon.js'
 export type { IconName } from './list/Icon.js'
+
+// Примитивы формы — общий набор контролов для карточек записей и настроек:
+// один вид поля во всех модулях (никаких нативных <select>/<input type=date>).
+export { Input } from './form/Input.js'
+export type { InputProps } from './form/Input.js'
+export { Textarea } from './form/Textarea.js'
+export type { TextareaProps } from './form/Textarea.js'
+export { FieldRow, FieldGrid, StaticValue } from './form/Field.js'
+export type { FieldRowProps, FieldGridProps, StaticValueProps, FieldSpan } from './form/Field.js'
+export { MultiCombobox } from './form/MultiCombobox.js'
+export type { MultiComboboxProps } from './form/MultiCombobox.js'
+export { DateField } from './form/DateField.js'
+export type { DateFieldProps } from './form/DateField.js'
+export { FileDrop } from './form/FileDrop.js'
+export type { FileDropProps, FileDropItem } from './form/FileDrop.js'
 
 // DirectoryPicker — поиск-справочник (люди/отделы/…) с вкладками, режим
 // быстрого поиска. Data-agnostic: данные/аватары/onSelect — через props.

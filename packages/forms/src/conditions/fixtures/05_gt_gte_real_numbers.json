@@ -1,0 +1,11 @@
+{
+  "name": "gt_gte_real_numbers",
+  "group": {
+    "all": [
+      { "field": "amount", "op": "gt", "value": 100 },
+      { "field": "amount", "op": "gte", "value": 5000 }
+    ]
+  },
+  "values": { "amount": 5000 },
+  "expect": true
+}

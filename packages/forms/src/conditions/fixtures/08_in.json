@@ -1,0 +1,6 @@
+{
+  "name": "in_operator_match",
+  "group": { "all": [ { "field": "city", "op": "in", "value": ["msk", "spb", "kzn"] } ] },
+  "values": { "city": "spb" },
+  "expect": true
+}

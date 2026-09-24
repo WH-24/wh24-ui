@@ -8,14 +8,16 @@
 |---|---|---|
 | `@wowhaus-24/ui-tokens` | 0.1.1 | Frame-agnostic CSS-переменные + базовые стили + vanilla theme API. CSS-экспорты: `./tokens.css` (палитра/радиусы/типографика), `./base.css`, `./button.css` (канонические `.btn-*`, primary = терракот `--terra`). JS: `.` (типизир. токены), `./theme` (`setTheme`) |
 | `@wowhaus-24/ui-react` | 0.1.1 | React 18+ headless-компоненты (Radix Primitives + Floating UI, без CSS-in-JS, без Tailwind). Зависит от `ui-tokens` |
+| `@wowhaus-24/forms-react` | 0.1.0 | Платформа «Формы» (wh24-forms-api): типы схемы/модели, `evaluate` (visible_if, фикстуры общие с Go), `validateRecord`, `createFormsApi`, React-рендер записей. Зависит от `ui-react` |
 
 Компоненты `ui-react` (сверено с `packages/react/src/index.ts` 22.09.2026): `ThemeProvider`/`useTheme`,
 `AppShell`, `Avatar` (только инициалы), `Card`, `Chip`, `IconButton`, `MegaDropdown`, `NavTile`, `Pill`,
 `SortPill`, `StatBar`, `BestPracticeBadge`, `TypeBadge`, `TypeMarker`, `UtilChip`, `ComingSoon`,
 `DirectoryPicker`; страница-список `ListPage` (+ `NAME_COL_MIN_WIDTH`) с фильтром в духе Битрикс24 —
-`FilterBar`, `useFilterState`, `matchItem`, `activeCount`, `Combobox`-типы; `Icon`; бренд —
-`applyBrand`, `BRAND_FONTS`, `BRAND_RADIUS_SCALES`. Пакет форм (`packages/forms`) — пока только в
-ветке `feat/forms-primitives` (PR #46).
+`FilterBar`, `useFilterState`, `matchItem`, `activeCount`, общий `Combobox` (`src/list/`, экспортирован:
+группы, `searchable`, аватар, `invalid`); примитивы формы (`src/form/`: `Input`, `Textarea`,
+`FieldRow`/`FieldGrid`/`StaticValue`, `MultiCombobox`, `DateField`, `FileDrop`); `Icon`; бренд —
+`applyBrand`, `BRAND_FONTS`, `BRAND_RADIUS_SCALES`. Пакет форм — `packages/forms` (ниже).
 
 Тема: `html[data-theme="dark"]`. Persistence — `localStorage['wh-ui-theme']`, cross-tab sync. Терракот не меняется между темами.
 
@@ -34,7 +36,8 @@ npm run dev -w @wowhaus-24/ui-styleguide     # живой styleguide → http://
 
 - `package.json` (root) — workspaces (`packages/*`, `apps/*`), скрипты `build`/`typecheck`/`test`/`clean`.
 - `packages/tokens/` — `@wowhaus-24/ui-tokens`. Источник истины: `packages/tokens/src/tokens.css` (палитра), `packages/tokens/src/button.css` (кнопки), `packages/tokens/src/base.css`; в `exports` пакета они отдаются как `./tokens.css`, `./button.css`, `./base.css`.
-- `packages/react/` — `@wowhaus-24/ui-react`. `src/<Component>/*.tsx` + `*.module.css`. `scripts/copy-css.mjs` — postbuild, рекурсивно копирует все `*.module.css` из `src/` в `dist/` (на 22.09.2026 их 19).
+- `packages/react/` — `@wowhaus-24/ui-react`. `src/<Component>/*.tsx` + `*.module.css`. `scripts/copy-css.mjs` — postbuild, рекурсивно копирует все `*.module.css` из `src/` в `dist/` (на 22.09.2026 их 20, включая `form/form.module.css`).
+- `packages/forms/` — `@wowhaus-24/forms-react`. `src/types.ts` (контракт бэкенда — менять только вместе с ним), `src/conditions/` (+ `fixtures/*.json` = копия `internal/conditions/testdata` бэкенда, при расхождении копировать заново), `src/validate.ts`, `src/schema.ts`, `src/api.ts`, React-часть в `src/render/` и `src/pages/`; свой `scripts/copy-css.mjs` (2 CSS-модуля).
 - `apps/styleguide/` — `@wowhaus-24/ui-styleguide` (Vite), визуальный preview примитивов.
 - `mockups/*.html` — авторитетный источник по визуалу (изначально под wiki-web). Изменение дизайна = сначала правка мокапа.
 - `STYLEGUIDE.md` — глобальные правила стилей; `CONSUMER-SETUP.md` — как подключить потребителю; `DEV-WORKSPACE.md` — deploy-workspace скрипты.

@@ -1,0 +1,11 @@
+{
+  "name": "any_group_none_match",
+  "group": {
+    "any": [
+      { "field": "region", "op": "eq", "value": "msk" },
+      { "field": "region", "op": "eq", "value": "spb" }
+    ]
+  },
+  "values": { "region": "kzn" },
+  "expect": false
+}

@@ -1,0 +1,6 @@
+{
+  "name": "eq_on_missing_field_is_false_not_error",
+  "group": { "all": [ { "field": "does_not_exist", "op": "eq", "value": "x" } ] },
+  "values": { "other_field": "y" },
+  "expect": false
+}
