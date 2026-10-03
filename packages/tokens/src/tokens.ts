@@ -45,6 +45,11 @@ export const colors = {
   bad: 'var(--bad)',
   badBg: 'var(--bad-bg)',
   badBd: 'var(--bad-bd)',
+  // Сплошные заливки под белым текстом — не светлеют в тёмной теме.
+  goodStrong: 'var(--good-strong)',
+  warnStrong: 'var(--warn-strong)',
+  infoStrong: 'var(--info-strong)',
+  badStrong: 'var(--bad-strong)',
 } as const
 
 export const radii = {
