@@ -73,9 +73,11 @@
   border-color: var(--bad-bd);
 }
 .btn-danger:hover {
-  background: var(--bad);
+  /* --bad в тёмной теме светлый (ради текста) — под белым текстом нужна
+     насыщенная заливка. */
+  background: var(--bad-strong);
   color: #fff;
-  border-color: var(--bad);
+  border-color: var(--bad-strong);
 }
 
 /* Компактный размер. */
