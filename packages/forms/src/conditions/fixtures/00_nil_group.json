@@ -1,0 +1,6 @@
+{
+  "name": "nil_group_always_visible",
+  "group": null,
+  "values": {},
+  "expect": true
+}

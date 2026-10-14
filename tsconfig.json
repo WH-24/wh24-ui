@@ -1,7 +1,14 @@
 {
   "files": [],
   "references": [
-    { "path": "./packages/tokens" },
-    { "path": "./packages/react" }
+    {
+      "path": "./packages/tokens"
+    },
+    {
+      "path": "./packages/react"
+    },
+    {
+      "path": "./packages/forms"
+    }
   ]
 }

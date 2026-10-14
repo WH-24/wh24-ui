@@ -1,0 +1,12 @@
+{
+  "name": "mixed_all_and_any_is_and_of_both",
+  "group": {
+    "all": [ { "field": "type", "op": "eq", "value": "urgent" } ],
+    "any": [
+      { "field": "region", "op": "eq", "value": "msk" },
+      { "field": "region", "op": "eq", "value": "spb" }
+    ]
+  },
+  "values": { "type": "urgent", "region": "spb" },
+  "expect": true
+}

@@ -1,0 +1,6 @@
+{
+  "name": "simple_eq_false",
+  "group": { "all": [ { "field": "status", "op": "eq", "value": "open" } ] },
+  "values": { "status": "closed" },
+  "expect": false
+}

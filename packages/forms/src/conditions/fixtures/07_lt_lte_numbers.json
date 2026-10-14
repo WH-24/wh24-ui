@@ -1,0 +1,11 @@
+{
+  "name": "lt_lte_numbers",
+  "group": {
+    "all": [
+      { "field": "amount", "op": "lt", "value": 100 },
+      { "field": "amount", "op": "lte", "value": 50 }
+    ]
+  },
+  "values": { "amount": 50 },
+  "expect": true
+}

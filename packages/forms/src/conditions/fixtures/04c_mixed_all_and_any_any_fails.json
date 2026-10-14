@@ -1,0 +1,12 @@
+{
+  "name": "mixed_all_and_any_fails_when_all_passes_but_any_does_not",
+  "group": {
+    "all": [ { "field": "type", "op": "eq", "value": "urgent" } ],
+    "any": [
+      { "field": "region", "op": "eq", "value": "msk" },
+      { "field": "region", "op": "eq", "value": "spb" }
+    ]
+  },
+  "values": { "type": "urgent", "region": "kzn" },
+  "expect": false
+}

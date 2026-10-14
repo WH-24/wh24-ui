@@ -1,0 +1,6 @@
+{
+  "name": "ne_operator",
+  "group": { "all": [ { "field": "status", "op": "ne", "value": "closed" } ] },
+  "values": { "status": "open" },
+  "expect": true
+}
