@@ -142,6 +142,14 @@ describe('FormRecordsPage', () => {
     expect(onOpen).toHaveBeenCalledWith(expect.objectContaining({ id: 'r2' }))
   })
 
+  it('первая загрузка — переданный лоадер вместо скелета', async () => {
+    const { api } = mockApi()
+    render(<FormRecordsPage form={form} schema={schema} api={api} loader={<div>Лоадер портала</div>} />)
+    expect(screen.getByText('Лоадер портала')).toBeInTheDocument()
+    expect(await screen.findByText('Запись 1')).toBeInTheDocument()
+    expect(screen.queryByText('Лоадер портала')).not.toBeInTheDocument()
+  })
+
   it('поиск уходит на сервер с задержкой и сбрасывает страницу', async () => {
     const user = userEvent.setup()
     const { api, list } = mockApi()

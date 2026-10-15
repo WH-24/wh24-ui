@@ -48,6 +48,8 @@ export interface FormRecordsPageProps {
   actions?: ReactNode
   /** Ключ настроек колонок в localStorage; по умолчанию id формы. */
   storageKey?: string
+  /** Индикатор первой загрузки (например, лоадер портала); по умолчанию — скелет строк. */
+  loader?: ReactNode
 }
 
 type Sort = NonNullable<ListRecordsQuery['sort']>
@@ -161,6 +163,7 @@ export function FormRecordsPage({
   onOpen,
   onCreate,
   exportHref,
+  loader,
   pageSize: initialPageSize = 50,
   statusLabels = DEFAULT_RECORD_STATUSES,
   title,
@@ -239,7 +242,7 @@ export function FormRecordsPage({
   const total = load.kind === 'ready' ? load.total : null
 
   const renderBody = () => {
-    if (load.kind === 'loading') return <Skeleton />
+    if (load.kind === 'loading') return loader ?? <Skeleton />
     if (load.kind === 'error') {
       const e = load.error
       if (e instanceof FormsApiError && e.forbidden) {
