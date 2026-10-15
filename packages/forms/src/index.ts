@@ -23,7 +23,20 @@ export type {
   PublishResult,
   PyrusImportBody,
   PyrusImportResult,
+  CardSyncResult,
+  CardSyncOutcome,
+  CardSyncPreview,
+  FieldMapResult,
+  FieldMapChange,
 } from './api.js'
+export {
+  pyrusCompat,
+  BUILTIN_PYRUS_FIELDS,
+  flattenPyrusFields,
+  isPyrusPersonType,
+  isPyrusValuelessType,
+} from './pyrusMapping.js'
+export type { PyrusSchemaField, FlatPyrusField } from './pyrusMapping.js'
 
 // React-рендер записи: реестр контролов по типу поля + тело формы.
 export { fieldRegistry, FieldControl } from './render/registry.js'
