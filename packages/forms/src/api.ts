@@ -47,6 +47,8 @@ export class FormsApiError extends Error {
     message: string,
     public readonly fields?: RecordFieldError[],
     public readonly blockers?: SchemaValidationError[],
+    /** `data` из тела ошибки (409 синхронизации карточки — разбор конфликтов). */
+    public readonly data?: unknown,
   ) {
     super(message)
     this.name = 'FormsApiError'
@@ -114,9 +116,63 @@ export interface FormCatalog {
   items: { id: string; values: Record<string, unknown> }[]
 }
 
+/** Запись карты вебхука Pyrus: поле Pyrus → поле карточки (wowhaus-api fielddefsync). */
+export interface FieldMapChange {
+  pyrus_field_id: number
+  key: string
+  label: string
+  from?: string
+  to?: string
+}
+
+export interface FieldMapResult {
+  binding_id: string
+  pyrus_form_id: number
+  added: FieldMapChange[]
+  changed: FieldMapChange[]
+  removed: FieldMapChange[]
+  /** Ещё одно (историческое) поле Pyrus пишет в поле карточки — оставлено. */
+  kept: FieldMapChange[]
+  unchanged: number
+  /** Записи карты, не относящиеся к полям карточки. */
+  untouched: number
+}
+
+/** Результат синхронизации формы-карточки с реестром полей ОУП. */
+export interface CardSyncResult {
+  applied: boolean
+  inserted: string[]
+  updated: { key: string; columns: string[] }[]
+  unchanged: number
+  sections_added: string[]
+  sections_changed: string[]
+  sections_deleted: string[]
+  not_in_form: string[]
+  /** null/нет — реестр ОУП старой версии: карту вебхука не трогал. */
+  field_map?: FieldMapResult | null
+  conflicts: { field_id?: string; key?: string; message: string }[]
+}
+
+/** data.sync в ответе публикации формы-карточки. */
+export interface CardSyncOutcome {
+  applied: boolean
+  result?: CardSyncResult
+  error?: string
+  /** Реестр ОУП не применил сопоставление с Pyrus (старая версия). */
+  field_map_skipped?: boolean
+}
+
 export interface PublishResult {
   form: Form
   version: FormVersion
+  /** Только у формы-карточки. */
+  sync?: CardSyncOutcome
+}
+
+/** Предпросмотр публикации черновика карточки (POST …/sync?draft=1). */
+export interface CardSyncPreview {
+  data: CardSyncResult | null
+  blockers: SchemaValidationError[]
 }
 
 export interface PyrusImportBody {
@@ -188,6 +244,7 @@ export function createFormsApi(opts: FormsApiOptions) {
         msg,
         (parsed?.fields as RecordFieldError[] | undefined) ?? undefined,
         (parsed?.blockers as SchemaValidationError[] | undefined) ?? undefined,
+        parsed?.data,
       )
     }
     if (init?.raw) return parsed as T
@@ -219,6 +276,17 @@ export function createFormsApi(opts: FormsApiOptions) {
         version: (id: string, version: number) =>
           request<FormVersion>('GET', `/admin/forms/${seg(id)}/versions/${seg(String(version))}`),
         archive: (id: string) => request<Form>('POST', `/admin/forms/${seg(id)}/archive`),
+        /** Повторно применить опубликованную карточку к реестру ОУП (`dryRun` — посчитать). */
+        syncCard: (id: string, dryRun = false) =>
+          request<CardSyncResult>(
+            'POST',
+            `/admin/forms/${seg(id)}/sync${dryRun ? '?dry_run=1' : ''}`,
+          ),
+        /** Что сделает публикация черновика карточки — без записи. */
+        previewCardSync: (id: string) =>
+          request<CardSyncPreview>('POST', `/admin/forms/${seg(id)}/sync?draft=1`, undefined, {
+            raw: true,
+          }),
       },
       catalogs: {
         list: () => request<Catalog[]>('GET', '/admin/catalogs'),
@@ -254,6 +322,9 @@ export function createFormsApi(opts: FormsApiOptions) {
         request<Form[]>('GET', `/forms${toQuery({ module_key: moduleKey })}`),
       /** Форма + схема текущей опубликованной версии. */
       get: (formId: string) => request<FormWithSchema>('GET', `/forms/${seg(formId)}`),
+      /** Опубликованная форма по коду (`oup`/`project`) — так карточка ОУП находит свою форму. */
+      getByKey: (moduleKey: string, key: string) =>
+        request<FormWithSchema>('GET', `/forms/by-key/${seg(moduleKey)}/${seg(key)}`),
       /** Снапшот схемы версии — для записей старше текущей. */
       version: (formId: string, version: number) =>
         request<FormVersion>('GET', `/forms/${seg(formId)}/versions/${seg(String(version))}`),

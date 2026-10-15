@@ -163,8 +163,11 @@ export function validateForPublish(
   const byId = new Map(next.fields.map((f) => [f.id, f]))
   const errs: SchemaValidationError[] = []
 
-  // --- Название записи ---
-  if (!next.title_field) {
+  // --- Название записи --- (у формы-карточки необязательно: название у самой
+  // сущности модуля, как schema.ValidateForPublish в Go)
+  if (!next.title_field && next.binding) {
+    // ничего
+  } else if (!next.title_field) {
     errs.push({ message: 'Поле «Название записи» не выбрано' })
   } else {
     const tf = byId.get(next.title_field)

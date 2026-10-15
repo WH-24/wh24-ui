@@ -146,6 +146,43 @@ export interface TableConfig {
   max_rows?: number
 }
 
+// ─── Форма-карточка (internal/schema/binding.go) ─────────────────────────
+//
+// Карточка записи чужого модуля (проект, лид, ФМ ОУП): форма описывает только
+// СТРУКТУРУ, данные живут в модуле-владельце. См. wh24-forms-api
+// docs/RECORD-CARDS.md.
+
+/** native — своя колонка сущности (sys_*), custom — jsonb custom по id поля. */
+export type FieldStorage = 'native' | 'custom'
+
+/** Поле Pyrus, из которого вебхук ОУП пишет значение. */
+export interface PyrusLink {
+  field_id: number
+}
+
+export interface FieldBinding {
+  storage: FieldStorage
+  /** value_type реестра ОУП; пусто — по типу поля. */
+  value_type?: string
+  options_source?: 'manual' | 'staff' | 'department' | 'dict'
+  options_ref?: string
+  show_always?: boolean
+  read_modules?: string[]
+  write_modules?: string[]
+  pyrus?: PyrusLink
+}
+
+export interface DocBinding {
+  /** Модуль-хранилище (пока только oup). */
+  system: string
+  /** project, lead или id привязки Pyrus пользовательской категории (ФМ). */
+  entity: string
+  pyrus_form_id?: number
+}
+
+/** UNSECTIONED_ID — раздел «без раздела» (section_id NULL в ОУП). */
+export const UNSECTIONED_ID = 'unsectioned'
+
 export interface Field {
   /** UUID; никогда не переиспользуется, даже после архивации. */
   id: string
@@ -162,6 +199,8 @@ export interface Field {
   archived: boolean
   config?: FieldConfig
   visible_if?: ConditionGroup
+  /** Только у формы-карточки: где лежит значение. */
+  binding?: FieldBinding
 }
 
 export interface Section {
@@ -176,6 +215,8 @@ export interface SchemaDocument {
   title_field: string
   sections: Section[]
   fields: Field[]
+  /** Только у формы-карточки: с какой сущностью какого модуля связана форма. */
+  binding?: DocBinding
 }
 
 /** Блокер публикации (schema.ValidationError). */
@@ -204,6 +245,8 @@ export interface Form {
   draft_updated_at: string | null
   draft_updated_by: string | null
   record_access: RecordAccess
+  /** internal — записи в «Формах»; external — форма-карточка, данные в модуле. */
+  data_source?: 'internal' | 'external'
   sort_order: number
   created_by: string
   created_at: string
