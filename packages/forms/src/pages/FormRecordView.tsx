@@ -11,6 +11,7 @@ import { Icon } from '@wowhaus-24/ui-react'
 
 import type { Form, FormRecord, RecordHistoryEntry, SchemaDocument } from '../types.js'
 import { FormRenderer } from '../render/FormRenderer.js'
+import { withSystemValues } from '../render/system.js'
 import { formatDateTime, type FormatContext } from '../render/format.js'
 import type { RenderContext } from '../render/registry.js'
 import { RecordHistory } from './RecordHistory.js'
@@ -151,7 +152,12 @@ export function FormRecordView({
         <RecordHistory entries={history.entries} schema={schema} ctx={ctx} actorName={actorName} />
       )}
 
-      <FormRenderer doc={schema} values={record.data ?? {}} mode="view" ctx={ctx} />
+      <FormRenderer
+        doc={schema}
+        values={withSystemValues(schema, record.data, { record, formName: form.name, staff: ctx.staff })}
+        mode="view"
+        ctx={ctx}
+      />
     </div>
   )
 }

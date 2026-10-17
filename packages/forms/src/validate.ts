@@ -26,7 +26,7 @@ import type {
   TableConfig,
   TextConfig,
 } from './types.js'
-import { isPresentation } from './types.js'
+import { isComputedField, isPresentation } from './types.js'
 
 function cfg<T>(f: Pick<Field, 'config'>): T {
   return (f.config ?? {}) as T
@@ -68,8 +68,10 @@ export function validateRecord(
 ): RecordFieldError[] {
   const values: RecordData = data ?? {}
   const byId = new Map<string, Field>()
+  // Вычисляемые системные поля (автор, дата создания, форма) в data не
+  // хранятся — как оформление (validate.Record в Go).
   for (const f of doc.fields) {
-    if (isPresentation(f.type)) continue
+    if (isPresentation(f.type) || isComputedField(f)) continue
     byId.set(f.id, f)
   }
 
@@ -85,7 +87,7 @@ export function validateRecord(
   }
 
   for (const f of doc.fields) {
-    if (isPresentation(f.type) || f.archived) continue
+    if (isPresentation(f.type) || f.archived || isComputedField(f)) continue
     let visible = true
     try {
       visible = evaluate(f.visible_if, values)

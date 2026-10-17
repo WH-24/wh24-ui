@@ -11,6 +11,8 @@ export type { Values } from './conditions/conditions.js'
 export { validateRecord, isEmpty } from './validate.js'
 export { normalize, validateForPublish, visibilityDeps, chainDepth, conditionFieldRefs } from './schema.js'
 export { createFormsApi, FormsApiError } from './api.js'
+export { systemValue, withSystemValues } from './render/system.js'
+export type { SystemSource } from './render/system.js'
 export type {
   FormsApi,
   FormsApiOptions,

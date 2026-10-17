@@ -18,6 +18,7 @@ import { Icon, Input } from '@wowhaus-24/ui-react'
 import { FormsApiError, type FormsApi } from '../api.js'
 import type { Field, Form, FormFile, FormRecord, RecordData, RecordFieldError, SchemaDocument } from '../types.js'
 import { FormRenderer } from '../render/FormRenderer.js'
+import { withSystemValues } from '../render/system.js'
 import { formatValue, isBlank } from '../render/format.js'
 import type { RenderContext } from '../render/registry.js'
 import { validateRecord } from '../validate.js'
@@ -287,7 +288,9 @@ export function FormRecordEditor({
 
       <FormRenderer
         doc={schema}
-        values={values}
+        // Автор, дата создания, форма — только для показа: в values (и в
+        // отправку) не попадают.
+        values={withSystemValues(schema, values, { record, formName: form.name, staff: renderCtx.staff })}
         mode="edit"
         onChange={setValue}
         errors={errors}
