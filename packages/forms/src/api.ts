@@ -105,6 +105,11 @@ export interface UpdateFormBody {
   icon?: string
   record_access?: RecordAccess
   sort_order?: number
+  /**
+   * Перенос формы в меню другого модуля вместе с записями: роль manage в
+   * прежнем и новом модуле; форма-карточка не переносится (409).
+   */
+  module_key?: string
 }
 
 /** Справочник глазами модуля: только активные строки, значение поля catalog — id строки. */
