@@ -13,6 +13,8 @@ import { Icon, Input } from '@wowhaus-24/ui-react'
 
 import { FormsApiError, type FormsApi, type ListRecordsQuery } from '../api.js'
 import type { Field, Form, FormRecord, SchemaDocument } from '../types.js'
+import { isComputedField } from '../types.js'
+import { systemValue } from '../render/system.js'
 import {
   formatDateTime,
   formatValue,
@@ -399,7 +401,15 @@ export function FormRecordsPage({
                       )
                     return (
                       <td key={c.key} className={c.align === 'right' ? styles.right : undefined}>
-                        <Cell field={c.field!} value={r.data?.[c.field!.id]} ctx={ctx} />
+                        <Cell
+                          field={c.field!}
+                          value={
+                            isComputedField(c.field!)
+                              ? systemValue(c.field!, { record: r, formName: form.name, staff: ctx.staff })
+                              : r.data?.[c.field!.id]
+                          }
+                          ctx={ctx}
+                        />
                       </td>
                     )
                   })}

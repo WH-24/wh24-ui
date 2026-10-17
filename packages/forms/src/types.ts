@@ -42,6 +42,31 @@ export function isPresentation(t: FieldType): boolean {
   return PRESENTATION_TYPES.includes(t)
 }
 
+/**
+ * Системные поля записи (schema/system.go, владелец 17.10.2026 — как блок
+ * «Системные» в Pyrus). Каждое — не больше одного на форму.
+ */
+export const SYSTEM_KEYS = ['author', 'responsible', 'created_at', 'due', 'form'] as const
+
+export type SystemKey = (typeof SYSTEM_KEYS)[number]
+
+/** Тип, которым показывается системное поле (schema.systemTypes). */
+export const SYSTEM_FIELD_TYPES: Record<SystemKey, FieldType> = {
+  author: 'user',
+  responsible: 'user',
+  created_at: 'datetime',
+  due: 'date',
+  form: 'text',
+}
+
+/** Вычисляемые: значение из записи (автор, дата создания) и формы (название), в data не хранится. */
+export const COMPUTED_SYSTEM_KEYS: readonly SystemKey[] = ['author', 'created_at', 'form']
+
+/** Поле заполняется само и в data его нет (schema.Field.IsComputed). */
+export function isComputedField(f: { system?: SystemKey }): boolean {
+  return f.system != null && COMPUTED_SYSTEM_KEYS.includes(f.system)
+}
+
 /** Типы, допустимые для КОЛОНОК таблицы (schema.tableColumnAllowedTypes). */
 export const TABLE_COLUMN_TYPES: readonly FieldType[] = [
   'text',
@@ -201,6 +226,8 @@ export interface Field {
   visible_if?: ConditionGroup
   /** Только у формы-карточки: где лежит значение. */
   binding?: FieldBinding
+  /** Системное поле записи (автор, ответственный, дата создания, срок, форма). */
+  system?: SystemKey
 }
 
 export interface Section {
@@ -353,6 +380,8 @@ export interface OrgOption {
   id: string
   label: string
   hint?: string
+  /** Учётка IAM сотрудника: по ней системное поле «Автор» (created_by) находит человека. */
+  auth_user_id?: string
 }
 
 // ─── Ошибки заполнения (internal/validate) ───────────────────────────────

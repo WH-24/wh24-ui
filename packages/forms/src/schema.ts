@@ -10,8 +10,25 @@
  * Сообщения — те же, что у бэкенда, слово в слово: пользователь видит их и
  * до, и после публикации, и они не должны различаться.
  */
-import type { ConditionGroup, Field, SchemaDocument, SchemaValidationError, TableColumn, TableConfig } from './types.js'
-import { FIELD_SPANS, FIELD_TYPES, MAX_VISIBILITY_CHAIN_DEPTH, TABLE_COLUMN_TYPES, TITLE_CAPABLE_TYPES } from './types.js'
+import type {
+  ConditionGroup,
+  Field,
+  SchemaDocument,
+  SchemaValidationError,
+  SystemKey,
+  TableColumn,
+  TableConfig,
+} from './types.js'
+import {
+  FIELD_SPANS,
+  FIELD_TYPES,
+  MAX_VISIBILITY_CHAIN_DEPTH,
+  SYSTEM_FIELD_TYPES,
+  SYSTEM_KEYS,
+  TABLE_COLUMN_TYPES,
+  TITLE_CAPABLE_TYPES,
+  isComputedField,
+} from './types.js'
 
 function labelOr(f: Pick<Field, 'label' | 'key' | 'id'>): string {
   return f.label || f.key || f.id
@@ -41,6 +58,26 @@ export function normalize(d: SchemaDocument | null | undefined): string | null {
       return `schema: поле "${f.id}" имеет недопустимую ширину span=${f.span} (допустимо 3,4,6,12)`
     if (!f.section_id || !sections.has(f.section_id))
       return `schema: поле "${f.id}" ссылается на несуществующую секцию "${f.section_id}"`
+  }
+  return normalizeSystem(d)
+}
+
+/** Системные поля — как schema.normalizeSystem в Go. */
+function normalizeSystem(d: SchemaDocument): string | null {
+  const seen = new Map<SystemKey, string>()
+  for (const f of d.fields) {
+    if (!f.system) continue
+    if (!(SYSTEM_KEYS as readonly string[]).includes(f.system))
+      return `schema: поле "${f.id}": неизвестное системное поле "${f.system}"`
+    if (d.binding) return `schema: у карточки модуля системных полей нет (поле "${f.id}")`
+    const want = SYSTEM_FIELD_TYPES[f.system]
+    if (f.type !== want) return `schema: системное поле "${f.id}" должно быть типа "${want}", а не "${f.type}"`
+    if (isComputedField(f) && f.required)
+      return `schema: поле "${f.id}" заполняется само — обязательным быть не может`
+    if (f.archived) continue
+    const other = seen.get(f.system)
+    if (other !== undefined) return `schema: системное поле "${f.system}" уже есть в форме (поле "${other}")`
+    seen.set(f.system, f.id)
   }
   return null
 }
@@ -181,6 +218,11 @@ export function validateForPublish(
         field_id: tf.id,
         message: `Поле «${labelOr(tf)}» не подходит для названия записи (тип «${tf.type}»)`,
       })
+    } else if (isComputedField(tf)) {
+      errs.push({
+        field_id: tf.id,
+        message: `Поле «${labelOr(tf)}» заполняется само и не подходит для названия записи`,
+      })
     }
   }
 
@@ -200,6 +242,31 @@ export function validateForPublish(
   }
 
   errs.push(...validateVisibility(next.fields, byId))
+
+  // --- Системные поля: смысл не меняется, условия по вычисляемым не работают ---
+  if (prev) {
+    const prevById = new Map(prev.fields.map((f) => [f.id, f]))
+    for (const f of next.fields) {
+      const pf = prevById.get(f.id)
+      if (pf && (pf.system ?? '') !== (f.system ?? '')) {
+        errs.push({
+          field_id: f.id,
+          message: `Поле «${labelOr(f)}»: системное назначение нельзя менять после публикации — архивируйте поле и создайте новое`,
+        })
+      }
+    }
+  }
+  for (const f of next.fields) {
+    for (const ref of conditionFieldRefs(f.visible_if)) {
+      const rf = byId.get(ref)
+      if (rf && isComputedField(rf)) {
+        errs.push({
+          field_id: f.id,
+          message: `Поле «${labelOr(f)}»: условие показа по полю «${labelOr(rf)}» не сработает — оно заполняется само и в записи не хранится`,
+        })
+      }
+    }
+  }
 
   // --- Смена типа опубликованного поля ---
   if (prev) {

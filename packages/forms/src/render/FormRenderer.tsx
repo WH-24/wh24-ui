@@ -17,7 +17,7 @@ import { FieldGrid, FieldRow } from '@wowhaus-24/ui-react'
 
 import { evaluate } from '../conditions/conditions.js'
 import type { Field, RecordData, RecordFieldError, SchemaDocument, Section } from '../types.js'
-import { isPresentation } from '../types.js'
+import { isComputedField, isPresentation } from '../types.js'
 import { isBlank } from './format.js'
 import { FieldControl, type RenderContext, type RenderMode } from './registry.js'
 import styles from './render.module.css'
@@ -143,7 +143,8 @@ export function FormRenderer({
     return (
       <section key={s.id} className={styles.section} aria-label={s.title}>
         {s.title && <h3 className={styles.sectionTitle}>{s.title}</h3>}
-        <FieldGrid>{fields.map((f) => renderField(f, false))}</FieldGrid>
+        {/* Вычисляемые системные поля (автор, дата создания, форма) не вводятся — всегда просмотр. */}
+        <FieldGrid>{fields.map((f) => renderField(f, isComputedField(f)))}</FieldGrid>
       </section>
     )
   }
