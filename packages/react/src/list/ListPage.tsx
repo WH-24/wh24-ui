@@ -109,6 +109,23 @@ export function needsPxWidths<T>(
   });
 }
 
+/**
+ * Ширины для colgroup. В px-режиме — минимумы колонок. В процентном — `width`
+ * как есть, но если проценты видимых колонок в сумме меньше 100% (часть колонок
+ * скрыта), колонка названия остаётся без ширины и забирает остаток. Иначе
+ * при table-layout:fixed браузер раздавал лишнее всем колонкам, и узкая
+ * px-колонка (аватар 56px) расползалась на полтаблицы.
+ */
+export function colgroupWidths<T>(
+  cols: ListColumn<T>[],
+  pxWidths: boolean,
+): (string | number | undefined)[] {
+  if (pxWidths) return cols.map((c) => colMinWidth(c));
+  const pctTotal = cols.reduce((sum, c) => sum + (widthPercent(c) ?? 0), 0);
+  const fill = pctTotal < 100 && cols.some((c) => c.primary);
+  return cols.map((c) => (fill && c.primary ? undefined : c.width));
+}
+
 /** Сохранённая настройка колонок. */
 interface ColsPrefs {
   /** Выключенные пользователем (или скрытые по умолчанию) колонки. */
@@ -433,6 +450,7 @@ export function ListPage<T>({
   // больше 100% — при table-layout:fixed они съедают всю ширину, а колонки без
   // явной width схлопываются в ноль. Условия перехода на px — в needsPxWidths.
   const pxWidths = needsPxWidths(visibleColumns, wrapWidth, tableMinWidth);
+  const colWidths = colgroupWidths(visibleColumns, pxWidths);
 
   // Пишем и hidden, и known (все текущие колонки): иначе колонка, добавленная
   // позже, не отличалась бы от «пользователь её включил».
@@ -745,11 +763,8 @@ export function ListPage<T>({
             <table className={styles.tbl} style={{ minWidth: tableMinWidth }}>
               <colgroup>
                 <col style={{ width: ACTIONS_COL_WIDTH }} />
-                {visibleColumns.map((c) => (
-                  <col
-                    key={c.key}
-                    style={{ width: pxWidths ? colMinWidth(c) : c.width }}
-                  />
+                {visibleColumns.map((c, i) => (
+                  <col key={c.key} style={{ width: colWidths[i] }} />
                 ))}
               </colgroup>
               <thead>

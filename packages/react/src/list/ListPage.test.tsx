@@ -2,7 +2,7 @@ import { render, screen, act, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { ListPage, needsPxWidths } from "./ListPage";
+import { colgroupWidths, ListPage, needsPxWidths } from "./ListPage";
 import type { FilterBarConfig } from "./filter/types";
 
 interface Row {
@@ -177,6 +177,40 @@ describe("ListPage — карточки без пагинации", () => {
     expect(needsPxWidths(cols, 0, 544)).toBe(false);
     // Колонка без primary процентом не проверяется.
     expect(needsPxWidths([city], 990, 194)).toBe(false);
+  });
+
+  it("остаток ширины забирает название, а не узкая px-колонка", () => {
+    const avatar = { key: "avatar", label: "", width: 56, render: () => null };
+    const name = {
+      key: "name",
+      label: "Название",
+      width: "30%",
+      primary: true,
+      render: () => null,
+    };
+    const status = {
+      key: "status",
+      label: "Статус",
+      width: "12%",
+      render: () => null,
+    };
+    // Часть колонок скрыта: 30% + 12% < 100% — название без ширины, берёт остаток.
+    expect(colgroupWidths([avatar, name, status], false)).toEqual([
+      56,
+      undefined,
+      "12%",
+    ]);
+    // Проценты съедают всю ширину — оставляем как задано.
+    const wide = { ...status, width: "70%" };
+    expect(colgroupWidths([avatar, name, wide], false)).toEqual([
+      56,
+      "30%",
+      "70%",
+    ]);
+    // В px-режиме — минимумы.
+    expect(colgroupWidths([avatar, name, status], true)).toEqual([
+      56, 350, 150,
+    ]);
   });
 
   it('defaultView="cards" открывает список сразу карточками', () => {
