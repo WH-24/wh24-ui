@@ -216,6 +216,21 @@ describe('FormRecordsPage', () => {
     expect(await screen.findByText('Запись 1')).toBeInTheDocument()
   })
 
+  it('«На контроле» просит у сервера только отмеченные записи', async () => {
+    const user = userEvent.setup()
+    const { api } = mockApi({
+      list: vi.fn(async (_f: string, q: { watching?: boolean }) =>
+        q.watching ? { data: [], total: 0 } : { data: [rec(1)], total: 1 },
+      ),
+    })
+    render(<FormRecordsPage form={form} schema={schema} api={api} />)
+    await screen.findByText('Запись 1')
+    await user.click(screen.getByRole('button', { name: 'На контроле' }))
+    expect(await screen.findByText('На контроле ничего нет')).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Все записи' }))
+    expect(await screen.findByText('Запись 1')).toBeInTheDocument()
+  })
+
   it('меню «Колонки» скрывает колонку и запоминает выбор', async () => {
     const user = userEvent.setup()
     const { api } = mockApi()
