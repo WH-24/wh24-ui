@@ -377,3 +377,35 @@ describe('helpers', () => {
     expect(formatValue(f({ id: 't', type: 'text' }), '')).toBe('—')
   })
 })
+
+describe('поле «Форма» (record_ref)', () => {
+  const refs = {
+    r: [
+      { value: 'p1', label: 'Переделкино_Измалково', hint: 'В работе', href: '/pm/projects/p1' },
+      { value: 'p2', label: 'Старый проект', inactive: true },
+    ],
+  }
+
+  it('в списке только активные записи; выбор кладёт id', async () => {
+    const d = doc([f({ id: 'r', type: 'record_ref', label: 'Проект', config: { form_id: 'F' } })])
+    render(
+      <FormRenderer doc={d} values={{}} mode="edit" ctx={{ recordRefs: refs }} onChange={vi.fn()} />,
+    )
+    await userEvent.click(screen.getByRole('combobox'))
+    expect(screen.getByRole('option', { name: /Переделкино_Измалково/ })).toBeTruthy()
+    expect(screen.queryByRole('option', { name: /Старый проект/ })).toBeNull()
+  })
+
+  it('просмотр — название ссылкой на запись, закрытая выбранная тоже подписана', () => {
+    const d = doc([
+      f({ id: 'r', type: 'record_ref', label: 'Проекты', config: { form_id: 'F', multiple: true } }),
+    ])
+    render(<FormRenderer doc={d} values={{ r: ['p1', 'p2'] }} mode="view" ctx={{ recordRefs: refs }} />)
+    const link = screen.getByRole('link', { name: 'Переделкино_Измалково' })
+    expect(link.getAttribute('href')).toBe('/pm/projects/p1')
+    expect(screen.getByText('Старый проект')).toBeTruthy()
+    expect(formatValue(d.fields[0]!, ['p1', 'p2'], { recordRefs: refs })).toBe(
+      'Переделкино_Измалково, Старый проект',
+    )
+  })
+})
