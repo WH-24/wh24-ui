@@ -240,3 +240,14 @@ describe('validateRecord — типы', () => {
     expect(errs[0]?.message).toContain('Смета → Сумма (строка 1)')
   })
 })
+
+describe('validateRecord — поле «Форма»', () => {
+  it('одна запись — строка, несколько — список', () => {
+    const one = f({ id: 'r', type: 'record_ref', config: { form_id: 'F' } })
+    const many = f({ id: 'm', type: 'record_ref', config: { form_id: 'F', multiple: true } })
+    expect(validateRecord(doc(one), { r: 'id-1' })).toEqual([])
+    expect(codes(validateRecord(doc(one), { r: ['id-1'] }))).toEqual(['type'])
+    expect(validateRecord(doc(many), { m: ['id-1', 'id-2'] })).toEqual([])
+    expect(codes(validateRecord(doc(many), { m: 'id-1' }))).toEqual(['type'])
+  })
+})

@@ -17,6 +17,7 @@ import { evaluate } from './conditions/conditions.js'
 import type {
   Field,
   FileConfig,
+  RecordRefConfig,
   NumberConfig,
   RecordData,
   RecordFieldError,
@@ -218,6 +219,12 @@ function checkValue(f: Field, value: unknown): RecordFieldError[] {
     case 'user':
     case 'department':
       return typeof value === 'string' ? [] : [typeErr(f, 'идентификатор из справочника платформы')]
+    case 'record_ref': {
+      // Существование записи проверяет бэкенд (у него записи формы-источника).
+      if (cfg<RecordRefConfig>(f).multiple)
+        return toStringArray(value) ? [] : [typeErr(f, 'список записей')]
+      return typeof value === 'string' ? [] : [typeErr(f, 'одна запись')]
+    }
     case 'file': {
       const items = toStringArray(value)
       if (!items) return [typeErr(f, 'список файлов')]

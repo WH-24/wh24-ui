@@ -30,6 +30,8 @@ import type {
   MoneyConfig,
   NumberConfig,
   OrgOption,
+  RecordRefConfig,
+  RecordRefOption,
   SelectOption,
   TableColumn,
   TableConfig,
@@ -569,6 +571,76 @@ const department: FieldRenderer = {
   View: TextView,
 }
 
+// ─── Поле «Форма»: ссылка на запись другой формы ─────────────────────
+
+/** В список — активные записи и уже выбранные (даже закрытые), чтобы
+ *  выбранное не пропадало из поля. */
+function refOptions(list: RecordRefOption[] | undefined, chosen: string[]): ComboboxOption[] {
+  return (list ?? [])
+    .filter((o) => !o.inactive || chosen.includes(o.value))
+    .map((o) => ({ value: o.value, label: o.label, hint: o.hint ?? null }))
+}
+
+function refValues(value: unknown): string[] {
+  if (Array.isArray(value)) return value.map(String)
+  return typeof value === 'string' && value ? [value] : []
+}
+
+const recordRef: FieldRenderer = {
+  Edit: ({ field, value, onChange, id, invalid, disabled, ctx }) => {
+    const multiple = Boolean((field.config as RecordRefConfig | undefined)?.multiple)
+    const chosen = refValues(value)
+    const list = ctx.recordRefs?.[field.id]
+    const options = refOptions(list, chosen)
+    const emptyText = list ? 'Записей не найдено' : 'Записи формы недоступны'
+    return multiple ? (
+      <MultiCombobox
+        id={id}
+        options={options}
+        values={chosen}
+        onChange={(v) => onChange(v.length ? v : undefined)}
+        placeholder={field.placeholder ?? '— выбрать записи —'}
+        invalid={invalid}
+        disabled={disabled}
+      />
+    ) : (
+      <Combobox
+        id={id}
+        options={options}
+        value={chosen[0] ?? ''}
+        onChange={(v) => onChange(v || undefined)}
+        placeholder={field.placeholder ?? '— выбрать запись —'}
+        clearable={!field.required}
+        invalid={invalid}
+        disabled={disabled}
+        emptyText={emptyText}
+      />
+    )
+  },
+  View: ({ field, value, ctx }) => {
+    const items = refValues(value)
+    if (!items.length) return <StaticValue>—</StaticValue>
+    const byId = new Map((ctx.recordRefs?.[field.id] ?? []).map((o) => [o.value, o]))
+    return (
+      <StaticValue className={styles.chips}>
+        {items.map((v) => {
+          const o = byId.get(v)
+          const label = o?.label ?? optionLabel(field, v, ctx)
+          return o?.href ? (
+            <a key={v} className={styles.chip} href={o.href}>
+              {label}
+            </a>
+          ) : (
+            <span key={v} className={styles.chip}>
+              {label}
+            </span>
+          )
+        })}
+      </StaticValue>
+    )
+  },
+}
+
 // ─── Файлы ─────────────────────────────────────────────────────────────
 
 function fileItems(value: unknown, byId: Record<string, FormFile> | undefined) {
@@ -977,6 +1049,7 @@ export const fieldRegistry: Record<FieldType, FieldRenderer> = {
   department,
   table,
   file,
+  record_ref: recordRef,
   section,
   note,
 }

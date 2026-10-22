@@ -29,6 +29,7 @@ export const FIELD_TYPES = [
   'department',
   'table',
   'file',
+  'record_ref',
   'section',
   'note',
 ] as const
@@ -159,6 +160,26 @@ export interface CatalogConfig {
 }
 export interface FileConfig {
   max_files?: number
+}
+/**
+ * Поле «Форма» (record_ref, schema.RecordRefConfig): ссылка на запись другой
+ * формы. Значение — id записи, при multiple — список id. У формы-карточки
+ * (проекты, лиды ОУП) id — это id сущности модуля.
+ */
+export interface RecordRefConfig {
+  form_id?: string
+  multiple?: boolean
+}
+/** Вариант поля «Форма» — запись формы-источника (её даёт хост). */
+export interface RecordRefOption {
+  value: string
+  label: string
+  /** Вторая строка: номер, статус, заказчик. */
+  hint?: string
+  /** Куда ведёт ссылка на запись. */
+  href?: string
+  /** Закрыта/удалена: показывается у уже выбранного, но в список не попадает. */
+  inactive?: boolean
 }
 export interface TableColumn {
   id: string
