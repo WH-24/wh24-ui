@@ -177,19 +177,21 @@ export function FormRecordsPage({
   const [searchText, setSearchText] = useState('')
   const search = useDebounced(searchText.trim(), 300)
   const [sort, setSort] = useState<Sort>('created_at_desc')
+  // «На контроле» — записи, отмеченные флажком в ленте записи.
+  const [watching, setWatching] = useState(false)
   const [load, setLoad] = useState<Load>({ kind: 'loading' })
   const [reloadTick, setReloadTick] = useState(0)
 
   // Поиск и сортировка возвращают на первую страницу: страница 7 нового
   // результата — это не «то же место», а случайный срез.
-  useEffect(() => setPage(1), [search, sort, pageSize])
+  useEffect(() => setPage(1), [search, sort, pageSize, watching])
 
   const abortRef = useRef(0)
   useEffect(() => {
     const ticket = ++abortRef.current
     setLoad((prev) => (prev.kind === 'ready' ? prev : { kind: 'loading' }))
     api.records
-      .list(form.id, { search: search || undefined, page, limit: pageSize, sort })
+      .list(form.id, { search: search || undefined, page, limit: pageSize, sort, watching: watching || undefined })
       .then((res) => {
         if (ticket !== abortRef.current) return
         setLoad({ kind: 'ready', rows: res.data, total: res.total })
@@ -198,7 +200,7 @@ export function FormRecordsPage({
         if (ticket !== abortRef.current) return
         setLoad({ kind: 'error', error: error instanceof Error ? error : new Error(String(error)) })
       })
-  }, [api, form.id, search, page, pageSize, sort, reloadTick])
+  }, [api, form.id, search, page, pageSize, sort, watching, reloadTick])
 
   const retry = useCallback(() => {
     setLoad({ kind: 'loading' })
@@ -290,6 +292,20 @@ export function FormRecordsPage({
           action={
             <button type="button" className="btn btn-secondary btn-sm" onClick={retry}>
               Повторить
+            </button>
+          }
+        />
+      )
+    }
+    if (load.total === 0 && watching) {
+      return (
+        <StateBox
+          icon="list"
+          title="На контроле ничего нет"
+          text="Отметьте запись флажком в её ленте — она появится здесь."
+          action={
+            <button type="button" className="btn btn-secondary btn-sm" onClick={() => setWatching(false)}>
+              Все записи
             </button>
           }
         />
@@ -475,6 +491,14 @@ export function FormRecordsPage({
             onChange={(e) => setSearchText(e.target.value)}
           />
         </div>
+        <button
+          type="button"
+          className={['btn', 'btn-sm', watching ? 'btn-secondary' : 'btn-ghost'].join(' ')}
+          aria-pressed={watching}
+          onClick={() => setWatching((v) => !v)}
+        >
+          <Icon name="flag" size={14} /> На контроле
+        </button>
         <span className={styles.spacer} />
         <div className={styles.colsWrap}>
           <button

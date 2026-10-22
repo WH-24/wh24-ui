@@ -15,13 +15,18 @@ import type {
   Form,
   FormFile,
   FormRecord,
+  FormRouteStep,
   FormVersion,
   MeAccess,
+  NewComment,
   OrgOption,
   RecordAccess,
+  RecordComment,
   RecordData,
+  RecordFeed,
   RecordFieldError,
   RecordHistoryEntry,
+  RecordRoute,
   SchemaDocument,
   SchemaValidationError,
 } from './types.js'
@@ -71,6 +76,8 @@ export interface ListRecordsQuery {
   page?: number
   limit?: number
   sort?: 'created_at_desc' | 'created_at_asc' | 'number_desc' | 'number_asc'
+  /** Только записи «На контроле» у вызывающего. */
+  watching?: boolean
 }
 
 export interface ListResult<T> {
@@ -231,6 +238,24 @@ function toQuery(q: Record<string, string | number | undefined>): string {
   return s ? `?${s}` : ''
 }
 
+/** Тело сообщения ленты: пустые поля не уходят, '' у срока/ответственного — снять. */
+export function commentForm(c: NewComment): FormData {
+  const fd = new FormData()
+  if (c.body) fd.append('body', c.body)
+  if (c.reply_to) fd.append('reply_to', c.reply_to)
+  if (c.mentions?.length) fd.append('mentions', JSON.stringify(c.mentions))
+  if (c.approval) {
+    fd.append('approval', c.approval.choice)
+    fd.append('step_id', c.approval.step_id)
+  }
+  if (c.responsible !== undefined) fd.append('responsible', c.responsible)
+  if (c.due !== undefined) fd.append('due', c.due)
+  if (c.spent_minutes) fd.append('spent_minutes', String(c.spent_minutes))
+  if (c.meeting) fd.append('meeting', JSON.stringify(c.meeting))
+  for (const f of c.files ?? []) fd.append('files', f, f.name)
+  return fd
+}
+
 export function createFormsApi(opts: FormsApiOptions) {
   const doFetch = opts.fetch ?? fetch
 
@@ -373,7 +398,13 @@ export function createFormsApi(opts: FormsApiOptions) {
       list: (formId: string, q: ListRecordsQuery = {}) =>
         request<ListResult<FormRecord>>(
           'GET',
-          `/forms/${seg(formId)}/records${toQuery({ search: q.search, page: q.page, limit: q.limit, sort: q.sort })}`,
+          `/forms/${seg(formId)}/records${toQuery({
+            search: q.search,
+            page: q.page,
+            limit: q.limit,
+            sort: q.sort,
+            watching: q.watching ? 'true' : undefined,
+          })}`,
           undefined,
           { raw: true },
         ),
@@ -420,8 +451,33 @@ export function createFormsApi(opts: FormsApiOptions) {
           'GET',
           `/forms/${seg(formId)}/records/${seg(id)}/files/${seg(fileId)}/url`,
         ),
+      /** Лента записи: сообщения, маршрут глазами вызывающего, «На контроле». */
+      feed: (formId: string, id: string) =>
+        request<RecordFeed>('GET', `/forms/${seg(formId)}/records/${seg(id)}/feed`),
+      /**
+       * Сообщение ленты со всеми действиями панели (multipart). 403 — не
+       * согласующий этапа, 409 — запись не на этом этапе.
+       */
+      comment: (formId: string, id: string, c: NewComment) =>
+        request<{ comment: RecordComment; route: RecordRoute; record: FormRecord }>(
+          'POST',
+          `/forms/${seg(formId)}/records/${seg(id)}/comments`,
+          commentForm(c),
+        ),
+      watch: (formId: string, id: string, on: boolean) =>
+        request<{ watching: boolean }>(
+          on ? 'PUT' : 'DELETE',
+          `/forms/${seg(formId)}/records/${seg(id)}/watch`,
+        ),
       /** URL выгрузки CSV — открывать как ссылку; заголовки авторизации хост передаёт сам. */
       exportCsvUrl: (formId: string) => `${opts.baseUrl}/forms/${seg(formId)}/export.csv`,
+    },
+
+    route: {
+      get: (formId: string) => request<FormRouteStep[]>('GET', `/forms/${seg(formId)}/route`),
+      /** Маршрут целиком (роль «Управление» в модуле формы). Этап без id — новый. */
+      put: (formId: string, steps: Array<Pick<FormRouteStep, 'name' | 'approvers'> & { id?: string }>) =>
+        request<FormRouteStep[]>('PUT', `/forms/${seg(formId)}/route`, { steps }),
     },
 
     options: {
