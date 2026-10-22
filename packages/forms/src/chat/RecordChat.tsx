@@ -150,6 +150,13 @@ export function RecordChat({
         onError={onError}
       />
 
+      {feed.staff_unavailable && (
+        <div className={styles.error} role="status">
+          Справочник сотрудников временно недоступен: решения по этапу и уведомления об упоминаниях
+          сейчас не работают.
+        </div>
+      )}
+
       <div className={styles.list} ref={listRef} aria-label="Сообщения">
         {feed.comments.length === 0 && <div className={styles.muted}>Сообщений пока нет</div>}
         {feed.comments.map((c) => (

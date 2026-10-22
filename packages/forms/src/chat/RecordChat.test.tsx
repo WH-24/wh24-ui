@@ -175,6 +175,14 @@ describe('RecordChat', () => {
   })
 })
 
+describe('RecordChat — сбой справочника', () => {
+  it('предупреждает, что решения и уведомления не работают', async () => {
+    const { api } = fakeApi(baseFeed({ staff_unavailable: true }))
+    render(<RecordChat api={api} formId="f1" recordId="r1" staff={staff} />)
+    expect(await screen.findByRole('status')).toHaveTextContent('Справочник сотрудников временно недоступен')
+  })
+})
+
 describe('логика панели', () => {
   it('время: 1:30, 90, 1.5, 1ч 30м', () => {
     expect(parseMinutes('1:30')).toBe(90)

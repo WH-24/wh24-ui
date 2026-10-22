@@ -492,6 +492,8 @@ export interface RecordFeed {
   watching: boolean
   /** id системных полей, которые правит лента; пусто — у формы такого поля нет. */
   fields: { responsible: string; due: string }
+  /** Справочник HR недоступен: решения и уведомления сейчас не работают. */
+  staff_unavailable?: boolean
 }
 
 /** Этап маршрута формы (настройка). */
