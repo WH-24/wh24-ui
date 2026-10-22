@@ -49,6 +49,15 @@ export type IconName =
   | 'megaphone'
   | 'back'
   | 'pin'
+  | 'video'
+  | 'flag'
+  | 'send'
+  | 'timer'
+  | 'at'
+  | 'type'
+  | 'smile'
+  | 'image'
+  | 'clip'
 
 interface IconProps {
   name: IconName
@@ -56,7 +65,7 @@ interface IconProps {
   stroke?: number
 }
 
-const paths: Record<Exclude<IconName, 'telegram'>, ReactNode> = {
+const paths: Record<Exclude<IconName, 'telegram' | 'send'>, ReactNode> = {
   home: (
     <>
       <path d="M3 10.5L12 3l9 7.5" />
@@ -366,6 +375,60 @@ const paths: Record<Exclude<IconName, 'telegram'>, ReactNode> = {
       <path d="M6 14v4a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1v-3" />
     </>
   ),
+  // Панель комментария ленты записи (как в Pyrus).
+  video: (
+    <>
+      <rect x="2" y="6" width="14" height="12" rx="2" />
+      <path d="M16 10l6-3v10l-6-3" />
+    </>
+  ),
+  flag: (
+    <>
+      <path d="M4 22V4" />
+      <path d="M4 4h12l-2 4 2 4H4" />
+    </>
+  ),
+  timer: (
+    <>
+      <circle cx="12" cy="13" r="8" />
+      <path d="M12 9v4l2 2" />
+      <path d="M10 2h4" />
+      <path d="M12 2v3" />
+    </>
+  ),
+  at: (
+    <>
+      <circle cx="12" cy="12" r="4" />
+      <path d="M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-4 8" />
+    </>
+  ),
+  type: (
+    <>
+      <path d="M6 16l6-13 6 13" />
+      <path d="M8.5 11h7" />
+      <path d="M4 21h16" />
+    </>
+  ),
+  smile: (
+    <>
+      <circle cx="12" cy="12" r="10" />
+      <path d="M8 14s1.5 2 4 2 4-2 4-2" />
+      <path d="M9 9h.01" />
+      <path d="M15 9h.01" />
+    </>
+  ),
+  image: (
+    <>
+      <rect x="3" y="3" width="18" height="18" rx="2" />
+      <circle cx="9" cy="9" r="2" />
+      <path d="M21 15l-5-5L5 21" />
+    </>
+  ),
+  clip: (
+    <>
+      <path d="M21 11l-9 9a5 5 0 0 1-7-7l9-9a3.5 3.5 0 0 1 5 5l-9 9a2 2 0 0 1-3-3l8-8" />
+    </>
+  ),
 }
 
 // «Send» line-icon — бумажный самолётик в одну линию (Lucide-style),
@@ -389,7 +452,7 @@ export function Icon({ name, size = 16, stroke = 1.6 }: IconProps) {
       strokeLinecap="round"
       strokeLinejoin="round"
     >
-      {name === 'telegram' ? TELEGRAM_PATH : paths[name]}
+      {name === 'telegram' || name === 'send' ? TELEGRAM_PATH : paths[name]}
     </svg>
   )
 }

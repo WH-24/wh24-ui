@@ -10,7 +10,7 @@ export { evaluate, isEmptyValue, UnknownOpError } from './conditions/conditions.
 export type { Values } from './conditions/conditions.js'
 export { validateRecord, isEmpty } from './validate.js'
 export { normalize, validateForPublish, visibilityDeps, chainDepth, conditionFieldRefs } from './schema.js'
-export { createFormsApi, FormsApiError } from './api.js'
+export { createFormsApi, FormsApiError, commentForm } from './api.js'
 export { systemValue, withSystemValues } from './render/system.js'
 export type { SystemSource } from './render/system.js'
 export type {
@@ -78,3 +78,9 @@ export { StatusPill, statusLabel, DEFAULT_RECORD_STATUSES } from './pages/Status
 export type { StatusPillProps, StatusTone, StatusLabel } from './pages/StatusPill.js'
 export { StateBox, Skeleton, Banner } from './pages/states.js'
 export type { StateBoxProps, BannerProps } from './pages/states.js'
+
+// Лента записи (панель комментария как в Pyrus): сообщения, маршрут, действия.
+export { RecordChat } from './chat/RecordChat.js'
+export type { RecordChatProps } from './chat/RecordChat.js'
+export { Markup, parseInline, parseBlocks } from './chat/markup.js'
+export { formatMinutes, parseMinutes, CHOICE_LABEL } from './chat/logic.js'

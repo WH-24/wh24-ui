@@ -332,6 +332,8 @@ export interface FormFile {
   id: string
   record_id: string
   field_id: string
+  /** Файл приложен к сообщению ленты (field_id тогда пуст). */
+  comment_id?: string
   name: string
   size: number
   mime: string
@@ -414,4 +416,105 @@ export type FormsRole = 'none' | 'view' | 'edit' | 'manage'
 
 export interface MeAccess {
   role: FormsRole
+}
+
+// ─── Лента записи (панель комментария как в Pyrus) ───────────────────────────
+
+/** Решение согласующего; `revoked` — отзыв своего решения. */
+export type ApprovalChoice = 'approved' | 'acknowledged' | 'rejected' | 'revoked'
+
+export interface ValueChange {
+  field_id: string
+  from: unknown
+  to: unknown
+}
+
+export interface Meeting {
+  title: string
+  /** RFC3339. */
+  starts_at: string
+  ends_at: string
+  url: string
+}
+
+/** Что сделано сообщением кроме текста и файлов. */
+export interface CommentActions {
+  approval?: { step_id: string; step_name: string; choice: ApprovalChoice; approver: string }
+  responsible?: ValueChange
+  due?: ValueChange
+  spent_minutes?: number
+  meeting?: Meeting
+  /** Упомянутые сотрудники (id HR). */
+  mentions?: string[]
+}
+
+export interface RecordComment {
+  id: string
+  record_id: string
+  /** Учётка IAM автора (как created_by записи). */
+  author: string
+  /** Текст с лёгкой разметкой: **жирный**, _курсив_, ~~зачёркнутый~~, `код`, «- » списки. */
+  body: string
+  reply_to: string | null
+  actions: CommentActions
+  created_at: string
+  files: FormFile[]
+}
+
+export type RouteStepState = 'passed' | 'current' | 'rejected' | 'pending'
+
+export interface RouteApprover {
+  staff_id: string
+  /** Пусто — ещё не решал. */
+  choice: '' | Exclude<ApprovalChoice, 'revoked'>
+  decided_at: string | null
+  /** Это вызывающий: за него можно решать. */
+  mine: boolean
+}
+
+export interface RecordRouteStep {
+  id: string
+  name: string
+  state: RouteStepState
+  approvers: RouteApprover[]
+}
+
+export interface RecordRoute {
+  steps: RecordRouteStep[]
+  current_step_id: string | null
+  finished: boolean
+}
+
+export interface RecordFeed {
+  comments: RecordComment[]
+  route: RecordRoute
+  /** «На контроле» у вызывающего. */
+  watching: boolean
+  /** id системных полей, которые правит лента; пусто — у формы такого поля нет. */
+  fields: { responsible: string; due: string }
+}
+
+/** Этап маршрута формы (настройка). */
+export interface FormRouteStep {
+  id: string
+  form_id?: string
+  position?: number
+  name: string
+  /** id сотрудников HR. */
+  approvers: string[]
+}
+
+/** Сообщение ленты: всё, кроме body, необязательно. */
+export interface NewComment {
+  body?: string
+  reply_to?: string
+  mentions?: string[]
+  approval?: { step_id: string; choice: ApprovalChoice }
+  /** id сотрудника; '' — снять ответственного. */
+  responsible?: string
+  /** ГГГГ-ММ-ДД; '' — снять срок. */
+  due?: string
+  spent_minutes?: number
+  meeting?: Meeting
+  files?: File[]
 }
