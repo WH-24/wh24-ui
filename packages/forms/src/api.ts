@@ -113,6 +113,21 @@ export interface UpdateFormBody {
 }
 
 /** Справочник глазами модуля: только активные строки, значение поля catalog — id строки. */
+/** Ответ /forms/:id/ref-records/:field_id (handler.RecordRefOptions). */
+export interface RecordRefList {
+  source: {
+    form_id: string
+    form_name: string
+    /** forms — записи этого сервиса, external — карточка модуля (проекты, лиды). */
+    data_source: 'forms' | 'external'
+    module_key: string
+    /** Сущность карточки: project, lead… (только у external). */
+    entity?: string
+  }
+  data: { id: string; number: number; title: string; deleted?: boolean }[]
+  total: number
+}
+
 export interface FormCatalog {
   id: string
   key: string
@@ -335,6 +350,20 @@ export function createFormsApi(opts: FormsApiOptions) {
         request<FormVersion>('GET', `/forms/${seg(formId)}/versions/${seg(String(version))}`),
       /** Справочники, на которые ссылаются поля catalog текущей версии (под owning-guard, без гранта «Форм»). */
       catalogs: (formId: string) => request<FormCatalog[]>('GET', `/forms/${seg(formId)}/catalogs`),
+      /**
+       * Варианты поля «Форма»: активные записи формы-источника (поиск по
+       * названию) или подписи выбранных (`ids`). У формы-карточки записей
+       * здесь нет — `source` говорит, из какого модуля их брать.
+       */
+      refRecords: (formId: string, fieldId: string, q: { search?: string; ids?: string[]; limit?: number } = {}) =>
+        request<RecordRefList>(
+          'GET',
+          `/forms/${seg(formId)}/ref-records/${seg(fieldId)}${toQuery({
+            search: q.search,
+            ids: q.ids?.length ? q.ids.join(',') : undefined,
+            limit: q.limit,
+          })}`,
+        ),
     },
 
     records: {

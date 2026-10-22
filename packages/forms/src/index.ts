@@ -18,6 +18,7 @@ export type {
   FormsApiOptions,
   FormWithSchema,
   FormCatalog,
+  RecordRefList,
   UpdateFormBody,
   ListRecordsQuery,
   ListResult,

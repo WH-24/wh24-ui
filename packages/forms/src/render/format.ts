@@ -3,7 +3,15 @@
  * история «было → стало». Одно место, чтобы «3 200 000 ₽» в списке и в
  * карточке выглядело одинаково.
  */
-import type { Field, FormFile, MoneyConfig, OrgOption, SelectConfig, SelectOption } from '../types.js'
+import type {
+  Field,
+  FormFile,
+  MoneyConfig,
+  OrgOption,
+  RecordRefOption,
+  SelectConfig,
+  SelectOption,
+} from '../types.js'
 import type { FormCatalog } from '../api.js'
 
 export interface FormatContext {
@@ -13,6 +21,8 @@ export interface FormatContext {
   catalogs?: Record<string, SelectOption[]>
   /** id вложения → метаданные. */
   filesById?: Record<string, FormFile>
+  /** id поля «Форма» → записи формы-источника (активные и уже выбранные). */
+  recordRefs?: Record<string, RecordRefOption[]>
 }
 
 const nf = new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 2 })
@@ -84,6 +94,9 @@ export function fieldOptions(field: Field, ctx: FormatContext): SelectOption[] {
 /** Подпись значения по справочнику (select/catalog/user/department); без
  *  справочника — само значение, а не пустота: устаревшее лучше пустого. */
 export function optionLabel(field: Field, value: string, ctx: FormatContext): string {
+  if (field.type === 'record_ref') {
+    return ctx.recordRefs?.[field.id]?.find((o) => o.value === value)?.label ?? value
+  }
   if (field.type === 'user' || field.type === 'department') {
     const list = field.type === 'user' ? ctx.staff : ctx.departments
     return list?.find((o) => o.id === value)?.label ?? value
@@ -128,6 +141,10 @@ export function formatValue(field: Field, value: unknown, ctx: FormatContext = {
     case 'user':
     case 'department':
       return typeof value === 'string' ? optionLabel(field, value, ctx) : String(value)
+    case 'record_ref':
+      return (Array.isArray(value) ? value : [value])
+        .map((v) => optionLabel(field, String(v), ctx))
+        .join(', ')
     case 'multiselect':
       return Array.isArray(value)
         ? value.map((v) => optionLabel(field, String(v), ctx)).join(', ')
