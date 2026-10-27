@@ -1012,18 +1012,15 @@ export function ListPage<T>({
         (filtered.length === 0 ? empty : <>{renderBoard(filtered)}</>)}
 
       {/* Пагинация — только у таблицы. Карточки догружаются по скроллу, доска
-          показывает всё сразу. */}
+          показывает всё сразу, и счётчик под ней не нужен (владелец,
+          27.10.2026): сколько лидов в стадии, видно в шапке колонки. */}
       {viewMode === "cards" ? (
         <div className={styles.pager}>
           <div>
             Показано {cards.length} из {filtered.length}
           </div>
         </div>
-      ) : viewMode === "board" ? (
-        <div className={styles.pager}>
-          <div>Показано {filtered.length}</div>
-        </div>
-      ) : (
+      ) : viewMode === "board" ? null : (
         <div className={styles.pager}>
           <div>
             Показано {paginated.length} из {filtered.length}
