@@ -229,6 +229,9 @@ export interface ListPageProps<T> {
   // Слоты тулбара.
   /** Кнопки слева от фильтра (Добавить, Экспорт…). Получает отфильтрованные строки. */
   toolbarStart?: (ctx: { filtered: T[] }) => ReactNode;
+  /** Кнопки справа, после переключателя вида (настройки вида — «шестерёнка»).
+   *  Получает текущий вид: настройки доски показывают только на доске. */
+  toolbarEnd?: (ctx: { viewMode: ListView }) => ReactNode;
   /** Действия при выделении строк (массовое удаление…). */
   selectionActions?: (ctx: { selected: T[]; clear: () => void }) => ReactNode;
 }
@@ -258,6 +261,7 @@ export function ListPage<T>({
   emptyTitle = "Ничего не найдено",
   emptyIcon = "search",
   toolbarStart,
+  toolbarEnd,
   selectionActions,
 }: ListPageProps<T>) {
   const {
@@ -751,6 +755,8 @@ export function ListPage<T>({
             )}
           </div>
         )}
+
+        {toolbarEnd?.({ viewMode })}
       </div>
 
       {viewMode === "list" && (
