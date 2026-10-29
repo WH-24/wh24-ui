@@ -70,7 +70,14 @@ export type {
 
 // Config-driven list/filter page (ListPage<T> + universal Bitrix24-style filter).
 export { ListPage, NAME_COL_MIN_WIDTH } from './list/ListPage.js'
-export type { ListColumn, ListPageProps, ListView } from './list/ListPage.js'
+export { folderView } from './list/ListPage.js'
+export type {
+  ListColumn,
+  ListGroup,
+  ListGroups,
+  ListPageProps,
+  ListView,
+} from './list/ListPage.js'
 export type {
   FilterBarConfig,
   FilterFieldDef,

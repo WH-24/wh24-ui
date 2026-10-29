@@ -529,3 +529,199 @@ table.tbl {
   background: var(--accent-600);
   border-color: var(--accent-600);
 }
+
+/* ── Папки (groups) — как в файловом менеджере ───────────────────────────── */
+.folderRow td {
+  font-weight: 500;
+}
+.folderName {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  max-width: 100%;
+}
+.folderIcon {
+  display: inline-flex;
+  flex: none;
+  color: var(--accent-500);
+}
+.folderOpen {
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-weight: 600;
+  color: var(--fg-primary);
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.folderOpen:focus-visible {
+  outline: 2px solid var(--accent-500);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+/* Подсветка папки, на которую тащат строку или карточку. */
+.tbl tbody tr.folderRow[data-drop="true"] {
+  background: var(--accent-50);
+  box-shadow: inset 0 0 0 1px var(--accent-500);
+}
+
+/* Действия папки — только при наведении (или фокусе с клавиатуры), кнопки
+   плоские: подложка лишь под курсором на самой кнопке. Двойной класс в
+   селекторе перебивает стили кнопок потребителя. */
+.folderActions {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 0.1s;
+}
+.folderRow:hover .folderActions,
+.folderTile:hover .folderActions,
+.crumbs .folderActions,
+.folderActions:focus-within {
+  opacity: 1;
+}
+@media (hover: none) {
+  .folderActions {
+    opacity: 1;
+  }
+}
+.folderActions.folderActions button {
+  border-color: transparent;
+  background: transparent;
+}
+.folderActions.folderActions button:hover {
+  border-color: transparent;
+  background: var(--bg-hover);
+}
+
+/* Плитки-папки в карточках — отдельной лентой над карточками, как в Диске. */
+.folderGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
+  padding: 4px 0 16px;
+}
+.folderTile {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  padding: 12px 14px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  background: var(--bg-surface, #fff);
+  cursor: pointer;
+  transition:
+    background 0.08s,
+    border-color 0.08s;
+}
+.folderTile:hover {
+  background: var(--bg-hover);
+}
+.folderTile:focus-visible {
+  outline: 2px solid var(--accent-500);
+  outline-offset: 1px;
+}
+.folderTile[data-drop="true"] {
+  background: var(--accent-50);
+  border-color: var(--accent-500);
+}
+.folderTileText {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+.folderTileName {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--fg-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.folderTileMeta {
+  font-size: 12px;
+  color: var(--fg-muted);
+}
+
+/* «Крошки» открытой папки: «‹ Библиотека › О нас». */
+.crumbs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 32px;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+.crumbRoot {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  margin-left: -8px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  font: inherit;
+  color: var(--fg-secondary);
+  cursor: pointer;
+}
+.crumbRoot:hover {
+  background: var(--bg-hover);
+  color: var(--fg-primary);
+}
+.crumbSep {
+  color: var(--fg-muted);
+}
+.crumbCurrent {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  color: var(--fg-primary);
+}
+.crumbCurrent > svg {
+  color: var(--accent-500);
+}
+
+/* Лента папок, на которые можно бросить строку (видна, пока тащат). Стоит
+   на месте крошек, поэтому той же высоты — таблица не прыгает. */
+.dropBar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  margin-bottom: 8px;
+}
+.dropBarLabel {
+  font-size: 13px;
+  color: var(--fg-muted);
+}
+.dropChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border: 1px dashed var(--border-subtle);
+  border-radius: 999px;
+  background: var(--bg-surface);
+  font-size: 13px;
+  color: var(--fg-primary);
+}
+.dropChip > svg {
+  color: var(--accent-500);
+}
+.dropChip[data-drop="true"] {
+  border-style: solid;
+  border-color: var(--accent-500);
+  background: var(--accent-50);
+}
