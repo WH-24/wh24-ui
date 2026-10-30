@@ -17,9 +17,7 @@ const rows: Row[] = Array.from({ length: 55 }, (_, i) => ({
 
 const filterConfig: FilterBarConfig<Row> = {
   scope: "test",
-  fields: [
-    { key: "name", label: "Название", type: "text", get: (r) => r.name },
-  ],
+  fields: [{ key: "name", label: "Название", type: "text", get: (r) => r.name }],
 };
 
 // Мок IntersectionObserver. triggerIntersect — ручное «показать сентинел».
@@ -65,7 +63,7 @@ function renderList() {
   );
 }
 
-describe("ListPage — карточки без пагинации", () => {
+describe("ListPage — карточки и таблица без пагинации", () => {
   it("в режиме карточек показывает первую порцию и догружает по сентинелу", async () => {
     renderList();
     await userEvent.click(screen.getByTitle("Карточки"));
@@ -83,10 +81,17 @@ describe("ListPage — карточки без пагинации", () => {
     expect(screen.getAllByTestId("card")).toHaveLength(55);
   });
 
-  it("в таблице пагинация остаётся", async () => {
+  it("таблица тоже без пагинации: догружает строки по сентинелу", async () => {
     renderList();
-    // По умолчанию режим — таблица.
-    expect(screen.getByRole("button", { name: /Далее/ })).toBeInTheDocument();
+    // По умолчанию режим — таблица. Строк = pageSize (+1 — строка шапки).
+    expect(screen.getAllByRole("row")).toHaveLength(21);
+    expect(screen.queryByRole("button", { name: /Далее/ })).toBeNull();
+    expect(screen.queryByText(/Показано/)).toBeNull();
+
+    triggerIntersect!();
+    expect(screen.getAllByRole("row")).toHaveLength(41);
+    triggerIntersect!();
+    expect(screen.getAllByRole("row")).toHaveLength(56);
   });
 
   it("пока сентинел в кадре — догружает всё, а не застревает на второй порции", async () => {
@@ -195,22 +200,12 @@ describe("ListPage — карточки без пагинации", () => {
       render: () => null,
     };
     // Часть колонок скрыта: 30% + 12% < 100% — название без ширины, берёт остаток.
-    expect(colgroupWidths([avatar, name, status], false)).toEqual([
-      56,
-      undefined,
-      "12%",
-    ]);
+    expect(colgroupWidths([avatar, name, status], false)).toEqual([56, undefined, "12%"]);
     // Проценты съедают всю ширину — оставляем как задано.
     const wide = { ...status, width: "70%" };
-    expect(colgroupWidths([avatar, name, wide], false)).toEqual([
-      56,
-      "30%",
-      "70%",
-    ]);
+    expect(colgroupWidths([avatar, name, wide], false)).toEqual([56, "30%", "70%"]);
     // В px-режиме — минимумы.
-    expect(colgroupWidths([avatar, name, status], true)).toEqual([
-      56, 350, 150,
-    ]);
+    expect(colgroupWidths([avatar, name, status], true)).toEqual([56, 350, 150]);
   });
 
   it('defaultView="cards" открывает список сразу карточками', () => {
@@ -232,9 +227,7 @@ describe("ListPage — карточки без пагинации", () => {
 });
 
 describe("ListPage — доска", () => {
-  const renderBoard = (
-    props: { defaultView?: "list" | "cards" | "board" } = {},
-  ) =>
+  const renderBoard = (props: { defaultView?: "list" | "cards" | "board" } = {}) =>
     render(
       <ListPage<Row>
         title="Проекты"
@@ -243,9 +236,7 @@ describe("ListPage — доска", () => {
         columns={[{ key: "name", label: "Название", render: (r) => r.name }]}
         filterConfig={filterConfig}
         pageSize={20}
-        renderBoard={(list) => (
-          <div data-testid="board">доска: {list.length}</div>
-        )}
+        renderBoard={(list) => <div data-testid="board">доска: {list.length}</div>}
         {...props}
       />,
     );
@@ -276,9 +267,7 @@ describe("ListPage — доска", () => {
         columns={[{ key: "name", label: "Название", render: (r) => r.name }]}
         filterConfig={filterConfig}
         renderBoard={
-          withBoard
-            ? (list) => <div data-testid="board">доска: {list.length}</div>
-            : undefined
+          withBoard ? (list) => <div data-testid="board">доска: {list.length}</div> : undefined
         }
       />
     );
@@ -309,12 +298,8 @@ describe("ListPage — липкая полоса горизонтальной п
         filterConfig={filterConfig}
       />,
     );
-    const wrap = view.container.querySelector(
-      '[data-testid="list-table-wrap"]',
-    ) as HTMLElement;
-    const bar = view.container.querySelector(
-      '[data-testid="list-hscroll"]',
-    ) as HTMLElement;
+    const wrap = view.container.querySelector('[data-testid="list-table-wrap"]') as HTMLElement;
+    const bar = view.container.querySelector('[data-testid="list-hscroll"]') as HTMLElement;
     // jsdom не считает раскладку — размеры задаём сами.
     Object.defineProperty(wrap, "scrollWidth", {
       value: scrollWidth,

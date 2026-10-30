@@ -13,10 +13,7 @@ import { Icon, type IconName } from "./Icon.js";
 import { FilterBar } from "./filter/FilterBar.js";
 import { useFilterState } from "./filter/useFilterState.js";
 import { matchItem } from "./filter/matchItem.js";
-import type {
-  FilterBarConfig,
-  FilterSettingsProvider,
-} from "./filter/types.js";
+import type { FilterBarConfig, FilterSettingsProvider } from "./filter/types.js";
 import styles from "./ListPage.module.css";
 
 /** Описание колонки списка: что в заголовке, как рендерить ячейку, как сортировать. */
@@ -356,9 +353,7 @@ export function ListPage<T>({
   const viewKey = `wh24:list-view:${filterConfig.scope}`;
   const viewAvailable = useCallback(
     (v: string): v is ListView =>
-      v === "list" ||
-      (v === "cards" && hasCards) ||
-      (v === "board" && hasBoard),
+      v === "list" || (v === "cards" && hasCards) || (v === "board" && hasBoard),
     [hasCards, hasBoard],
   );
   const [viewMode, setViewMode] = useState<ListView>(() => {
@@ -383,12 +378,12 @@ export function ListPage<T>({
       /* приватный режим — выбор не сохранится, UI работает */
     }
   }, [viewMode, viewKey, hasCards, hasBoard]);
-  const [page, setPage] = useState(1);
-  // Карточки не листаются постранично: показываем растущий срез и догружаем
-  // очередную порцию, когда низ грида появляется в зоне видимости. Пагинация
-  // остаётся только у таблицы. Размер порции = pageSize.
-  const [cardsShown, setCardsShown] = useState(pageSize);
-  const cardsSentinelRef = useRef<HTMLDivElement>(null);
+  // Ни карточки, ни таблица не листаются постранично: показываем растущий срез
+  // и догружаем очередную порцию, когда низ списка появляется в зоне
+  // видимости. Таблица — так же с 30.10.2026 (владелец: «убрать и сделать
+  // прокрутку»). Размер порции = pageSize.
+  const [shown, setShown] = useState(pageSize);
+  const sentinelRef = useRef<HTMLDivElement>(null);
 
   // ── Папки ─────────────────────────────────────────────────────────────────
   const [openKey, setOpenKey] = useState<string | null>(null);
@@ -467,10 +462,7 @@ export function ListPage<T>({
 
   // Переключать можно только именованные колонки (у служебных, напр. аватара,
   // label пустой — они всегда видимы).
-  const toggleableCols = useMemo(
-    () => columns.filter((c) => c.label.trim() !== ""),
-    [columns],
-  );
+  const toggleableCols = useMemo(() => columns.filter((c) => c.label.trim() !== ""), [columns]);
   const visibleColumns = useMemo(
     () => columns.filter((c) => !hiddenCols.has(c.key)),
     [columns, hiddenCols],
@@ -480,11 +472,7 @@ export function ListPage<T>({
   // прежняя (проценты в width). Как только колонок становится много, таблица
   // растёт до этой ширины, и .tableWrap прокручивается по горизонтали.
   const tableMinWidth = useMemo(
-    () =>
-      visibleColumns.reduce(
-        (sum, c) => sum + colMinWidth(c),
-        ACTIONS_COL_WIDTH,
-      ),
+    () => visibleColumns.reduce((sum, c) => sum + colMinWidth(c), ACTIONS_COL_WIDTH),
     [visibleColumns],
   );
 
@@ -533,10 +521,7 @@ export function ListPage<T>({
     };
     wrap.addEventListener("scroll", fromWrap, { passive: true });
     bar.addEventListener("scroll", fromBar, { passive: true });
-    const ro =
-      typeof ResizeObserver !== "undefined"
-        ? new ResizeObserver(measure)
-        : null;
+    const ro = typeof ResizeObserver !== "undefined" ? new ResizeObserver(measure) : null;
     ro?.observe(wrap);
     return () => {
       wrap.removeEventListener("scroll", fromWrap);
@@ -609,14 +594,10 @@ export function ListPage<T>({
   // Поиск по названию поля — при полусотне колонок листать глазами уже тяжело.
   const shownCols = useMemo(() => {
     const q = colsQuery.trim().toLowerCase();
-    return q
-      ? toggleableCols.filter((c) => c.label.toLowerCase().includes(q))
-      : toggleableCols;
+    return q ? toggleableCols.filter((c) => c.label.toLowerCase().includes(q)) : toggleableCols;
   }, [toggleableCols, colsQuery]);
 
-  const draftVisibleCount = toggleableCols.filter(
-    (c) => !draftHidden.has(c.key),
-  ).length;
+  const draftVisibleCount = toggleableCols.filter((c) => !draftHidden.has(c.key)).length;
 
   const toggleDraft = (key: string) =>
     setDraftHidden((prev) => {
@@ -633,9 +614,7 @@ export function ListPage<T>({
       const next = new Set(prev);
       if (allOn) {
         // Снимаем всё, кроме первой — пустая таблица бессмысленна.
-        toggleableCols.forEach((c, i) =>
-          i === 0 ? next.delete(c.key) : next.add(c.key),
-        );
+        toggleableCols.forEach((c, i) => (i === 0 ? next.delete(c.key) : next.add(c.key)));
       } else {
         toggleableCols.forEach((c) => next.delete(c.key));
       }
@@ -645,9 +624,7 @@ export function ListPage<T>({
 
   // «По умолчанию» — вернуть набор, заданный модулем (defaultHidden).
   const resetCols = () =>
-    setDraftHidden(
-      new Set(columns.filter((c) => c.defaultHidden).map((c) => c.key)),
-    );
+    setDraftHidden(new Set(columns.filter((c) => c.defaultHidden).map((c) => c.key)));
 
   const applyCols = () => {
     setHiddenCols(new Set(draftHidden));
@@ -661,9 +638,7 @@ export function ListPage<T>({
       const scope = filterConfig.scope;
       void filterSettings
         .load(scope)
-        .then((cur) =>
-          filterSettings.save(scope, { ...cur, columns: [...draftHidden] }),
-        )
+        .then((cur) => filterSettings.save(scope, { ...cur, columns: [...draftHidden] }))
         .catch(() => {
           /* сохранение общей настройки не должно ломать личную */
         });
@@ -679,23 +654,13 @@ export function ListPage<T>({
     }
   }, [draftVisibleCount, toggleableCols.length, colsOpen]);
 
-  const colByKey = useMemo(
-    () => new Map(columns.map((c) => [c.key, c])),
-    [columns],
-  );
-
-  // Любое изменение фильтра/поиска возвращает на первую страницу.
-  useEffect(() => {
-    setPage(1);
-  }, [filter, externalSearch]);
+  const colByKey = useMemo(() => new Map(columns.map((c) => [c.key, c])), [columns]);
 
   const filtered = useMemo(() => {
     let list = data.filter((r) => matchItem(r, filter, filterConfig));
     const ext = externalSearch.trim().toLowerCase();
     if (ext && filterConfig.search) {
-      list = list.filter((r) =>
-        filterConfig.search!.get(r).toLowerCase().includes(ext),
-      );
+      list = list.filter((r) => filterConfig.search!.get(r).toLowerCase().includes(ext));
     }
     const col = colByKey.get(sort.key);
     if (col?.sortValue) {
@@ -708,44 +673,37 @@ export function ListPage<T>({
     return list;
   }, [data, filter, filterConfig, externalSearch, sort, colByKey]);
 
-  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
-  const currentPage = Math.min(page, totalPages);
-  const paginated = filtered.slice(
-    (currentPage - 1) * pageSize,
-    currentPage * pageSize,
-  );
-
-  // Карточки: срез от начала до cardsShown. Меняется состав (фильтр/сортировка/
+  // Срез от начала до shown — и для карточек, и для таблицы. Меняется состав (фильтр/сортировка/
   // сами данные) — начинаем показ заново с первой порции.
-  const cards = filtered.slice(0, cardsShown);
-  const hasMoreCards = cardsShown < filtered.length;
+  const visible = filtered.slice(0, shown);
+  const hasMore = shown < filtered.length;
   useEffect(() => {
-    setCardsShown(pageSize);
+    setShown(pageSize);
   }, [filtered, pageSize]);
   // Догрузка по появлению сентинела в зоне видимости. IntersectionObserver
   // подхватывает и «низ уже виден» (мало карточек), и обычный скролл.
   //
-  // cardsShown в зависимостях НАМЕРЕННО: observer срабатывает только на смену
+  // shown в зависимостях НАМЕРЕННО: observer срабатывает только на смену
   // видимости, а после подгрузки сентинел часто остаётся в кадре (короткий
   // список, большой rootMargin) и второй раз не триггерит — показ застревал на
   // второй порции. Пересоздаём observer после каждой подгрузки: `observe()`
   // сразу зовёт колбэк, если сентинел всё ещё виден, и грузим дальше — пока он
   // не уйдёт за пределы rootMargin или не покажем всё.
   useEffect(() => {
-    if (viewMode !== "cards" || !hasMoreCards) return;
-    const el = cardsSentinelRef.current;
+    if (viewMode === "board" || !hasMore) return;
+    const el = sentinelRef.current;
     if (!el || typeof IntersectionObserver === "undefined") return;
     const io = new IntersectionObserver(
       (entries) => {
         if (entries.some((e) => e.isIntersecting)) {
-          setCardsShown((n) => Math.min(n + pageSize, filtered.length));
+          setShown((n) => Math.min(n + pageSize, filtered.length));
         }
       },
       { rootMargin: "400px" },
     );
     io.observe(el);
     return () => io.disconnect();
-  }, [viewMode, hasMoreCards, pageSize, filtered.length, cardsShown]);
+  }, [viewMode, hasMore, pageSize, filtered.length, shown]);
 
   const searching = filtered.length < data.length;
   const level = useMemo(
@@ -753,10 +711,7 @@ export function ListPage<T>({
     [groups, filtered, openGroup, searching],
   );
   const canDrag = Boolean(groups?.onMove);
-  const rowById = useMemo(
-    () => new Map(data.map((r) => [getId(r), r])),
-    [data, getId],
-  );
+  const rowById = useMemo(() => new Map(data.map((r) => [getId(r), r])), [data, getId]);
 
   const dragProps = (row: T) =>
     canDrag
@@ -801,10 +756,7 @@ export function ListPage<T>({
 
   const folderActions = (g: ListGroup, count: number) =>
     groups?.renderActions ? (
-      <span
-        className={styles.folderActions}
-        onClick={(e) => e.stopPropagation()}
-      >
+      <span className={styles.folderActions} onClick={(e) => e.stopPropagation()}>
         {groups.renderActions(g, count)}
       </span>
     ) : null;
@@ -839,7 +791,7 @@ export function ListPage<T>({
                 {folderActions(g, rows.length)}
               </span>
             ) : (
-              cells[c.key] ?? null
+              (cells[c.key] ?? null)
             )}
           </td>
         ))}
@@ -893,11 +845,7 @@ export function ListPage<T>({
 
   const crumbs = openGroup && (
     <div className={styles.crumbs}>
-      <button
-        type="button"
-        className={styles.crumbRoot}
-        onClick={() => openFolder(null)}
-      >
+      <button type="button" className={styles.crumbRoot} onClick={() => openFolder(null)}>
         <Icon name="back" size={14} />
         {groups?.rootLabel ?? title}
       </button>
@@ -916,9 +864,7 @@ export function ListPage<T>({
       <tr
         key={id}
         {...dragProps(row)}
-        data-selected={
-          selectable ? String(selected.has(id)) : undefined
-        }
+        data-selected={selectable ? String(selected.has(id)) : undefined}
         onClick={onRowClick ? () => onRowClick(row) : undefined}
       >
         <td className={styles.colGear} />
@@ -929,18 +875,10 @@ export function ListPage<T>({
           return (
             <td
               key={c.key}
-              className={[
-                c.className,
-                host ? styles.colSelectHost : "",
-              ]
-                .filter(Boolean)
-                .join(" ")}
+              className={[c.className, host ? styles.colSelectHost : ""].filter(Boolean).join(" ")}
             >
               {host && (
-                <span
-                  className={styles.cellSelectBox}
-                  onClick={(e) => e.stopPropagation()}
-                >
+                <span className={styles.cellSelectBox} onClick={(e) => e.stopPropagation()}>
                   <input
                     type="checkbox"
                     checked={selected.has(id)}
@@ -959,11 +897,8 @@ export function ListPage<T>({
 
   const toggleSort = (k: string) => {
     setSort((s) =>
-      s.key === k
-        ? { key: k, dir: s.dir === "asc" ? "desc" : "asc" }
-        : { key: k, dir: "asc" },
+      s.key === k ? { key: k, dir: s.dir === "asc" ? "desc" : "asc" } : { key: k, dir: "asc" },
     );
-    setPage(1);
   };
 
   const toggleSelect = (id: string) =>
@@ -1041,9 +976,7 @@ export function ListPage<T>({
 
         {selectable && selected.size > 0 && (
           <>
-            <span className={styles.selectionCount}>
-              {selected.size} выбрано
-            </span>
+            <span className={styles.selectionCount}>{selected.size} выбрано</span>
             {selectionActions?.({
               selected: selectedRows,
               clear: clearSelection,
@@ -1089,11 +1022,7 @@ export function ListPage<T>({
 
       {viewMode === "list" && (
         <>
-          <div
-            className={styles.tableWrap}
-            ref={wrapRef}
-            data-testid="list-table-wrap"
-          >
+          <div className={styles.tableWrap} ref={wrapRef} data-testid="list-table-wrap">
             <table className={styles.tbl} style={{ minWidth: tableMinWidth }}>
               <colgroup>
                 <col style={{ width: ACTIONS_COL_WIDTH }} />
@@ -1118,8 +1047,7 @@ export function ListPage<T>({
                   </th>
                   {visibleColumns.map((c, i) => {
                     // Первая колонка резервирует место под чекбокс-по-наведению.
-                    const hostCls =
-                      selectable && i === 0 ? styles.colSelectHost : undefined;
+                    const hostCls = selectable && i === 0 ? styles.colSelectHost : undefined;
                     return c.sortValue ? (
                       <th
                         key={c.key}
@@ -1130,10 +1058,7 @@ export function ListPage<T>({
                       >
                         {c.label}
                         <span className={styles.sortArrow}>
-                          <Icon
-                            name={sort.dir === "asc" ? "sortup" : "sortdown"}
-                            size={11}
-                          />
+                          <Icon name={sort.dir === "asc" ? "sortup" : "sortdown"} size={11} />
                         </span>
                       </th>
                     ) : (
@@ -1158,15 +1083,15 @@ export function ListPage<T>({
                   )}
                 </tbody>
               ) : (
-              <tbody>
-                {paginated.length === 0 ? (
-                  <tr>
-                    <td colSpan={colSpan}>{empty}</td>
-                  </tr>
-                ) : (
-                  paginated.map(renderRow)
-                )}
-              </tbody>
+                <tbody>
+                  {visible.length === 0 ? (
+                    <tr>
+                      <td colSpan={colSpan}>{empty}</td>
+                    </tr>
+                  ) : (
+                    visible.map(renderRow)
+                  )}
+                </tbody>
               )}
             </table>
           </div>
@@ -1179,18 +1104,15 @@ export function ListPage<T>({
           >
             <div style={{ width: tableMinWidth }} />
           </div>
+          {/* Сентинел: как только виден — догружаем следующую порцию строк. */}
+          {!level && hasMore && <div ref={sentinelRef} className={styles.cardsSentinel} />}
         </>
       )}
 
       {colsOpen && (
         <>
           <div className={styles.colsBackdrop} onClick={closeCols} />
-          <div
-            className={styles.colsModal}
-            role="dialog"
-            aria-modal="true"
-            aria-label={colsTitle}
-          >
+          <div className={styles.colsModal} role="dialog" aria-modal="true" aria-label={colsTitle}>
             <div className={styles.colsModalHead}>
               <div className={styles.colsModalTitle}>{colsTitle}</div>
               <button
@@ -1282,11 +1204,7 @@ export function ListPage<T>({
                   Отменить
                 </button>
               </div>
-              <button
-                type="button"
-                className={styles.colsReset}
-                onClick={resetCols}
-              >
+              <button type="button" className={styles.colsReset} onClick={resetCols}>
                 по умолчанию
               </button>
             </div>
@@ -1319,19 +1237,17 @@ export function ListPage<T>({
       {viewMode === "cards" &&
         renderCard &&
         !level &&
-        (cards.length === 0 ? (
+        (visible.length === 0 ? (
           empty
         ) : (
           <>
             <div className={styles.listCardsGrid}>
-              {cards.map((row) => (
+              {visible.map((row) => (
                 <Fragment key={getId(row)}>{renderCard(row)}</Fragment>
               ))}
             </div>
             {/* Сентинел: как только виден — догружаем следующую порцию. */}
-            {hasMoreCards && (
-              <div ref={cardsSentinelRef} className={styles.cardsSentinel} />
-            )}
+            {hasMore && <div ref={sentinelRef} className={styles.cardsSentinel} />}
           </>
         ))}
 
@@ -1339,52 +1255,17 @@ export function ListPage<T>({
         renderBoard &&
         (filtered.length === 0 ? empty : <>{renderBoard(filtered)}</>)}
 
-      {/* Пагинация — только у таблицы. Карточки догружаются по скроллу, доска
-          показывает всё сразу, и счётчик под ней не нужен (владелец,
-          27.10.2026): сколько лидов в стадии, видно в шапке колонки. */}
-      {level && viewMode !== "board" ? (
+      {/* Под таблицей строки нет: она догружается по прокрутке, как карточки
+          (владелец, 30.10.2026), и под папками тоже
+          — ни «Показано», ни «Папок: N». Доска показывает всё сразу, счётчик под ней
+          не нужен (владелец, 27.10.2026). Под карточками — «Показано N из M». */}
+      {viewMode === "cards" && !level ? (
         <div className={styles.pager}>
           <div>
-            {openGroup
-              ? `В папке: ${level.rows.length}`
-              : searching
-                ? `Найдено ${filtered.length} из ${data.length}`
-                : `Папок: ${level.folders.length}` +
-                  (level.rows.length > 0 ? `, без папки: ${level.rows.length}` : "")}
+            Показано {visible.length} из {filtered.length}
           </div>
         </div>
-      ) : viewMode === "cards" ? (
-        <div className={styles.pager}>
-          <div>
-            Показано {cards.length} из {filtered.length}
-          </div>
-        </div>
-      ) : viewMode === "board" ? null : (
-        <div className={styles.pager}>
-          <div>
-            Показано {paginated.length} из {filtered.length}
-          </div>
-          <div className={styles.pagerNav}>
-            <button
-              className={[styles.btn, styles.btnGhost, styles.btnSm].join(" ")}
-              disabled={currentPage === 1}
-              onClick={() => setPage((p) => p - 1)}
-            >
-              ← Назад
-            </button>
-            <span>
-              Стр. {currentPage} из {totalPages}
-            </span>
-            <button
-              className={[styles.btn, styles.btnGhost, styles.btnSm].join(" ")}
-              disabled={currentPage >= totalPages}
-              onClick={() => setPage((p) => p + 1)}
-            >
-              Далее →
-            </button>
-          </div>
-        </div>
-      )}
+      ) : null}
     </div>
   );
 }

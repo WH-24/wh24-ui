@@ -88,7 +88,8 @@ describe("ListPage с папками", () => {
     expect(screen.getByText("0 шт.")).toBeInTheDocument();
     expect(screen.queryByText("Обложка А")).not.toBeInTheDocument();
     expect(screen.getByText("Без места")).toBeInTheDocument();
-    expect(screen.getByText("Папок: 3, без папки: 1")).toBeInTheDocument();
+    // Строки-сводки под папками нет (владелец, 30.10.2026).
+    expect(screen.queryByText(/Папок:/)).not.toBeInTheDocument();
   });
 
   it("клик по папке открывает её, крошки возвращают в корень", async () => {
@@ -99,7 +100,6 @@ describe("ListPage с папками", () => {
     expect(screen.getByText("Обложка А")).toBeInTheDocument();
     expect(screen.getByText("Обложка Б")).toBeInTheDocument();
     expect(screen.queryByText("Без места")).not.toBeInTheDocument();
-    expect(screen.getByText("В папке: 2")).toBeInTheDocument();
 
     await userEvent.click(screen.getByRole("button", { name: /Слайды/ }));
     expect(onOpenChange).toHaveBeenLastCalledWith(null);
@@ -171,9 +171,7 @@ describe("ListPage с папками", () => {
 
   it("без onMove строки не перетаскиваются", () => {
     renderFolders();
-    expect(screen.getByText("Без места").closest("tr")).not.toHaveAttribute(
-      "draggable",
-    );
+    expect(screen.getByText("Без места").closest("tr")).not.toHaveAttribute("draggable");
   });
 
   it("в карточках — плитки-папки, клик открывает", async () => {
@@ -181,9 +179,7 @@ describe("ListPage с папками", () => {
     await userEvent.click(screen.getByTitle("Карточки"));
     expect(screen.getByText("2 слайда")).toBeInTheDocument();
     expect(screen.queryByText("card Обложка А")).not.toBeInTheDocument();
-    await userEvent.click(
-      screen.getByRole("button", { name: "Открыть папку «Обложка»" }),
-    );
+    await userEvent.click(screen.getByRole("button", { name: "Открыть папку «Обложка»" }));
     expect(screen.getByText("card Обложка А")).toBeInTheDocument();
   });
 });
