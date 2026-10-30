@@ -5,6 +5,7 @@ import {
   useMemo,
   useRef,
   useState,
+  type DragEvent,
   type ReactNode,
 } from "react";
 
@@ -178,6 +179,73 @@ interface SortState {
 /** Режимы показа списка. 'cards' и 'board' доступны, только если заданы. */
 export type ListView = "list" | "cards" | "board";
 
+/** Папка списка. Порядок в `ListGroups.items` — порядок показа. */
+export interface ListGroup {
+  key: string;
+  label: string;
+}
+
+/**
+ * Папки — как в файловом менеджере. В корне таблица показывает строки-папки
+ * (иконка, имя, сводка в колонках) и строки без папки; клик по папке открывает
+ * её — видны только её строки, сверху «крошки» для возврата. В карточках то же:
+ * плитки-папки, внутри — карточки папки. Пока активен фильтр или поиск, корень
+ * показывает найденное во всех папках сразу, плоским списком.
+ */
+export interface ListGroups<T> {
+  items: ListGroup[];
+  get: (row: T) => string;
+  /** Кнопки папки (меню «Переименовать / Удалить») — в строке, плитке и крошках. */
+  renderActions?: (group: ListGroup, count: number) => ReactNode;
+  /**
+   * Перенос строки в папку перетаскиванием на строку или плитку папки. Не
+   * задан — строки не перетаскиваются. Зовётся, только если папка сменилась.
+   */
+  onMove?: (row: T, groupKey: string) => void;
+  /**
+   * Ячейки строки-папки по ключу колонки («3 слайда» под «Размером», дата).
+   * Первую видимую колонку — значок и имя — рисует ListPage.
+   */
+  folderCells?: (group: ListGroup, rows: T[]) => Partial<Record<string, ReactNode>>;
+  /** Подпись под именем плитки-папки. По умолчанию — число строк. */
+  describe?: (group: ListGroup, rows: T[]) => ReactNode;
+  /** Корень в крошках. По умолчанию — заголовок страницы. */
+  rootLabel?: string;
+  /** Открыли папку (key) или вернулись в корень (null). */
+  onOpenChange?: (key: string | null) => void;
+}
+
+const DRAG_TYPE = "application/x-wh24-list-row";
+
+/**
+ * Что показать на текущем уровне. `open` — открытая папка (null — корень),
+ * `searching` — активен фильтр/поиск: тогда в корне плоский список найденного.
+ * Строки с ключом не из `items` живут в корне, без папки.
+ */
+export function folderView<T>(
+  rows: T[],
+  groups: ListGroups<T>,
+  open: string | null,
+  searching: boolean,
+): { folders: { group: ListGroup; rows: T[] }[]; rows: T[] } {
+  if (open !== null) {
+    return { folders: [], rows: rows.filter((r) => groups.get(r) === open) };
+  }
+  if (searching) return { folders: [], rows };
+  const known = new Set(groups.items.map((g) => g.key));
+  const buckets = new Map<string, T[]>(groups.items.map((g) => [g.key, []]));
+  const loose: T[] = [];
+  for (const r of rows) {
+    const k = groups.get(r);
+    if (known.has(k)) buckets.get(k)!.push(r);
+    else loose.push(r);
+  }
+  return {
+    folders: groups.items.map((g) => ({ group: g, rows: buckets.get(g.key)! })),
+    rows: loose,
+  };
+}
+
 export interface ListPageProps<T> {
   // Шапка.
   title: string;
@@ -234,6 +302,12 @@ export interface ListPageProps<T> {
   toolbarEnd?: (ctx: { viewMode: ListView }) => ReactNode;
   /** Действия при выделении строк (массовое удаление…). */
   selectionActions?: (ctx: { selected: T[]; clear: () => void }) => ReactNode;
+
+  /**
+   * Папки (см. ListGroups): строки-папки и вход в папку, как в Диске. С ними
+   * текущий уровень показывается целиком, без постраничности.
+   */
+  groups?: ListGroups<T>;
 }
 
 /**
@@ -263,6 +337,7 @@ export function ListPage<T>({
   toolbarStart,
   toolbarEnd,
   selectionActions,
+  groups,
 }: ListPageProps<T>) {
   const {
     state: filter,
@@ -314,6 +389,26 @@ export function ListPage<T>({
   // остаётся только у таблицы. Размер порции = pageSize.
   const [cardsShown, setCardsShown] = useState(pageSize);
   const cardsSentinelRef = useRef<HTMLDivElement>(null);
+
+  // ── Папки ─────────────────────────────────────────────────────────────────
+  const [openKey, setOpenKey] = useState<string | null>(null);
+  const openFolder = (key: string | null) => {
+    setOpenKey(key);
+    groups?.onOpenChange?.(key);
+  };
+  // Открытую папку удалили (или у роли её больше нет) — возвращаемся в корень.
+  const openGroup = groups?.items.find((g) => g.key === openKey) ?? null;
+  useEffect(() => {
+    if (openKey !== null && groups && !openGroup) {
+      setOpenKey(null);
+      groups.onOpenChange?.(null);
+    }
+  }, [openKey, openGroup, groups]);
+  // Папка, над которой сейчас тащат строку, — для подсветки.
+  const [dropTarget, setDropTarget] = useState<string | null>(null);
+  // Тащат строку: показываем ленту папок, куда её можно бросить (в открытой
+  // папке и в результатах поиска других папок на экране нет).
+  const [dragging, setDragging] = useState<{ from: string } | null>(null);
 
   // ── Настройка колонок (шестерёнка в конце шапки) ──────────────────────────
   // Скрытые колонки запоминаются per-user в localStorage по scope фильтра.
@@ -652,6 +747,216 @@ export function ListPage<T>({
     return () => io.disconnect();
   }, [viewMode, hasMoreCards, pageSize, filtered.length, cardsShown]);
 
+  const searching = filtered.length < data.length;
+  const level = useMemo(
+    () => (groups ? folderView(filtered, groups, openGroup?.key ?? null, searching) : null),
+    [groups, filtered, openGroup, searching],
+  );
+  const canDrag = Boolean(groups?.onMove);
+  const rowById = useMemo(
+    () => new Map(data.map((r) => [getId(r), r])),
+    [data, getId],
+  );
+
+  const dragProps = (row: T) =>
+    canDrag
+      ? {
+          draggable: true,
+          onDragStart: (e: DragEvent) => {
+            e.dataTransfer.setData(DRAG_TYPE, getId(row));
+            e.dataTransfer.effectAllowed = "move";
+            setDragging({ from: groups!.get(row) });
+          },
+          onDragEnd: () => {
+            setDropTarget(null);
+            setDragging(null);
+          },
+        }
+      : {};
+
+  // Зона сброса — строка или плитка папки.
+  const dropProps = (key: string) =>
+    canDrag
+      ? {
+          "data-drop": dropTarget === key ? "true" : undefined,
+          onDragOver: (e: DragEvent) => {
+            if (!e.dataTransfer.types.includes(DRAG_TYPE)) return;
+            e.preventDefault();
+            e.dataTransfer.dropEffect = "move";
+            if (dropTarget !== key) setDropTarget(key);
+          },
+          onDragLeave: (e: DragEvent) => {
+            const next = e.relatedTarget as Node | null;
+            if (!next || !e.currentTarget.contains(next)) setDropTarget(null);
+          },
+          onDrop: (e: DragEvent) => {
+            e.preventDefault();
+            setDropTarget(null);
+            setDragging(null);
+            const row = rowById.get(e.dataTransfer.getData(DRAG_TYPE));
+            if (row && groups!.get(row) !== key) groups!.onMove!(row, key);
+          },
+        }
+      : {};
+
+  const folderActions = (g: ListGroup, count: number) =>
+    groups?.renderActions ? (
+      <span
+        className={styles.folderActions}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {groups.renderActions(g, count)}
+      </span>
+    ) : null;
+
+  const folderRow = (g: ListGroup, rows: T[]) => {
+    const cells = groups?.folderCells?.(g, rows) ?? {};
+    return (
+      <tr
+        key={`folder:${g.key}`}
+        className={styles.folderRow}
+        {...dropProps(g.key)}
+        onClick={() => openFolder(g.key)}
+      >
+        <td className={styles.colGear} />
+        {visibleColumns.map((c, i) => (
+          <td key={c.key} className={c.className}>
+            {i === 0 ? (
+              <span className={styles.folderName}>
+                <span className={styles.folderIcon}>
+                  <Icon name="folder" size={18} />
+                </span>
+                <button
+                  type="button"
+                  className={styles.folderOpen}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    openFolder(g.key);
+                  }}
+                >
+                  {g.label}
+                </button>
+                {folderActions(g, rows.length)}
+              </span>
+            ) : (
+              cells[c.key] ?? null
+            )}
+          </td>
+        ))}
+      </tr>
+    );
+  };
+
+  const folderTile = (g: ListGroup, rows: T[]) => (
+    <div
+      key={`folder:${g.key}`}
+      className={styles.folderTile}
+      role="button"
+      tabIndex={0}
+      aria-label={`Открыть папку «${g.label}»`}
+      {...dropProps(g.key)}
+      onClick={() => openFolder(g.key)}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          openFolder(g.key);
+        }
+      }}
+    >
+      <span className={styles.folderIcon}>
+        <Icon name="folder" size={22} />
+      </span>
+      <span className={styles.folderTileText}>
+        <span className={styles.folderTileName}>{g.label}</span>
+        <span className={styles.folderTileMeta}>
+          {groups?.describe ? groups.describe(g, rows) : rows.length}
+        </span>
+      </span>
+      {folderActions(g, rows.length)}
+    </div>
+  );
+
+  // Лента «Переложить в:» — пока тащат строку там, где папок не видно.
+  const dropBar = dragging && level && level.folders.length === 0 && groups && (
+    <div className={styles.dropBar}>
+      <span className={styles.dropBarLabel}>Переложить в:</span>
+      {groups.items
+        .filter((g) => g.key !== dragging.from)
+        .map((g) => (
+          <span key={g.key} className={styles.dropChip} {...dropProps(g.key)}>
+            <Icon name="folder" size={14} />
+            {g.label}
+          </span>
+        ))}
+    </div>
+  );
+
+  const crumbs = openGroup && (
+    <div className={styles.crumbs}>
+      <button
+        type="button"
+        className={styles.crumbRoot}
+        onClick={() => openFolder(null)}
+      >
+        <Icon name="back" size={14} />
+        {groups?.rootLabel ?? title}
+      </button>
+      <span className={styles.crumbSep}>›</span>
+      <span className={styles.crumbCurrent}>
+        <Icon name="folder" size={14} />
+        {openGroup.label}
+      </span>
+      {folderActions(openGroup, level?.rows.length ?? 0)}
+    </div>
+  );
+
+  const renderRow = (row: T) => {
+    const id = getId(row);
+    return (
+      <tr
+        key={id}
+        {...dragProps(row)}
+        data-selected={
+          selectable ? String(selected.has(id)) : undefined
+        }
+        onClick={onRowClick ? () => onRowClick(row) : undefined}
+      >
+        <td className={styles.colGear} />
+        {visibleColumns.map((c, i) => {
+          // В первой ячейке — чекбокс выбора (виден при наведении/выборе),
+          // отдельной колонки чекбоксов нет.
+          const host = selectable && i === 0;
+          return (
+            <td
+              key={c.key}
+              className={[
+                c.className,
+                host ? styles.colSelectHost : "",
+              ]
+                .filter(Boolean)
+                .join(" ")}
+            >
+              {host && (
+                <span
+                  className={styles.cellSelectBox}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <input
+                    type="checkbox"
+                    checked={selected.has(id)}
+                    onChange={() => toggleSelect(id)}
+                    aria-label="Выбрать строку"
+                  />
+                </span>
+              )}
+              {c.render(row)}
+            </td>
+          );
+        })}
+      </tr>
+    );
+  };
+
   const toggleSort = (k: string) => {
     setSort((s) =>
       s.key === k
@@ -686,6 +991,27 @@ export function ListPage<T>({
       <div className={styles.emptyDesc}>Попробуйте изменить фильтры.</div>
     </div>
   );
+
+  const folderEmpty = (
+    <div className={styles.empty}>
+      <div className={styles.emptyIcon}>
+        <Icon name="folder" size={20} />
+      </div>
+      <div className={styles.emptyTitle}>Папка пуста</div>
+      {canDrag && (
+        <div className={styles.emptyDesc}>
+          Перетащите сюда строку из другой папки или переложите через меню.
+        </div>
+      )}
+    </div>
+  );
+  // Пустой уровень: в открытой папке без поиска — «Папка пуста», иначе общий.
+  const levelEmpty =
+    level && level.folders.length === 0 && level.rows.length === 0
+      ? openGroup && !searching
+        ? folderEmpty
+        : empty
+      : null;
 
   return (
     <div className={styles.page}>
@@ -759,6 +1085,8 @@ export function ListPage<T>({
         {toolbarEnd?.({ viewMode })}
       </div>
 
+      {viewMode !== "board" && (dropBar || crumbs)}
+
       {viewMode === "list" && (
         <>
           <div
@@ -816,59 +1144,30 @@ export function ListPage<T>({
                   })}
                 </tr>
               </thead>
+              {level ? (
+                <tbody>
+                  {levelEmpty ? (
+                    <tr>
+                      <td colSpan={colSpan}>{levelEmpty}</td>
+                    </tr>
+                  ) : (
+                    <>
+                      {level.folders.map(({ group: g, rows }) => folderRow(g, rows))}
+                      {level.rows.map(renderRow)}
+                    </>
+                  )}
+                </tbody>
+              ) : (
               <tbody>
                 {paginated.length === 0 ? (
                   <tr>
                     <td colSpan={colSpan}>{empty}</td>
                   </tr>
                 ) : (
-                  paginated.map((row) => {
-                    const id = getId(row);
-                    return (
-                      <tr
-                        key={id}
-                        data-selected={
-                          selectable ? String(selected.has(id)) : undefined
-                        }
-                        onClick={onRowClick ? () => onRowClick(row) : undefined}
-                      >
-                        <td className={styles.colGear} />
-                        {visibleColumns.map((c, i) => {
-                          // В первой ячейке — чекбокс выбора (виден при наведении/выборе),
-                          // отдельной колонки чекбоксов нет.
-                          const host = selectable && i === 0;
-                          return (
-                            <td
-                              key={c.key}
-                              className={[
-                                c.className,
-                                host ? styles.colSelectHost : "",
-                              ]
-                                .filter(Boolean)
-                                .join(" ")}
-                            >
-                              {host && (
-                                <span
-                                  className={styles.cellSelectBox}
-                                  onClick={(e) => e.stopPropagation()}
-                                >
-                                  <input
-                                    type="checkbox"
-                                    checked={selected.has(id)}
-                                    onChange={() => toggleSelect(id)}
-                                    aria-label="Выбрать строку"
-                                  />
-                                </span>
-                              )}
-                              {c.render(row)}
-                            </td>
-                          );
-                        })}
-                      </tr>
-                    );
-                  })
+                  paginated.map(renderRow)
                 )}
               </tbody>
+              )}
             </table>
           </div>
           <div
@@ -997,6 +1296,29 @@ export function ListPage<T>({
 
       {viewMode === "cards" &&
         renderCard &&
+        level &&
+        (levelEmpty ?? (
+          <>
+            {level.folders.length > 0 && (
+              <div className={styles.folderGrid}>
+                {level.folders.map(({ group: g, rows }) => folderTile(g, rows))}
+              </div>
+            )}
+            {level.rows.length > 0 && (
+              <div className={styles.listCardsGrid}>
+                {level.rows.map((row) => (
+                  <div key={getId(row)} {...dragProps(row)}>
+                    {renderCard(row)}
+                  </div>
+                ))}
+              </div>
+            )}
+          </>
+        ))}
+
+      {viewMode === "cards" &&
+        renderCard &&
+        !level &&
         (cards.length === 0 ? (
           empty
         ) : (
@@ -1020,7 +1342,18 @@ export function ListPage<T>({
       {/* Пагинация — только у таблицы. Карточки догружаются по скроллу, доска
           показывает всё сразу, и счётчик под ней не нужен (владелец,
           27.10.2026): сколько лидов в стадии, видно в шапке колонки. */}
-      {viewMode === "cards" ? (
+      {level && viewMode !== "board" ? (
+        <div className={styles.pager}>
+          <div>
+            {openGroup
+              ? `В папке: ${level.rows.length}`
+              : searching
+                ? `Найдено ${filtered.length} из ${data.length}`
+                : `Папок: ${level.folders.length}` +
+                  (level.rows.length > 0 ? `, без папки: ${level.rows.length}` : "")}
+          </div>
+        </div>
+      ) : viewMode === "cards" ? (
         <div className={styles.pager}>
           <div>
             Показано {cards.length} из {filtered.length}
