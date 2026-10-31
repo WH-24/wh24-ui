@@ -347,3 +347,42 @@ describe("ListPage — липкая полоса горизонтальной п
     expect(bar.scrollLeft).toBe(120);
   });
 });
+
+describe("ListPage: сортировка", () => {
+  interface C {
+    id: string;
+    name: string;
+    client: string;
+  }
+  const data: C[] = [
+    { id: "1", name: "А", client: "" },
+    { id: "2", name: "Б", client: "Ромашка" },
+    { id: "3", name: "В", client: "Альфа" },
+    { id: "4", name: "Г", client: "" },
+  ];
+  const clients = () =>
+    [...document.querySelectorAll("tbody tr")].map((tr) => tr.querySelectorAll("td")[2]?.textContent);
+
+  it("пустые значения — в конце и по возрастанию, и по убыванию", async () => {
+    render(
+      <ListPage<C>
+        title="Лиды"
+        data={data}
+        getId={(r) => r.id}
+        columns={[
+          { key: "name", label: "Название", render: (r) => r.name, sortValue: (r) => r.name },
+          { key: "client", label: "Клиент", render: (r) => r.client, sortValue: (r) => r.client },
+        ]}
+        filterConfig={{
+          scope: "sort-test",
+          fields: [{ key: "name", label: "Название", type: "text", get: (r) => r.name }],
+        }}
+      />,
+    );
+    const th = screen.getByText("Клиент").closest("th")!;
+    await userEvent.click(th);
+    expect(clients()).toEqual(["Альфа", "Ромашка", "", ""]);
+    await userEvent.click(th);
+    expect(clients()).toEqual(["Ромашка", "Альфа", "", ""]);
+  });
+});
