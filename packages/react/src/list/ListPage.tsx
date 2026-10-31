@@ -667,6 +667,11 @@ export function ListPage<T>({
       list = [...list].sort((a, b) => {
         const av = col.sortValue!(a);
         const bv = col.sortValue!(b);
+        // Пустые — всегда в конце, в обе стороны: иначе по возрастанию строки
+        // без значения («—») вставали первыми и прятали заполненные.
+        const ae = av == null || av === "";
+        const be = bv == null || bv === "";
+        if (ae || be) return ae === be ? 0 : ae ? 1 : -1;
         return (av > bv ? 1 : av < bv ? -1 : 0) * (sort.dir === "asc" ? 1 : -1);
       });
     }
