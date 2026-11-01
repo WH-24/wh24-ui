@@ -30,6 +30,7 @@ export const FIELD_TYPES = [
   'table',
   'file',
   'record_ref',
+  'contact',
   'section',
   'note',
 ] as const

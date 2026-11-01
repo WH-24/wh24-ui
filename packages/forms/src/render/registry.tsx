@@ -63,6 +63,26 @@ export interface RenderContext extends FormatContext {
   onRemoveFile?: (field: Field, fileId: string) => void
   /** Открыть вложение (получить presigned-URL и перейти). */
   onOpenFile?: (field: Field, fileId: string) => void
+  /**
+   * Выбор контактов реестра ОУП для поля «Контакт»: карточки, поиск, создание.
+   * Реестр живёт в портале, не здесь — без этого компонента поле только
+   * показывает число контактов и просит открыть запись в портале.
+   */
+  ContactsControl?: ComponentType<ContactsControlProps>
+}
+
+/** Что хост получает от поля «Контакт». */
+export interface ContactsControlProps {
+  /** id выбранных контактов. */
+  value: string[]
+  onChange: (ids: string[]) => void
+  /** Просмотр без правки. */
+  readOnly?: boolean
+  /** id контрола для <label htmlFor>. */
+  id?: string
+  /** Подпись поля — для доступных имён кнопок. */
+  label?: string
+  invalid?: boolean
 }
 
 export interface FieldRenderProps {
@@ -1019,6 +1039,42 @@ const table: FieldRenderer = {
   View: TableView,
 }
 
+// ─── Контакты ──────────────────────────────────────────────────────────
+
+const contact: FieldRenderer = {
+  Edit: ({ field, value, onChange, id, invalid, disabled, ctx }) => {
+    const ids = refValues(value)
+    const Control = ctx.ContactsControl
+    if (!Control) {
+      return (
+        <StaticValue>
+          {ids.length ? formatValue(field, ids, ctx) : 'Контакты выбираются в карточке записи в портале'}
+        </StaticValue>
+      )
+    }
+    return (
+      <Control
+        id={id}
+        label={field.label}
+        value={ids}
+        invalid={invalid}
+        readOnly={disabled}
+        onChange={(v) => onChange(v.length ? v : undefined)}
+      />
+    )
+  },
+  View: ({ field, value, ctx }) => {
+    const ids = refValues(value)
+    if (!ids.length) return <StaticValue>—</StaticValue>
+    const Control = ctx.ContactsControl
+    return Control ? (
+      <Control label={field.label} value={ids} onChange={() => undefined} readOnly />
+    ) : (
+      <StaticValue>{formatValue(field, ids, ctx)}</StaticValue>
+    )
+  },
+}
+
 // ─── Презентационные ───────────────────────────────────────────────────
 
 const section: FieldRenderer = {
@@ -1050,6 +1106,7 @@ export const fieldRegistry: Record<FieldType, FieldRenderer> = {
   table,
   file,
   record_ref: recordRef,
+  contact,
   section,
   note,
 }

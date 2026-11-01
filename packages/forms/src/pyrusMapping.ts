@@ -137,6 +137,8 @@ export function pyrusCompat(f: Field, p: Pick<FlatPyrusField, 'type' | 'deleted'
     case 'user':
     case 'department':
       return 'сотрудника и отдел из Pyrus переносит цель «сотрудник» в «Интеграции Pyrus»'
+    case 'contact':
+      return 'контакты выбираются из реестра ОУП, из Pyrus их не перенести'
   }
   return `тип Pyrus «${t}» не подходит полю «${f.type}»`
 }
