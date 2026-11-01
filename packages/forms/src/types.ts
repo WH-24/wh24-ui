@@ -295,6 +295,11 @@ export interface Form {
   record_access: RecordAccess
   /** internal — записи в «Формах»; external — форма-карточка, данные в модуле. */
   data_source?: 'internal' | 'external'
+  /**
+   * Чат (лента) записи: true — карточка записи с лентой обсуждения и
+   * согласования, false — только форма. Нет поля (старый сервис) — как true.
+   */
+  chat_enabled?: boolean
   sort_order: number
   created_by: string
   created_at: string
