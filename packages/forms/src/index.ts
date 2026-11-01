@@ -43,7 +43,13 @@ export type { PyrusSchemaField, FlatPyrusField } from './pyrusMapping.js'
 
 // React-рендер записи: реестр контролов по типу поля + тело формы.
 export { fieldRegistry, FieldControl } from './render/registry.js'
-export type { FieldRenderer, FieldRenderProps, RenderContext, RenderMode } from './render/registry.js'
+export type {
+  ContactsControlProps,
+  FieldRenderer,
+  FieldRenderProps,
+  RenderContext,
+  RenderMode,
+} from './render/registry.js'
 export { FormRenderer, errorsByField, visibleFields } from './render/FormRenderer.js'
 export type { FormRendererProps, FieldErrors } from './render/FormRenderer.js'
 export {

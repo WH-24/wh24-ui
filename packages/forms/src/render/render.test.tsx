@@ -409,3 +409,32 @@ describe('поле «Форма» (record_ref)', () => {
     )
   })
 })
+
+describe('поле «Контакт» (contact)', () => {
+  const d = doc([f({ id: 'c', type: 'contact', label: 'Контакты заказчика' })])
+  const ids = ['6f1c2a1e-0d7b-4c55-9a3f-2b8f1e7d9c01', '0b6d4f3a-7e21-4b0c-8d55-1f2e3a4b5c6d']
+
+  it('без компонента хоста: правка просит открыть запись в портале, просмотр — «Контакт»', () => {
+    render(<FormRenderer doc={d} values={{}} mode="edit" onChange={vi.fn()} />)
+    expect(screen.getByText(/Контакты выбираются в карточке записи/)).toBeTruthy()
+    expect(formatValue(d.fields[0]!, ids)).toBe('Контакт, Контакт')
+    expect(formatValue(d.fields[0]!, ids, { contactNames: { [ids[0]!]: 'Иванов Иван' } })).toBe(
+      'Иванов Иван, Контакт',
+    )
+  })
+
+  it('компонент хоста получает id и подпись; выбор кладёт список id, пустой — undefined', () => {
+    const onChange = vi.fn()
+    const Control = vi.fn(({ value, onChange: set, label }: { value: string[]; onChange: (v: string[]) => void; label?: string }) => (
+      <button type="button" onClick={() => set(value.length ? [] : ids)}>
+        {label}:{value.length}
+      </button>
+    ))
+    render(
+      <FormRenderer doc={d} values={{ c: [ids[0]!] }} mode="edit" ctx={{ ContactsControl: Control }} onChange={onChange} />,
+    )
+    const btn = screen.getByRole('button', { name: 'Контакты заказчика:1' })
+    fireEvent.click(btn)
+    expect(onChange).toHaveBeenLastCalledWith('c', undefined)
+  })
+})

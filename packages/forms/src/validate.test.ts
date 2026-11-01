@@ -251,3 +251,12 @@ describe('validateRecord — поле «Форма»', () => {
     expect(codes(validateRecord(doc(many), { m: 'id-1' }))).toEqual(['type'])
   })
 })
+
+describe('validateRecord — поле «Контакт»', () => {
+  const contact = f({ id: 'c', type: 'contact' })
+  it('список id — ок; строка и число — ошибка типа', () => {
+    expect(validateRecord(doc(contact), { c: ['a', 'b'] })).toEqual([])
+    expect(codes(validateRecord(doc(contact), { c: 'a' }))).toEqual(['type'])
+    expect(codes(validateRecord(doc(contact), { c: 5 }))).toEqual(['type'])
+  })
+})

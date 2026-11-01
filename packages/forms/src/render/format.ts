@@ -23,6 +23,8 @@ export interface FormatContext {
   filesById?: Record<string, FormFile>
   /** id поля «Форма» → записи формы-источника (активные и уже выбранные). */
   recordRefs?: Record<string, RecordRefOption[]>
+  /** id контакта реестра ОУП → ФИО (поле «Контакт»). */
+  contactNames?: Record<string, string>
 }
 
 const nf = new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 2 })
@@ -144,6 +146,10 @@ export function formatValue(field: Field, value: unknown, ctx: FormatContext = {
     case 'record_ref':
       return (Array.isArray(value) ? value : [value])
         .map((v) => optionLabel(field, String(v), ctx))
+        .join(', ')
+    case 'contact':
+      return (Array.isArray(value) ? value : [value])
+        .map((v) => ctx.contactNames?.[String(v)] ?? 'Контакт')
         .join(', ')
     case 'multiselect':
       return Array.isArray(value)

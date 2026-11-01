@@ -225,6 +225,12 @@ function checkValue(f: Field, value: unknown): RecordFieldError[] {
         return toStringArray(value) ? [] : [typeErr(f, 'список записей')]
       return typeof value === 'string' ? [] : [typeErr(f, 'одна запись')]
     }
+    case 'contact': {
+      // Список id контактов реестра ОУП; что они есть в реестре, проверяет
+      // бэкенд (реестр в другом сервисе).
+      const items = toStringArray(value)
+      return items ? [] : [typeErr(f, 'список контактов')]
+    }
     case 'file': {
       const items = toStringArray(value)
       if (!items) return [typeErr(f, 'список файлов')]
