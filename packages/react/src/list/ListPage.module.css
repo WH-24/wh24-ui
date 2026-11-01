@@ -56,6 +56,19 @@
   overflow: auto;
   padding: 8px 28px 40px;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+/* Колонкой — чтобы таблица могла дотянуться до низа окна; блоки при этом не
+   сжимаются, страница прокручивается целиком, как раньше. */
+.page > * {
+  flex-shrink: 0;
+}
+/* Таблица — во всю высоту (владелец, 01.11.2026): без отступа снизу, лист
+   доходит до края окна и при коротком списке. Низ листа — край окна, поэтому
+   нижние углы прямые и без рамки. Карточкам и доске отступ остаётся. */
+.page:has(> .tableWrap) {
+  padding-bottom: 0;
 }
 .pageHeader {
   display: flex;
@@ -130,6 +143,10 @@
      под короткой таблицей стояли две полосы подряд. Колесо, тачпад и Shift+колесо
      двигают таблицу как прежде. */
   scrollbar-width: none;
+  flex-grow: 1;
+  border-bottom: none;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
 }
 .tableWrap::-webkit-scrollbar {
   display: none;
