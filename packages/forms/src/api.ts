@@ -112,6 +112,8 @@ export interface UpdateFormBody {
   icon?: string
   record_access?: RecordAccess
   sort_order?: number
+  /** Чат (лента) у записей формы — см. Form.chat_enabled. */
+  chat_enabled?: boolean
   /**
    * Перенос формы в меню другого модуля вместе с записями: роль manage в
    * прежнем и новом модуле; форма-карточка не переносится (409).
