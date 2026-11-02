@@ -17,7 +17,8 @@
   border-radius: var(--r-lg);
   padding: 16px;
 }
-/* Цвет-метка секции — полоса слева поверх рамки (Section.color). */
+/* Цвет-метка секции — полоса слева поверх рамки (Section.color); у заголовка
+   ниже — ещё фон и цвет текста. */
 .section[data-color] {
   box-shadow: inset 3px 0 0 var(--sec-color);
 }
@@ -28,6 +29,18 @@
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--ink-3);
+}
+/* Заголовок цветной секции — полосой во всю ширину на светлом фоне её цвета,
+   текст в цвет секции (смешан с --ink: контраст ≥ 4.5:1 и в тёмной теме). */
+.section[data-color] .sectionTitle {
+  margin: -16px -16px 12px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--bd-soft);
+  border-radius: var(--r-lg) var(--r-lg) 0 0;
+  background: color-mix(in srgb, var(--sec-color) 9%, var(--surf));
+  box-shadow: inset 3px 0 0 var(--sec-color);
+  color: color-mix(in srgb, var(--sec-color) 55%, var(--ink));
+  font-weight: 700;
 }
 
 /* Презентационные «поля» внутри секции */
