@@ -41,6 +41,8 @@ export interface RuleScenario {
     visible?: boolean
     required?: boolean
     filled?: Record<string, unknown>
+    /** Правила, которые при этих значениях не должны быть нарушены (пара правил). */
+    together?: RuleRef[]
   }
 }
 
@@ -307,6 +309,38 @@ export function ruleScenarios(doc: SchemaDocument, opts: SimulateOptions = {}): 
     })
   }
 
+  // Пары правил с общим полем в «То»: оба «Если» выполнены — оба «То»
+  // должны выполняться разом, иначе правила противоречат друг другу («Т →
+  // наблюдатель А» и «Москва → наблюдатель Б» при лиде Т из Москвы). Пары,
+  // чьи «Если» вместе не выполнить, пропускаются.
+  const rules = (doc.rules ?? []).filter((r) => hasLeaves(r.when) && hasLeaves(r.then))
+  const vif = visibleIfMap(doc.fields)
+  for (let i = 0; i < rules.length; i++) {
+    for (let j = i + 1; j < rules.length; j++) {
+      const a = rules[i]!
+      const b = rules[j]!
+      const aThen = new Set(conditionLeaves(a.then).map((c) => c.field))
+      if (!conditionLeaves(b.then).some((c) => aThen.has(c.field))) continue
+      const values = { ...patch(a.when, true), ...patch(b.when, true) }
+      const filledValues = applyFills(doc.rules, vif, clean(values), env).values
+      const seen = masked(filledValues, visibility(vif, filledValues, env))
+      if (holds(a.when!, seen, env) !== true || holds(b.when!, seen, env) !== true) continue
+      out.push({
+        id: `${a.id}+${b.id}`,
+        rule: { kind: 'rule', id: a.id, name: `${a.name} + ${b.name}` },
+        title: 'Выполнены условия обоих правил — оба должны выполняться',
+        values,
+        setup: [],
+        expect: {
+          together: [
+            { kind: 'rule', id: a.id, name: a.name },
+            { kind: 'rule', id: b.id, name: b.name },
+          ],
+        },
+      })
+    }
+  }
+
   for (const f of doc.fields) {
     if (f.archived) continue
     if (hasLeaves(f.visible_if)) {
@@ -407,6 +441,15 @@ export function runScenario(doc: SchemaDocument, s: RuleScenario, env: Env = {})
 
   const violations = checkRules(doc.rules, vif, values, env)
   const violated = violations.some((v) => v.ruleId === s.rule.id)
+  const broken = (s.expect.together ?? []).filter((r) => violations.some((v) => v.ruleId === r.id))
+  if (broken.length > 0) {
+    problems.push(
+      `Правила противоречат друг другу: при этих значениях не выполнить ${broken
+        .map((r) => `«${r.name || 'без названия'}»`)
+        .join(' и ')} — поправьте условия или значения`,
+    )
+  }
+  const own = new Set([s.rule.id, ...(s.expect.together ?? []).map((r) => r.id)])
   const e = s.expect
   if (e.violated !== undefined && e.violated !== violated) {
     problems.push(e.violated ? 'Запись прошла бы, хотя правило не выполнено' : 'Запись не сохранилась бы — правило сочло значение неверным')
@@ -430,9 +473,11 @@ export function runScenario(doc: SchemaDocument, s: RuleScenario, env: Env = {})
     }
   }
 
+  // Соседнее правило цепочки при подобранных значениях не выполнено — не
+  // ошибка этого сценария, но видно, что сработает дальше.
   const notes = violations
-    .filter((v) => v.ruleId !== s.rule.id)
-    .map((v) => `Заодно нарушено правило «${v.name || 'без названия'}» — правила могут противоречить друг другу`)
+    .filter((v) => !own.has(v.ruleId))
+    .map((v) => `Дальше по цепочке: не выполнено правило «${v.name || 'без названия'}»`)
   return { scenario: s, values, ok: problems.length === 0, problems, notes }
 }
 

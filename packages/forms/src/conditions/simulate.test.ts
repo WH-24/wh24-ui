@@ -78,9 +78,7 @@ describe('ruleScenarios / runScenario', () => {
     const fill = results.find((r) => r.scenario.id === 'r1:fill')!
     expect(fill.values.obs).toBe('A')
     // Подставили А — включилось второе правило: «Причина» пустая.
-    expect(fill.notes).toEqual([
-      'Заодно нарушено правило «Причина для наблюдателя А» — правила могут противоречить друг другу',
-    ])
+    expect(fill.notes).toEqual(['Дальше по цепочке: не выполнено правило «Причина для наблюдателя А»'])
   })
 
   it('противоречие находится: третье правило требует наблюдателя Б при том же Т', () => {
@@ -96,10 +94,14 @@ describe('ruleScenarios / runScenario', () => {
         },
       ],
     }
-    const right = ruleScenarios(conflicting, { sample }).find((s) => s.id === 'r3:right')!
-    const r = runScenario(conflicting, right)
-    expect(r.ok).toBe(true)
-    expect(r.notes[0]).toContain('«Наблюдатель у лидов Т»')
+    const pair = ruleScenarios(conflicting, { sample }).find((s) => s.id === 'r1+r3')!
+    const r = runScenario(conflicting, pair)
+    expect(r.ok).toBe(false)
+    expect(r.problems).toEqual([
+      'Правила противоречат друг другу: при этих значениях не выполнить «Наблюдатель Б» — поправьте условия или значения',
+    ])
+    // В исходной цепочке противоречий нет — пар с общим «То» тоже.
+    expect(ruleScenarios(doc, { sample }).some((s) => s.id.includes('+'))).toBe(false)
   })
 
   it('условие по скрытому полю — сценарий объясняет, почему не подобрать', () => {
