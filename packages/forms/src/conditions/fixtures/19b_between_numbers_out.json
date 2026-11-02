@@ -1,0 +1,6 @@
+{
+  "name": "between_numbers_out",
+  "group": { "all": [{ "field": "sum", "op": "between", "value": [100, 500] }] },
+  "values": { "sum": 501 },
+  "expect": false
+}

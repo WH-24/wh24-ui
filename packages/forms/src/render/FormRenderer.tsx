@@ -15,7 +15,7 @@
 import { useId, useMemo, type CSSProperties } from 'react'
 import { FieldGrid, FieldRow } from '@wowhaus-24/ui-react'
 
-import { fieldVisibility } from '../conditions/visibility.js'
+import { fieldRequirement, fieldVisibility } from '../conditions/visibility.js'
 import type { Field, RecordData, RecordFieldError, SchemaDocument, Section } from '../types.js'
 import { isComputedField, isPresentation, sectionColorHex } from '../types.js'
 import { isBlank } from './format.js'
@@ -84,6 +84,8 @@ export function FormRenderer({
     [doc.sections],
   )
   const visible = visibleFields(doc, values)
+  // Звёздочка — и у полей, обязательных по условию (required_if выполнено).
+  const required = fieldRequirement(doc.fields, values)
   const bySection = new Map<string, Field[]>()
   for (const f of visible) {
     const list = bySection.get(f.section_id) ?? []
@@ -121,7 +123,7 @@ export function FormRenderer({
         key={f.id}
         label={label}
         htmlFor={id}
-        required={f.required && mode === 'edit' && !forceView}
+        required={Boolean(required[f.id]) && mode === 'edit' && !forceView}
         hint={mode === 'edit' && !forceView ? f.hint : undefined}
         error={err}
         span={f.span}

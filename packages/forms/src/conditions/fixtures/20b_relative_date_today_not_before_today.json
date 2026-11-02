@@ -1,0 +1,7 @@
+{
+  "name": "relative_date_today_not_before_today",
+  "today": "2026-11-02",
+  "group": { "any": [{ "field": "due", "op": "lt", "value": { "days": 0 } }] },
+  "values": { "due": "2026-11-02T23:59:00+03:00" },
+  "expect": false
+}

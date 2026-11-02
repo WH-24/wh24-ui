@@ -1,0 +1,14 @@
+{
+  "name": "nested_group_false",
+  "group": {
+    "all": [
+      { "field": "kind", "op": "eq", "value": "contract" },
+      { "any": [
+        { "field": "urgent", "op": "eq", "value": true },
+        { "field": "sum", "op": "gt", "value": 100 }
+      ] }
+    ]
+  },
+  "values": { "kind": "contract", "urgent": false, "sum": 50 },
+  "expect": false
+}

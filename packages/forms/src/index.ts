@@ -6,9 +6,9 @@
  * записи формы рендерятся как обычная страница ОУП/АХО/HR.
  */
 export * from './types.js'
-export { evaluate, isEmptyValue, UnknownOpError } from './conditions/conditions.js'
-export type { Values } from './conditions/conditions.js'
-export { visibility, fieldVisibility } from './conditions/visibility.js'
+export { evaluate, isEmptyValue, todayMsk, UnknownOpError } from './conditions/conditions.js'
+export type { Env, Values } from './conditions/conditions.js'
+export { visibility, fieldVisibility, fieldRequirement } from './conditions/visibility.js'
 export { conditionOps, opLabel, opTakesValue, opTakesList } from './conditions/ops.js'
 export { describeCondition, describeGroup } from './conditions/describe.js'
 export { validateRecord, isEmpty } from './validate.js'

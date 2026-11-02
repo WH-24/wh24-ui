@@ -1,0 +1,7 @@
+{
+  "name": "relative_date_last_7_days",
+  "today": "2026-11-02",
+  "group": { "all": [{ "field": "at", "op": "between", "value": [{ "days": -7 }, { "days": 0 }] }] },
+  "values": { "at": "2026-10-26T00:30:00+03:00" },
+  "expect": true
+}

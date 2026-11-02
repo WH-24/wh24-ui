@@ -1,0 +1,7 @@
+{
+  "name": "between_relative_dates",
+  "today": "2026-11-02",
+  "group": { "all": [{ "field": "due", "op": "between", "value": [{ "days": 0 }, { "days": 3 }] }] },
+  "values": { "due": "2026-11-05" },
+  "expect": true
+}

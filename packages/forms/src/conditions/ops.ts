@@ -7,8 +7,8 @@
 import type { FieldType, Op } from '../types.js'
 
 const CHOICE: Op[] = ['eq', 'ne', 'in', 'not_in', 'empty', 'not_empty']
-const ORDERED: Op[] = ['eq', 'ne', 'gt', 'gte', 'lt', 'lte', 'empty', 'not_empty']
-const TEXT: Op[] = ['eq', 'ne', 'contains', 'empty', 'not_empty']
+const ORDERED: Op[] = ['eq', 'ne', 'gt', 'gte', 'lt', 'lte', 'between', 'empty', 'not_empty']
+const TEXT: Op[] = ['eq', 'ne', 'contains', 'not_contains', 'empty', 'not_empty']
 const FILLED: Op[] = ['not_empty', 'empty']
 
 /** Операторы для условия по полю этого типа (первый — по умолчанию). */
@@ -23,7 +23,7 @@ export function conditionOps(type: FieldType): Op[] {
     case 'department':
       return CHOICE
     case 'multiselect':
-      return ['in', 'not_in', 'contains', 'empty', 'not_empty']
+      return ['in', 'not_in', 'contains', 'not_contains', 'empty', 'not_empty']
     case 'number':
     case 'money':
     case 'date':
@@ -57,6 +57,8 @@ const OP_LABEL: Record<Op, string> = {
   lt: 'меньше',
   lte: 'не больше',
   contains: 'содержит',
+  not_contains: 'не содержит',
+  between: 'между',
 }
 
 const DATE_LABEL: Partial<Record<Op, string>> = {
@@ -70,6 +72,7 @@ const MULTI_LABEL: Partial<Record<Op, string>> = {
   in: 'содержит любое из',
   not_in: 'не содержит ни одного из',
   contains: 'содержит вариант',
+  not_contains: 'не содержит вариант',
 }
 
 /** Подпись оператора для поля этого типа: у дат «раньше/позже», у

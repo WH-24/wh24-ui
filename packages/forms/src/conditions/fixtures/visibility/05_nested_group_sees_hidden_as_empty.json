@@ -1,0 +1,10 @@
+{
+  "name": "nested_group_sees_hidden_as_empty",
+  "rules": {
+    "a": null,
+    "b": { "all": [{ "field": "a", "op": "eq", "value": "yes" }] },
+    "c": { "all": [{ "field": "a", "op": "not_empty" }, { "any": [{ "field": "b", "op": "not_empty" }] }] }
+  },
+  "values": { "a": "no", "b": "stale" },
+  "visible": { "a": true, "b": false, "c": false }
+}

@@ -22,6 +22,7 @@ import type {
 import {
   FIELD_SPANS,
   FIELD_TYPES,
+  conditionLeaves,
   MAX_VISIBILITY_CHAIN_DEPTH,
   SYSTEM_FIELD_TYPES,
   SYSTEM_KEYS,
@@ -82,13 +83,11 @@ function normalizeSystem(d: SchemaDocument): string | null {
   return null
 }
 
-/** Все поля, на которые ссылается группа (all и any). */
+/** Все поля, на которые ссылается группа (all и any, со вложенными группами). */
 export function conditionFieldRefs(g: ConditionGroup | null | undefined): string[] {
-  if (!g) return []
-  const refs: string[] = []
-  for (const c of g.all ?? []) if (c.field) refs.push(c.field)
-  for (const c of g.any ?? []) if (c.field) refs.push(c.field)
-  return refs
+  return conditionLeaves(g)
+    .map((c) => c.field)
+    .filter(Boolean)
 }
 
 /** Граф «поле → от каких полей зависит по visible_if» (только существующие ссылки). */
@@ -257,13 +256,19 @@ export function validateForPublish(
     }
   }
   for (const f of next.fields) {
-    for (const ref of conditionFieldRefs(f.visible_if)) {
-      const rf = byId.get(ref)
-      if (rf && isComputedField(rf)) {
-        errs.push({
-          field_id: f.id,
-          message: `Поле «${labelOr(f)}»: условие показа по полю «${labelOr(rf)}» не сработает — оно заполняется само и в записи не хранится`,
-        })
+    const rules: [string, ConditionGroup | undefined][] = [
+      ['условие показа', f.visible_if],
+      ['условие обязательности', f.required_if],
+    ]
+    for (const [name, g] of rules) {
+      for (const ref of conditionFieldRefs(g)) {
+        const rf = byId.get(ref)
+        if (rf && isComputedField(rf)) {
+          errs.push({
+            field_id: f.id,
+            message: `Поле «${labelOr(f)}»: ${name} по полю «${labelOr(rf)}» не сработает — оно заполняется само и в записи не хранится`,
+          })
+        }
       }
     }
   }

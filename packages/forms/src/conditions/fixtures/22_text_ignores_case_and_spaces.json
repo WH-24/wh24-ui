@@ -1,0 +1,12 @@
+{
+  "name": "text_ignores_case_and_spaces",
+  "group": {
+    "all": [
+      { "field": "city", "op": "eq", "value": "москва" },
+      { "field": "city", "op": "contains", "value": "МОС" },
+      { "field": "city", "op": "in", "value": ["Питер", "МОСКВА"] }
+    ]
+  },
+  "values": { "city": " Москва " },
+  "expect": true
+}

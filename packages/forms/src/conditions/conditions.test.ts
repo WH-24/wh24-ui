@@ -3,13 +3,15 @@ import path from 'node:path'
 import { describe, expect, it } from 'vitest'
 
 import type { ConditionGroup } from '../types'
-import { evaluate, UnknownOpError } from './conditions'
+import { evaluate, todayMsk, UnknownOpError } from './conditions'
 
 interface Fixture {
   name: string
   group: ConditionGroup | null
   values: Record<string, unknown>
   expect: boolean
+  /** «Сегодня» для относительных дат. */
+  today?: string
 }
 
 const dir = path.join(__dirname, 'fixtures')
@@ -23,7 +25,7 @@ describe('conditions — те же фикстуры, что у Go-теста', (
   for (const f of files) {
     it(f, () => {
       const fx = JSON.parse(readFileSync(path.join(dir, f), 'utf8')) as Fixture
-      expect(evaluate(fx.group, fx.values), fx.name).toBe(fx.expect)
+      expect(evaluate(fx.group, fx.values, { today: fx.today }), fx.name).toBe(fx.expect)
     })
   }
 })
@@ -59,5 +61,15 @@ describe('conditions — краевые случаи вне фикстур', () 
 
   it('ne без значения — false, а не true', () => {
     expect(evaluate({ all: [{ field: 'x', op: 'ne', value: 'a' }] }, {})).toBe(false)
+  })
+})
+
+describe('conditions — относительные даты и сегодня', () => {
+  it('todayMsk — дата по Москве, а не по UTC', () => {
+    // 2026-11-01 22:30 UTC = 2026-11-02 01:30 МСК
+    expect(todayMsk(Date.UTC(2026, 10, 1, 22, 30))).toBe('2026-11-02')
+  })
+  it('{days: N} без today — от сегодняшнего дня', () => {
+    expect(evaluate({ all: [{ field: 'd', op: 'eq', value: { days: 0 } }] }, { d: todayMsk() })).toBe(true)
   })
 })
