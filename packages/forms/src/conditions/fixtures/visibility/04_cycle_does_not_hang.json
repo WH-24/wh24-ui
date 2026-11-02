@@ -1,0 +1,9 @@
+{
+  "name": "cycle_does_not_hang",
+  "rules": {
+    "a": { "all": [{ "field": "b", "op": "not_empty" }] },
+    "b": { "all": [{ "field": "a", "op": "not_empty" }] }
+  },
+  "values": { "a": "1", "b": "2" },
+  "visible": { "a": true, "b": true }
+}

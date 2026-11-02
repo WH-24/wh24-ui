@@ -1,0 +1,11 @@
+{
+  "name": "chain_of_three",
+  "rules": {
+    "a": null,
+    "b": { "all": [{ "field": "a", "op": "eq", "value": true }] },
+    "c": { "all": [{ "field": "b", "op": "eq", "value": "x" }] },
+    "d": { "any": [{ "field": "c", "op": "not_empty" }, { "field": "a", "op": "eq", "value": false }] }
+  },
+  "values": { "a": false, "b": "x", "c": "y" },
+  "visible": { "a": true, "b": false, "c": false, "d": true }
+}

@@ -9,11 +9,12 @@
  *
  * Правила, унаследованные от плана:
  *  - обязательность СКРЫТОГО (visible_if) поля не нарушается — видимость
- *    считает только conditions/evaluate, второй реализации быть не должно;
+ *    считает только conditions (fieldVisibility, с цепочками), второй
+ *    реализации быть не должно;
  *  - ошибки списком, а не первой попавшейся;
  *  - архивное поле со значением ошибкой не считается.
  */
-import { evaluate } from './conditions/conditions.js'
+import { fieldVisibility } from './conditions/visibility.js'
 import type {
   Field,
   FileConfig,
@@ -87,16 +88,12 @@ export function validateRecord(
     }
   }
 
+  // Видимость с цепочками: скрытое поле для зависящих от него пустое;
+  // невычислимое условие не превращается в «поле обязательно» — поле видно.
+  const vis = fieldVisibility(doc.fields, values)
   for (const f of doc.fields) {
     if (isPresentation(f.type) || f.archived || isComputedField(f)) continue
-    let visible = true
-    try {
-      visible = evaluate(f.visible_if, values)
-    } catch {
-      // Невычислимое условие не должно превращаться в «поле обязательно»:
-      // считаем видимым и проверяем значение как обычно.
-      visible = true
-    }
+    const visible = vis[f.id] !== false
     const present = Object.prototype.hasOwnProperty.call(values, f.id)
     const value = values[f.id]
     if (!present || isEmpty(value)) {

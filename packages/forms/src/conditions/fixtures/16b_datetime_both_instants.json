@@ -1,0 +1,6 @@
+{
+  "name": "datetime_both_instants",
+  "group": { "all": [{ "field": "at", "op": "lt", "value": "2026-12-01T10:00:00+03:00" }] },
+  "values": { "at": "2026-12-01T09:00:00+03:00" },
+  "expect": true
+}

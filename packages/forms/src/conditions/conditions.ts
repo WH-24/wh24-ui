@@ -47,11 +47,11 @@ function evalCondition(c: Condition, values: Values): boolean {
     case 'not_empty':
       return !isEmptyValue(val)
     case 'eq':
-      return present && looseEqual(val, c.value)
+      return present && valueEqual(val, c.value)
     case 'ne':
       // Симметрично eq: без значения сравнивать не с чем → false, а не true
       // по умолчанию, иначе незаполненная запись включала бы поля «не равно X».
-      return present && !looseEqual(val, c.value)
+      return present && !valueEqual(val, c.value)
     case 'in':
       return present && inList(val, c.value)
     case 'not_in':
@@ -62,7 +62,7 @@ function evalCondition(c: Condition, values: Values): boolean {
     case 'gte':
     case 'lt':
     case 'lte':
-      return compareNumeric(c.op, val, c.value)
+      return compareOrdered(c.op, val, c.value)
     default:
       throw new UnknownOpError(String(c.op))
   }
@@ -90,10 +90,17 @@ function toFloat(v: unknown): number | null {
   return null
 }
 
-function compareNumeric(op: Op, val: unknown, other: unknown): boolean {
-  const a = toFloat(val)
-  const b = toFloat(other)
-  if (a === null || b === null) return false
+/** gt/gte/lt/lte: обе стороны — числа (или числовые строки) либо обе даты
+ *  (см. toDate); иначе — false, не ошибка. */
+function compareOrdered(op: Op, val: unknown, other: unknown): boolean {
+  let a = toFloat(val)
+  let b = toFloat(other)
+  if (a === null || b === null) {
+    const da = toDate(val)
+    const db = toDate(other)
+    if (!da || !db) return false
+    ;[a, b] = dateKeys(da, db)
+  }
   switch (op) {
     case 'gt':
       return a > b
@@ -106,6 +113,56 @@ function compareNumeric(op: Op, val: unknown, other: unknown): boolean {
     default:
       return false
   }
+}
+
+/** Москва, +03:00 без летнего времени — то же фиксированное смещение, что у Go. */
+const MSK_OFFSET_MS = 3 * 60 * 60 * 1000
+const DAY_MS = 24 * 60 * 60 * 1000
+const DATE_RE = /^(\d{4})-(\d{2})-(\d{2})$/
+const RFC3339_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?(Z|[+-]\d{2}:\d{2})$/
+
+/** Дата из значения: `ГГГГ-ММ-ДД` (номер дня) или RFC 3339 (момент, мс). */
+interface DateValue {
+  /** Номер календарного дня по Москве. */
+  day: number
+  /** Момент в мс; у даты без времени — null. */
+  ms: number | null
+}
+
+function toDate(v: unknown): DateValue | null {
+  if (typeof v !== 'string') return null
+  const s = v.trim()
+  const m = DATE_RE.exec(s)
+  if (m) {
+    const [y, mo, d] = [Number(m[1]), Number(m[2]), Number(m[3])]
+    const utc = Date.UTC(y, mo - 1, d)
+    const back = new Date(utc)
+    // Go не принимает несуществующие даты (2026-02-30) — и мы тоже.
+    if (back.getUTCFullYear() !== y || back.getUTCMonth() !== mo - 1 || back.getUTCDate() !== d) {
+      return null
+    }
+    return { day: utc / DAY_MS, ms: null }
+  }
+  if (!RFC3339_RE.test(s)) return null
+  const ms = Date.parse(s)
+  if (!Number.isFinite(ms)) return null
+  return { day: Math.floor((ms + MSK_OFFSET_MS) / DAY_MS), ms }
+}
+
+/** Две даты как сравнимые числа: хотя бы одна без времени — по дням (МСК),
+ *  обе со временем — моменты. */
+function dateKeys(a: DateValue, b: DateValue): [number, number] {
+  if (a.ms === null || b.ms === null) return [a.day, b.day]
+  return [a.ms, b.ms]
+}
+
+/** eq/ne: дата со временем против даты без времени — по календарному дню;
+ *  остальное — looseEqual. */
+function valueEqual(a: unknown, b: unknown): boolean {
+  const da = toDate(a)
+  const db = da && toDate(b)
+  if (da && db && (da.ms === null) !== (db.ms === null)) return da.day === db.day
+  return looseEqual(a, b)
 }
 
 /** Го-шный fmt.Sprint для скаляров: bool → "true", число → без хвостов. */
@@ -132,8 +189,11 @@ function looseEqual(a: unknown, b: unknown): boolean {
   return sprint(a) === sprint(b)
 }
 
+/** val в списке other; если val — массив («Несколько из списка»), это «есть
+ *  хотя бы один общий элемент». */
 function inList(val: unknown, other: unknown): boolean {
   if (!Array.isArray(other)) return false
+  if (Array.isArray(val)) return val.some((item) => inList(item, other))
   return other.some((item) => looseEqual(val, item))
 }
 
