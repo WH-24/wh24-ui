@@ -13,7 +13,7 @@
 Компоненты `ui-react` (сверено с `packages/react/src/index.ts` 22.09.2026): `ThemeProvider`/`useTheme`,
 `AppShell`, `Avatar` (только инициалы), `Card`, `Chip`, `IconButton`, `MegaDropdown`, `NavTile`, `Pill`,
 `SortPill`, `StatBar`, `BestPracticeBadge`, `TypeBadge`, `TypeMarker`, `UtilChip`, `ComingSoon`,
-`DirectoryPicker`; страница-список `ListPage` (+ `NAME_COL_MIN_WIDTH`) с фильтром в духе Битрикс24 —
+`DirectoryPicker`, `Kanban` (канбан с переносом мышью и меню «Переместить в…», `src/Kanban/`); страница-список `ListPage` (+ `NAME_COL_MIN_WIDTH`) с фильтром в духе Битрикс24 —
 `FilterBar`, `useFilterState`, `matchItem`, `activeCount`, общий `Combobox` (`src/list/`, экспортирован:
 группы, `searchable`, аватар, `invalid`); примитивы формы (`src/form/`: `Input`, `Textarea`,
 `FieldRow`/`FieldGrid`/`StaticValue`, `MultiCombobox`, `DateField`, `FileDrop`); `Icon`; бренд —
