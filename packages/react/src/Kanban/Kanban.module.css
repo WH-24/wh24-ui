@@ -1,0 +1,228 @@
+/* Канбан: колонки фиксированной ширины с горизонтальной прокруткой доски.
+   Цвет колонки — только полоска шапки и точка в меню; статус всегда назван
+   текстом (WCAG «не только цветом»). */
+
+.board {
+  display: flex;
+  gap: var(--sp-3);
+  align-items: flex-start;
+  overflow-x: auto;
+  padding-bottom: var(--sp-2);
+  min-height: 0;
+}
+
+.col {
+  flex: 0 0 272px;
+  display: flex;
+  flex-direction: column;
+  max-height: 100%;
+  background: var(--surf-2);
+  border: 1px solid var(--bd-soft);
+  border-radius: var(--r-lg);
+  transition: border-color 0.12s ease, opacity 0.12s ease;
+}
+
+.colOver {
+  border-color: var(--terra);
+  box-shadow: 0 0 0 1px var(--terra-bd);
+}
+
+/* Во время переноса колонки, куда нельзя, гаснут — видно, куда можно. */
+.colBlocked {
+  opacity: 0.5;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-3) var(--sp-3) var(--sp-2);
+  border-top: 3px solid var(--kanban-tone);
+  border-radius: var(--r-lg) var(--r-lg) 0 0;
+}
+
+.title {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--fs-body);
+  font-weight: var(--fw-semibold);
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.count {
+  min-width: 22px;
+  padding: 0 var(--sp-2);
+  border-radius: var(--r-pill);
+  background: var(--surf);
+  border: 1px solid var(--bd-soft);
+  font-size: var(--fs-meta);
+  color: var(--ink-3);
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.cards {
+  list-style: none;
+  margin: 0;
+  padding: 0 var(--sp-2) var(--sp-2);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  overflow-y: auto;
+  min-height: 48px;
+}
+
+.empty {
+  padding: var(--sp-4) var(--sp-2);
+  text-align: center;
+  font-size: var(--fs-meta);
+  color: var(--ink-4);
+}
+
+.footer {
+  padding: 0 var(--sp-2) var(--sp-2);
+}
+
+.card {
+  position: relative;
+  background: var(--surf);
+  border: 1px solid var(--bd);
+  border-radius: var(--r-md);
+  transition: border-color 0.12s ease, box-shadow 0.12s ease, opacity 0.12s ease;
+}
+
+.card[draggable='true'] {
+  cursor: grab;
+}
+
+.cardOpen:hover {
+  border-color: var(--bd-strong);
+  box-shadow: var(--shadow-sm);
+}
+
+.cardDragging {
+  opacity: 0.4;
+}
+
+.cardBusy {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.cardBody {
+  display: block;
+  width: 100%;
+  padding: var(--sp-3);
+  padding-right: calc(var(--sp-3) + 28px);
+  background: none;
+  border: 0;
+  border-radius: inherit;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+}
+
+button.cardBody {
+  cursor: pointer;
+}
+
+.cardBody:focus-visible,
+.moveBtn:focus-visible,
+.menuItem:focus-visible {
+  outline: var(--focus-ring-w, 2px) solid var(--focus);
+  outline-offset: var(--focus-ring-offset, 2px);
+}
+
+.moveWrap {
+  position: absolute;
+  top: var(--sp-1);
+  right: var(--sp-1);
+}
+
+.moveBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--ink-3);
+  cursor: pointer;
+}
+
+.moveBtn:hover {
+  background: var(--surf-3);
+  color: var(--ink);
+}
+
+/* На касании «⋯» — главный способ перенести карточку: зона нажатия шире. */
+@media (pointer: coarse) {
+  .moveBtn {
+    width: var(--tap-min, 44px);
+    height: var(--tap-min, 44px);
+  }
+  .cardBody {
+    padding-right: calc(var(--sp-3) + var(--tap-min, 44px));
+  }
+}
+
+/* Координаты (top/bottom, right) ставит компонент от кнопки «⋯». */
+.menu {
+  position: fixed;
+  z-index: 1000;
+  min-width: 200px;
+  padding: var(--sp-1);
+  background: var(--surf);
+  border: 1px solid var(--bd);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-md);
+}
+
+.menuTitle {
+  padding: var(--sp-1) var(--sp-2);
+  font-size: var(--fs-meta-sm, 11px);
+  color: var(--ink-4);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.menuItem {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  width: 100%;
+  min-height: 32px;
+  padding: var(--sp-1) var(--sp-2);
+  border: 0;
+  border-radius: var(--r-sm);
+  background: none;
+  font: inherit;
+  font-size: var(--fs-body);
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+}
+
+.menuItem:hover {
+  background: var(--surf-2);
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--kanban-tone);
+  flex: 0 0 auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .col,
+  .card {
+    transition: none;
+  }
+}

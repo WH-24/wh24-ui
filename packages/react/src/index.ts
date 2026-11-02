@@ -117,6 +117,8 @@ export type { FileDropProps, FileDropItem } from './form/FileDrop.js'
 
 // DirectoryPicker — поиск-справочник (люди/отделы/…) с вкладками, режим
 // быстрого поиска. Data-agnostic: данные/аватары/onSelect — через props.
+export { Kanban } from './Kanban/Kanban.js'
+export type { KanbanColumn, KanbanProps, KanbanTone } from './Kanban/Kanban.js'
 export { DirectoryPicker } from './DirectoryPicker/DirectoryPicker.js'
 export type {
   DirectoryPickerProps,
