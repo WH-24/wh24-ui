@@ -3,8 +3,8 @@
  * fieldRegistry. Один компонент на три места: карточка записи (просмотр и
  * редактирование), drawer быстрого просмотра, live-превью в редакторе схемы.
  *
- * Видимость поля считает ТОЛЬКО conditions/evaluate — та же функция, что у
- * валидатора и у бэкенда. Скрытое поле не рендерится вовсе (не display:none):
+ * Видимость поля считает ТОЛЬКО conditions (fieldVisibility, с цепочками) —
+ * та же функция, что у валидатора и у бэкенда. Скрытое поле не рендерится вовсе (не display:none):
  * его контрол не должен получать фокус табом и не должен участвовать в
  * автозаполнении браузера.
  *
@@ -15,7 +15,7 @@
 import { useId, useMemo, type CSSProperties } from 'react'
 import { FieldGrid, FieldRow } from '@wowhaus-24/ui-react'
 
-import { evaluate } from '../conditions/conditions.js'
+import { fieldVisibility } from '../conditions/visibility.js'
 import type { Field, RecordData, RecordFieldError, SchemaDocument, Section } from '../types.js'
 import { isComputedField, isPresentation, sectionColorHex } from '../types.js'
 import { isBlank } from './format.js'
@@ -55,16 +55,10 @@ export function errorsByField(errors: FieldErrors | undefined): Map<string, stri
   return m
 }
 
-/** Видимые (по visible_if) неархивные поля секции в порядке документа. */
+/** Видимые (по visible_if, с цепочками) неархивные поля в порядке документа. */
 export function visibleFields(doc: SchemaDocument, values: RecordData): Field[] {
-  return doc.fields.filter((f) => {
-    if (f.archived) return false
-    try {
-      return evaluate(f.visible_if, values)
-    } catch {
-      return true
-    }
-  })
+  const vis = fieldVisibility(doc.fields, values)
+  return doc.fields.filter((f) => !f.archived && vis[f.id] !== false)
 }
 
 const noop = () => {}

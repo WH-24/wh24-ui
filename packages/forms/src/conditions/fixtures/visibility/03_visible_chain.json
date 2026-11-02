@@ -1,0 +1,10 @@
+{
+  "name": "visible_chain",
+  "rules": {
+    "a": null,
+    "b": { "all": [{ "field": "a", "op": "eq", "value": true }] },
+    "c": { "all": [{ "field": "b", "op": "eq", "value": "x" }] }
+  },
+  "values": { "a": true, "b": "x" },
+  "visible": { "a": true, "b": true, "c": true }
+}

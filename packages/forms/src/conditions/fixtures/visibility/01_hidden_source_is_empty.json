@@ -1,0 +1,11 @@
+{
+  "name": "hidden_source_is_empty",
+  "rules": {
+    "kind": null,
+    "contract_no": { "all": [{ "field": "kind", "op": "eq", "value": "contract" }] },
+    "contract_sum": { "all": [{ "field": "contract_no", "op": "not_empty" }] },
+    "no_contract_reason": { "all": [{ "field": "contract_no", "op": "empty" }] }
+  },
+  "values": { "kind": "invoice", "contract_no": "Д-12" },
+  "visible": { "kind": true, "contract_no": false, "contract_sum": false, "no_contract_reason": true }
+}
