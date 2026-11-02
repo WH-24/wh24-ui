@@ -1,0 +1,11 @@
+{
+  "name": "not_contains",
+  "group": {
+    "all": [
+      { "field": "city", "op": "not_contains", "value": "питер" },
+      { "field": "tags", "op": "not_contains", "value": "b" }
+    ]
+  },
+  "values": { "city": "Москва-Сити", "tags": ["a"] },
+  "expect": true
+}

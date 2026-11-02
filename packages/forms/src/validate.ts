@@ -14,7 +14,7 @@
  *  - ошибки списком, а не первой попавшейся;
  *  - архивное поле со значением ошибкой не считается.
  */
-import { fieldVisibility } from './conditions/visibility.js'
+import { fieldRequirement, fieldVisibility } from './conditions/visibility.js'
 import type {
   Field,
   FileConfig,
@@ -90,14 +90,16 @@ export function validateRecord(
 
   // Видимость с цепочками: скрытое поле для зависящих от него пустое;
   // невычислимое условие не превращается в «поле обязательно» — поле видно.
+  // Обязательность — required или выполненное required_if, только у видимого.
   const vis = fieldVisibility(doc.fields, values)
+  const req = fieldRequirement(doc.fields, values)
   for (const f of doc.fields) {
     if (isPresentation(f.type) || f.archived || isComputedField(f)) continue
     const visible = vis[f.id] !== false
     const present = Object.prototype.hasOwnProperty.call(values, f.id)
     const value = values[f.id]
     if (!present || isEmpty(value)) {
-      if (f.required && visible) {
+      if (visible && req[f.id]) {
         errs.push({
           field_id: f.id,
           code: 'required',

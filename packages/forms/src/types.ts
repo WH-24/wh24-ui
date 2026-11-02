@@ -102,6 +102,10 @@ export type Op =
   | 'lt'
   | 'lte'
   | 'contains'
+  /** Нет подстроки / нет варианта. */
+  | 'not_contains'
+  /** В отрезке [от, до] включительно (числа и даты); value — пара. */
+  | 'between'
 
 export const OPS: readonly Op[] = [
   'eq',
@@ -115,6 +119,8 @@ export const OPS: readonly Op[] = [
   'lt',
   'lte',
   'contains',
+  'not_contains',
+  'between',
 ]
 
 export interface Condition {
@@ -128,9 +134,34 @@ export interface Condition {
  * Группа условий. Отсутствие группы = поле видно всегда. `all` — все (AND),
  * `any` — хотя бы одно (OR); заданы оба — `all(...) && any(...)`.
  */
-export interface ConditionGroup {
+/** Вложенная группа — «скобки» в списке условий: «A и (B или C)». Внутри —
+ *  только сравнения (вложенность — один уровень, как проверяет сервер). */
+export interface NestedConditionGroup {
   all?: Condition[]
   any?: Condition[]
+}
+
+/** Элемент списка условий: сравнение или вложенная группа. */
+export type ConditionItem = Condition | NestedConditionGroup
+
+/** Элемент — вложенная группа (нет field). */
+export function isNestedGroup(c: ConditionItem): c is NestedConditionGroup {
+  return !('field' in c) || (c as Condition).field === undefined
+}
+
+export interface ConditionGroup {
+  all?: ConditionItem[]
+  any?: ConditionItem[]
+}
+
+/** Все сравнения группы, включая вложенные. */
+export function conditionLeaves(g: ConditionGroup | null | undefined): Condition[] {
+  const out: Condition[] = []
+  for (const c of [...(g?.all ?? []), ...(g?.any ?? [])]) {
+    if (isNestedGroup(c)) out.push(...(c.all ?? []), ...(c.any ?? []))
+    else out.push(c)
+  }
+  return out
 }
 
 export interface SelectOption {
@@ -246,6 +277,8 @@ export interface Field {
   archived: boolean
   config?: FieldConfig
   visible_if?: ConditionGroup
+  /** Обязательно, когда условие выполнено (и поле видно); при required не нужно. */
+  required_if?: ConditionGroup
   /** Только у формы-карточки: где лежит значение. */
   binding?: FieldBinding
   /** Системное поле записи (автор, ответственный, дата создания, срок, форма). */

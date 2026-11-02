@@ -6,9 +6,16 @@
  * гоняет Go-тест. Расхождение с бэкендом здесь — баг, а не свобода трактовки:
  * поле, скрытое на фронте и обязательное на бэке, ломает сохранение.
  */
-import type { Condition, ConditionGroup, Op } from '../types.js'
+import type { Condition, ConditionGroup, ConditionItem, Op } from '../types.js'
+import { isNestedGroup } from '../types.js'
 
 export type Values = Record<string, unknown>
+
+/** Окружение вычисления: «сегодня» (ГГГГ-ММ-ДД) для относительных дат
+ *  `{days: N}`. Не задано — сегодня по Москве. */
+export interface Env {
+  today?: string
+}
 
 export class UnknownOpError extends Error {
   constructor(public readonly op: string) {
@@ -25,20 +32,31 @@ export class UnknownOpError extends Error {
  * Единственная ошибка — неизвестный оператор: это опечатка в схеме, у неё нет
  * разумной трактовки «какой бы ни была форма».
  */
-export function evaluate(group: ConditionGroup | null | undefined, values: Values): boolean {
+export function evaluate(
+  group: ConditionGroup | null | undefined,
+  values: Values,
+  env: Env = {},
+): boolean {
   if (!group) return true
   for (const c of group.all ?? []) {
-    if (!evalCondition(c, values)) return false
+    if (!evalItem(c, values, env)) return false
   }
   const any = group.any ?? []
   if (any.length === 0) return true
   for (const c of any) {
-    if (evalCondition(c, values)) return true
+    if (evalItem(c, values, env)) return true
   }
   return false
 }
 
-function evalCondition(c: Condition, values: Values): boolean {
+/** Сравнение или вложенная группа («скобки»). */
+function evalItem(c: ConditionItem, values: Values, env: Env): boolean {
+  if (isNestedGroup(c)) return evaluate(c, values, env)
+  return evalCondition(c, values, env)
+}
+
+function evalCondition(cond: Condition, values: Values, env: Env): boolean {
+  const c = { ...cond, value: resolveValue(cond.value, env) }
   const present = Object.prototype.hasOwnProperty.call(values, c.field)
   const val = values[c.field]
   switch (c.op) {
@@ -58,6 +76,14 @@ function evalCondition(c: Condition, values: Values): boolean {
       return present && !inList(val, c.value)
     case 'contains':
       return present && containsValue(val, c.value)
+    case 'not_contains':
+      // Пустое поле «не содержит» ничего — false, как ne без значения.
+      return present && !isEmptyValue(val) && !containsValue(val, c.value)
+    case 'between': {
+      const b = c.value
+      if (!Array.isArray(b) || b.length !== 2) return false
+      return compareOrdered('gte', val, b[0]) && compareOrdered('lte', val, b[1])
+    }
     case 'gt':
     case 'gte':
     case 'lt':
@@ -165,6 +191,30 @@ function valueEqual(a: unknown, b: unknown): boolean {
   return looseEqual(a, b)
 }
 
+/** Сегодня по Москве, ГГГГ-ММ-ДД. */
+export function todayMsk(now: number = Date.now()): string {
+  return new Date(now + MSK_OFFSET_MS).toISOString().slice(0, 10)
+}
+
+/** {days: N} → «ГГГГ-ММ-ДД» сегодняшнего дня + N (в т.ч. внутри пары between). */
+function resolveValue(v: unknown, env: Env): unknown {
+  if (Array.isArray(v)) return v.map((x) => resolveValue(x, env))
+  if (v && typeof v === 'object') {
+    const keys = Object.keys(v)
+    const n = toFloat((v as { days?: unknown }).days)
+    if (keys.length === 1 && keys[0] === 'days' && n !== null) {
+      const base = Date.parse(`${env.today ?? todayMsk()}T00:00:00Z`)
+      return new Date(base + Math.trunc(n) * DAY_MS).toISOString().slice(0, 10)
+    }
+  }
+  return v
+}
+
+/** Текст для сравнения без учёта регистра и крайних пробелов. */
+function fold(s: string): string {
+  return s.trim().toLowerCase()
+}
+
 /** Го-шный fmt.Sprint для скаляров: bool → "true", число → без хвостов. */
 function sprint(v: unknown): string {
   if (v == null) return '<nil>'
@@ -186,7 +236,7 @@ function looseEqual(a: unknown, b: unknown): boolean {
   if (af !== null && bf !== null && typeof a !== 'string' && typeof b !== 'string') {
     return af === bf
   }
-  return sprint(a) === sprint(b)
+  return fold(sprint(a)) === fold(sprint(b))
 }
 
 /** val в списке other; если val — массив («Несколько из списка»), это «есть
@@ -199,7 +249,7 @@ function inList(val: unknown, other: unknown): boolean {
 
 /** Для строк — подстрока, для массивов (multiselect) — членство элемента. */
 function containsValue(val: unknown, needle: unknown): boolean {
-  if (typeof val === 'string') return val.includes(sprint(needle))
+  if (typeof val === 'string') return fold(val).includes(fold(sprint(needle)))
   if (Array.isArray(val)) return val.some((item) => looseEqual(item, needle))
   return false
 }

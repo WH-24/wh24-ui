@@ -60,3 +60,35 @@ describe('describeGroup', () => {
     expect(describeGroup(undefined, fields)).toBe('')
   })
 })
+
+describe('describeGroup — вложенные группы, между, относительные даты', () => {
+  it('вложенная группа — в скобках', () => {
+    expect(
+      describeGroup(
+        {
+          all: [
+            { field: 'kind', op: 'eq', value: 'contract' },
+            {
+              any: [
+                { field: 'urgent', op: 'eq', value: true },
+                { field: 'sum', op: 'gt', value: 100 },
+              ],
+            },
+          ],
+        },
+        fields,
+      ),
+    ).toBe('Тип = Договор и (Срочно: отмечено или Сумма > 100)')
+  })
+
+  it.each([
+    [{ field: 'sum', op: 'between', value: [100, 500] }, 'Сумма между 100 и 500'],
+    [{ field: 'due', op: 'between', value: [{ days: -7 }, { days: 0 }] }, 'Срок за последние 7 дн.'],
+    [{ field: 'due', op: 'between', value: [{ days: 0 }, { days: 3 }] }, 'Срок в ближайшие 3 дн.'],
+    [{ field: 'due', op: 'lt', value: { days: 0 } }, 'Срок раньше сегодня'],
+    [{ field: 'due', op: 'gt', value: { days: 2 } }, 'Срок позже сегодня + 2 дн.'],
+    [{ field: 'city', op: 'not_contains', value: 'Пит' }, 'Город не содержит «Пит»'],
+  ] as const)('%j', (c, want) => {
+    expect(describeGroup({ all: [c as never] }, fields)).toBe(want)
+  })
+})

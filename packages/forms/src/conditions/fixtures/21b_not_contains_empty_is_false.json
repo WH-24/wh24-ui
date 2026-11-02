@@ -1,0 +1,6 @@
+{
+  "name": "not_contains_empty_is_false",
+  "group": { "any": [{ "field": "city", "op": "not_contains", "value": "питер" }] },
+  "values": { "city": "" },
+  "expect": false
+}
