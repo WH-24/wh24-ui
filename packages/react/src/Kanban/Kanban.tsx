@@ -177,17 +177,44 @@ interface CardProps {
 
 function KanbanCard({ label, busy, dragging, draggable, onDragStart, onDragEnd, onOpen, targets, onMove, children }: CardProps) {
   const [menu, setMenu] = useState(false)
+  // Меню — position: fixed от кнопки: колонка прокручивается сама, и
+  // абсолютное меню у нижней карточки обрезалось бы её краем.
+  const [pos, setPos] = useState<CSSProperties>({})
   const menuRef = useRef<HTMLDivElement>(null)
   const btnRef = useRef<HTMLButtonElement>(null)
+
+  const openMenu = () => {
+    const r = btnRef.current?.getBoundingClientRect()
+    if (r) {
+      const right = Math.max(8, window.innerWidth - r.right)
+      // Снизу места мало — раскрываемся вверх.
+      setPos(
+        r.bottom + 240 > window.innerHeight
+          ? { bottom: window.innerHeight - r.top + 4, right }
+          : { top: r.bottom + 4, right },
+      )
+    }
+    setMenu(true)
+  }
 
   useEffect(() => {
     if (!menu) return
     const close = (e: MouseEvent) => {
       if (!menuRef.current?.contains(e.target as Node) && !btnRef.current?.contains(e.target as Node)) setMenu(false)
     }
+    // Прокрутка или ресайз уводят кнопку из-под меню — проще закрыть.
+    const hide = (e: Event) => {
+      if (!menuRef.current?.contains(e.target as Node)) setMenu(false)
+    }
     document.addEventListener('mousedown', close)
+    window.addEventListener('scroll', hide, true)
+    window.addEventListener('resize', hide)
     menuRef.current?.querySelector('button')?.focus()
-    return () => document.removeEventListener('mousedown', close)
+    return () => {
+      document.removeEventListener('mousedown', close)
+      window.removeEventListener('scroll', hide, true)
+      window.removeEventListener('resize', hide)
+    }
   }, [menu])
 
   const cls = [styles.card, onOpen ? styles.cardOpen : '', dragging ? styles.cardDragging : '', busy ? styles.cardBusy : '']
@@ -223,7 +250,7 @@ function KanbanCard({ label, busy, dragging, draggable, onDragStart, onDragEnd, 
             aria-label={`Переместить «${label}»`}
             title="Переместить в…"
             disabled={busy}
-            onClick={() => setMenu((m) => !m)}
+            onClick={() => (menu ? setMenu(false) : openMenu())}
           >
             <Icon name="more" size={16} />
           </button>
@@ -231,6 +258,7 @@ function KanbanCard({ label, busy, dragging, draggable, onDragStart, onDragEnd, 
             <div
               ref={menuRef}
               className={styles.menu}
+              style={pos}
               role="menu"
               onKeyDown={(e) => {
                 if (e.key === 'Escape') {
