@@ -438,3 +438,20 @@ describe('поле «Контакт» (contact)', () => {
     expect(onChange).toHaveBeenLastCalledWith('c', undefined)
   })
 })
+
+describe('цвет секции', () => {
+  it('секция с цветом из палитры получает полосу, неизвестный ключ — без цвета', () => {
+    const d = doc(
+      [f({ id: 'a', type: 'text' }), f({ id: 'b', type: 'text', section_id: 's2' })],
+      [
+        { id: 's1', title: 'Основное', sort: 0, color: 'blue' },
+        { id: 's2', title: 'Прочее', sort: 1, color: 'bogus' as never },
+      ],
+    )
+    render(<FormRenderer doc={d} values={{}} mode="view" />)
+    const blue = screen.getByRole('region', { name: 'Основное' })
+    expect(blue.getAttribute('data-color')).toBe('blue')
+    expect(blue.style.getPropertyValue('--sec-color')).toBe('#0090ff')
+    expect(screen.getByRole('region', { name: 'Прочее' }).hasAttribute('data-color')).toBe(false)
+  })
+})

@@ -256,6 +256,28 @@ export interface Section {
   id: string
   title: string
   sort: number
+  /** Цвет-метка секции (ключ палитры SECTION_COLORS); нет — без цвета. */
+  color?: SectionColor
+}
+
+/** Палитра цветов секции. Ключи хранит сервер (forms-api SectionColors), оттенки — здесь. */
+export const SECTION_COLORS = [
+  { key: 'red', label: 'Красный', hex: '#e5484d' },
+  { key: 'orange', label: 'Оранжевый', hex: '#ef6c1a' },
+  { key: 'yellow', label: 'Жёлтый', hex: '#d9a21b' },
+  { key: 'green', label: 'Зелёный', hex: '#30a46c' },
+  { key: 'teal', label: 'Бирюзовый', hex: '#12a594' },
+  { key: 'blue', label: 'Синий', hex: '#0090ff' },
+  { key: 'violet', label: 'Фиолетовый', hex: '#8e4ec6' },
+  { key: 'pink', label: 'Розовый', hex: '#d6409f' },
+  { key: 'gray', label: 'Серый', hex: '#8b8d98' },
+] as const
+
+export type SectionColor = (typeof SECTION_COLORS)[number]['key']
+
+/** HEX цвета секции; неизвестный ключ или пусто — undefined (секция без цвета). */
+export function sectionColorHex(key: string | undefined): string | undefined {
+  return SECTION_COLORS.find((c) => c.key === key)?.hex
 }
 
 export interface SchemaDocument {

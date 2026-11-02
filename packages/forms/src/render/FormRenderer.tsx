@@ -12,12 +12,12 @@
  * «Архивные поля» только для чтения — значение уже сохранено и пользователь
  * должен видеть, что оно есть; без значения — не показываются вовсе.
  */
-import { useId, useMemo } from 'react'
+import { useId, useMemo, type CSSProperties } from 'react'
 import { FieldGrid, FieldRow } from '@wowhaus-24/ui-react'
 
 import { evaluate } from '../conditions/conditions.js'
 import type { Field, RecordData, RecordFieldError, SchemaDocument, Section } from '../types.js'
-import { isComputedField, isPresentation } from '../types.js'
+import { isComputedField, isPresentation, sectionColorHex } from '../types.js'
 import { isBlank } from './format.js'
 import { FieldControl, type RenderContext, type RenderMode } from './registry.js'
 import styles from './render.module.css'
@@ -140,8 +140,16 @@ export function FormRenderer({
   const renderSection = (s: Section) => {
     const fields = bySection.get(s.id)
     if (!fields || fields.length === 0) return null
+    const color = sectionColorHex(s.color)
     return (
-      <section key={s.id} className={styles.section} aria-label={s.title}>
+      <section
+        key={s.id}
+        className={styles.section}
+        aria-label={s.title}
+        // Цвет — только полоса слева: заголовок остаётся главным ориентиром.
+        style={color ? ({ '--sec-color': color } as CSSProperties) : undefined}
+        data-color={color ? s.color : undefined}
+      >
         {s.title && <h3 className={styles.sectionTitle}>{s.title}</h3>}
         {/* Вычисляемые системные поля (автор, дата создания, форма) не вводятся — всегда просмотр. */}
         <FieldGrid>{fields.map((f) => renderField(f, isComputedField(f)))}</FieldGrid>

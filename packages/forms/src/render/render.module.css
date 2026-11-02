@@ -17,6 +17,10 @@
   border-radius: var(--r-lg);
   padding: 16px;
 }
+/* Цвет-метка секции — полоса слева поверх рамки (Section.color). */
+.section[data-color] {
+  box-shadow: inset 3px 0 0 var(--sec-color);
+}
 .sectionTitle {
   margin: 0 0 12px;
   font-size: 11px;
