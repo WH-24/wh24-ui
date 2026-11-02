@@ -28,7 +28,7 @@ import type {
   TableConfig,
   TextConfig,
 } from './types.js'
-import { isComputedField, isPresentation } from './types.js'
+import { catalogKeyOf, isComputedField, isPresentation } from './types.js'
 
 function cfg<T>(f: Pick<Field, 'config'>): T {
   return (f.config ?? {}) as T
@@ -312,6 +312,8 @@ function checkTable(f: Field, value: unknown): RecordFieldError[] {
 }
 
 function optionErrs(f: Field, values: string[]): RecordFieldError[] {
+  // Варианты из справочника сверяет бэкенд (у него содержимое), как у «Справочника».
+  if (catalogKeyOf(f)) return []
   const opts = cfg<SelectConfig>(f).options ?? []
   if (opts.length === 0) return []
   const allowed = new Set(opts.map((o) => o.value))

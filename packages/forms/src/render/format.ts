@@ -12,6 +12,7 @@ import type {
   SelectConfig,
   SelectOption,
 } from '../types.js'
+import { catalogKeyOf } from '../types.js'
 import type { FormCatalog } from '../api.js'
 
 export interface FormatContext {
@@ -86,10 +87,9 @@ export function initials(name: string): string {
 
 /** Варианты поля select/multiselect/catalog. */
 export function fieldOptions(field: Field, ctx: FormatContext): SelectOption[] {
-  if (field.type === 'catalog') {
-    const key = (field.config as { catalog_key?: string } | undefined)?.catalog_key
-    return (key && ctx.catalogs?.[key]) || []
-  }
+  // Поле «Справочник» и списки с вариантами из справочника.
+  const key = catalogKeyOf(field)
+  if (key || field.type === 'catalog') return (key && ctx.catalogs?.[key]) || []
   return (field.config as SelectConfig | undefined)?.options ?? []
 }
 
