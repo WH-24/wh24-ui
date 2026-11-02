@@ -1,0 +1,6 @@
+{
+  "name": "multiselect_in_none",
+  "group": { "any": [{ "field": "tags", "op": "in", "value": ["x"] }] },
+  "values": { "tags": ["a", "b"] },
+  "expect": false
+}
