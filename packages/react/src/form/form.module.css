@@ -104,6 +104,23 @@
   border-color: var(--terra);
   box-shadow: 0 0 0 3px var(--terra-bg);
 }
+/* Кольцо фокуса рисует сам контрол (рамка + тень). Общее :focus-visible из
+   ui-tokens/base.css той же специфичности и грузится позже — без этого правила
+   поверх кольца появлялась вторая обводка. */
+.control:focus-visible {
+  outline: none;
+}
+/* Составные поля (дата, мультивыбор): фокус у поля ввода внутри, а кольцо —
+   у всей рамки; своё у вложенного поля гасим. */
+.dpControl:focus-within,
+.mcControl:focus-within {
+  border-color: var(--terra);
+  box-shadow: 0 0 0 3px var(--terra-bg);
+}
+.dpInput:focus-visible,
+.mcInput:focus-visible {
+  outline: none;
+}
 .control:disabled {
   opacity: var(--disabled-opacity);
   cursor: default;
@@ -111,7 +128,9 @@
 .control[aria-invalid='true'] {
   border-color: var(--bad-bd);
 }
-.control[aria-invalid='true']:focus {
+.control[aria-invalid='true']:focus,
+.dpControl[aria-invalid='true']:focus-within,
+.mcControl[aria-invalid='true']:focus-within {
   border-color: var(--bad);
   box-shadow: 0 0 0 3px var(--bad-bg);
 }
