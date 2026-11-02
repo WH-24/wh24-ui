@@ -1,0 +1,6 @@
+{
+  "name": "date_compare_false",
+  "group": { "all": [{ "field": "due", "op": "lt", "value": "2026-12-01" }] },
+  "values": { "due": "2026-12-05" },
+  "expect": false
+}

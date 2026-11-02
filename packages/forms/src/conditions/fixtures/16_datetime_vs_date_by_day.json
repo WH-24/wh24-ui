@@ -1,0 +1,13 @@
+{
+  "name": "datetime_vs_date_by_day",
+  "group": {
+    "all": [
+      { "field": "at", "op": "gte", "value": "2026-12-01" },
+      { "field": "at", "op": "lte", "value": "2026-12-01" },
+      { "field": "at", "op": "eq", "value": "2026-12-01" },
+      { "field": "late", "op": "gt", "value": "2026-12-01" }
+    ]
+  },
+  "values": { "at": "2026-12-01T23:30:00+03:00", "late": "2026-12-01T22:30:00Z" },
+  "expect": true
+}
