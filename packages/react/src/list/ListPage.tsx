@@ -299,6 +299,12 @@ export interface ListPageProps<T> {
   toolbarEnd?: (ctx: { viewMode: ListView }) => ReactNode;
   /** Действия при выделении строк (массовое удаление…). */
   selectionActions?: (ctx: { selected: T[]; clear: () => void }) => ReactNode;
+  /**
+   * Шестерёнка «Настроить колонки» в шапке таблицы (по умолчанию есть). false —
+   * для коротких таблиц, где прятать нечего: без неё таблица теряет и служебную
+   * колонку слева, а сохранённые раньше скрытые колонки не действуют.
+   */
+  columnSettings?: boolean;
 
   /**
    * Папки (см. ListGroups): строки-папки и вход в папку, как в Диске. С ними
@@ -334,6 +340,7 @@ export function ListPage<T>({
   toolbarStart,
   toolbarEnd,
   selectionActions,
+  columnSettings = true,
   groups,
 }: ListPageProps<T>) {
   const {
@@ -464,16 +471,20 @@ export function ListPage<T>({
   // label пустой — они всегда видимы).
   const toggleableCols = useMemo(() => columns.filter((c) => c.label.trim() !== ""), [columns]);
   const visibleColumns = useMemo(
-    () => columns.filter((c) => !hiddenCols.has(c.key)),
-    [columns, hiddenCols],
+    () => (columnSettings ? columns.filter((c) => !hiddenCols.has(c.key)) : columns),
+    [columns, hiddenCols, columnSettings],
   );
 
   // Пока сумма минимумов меньше контейнера — таблица занимает 100% и раскладка
   // прежняя (проценты в width). Как только колонок становится много, таблица
   // растёт до этой ширины, и .tableWrap прокручивается по горизонтали.
   const tableMinWidth = useMemo(
-    () => visibleColumns.reduce((sum, c) => sum + colMinWidth(c), ACTIONS_COL_WIDTH),
-    [visibleColumns],
+    () =>
+      visibleColumns.reduce(
+        (sum, c) => sum + colMinWidth(c),
+        columnSettings ? ACTIONS_COL_WIDTH : 0,
+      ),
+    [visibleColumns, columnSettings],
   );
 
   // Ширина области таблицы — чтобы понять, помещаются ли колонки.
@@ -775,7 +786,7 @@ export function ListPage<T>({
         {...dropProps(g.key)}
         onClick={() => openFolder(g.key)}
       >
-        <td className={styles.colGear} />
+        {columnSettings && <td className={styles.colGear} />}
         {visibleColumns.map((c, i) => (
           <td key={c.key} className={c.className}>
             {i === 0 ? (
@@ -872,7 +883,7 @@ export function ListPage<T>({
         data-selected={selectable ? String(selected.has(id)) : undefined}
         onClick={onRowClick ? () => onRowClick(row) : undefined}
       >
-        <td className={styles.colGear} />
+        {columnSettings && <td className={styles.colGear} />}
         {visibleColumns.map((c, i) => {
           // В первой ячейке — чекбокс выбора (виден при наведении/выборе),
           // отдельной колонки чекбоксов нет.
@@ -920,7 +931,7 @@ export function ListPage<T>({
   );
 
   // +1 — служебная колонка с шестерёнкой в конце шапки.
-  const colSpan = visibleColumns.length + 1 + (selectable ? 1 : 0);
+  const colSpan = visibleColumns.length + (columnSettings ? 1 : 0) + (selectable ? 1 : 0);
 
   const empty = (
     <div className={styles.empty}>
@@ -1030,26 +1041,28 @@ export function ListPage<T>({
           <div className={styles.tableWrap} ref={wrapRef} data-testid="list-table-wrap">
             <table className={styles.tbl} style={{ minWidth: tableMinWidth }}>
               <colgroup>
-                <col style={{ width: ACTIONS_COL_WIDTH }} />
+                {columnSettings && <col style={{ width: ACTIONS_COL_WIDTH }} />}
                 {visibleColumns.map((c, i) => (
                   <col key={c.key} style={{ width: colWidths[i] }} />
                 ))}
               </colgroup>
               <thead>
                 <tr>
-                  <th className={styles.colGear}>
-                    <button
-                      ref={gearRef}
-                      type="button"
-                      className={styles.gearBtn}
-                      title="Настроить колонки"
-                      aria-label="Настроить колонки"
-                      aria-expanded={colsOpen}
-                      onClick={openCols}
-                    >
-                      <Icon name="settings" size={14} />
-                    </button>
-                  </th>
+                  {columnSettings && (
+                    <th className={styles.colGear}>
+                      <button
+                        ref={gearRef}
+                        type="button"
+                        className={styles.gearBtn}
+                        title="Настроить колонки"
+                        aria-label="Настроить колонки"
+                        aria-expanded={colsOpen}
+                        onClick={openCols}
+                      >
+                        <Icon name="settings" size={14} />
+                      </button>
+                    </th>
+                  )}
                   {visibleColumns.map((c, i) => {
                     // Первая колонка резервирует место под чекбокс-по-наведению.
                     const hostCls = selectable && i === 0 ? styles.colSelectHost : undefined;

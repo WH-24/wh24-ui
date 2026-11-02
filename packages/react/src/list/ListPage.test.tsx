@@ -386,3 +386,31 @@ describe("ListPage: сортировка", () => {
     expect(clients()).toEqual(["Ромашка", "Альфа", "", ""]);
   });
 });
+
+describe("ListPage: columnSettings", () => {
+  const props = {
+    title: "Формы",
+    data: rows.slice(0, 3),
+    getId: (r: Row) => r.id,
+    columns: [
+      { key: "name", label: "Название", render: (r: Row) => r.name },
+      { key: "id", label: "Код", render: (r: Row) => r.id },
+    ],
+    filterConfig: { ...filterConfig, scope: "cols-off" },
+  };
+
+  it("по умолчанию шестерёнка есть, со служебной колонкой", () => {
+    render(<ListPage<Row> {...props} />);
+    expect(screen.getByRole("button", { name: "Настроить колонки" })).toBeTruthy();
+    expect(document.querySelectorAll("colgroup col")).toHaveLength(3);
+  });
+
+  it("false — ни шестерёнки, ни служебной колонки, скрытые раньше колонки видны", () => {
+    localStorage.setItem("wh24:list-cols:cols-off", JSON.stringify({ hidden: ["id"], own: true }));
+    render(<ListPage<Row> {...props} columnSettings={false} />);
+    expect(screen.queryByRole("button", { name: "Настроить колонки" })).toBeNull();
+    expect(document.querySelectorAll("colgroup col")).toHaveLength(2);
+    expect(document.querySelector("tbody tr")!.querySelectorAll("td")).toHaveLength(2);
+    expect(screen.getByText("Код")).toBeTruthy();
+  });
+});
