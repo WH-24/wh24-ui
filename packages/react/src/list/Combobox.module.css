@@ -73,9 +73,11 @@
   border-color: var(--accent-500);
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
 }
-/* Своё кольцо уже есть — общее :focus-visible из ui-tokens/base.css даёт вторую обводку. */
+/* Своё кольцо уже есть — общее :focus-visible из ui-tokens/base.css даёт вторую обводку
+   и радиус 2px. */
 .formInput:focus-visible {
   outline: none;
+  border-radius: var(--radius-md);
 }
 .formInput:disabled {
   opacity: 0.5;
