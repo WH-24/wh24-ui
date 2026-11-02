@@ -30,17 +30,29 @@
   text-transform: uppercase;
   color: var(--ink-3);
 }
-/* Заголовок цветной секции — полосой во всю ширину на светлом фоне её цвета,
-   текст в цвет секции (смешан с --ink: контраст ≥ 4.5:1 и в тёмной теме). */
+/* Заголовок цветной секции — полосой во всю ширину на светлом фоне её цвета
+   и с точкой чистого цвета. Текст — обычный (--ink-2): тёмные оттенки цвета
+   смотрятся грязно (владелец 02.11.2026). */
 .section[data-color] .sectionTitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   margin: -16px -16px 12px;
   padding: 10px 16px;
   border-bottom: 1px solid var(--bd-soft);
   border-radius: var(--r-lg) var(--r-lg) 0 0;
-  background: color-mix(in srgb, var(--sec-color) 9%, var(--surf));
+  background: color-mix(in srgb, var(--sec-color) 10%, var(--surf));
   box-shadow: inset 3px 0 0 var(--sec-color);
-  color: color-mix(in srgb, var(--sec-color) 55%, var(--ink));
+  color: var(--ink-2);
   font-weight: 700;
+}
+.section[data-color] .sectionTitle::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--sec-color);
+  flex-shrink: 0;
 }
 
 /* Презентационные «поля» внутри секции */
