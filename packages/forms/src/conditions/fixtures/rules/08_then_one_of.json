@@ -1,0 +1,22 @@
+{
+  "name": "следствие «одно из» не подставляется, но проверяется",
+  "visible_if": {},
+  "rules": [
+    {
+      "id": "r1",
+      "name": "Наблюдатель — А или Б",
+      "when": { "all": [{ "field": "responsible", "op": "eq", "value": "T" }] },
+      "then": { "all": [{ "field": "observer", "op": "in", "value": ["A", "B"] }] },
+      "fill": true
+    },
+    {
+      "id": "r2",
+      "name": "Сумма крупного лида",
+      "when": { "all": [{ "field": "budget", "op": "gt", "value": 1000000 }] },
+      "then": { "all": [{ "field": "observer", "op": "in", "value": ["A", "B"] }] }
+    }
+  ],
+  "values": { "responsible": "T", "observer": "B", "budget": 5000000 },
+  "filled": { "responsible": "T", "observer": "B", "budget": 5000000 },
+  "violations": []
+}

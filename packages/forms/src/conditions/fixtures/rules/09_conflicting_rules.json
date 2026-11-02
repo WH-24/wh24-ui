@@ -1,0 +1,23 @@
+{
+  "name": "противоречие: два правила требуют разных наблюдателей — подставляется первое, второе нарушено",
+  "visible_if": {},
+  "rules": [
+    {
+      "id": "r1",
+      "name": "Наблюдатель у лидов Т",
+      "when": { "all": [{ "field": "responsible", "op": "eq", "value": "T" }] },
+      "then": { "all": [{ "field": "observer", "op": "eq", "value": "A" }] },
+      "fill": true
+    },
+    {
+      "id": "r2",
+      "name": "Наблюдатель по Москве",
+      "when": { "all": [{ "field": "city", "op": "eq", "value": "москва" }] },
+      "then": { "all": [{ "field": "observer", "op": "eq", "value": "B" }] },
+      "fill": true
+    }
+  ],
+  "values": { "responsible": "T", "city": "Москва" },
+  "filled": { "responsible": "T", "city": "Москва", "observer": "A" },
+  "violations": ["r2"]
+}

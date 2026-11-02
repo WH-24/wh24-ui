@@ -1,0 +1,16 @@
+{
+  "name": "правило без условий «если» ничего не делает",
+  "visible_if": {},
+  "rules": [
+    {
+      "id": "r1",
+      "name": "Недоделанное",
+      "when": { "all": [] },
+      "then": { "all": [{ "field": "observer", "op": "eq", "value": "A" }] },
+      "fill": true
+    }
+  ],
+  "values": {},
+  "filled": {},
+  "violations": []
+}

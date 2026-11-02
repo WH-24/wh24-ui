@@ -1,0 +1,21 @@
+{
+  "name": "«если» со скобками: Т и (Москва или бюджет ≥ 1 млн)",
+  "visible_if": {},
+  "rules": [
+    {
+      "id": "r1",
+      "name": "Крупные лиды Т",
+      "when": {
+        "all": [
+          { "field": "responsible", "op": "eq", "value": "T" },
+          { "any": [{ "field": "city", "op": "eq", "value": "Москва" }, { "field": "budget", "op": "gte", "value": 1000000 }] }
+        ]
+      },
+      "then": { "all": [{ "field": "observer", "op": "eq", "value": "A" }, { "field": "priority", "op": "eq", "value": true }] },
+      "fill": true
+    }
+  ],
+  "values": { "responsible": "T", "city": "Казань", "budget": 2000000, "priority": false },
+  "filled": { "responsible": "T", "city": "Казань", "budget": 2000000, "priority": false, "observer": "A" },
+  "violations": ["r1"]
+}

@@ -152,6 +152,32 @@ describe('FormRenderer — структура', () => {
     expect(screen.queryByLabelText('Причина')).not.toBeInTheDocument()
   })
 
+  it('правило формы подставляет значение при вводе: отметили «Срочно» — приоритет «Высокий»', async () => {
+    const user = userEvent.setup()
+    const d: SchemaDocument = {
+      ...doc([
+        f({ id: 'urgent', type: 'checkbox', label: 'Срочно' }),
+        f({ id: 'prio', type: 'text', label: 'Приоритет' }),
+      ]),
+      rules: [
+        {
+          id: 'r1',
+          name: 'Срочное — высокий приоритет',
+          when: { all: [{ field: 'urgent', op: 'eq', value: true }] },
+          then: { all: [{ field: 'prio', op: 'eq', value: 'Высокий' }] },
+          fill: true,
+        },
+      ],
+    }
+    render(<Harness d={d} initial={{ prio: 'Обычный' }} />)
+    await user.click(screen.getByRole('checkbox', { name: /Срочно/ }))
+    expect(out()).toEqual({ urgent: true, prio: 'Высокий' })
+    // Правило уже действует — свой выбор пользователь может поставить.
+    await user.clear(screen.getByLabelText('Приоритет'))
+    await user.type(screen.getByLabelText('Приоритет'), 'Особый')
+    expect(out().prio).toBe('Особый')
+  })
+
   it('архивные поля: только со значением, свёрнуто, только чтение', () => {
     const d = doc([
       f({ id: 'a', type: 'text', label: 'Живое' }),

@@ -1,0 +1,16 @@
+{
+  "name": "Ответственный = Т → Наблюдатель = А: пустой наблюдатель подставляется",
+  "visible_if": {},
+  "rules": [
+    {
+      "id": "r1",
+      "name": "Наблюдатель у лидов Т",
+      "when": { "all": [{ "field": "responsible", "op": "eq", "value": "T" }] },
+      "then": { "all": [{ "field": "observer", "op": "eq", "value": "A" }] },
+      "fill": true
+    }
+  ],
+  "values": { "responsible": "T" },
+  "filled": { "responsible": "T", "observer": "A" },
+  "violations": []
+}

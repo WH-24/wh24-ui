@@ -197,7 +197,8 @@ export function todayMsk(now: number = Date.now()): string {
 }
 
 /** {days: N} → «ГГГГ-ММ-ДД» сегодняшнего дня + N (в т.ч. внутри пары between). */
-function resolveValue(v: unknown, env: Env): unknown {
+/** {days: N} → дата ГГГГ-ММ-ДД (сегодня по МСК + N); остальное — как есть. */
+export function resolveValue(v: unknown, env: Env): unknown {
   if (Array.isArray(v)) return v.map((x) => resolveValue(x, env))
   if (v && typeof v === 'object') {
     const keys = Object.keys(v)

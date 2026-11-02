@@ -1,0 +1,15 @@
+{
+  "name": "правило без подстановки: пустой наблюдатель — нарушение",
+  "visible_if": {},
+  "rules": [
+    {
+      "id": "r1",
+      "name": "Наблюдатель у лидов Т",
+      "when": { "all": [{ "field": "responsible", "op": "eq", "value": "T" }] },
+      "then": { "all": [{ "field": "observer", "op": "eq", "value": "A" }] }
+    }
+  ],
+  "values": { "responsible": "T" },
+  "filled": { "responsible": "T" },
+  "violations": ["r1"]
+}

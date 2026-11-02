@@ -1,0 +1,18 @@
+{
+  "name": "поле следствия скрыто условием показа — не подставляется и не требуется",
+  "visible_if": {
+    "observer": { "all": [{ "field": "kind", "op": "eq", "value": "project" }] }
+  },
+  "rules": [
+    {
+      "id": "r1",
+      "name": "Наблюдатель у лидов Т",
+      "when": { "all": [{ "field": "responsible", "op": "eq", "value": "T" }] },
+      "then": { "all": [{ "field": "observer", "op": "eq", "value": "A" }] },
+      "fill": true
+    }
+  ],
+  "values": { "responsible": "T", "kind": "lead" },
+  "filled": { "responsible": "T", "kind": "lead" },
+  "violations": []
+}

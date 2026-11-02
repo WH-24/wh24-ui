@@ -29,6 +29,7 @@ import {
   TABLE_COLUMN_TYPES,
   TITLE_CAPABLE_TYPES,
   isComputedField,
+  isPresentation,
 } from './types.js'
 
 function labelOr(f: Pick<Field, 'label' | 'key' | 'id'>): string {
@@ -272,6 +273,39 @@ export function validateForPublish(
       }
     }
   }
+
+  // --- Правила формы «если …, то …» (validateRulesForPublish в Go; операторы
+  // и значения проверяет редактор условий и сервер) ---
+  ;(next.rules ?? []).forEach((r, i) => {
+    const name = r.name.trim()
+    const owner = name ? `Правило «${name}»` : `Правило №${i + 1}`
+    const fieldId = conditionFieldRefs(r.then)[0]
+    const at = fieldId ? { field_id: fieldId } : {}
+    if (!name) errs.push({ ...at, message: `${owner}: не задано название` })
+    if (conditionFieldRefs(r.when).length === 0) errs.push({ ...at, message: `${owner}: не заданы условия «Если»` })
+    if (conditionFieldRefs(r.then).length === 0) {
+      errs.push({ ...at, message: `${owner}: не задано, каким должно быть значение («То»)` })
+    }
+    const parts: [string, ConditionGroup | undefined][] = [
+      ['условие «Если»', r.when],
+      ['следствие «То»', r.then],
+    ]
+    for (const [part, g] of parts) {
+      for (const ref of conditionFieldRefs(g)) {
+        const rf = byId.get(ref)
+        if (!rf) {
+          errs.push({ ...at, message: `${owner}: ${part} ссылается на несуществующее поле "${ref}"` })
+        } else if (rf.archived) {
+          errs.push({ ...at, message: `${owner}: ${part} по полю «${labelOr(rf)}» не сработает — поле в архиве` })
+        } else if (isComputedField(rf) || isPresentation(rf.type)) {
+          errs.push({
+            ...at,
+            message: `${owner}: ${part} по полю «${labelOr(rf)}» не сработает — оно заполняется само и в записи не хранится`,
+          })
+        }
+      }
+    }
+  })
 
   // --- Смена типа опубликованного поля ---
   if (prev) {

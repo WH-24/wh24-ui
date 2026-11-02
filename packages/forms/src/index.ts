@@ -6,9 +6,29 @@
  * записи формы рендерятся как обычная страница ОУП/АХО/HR.
  */
 export * from './types.js'
-export { evaluate, isEmptyValue, todayMsk, UnknownOpError } from './conditions/conditions.js'
+export { evaluate, isEmptyValue, resolveValue, todayMsk, UnknownOpError } from './conditions/conditions.js'
 export type { Env, Values } from './conditions/conditions.js'
 export { visibility, fieldVisibility, fieldRequirement } from './conditions/visibility.js'
+export {
+  applyFills,
+  applyFillsOnChange,
+  checkRules,
+  fillTargets,
+  ruleViolationMessage,
+  visibleIfMap,
+} from './conditions/rules.js'
+export type { RuleViolation } from './conditions/rules.js'
+export { allRules, ruleScenarios, runScenario, ruleStatuses, scenarioFields } from './conditions/simulate.js'
+export type {
+  RuleKind,
+  RuleRef,
+  RuleScenario,
+  ScenarioResult,
+  SampleValues,
+  SimulateOptions,
+  RuleState,
+  RuleStatus,
+} from './conditions/simulate.js'
 export { conditionOps, opLabel, opTakesValue, opTakesList } from './conditions/ops.js'
 export { describeCondition, describeGroup } from './conditions/describe.js'
 export { validateRecord, isEmpty } from './validate.js'
@@ -53,7 +73,7 @@ export type {
   RenderContext,
   RenderMode,
 } from './render/registry.js'
-export { FormRenderer, errorsByField, visibleFields } from './render/FormRenderer.js'
+export { FormRenderer, errorsByField, visibleFields, ruleFillsAfterChange } from './render/FormRenderer.js'
 export type { FormRendererProps, FieldErrors } from './render/FormRenderer.js'
 export {
   formatValue,
