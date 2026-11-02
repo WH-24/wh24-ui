@@ -17,10 +17,12 @@
   border-radius: var(--r-lg);
   padding: 16px;
 }
-/* Цвет-метка секции — полоса слева поверх рамки (Section.color); у заголовка
-   ниже — ещё фон и цвет текста. */
+/* Цвет-метка секции — левая рамка (Section.color): одна на всю высоту, без
+   разрыва у заголовка; у заголовка ниже — ещё светлый фон. Отступ слева на
+   2px меньше, чтобы поля стояли там же, где у секции без цвета. */
 .section[data-color] {
-  box-shadow: inset 3px 0 0 color-mix(in srgb, var(--sec-color) 50%, var(--surf));
+  border-left: 3px solid color-mix(in srgb, var(--sec-color) 50%, var(--surf));
+  padding-left: 14px;
 }
 .sectionTitle {
   margin: 0 0 12px;
@@ -30,29 +32,17 @@
   text-transform: uppercase;
   color: var(--ink-3);
 }
-/* Заголовок цветной секции — полосой во всю ширину на светлом фоне её цвета
-   и с точкой чистого цвета. Текст — обычный (--ink-2): тёмные оттенки цвета
-   смотрятся грязно (владелец 02.11.2026). */
+/* Заголовок цветной секции — полосой во всю ширину на светлом фоне её цвета.
+   Текст — обычный (--ink-2): тёмные оттенки цвета смотрятся грязно, точка у
+   названия лишняя (владелец 02.11.2026). */
 .section[data-color] .sectionTitle {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin: -16px -16px 12px;
-  padding: 10px 16px;
+  margin: -16px -16px 12px -14px;
+  padding: 10px 16px 10px 14px;
   border-bottom: 1px solid var(--bd-soft);
-  border-radius: var(--r-lg) var(--r-lg) 0 0;
+  border-radius: calc(var(--r-lg) - 3px) calc(var(--r-lg) - 1px) 0 0;
   background: color-mix(in srgb, var(--sec-color) 10%, var(--surf));
-  box-shadow: inset 3px 0 0 color-mix(in srgb, var(--sec-color) 50%, var(--surf));
   color: var(--ink-2);
   font-weight: 700;
-}
-.section[data-color] .sectionTitle::before {
-  content: '';
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--sec-color);
-  flex-shrink: 0;
 }
 
 /* Презентационные «поля» внутри секции */
