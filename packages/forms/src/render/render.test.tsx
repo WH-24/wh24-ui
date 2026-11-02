@@ -487,3 +487,18 @@ describe('цвет и иконка варианта «Выбора»', () => {
     expect(screen.getByText('Альфа').hasAttribute('data-color')).toBe(false)
   })
 })
+
+describe('список с вариантами из справочника', () => {
+  const ctxCat = { catalogs: { stadii: [{ value: 'c1', label: 'Концепция' }, { value: 'c2', label: 'Эскиз' }] } }
+
+  it('варианты и подписи — из справочника, а не свои', () => {
+    const d = doc([
+      f({ id: 'st', type: 'select', config: { catalog_key: 'stadii', options: [{ value: 'x', label: 'Своё' }] } }),
+      f({ id: 'ms', type: 'multiselect', config: { catalog_key: 'stadii' } }),
+    ])
+    render(<FormRenderer doc={d} values={{ st: 'c1', ms: ['c1', 'c2'] }} mode="view" ctx={ctxCat} />)
+    expect(screen.getAllByText('Концепция').length).toBe(2)
+    expect(screen.getByText('Эскиз')).toBeTruthy()
+    expect(screen.queryByText('Своё')).toBeNull()
+  })
+})

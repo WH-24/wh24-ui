@@ -260,3 +260,29 @@ describe('validateRecord — поле «Контакт»', () => {
     expect(codes(validateRecord(doc(contact), { c: 5 }))).toEqual(['type'])
   })
 })
+
+describe('список из справочника', () => {
+  it('свои варианты не сверяются — значения справочника проверяет бэкенд', () => {
+    const d = {
+      schema_version: 1,
+      title_field: '',
+      sections: [{ id: 's', title: '', sort: 0 }],
+      fields: [
+        {
+          id: 'st',
+          key: 'st',
+          label: 'Стадия',
+          type: 'select',
+          section_id: 's',
+          span: 6,
+          required: false,
+          show_in_list: false,
+          filterable: false,
+          archived: false,
+          config: { catalog_key: 'stadii' },
+        },
+      ],
+    } as SchemaDocument
+    expect(validateRecord(d, { st: 'c1' })).toEqual([])
+  })
+})

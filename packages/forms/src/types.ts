@@ -183,6 +183,17 @@ export type FieldConfig = Record<string, unknown>
 
 export interface SelectConfig {
   options?: SelectOption[]
+  /**
+   * Варианты — из справочника с этим ключом, а не свои (`options`): справочник —
+   * общий список значений полей-списков, переиспользуется в разных формах.
+   */
+  catalog_key?: string
+}
+
+/** Справочник, из которого поле берёт варианты: поле «Справочник» и списки с `catalog_key`. */
+export function catalogKeyOf(field: Pick<Field, 'type' | 'config'>): string | undefined {
+  if (field.type !== 'catalog' && field.type !== 'select' && field.type !== 'multiselect') return undefined
+  return (field.config as SelectConfig | undefined)?.catalog_key || undefined
 }
 export interface NumberConfig {
   min?: number
