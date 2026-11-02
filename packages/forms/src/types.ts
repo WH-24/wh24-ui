@@ -167,6 +167,13 @@ export function conditionLeaves(g: ConditionGroup | null | undefined): Condition
 export interface SelectOption {
   value: string
   label: string
+  /** Цвет варианта (ключ палитры SECTION_COLORS): светлый фон значения, цвет иконки. */
+  color?: SectionColor
+  /**
+   * Иконка варианта — имя из библиотеки иконок хоста (как у иконки формы, напр.
+   * «lucide:Flag»). Рисует её хост через RenderContext.OptionIcon; без него — не рисуется.
+   */
+  icon?: string
 }
 
 // Config — настройки, специфичные для типа. Бэкенд хранит их как opaque JSON
