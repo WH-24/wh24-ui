@@ -15,6 +15,7 @@
 import { useId, useMemo, type CSSProperties } from 'react'
 import { FieldGrid, FieldRow } from '@wowhaus-24/ui-react'
 
+import { applyFillsOnChange, visibleIfMap } from '../conditions/rules.js'
 import { fieldRequirement, fieldVisibility } from '../conditions/visibility.js'
 import type { Field, RecordData, RecordFieldError, SchemaDocument, Section } from '../types.js'
 import { isComputedField, isPresentation, sectionColorHex } from '../types.js'
@@ -63,6 +64,28 @@ export function visibleFields(doc: SchemaDocument, values: RecordData): Field[] 
 
 const noop = () => {}
 
+/**
+ * Значения после правки поля с подстановкой правил формы: правило, которое
+ * эта правка включила, ставит свои значения («Ответственный = Т» →
+ * «Наблюдатель = А»), остальные заполняют пустые поля. Возвращает только
+ * подставленное — само изменённое поле хост ставит сам.
+ */
+export function ruleFillsAfterChange(
+  doc: SchemaDocument,
+  values: RecordData,
+  fieldId: string,
+  value: unknown,
+): Record<string, unknown> {
+  if (!doc.rules?.length) return {}
+  const next = { ...values }
+  if (value === undefined) delete next[fieldId]
+  else next[fieldId] = value
+  const { values: out, filled } = applyFillsOnChange(doc.rules, visibleIfMap(doc.fields), values, next)
+  const patch: Record<string, unknown> = {}
+  for (const id of filled) if (id !== fieldId) patch[id] = out[id]
+  return patch
+}
+
 export function FormRenderer({
   doc,
   values,
@@ -102,7 +125,16 @@ export function FormRenderer({
         mode={forceView ? 'view' : mode}
         field={f}
         value={values[f.id]}
-        onChange={onChange ? (v) => onChange(f.id, v) : noop}
+        onChange={
+          onChange
+            ? (v) => {
+                onChange(f.id, v)
+                for (const [id, x] of Object.entries(ruleFillsAfterChange(doc, values, f.id, v))) {
+                  onChange(id, x)
+                }
+              }
+            : noop
+        }
         id={id}
         invalid={Boolean(err)}
         disabled={disabled}

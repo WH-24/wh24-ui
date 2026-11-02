@@ -1,0 +1,16 @@
+{
+  "name": "выбранный пользователем наблюдатель не перетирается — правило нарушено",
+  "visible_if": {},
+  "rules": [
+    {
+      "id": "r1",
+      "name": "Наблюдатель у лидов Т",
+      "when": { "all": [{ "field": "responsible", "op": "eq", "value": "T" }] },
+      "then": { "all": [{ "field": "observer", "op": "eq", "value": "A" }] },
+      "fill": true
+    }
+  ],
+  "values": { "responsible": "T", "observer": "B" },
+  "filled": { "responsible": "T", "observer": "B" },
+  "violations": ["r1"]
+}

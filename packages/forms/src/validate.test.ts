@@ -286,3 +286,28 @@ describe('список из справочника', () => {
     expect(validateRecord(d, { st: 'c1' })).toEqual([])
   })
 })
+
+describe('validateRecord — правила формы', () => {
+  it('«если Ответственный = Т, то Наблюдатель = А»: другой наблюдатель — ошибка с названием', () => {
+    const d: SchemaDocument = {
+      ...doc(f({ id: 'resp', type: 'user', label: 'Ответственный' }), f({ id: 'obs', type: 'user', label: 'Наблюдатель' })),
+      rules: [
+        {
+          id: 'r1',
+          name: 'Наблюдатель у лидов Т',
+          when: { all: [{ field: 'resp', op: 'eq', value: 'T' }] },
+          then: { all: [{ field: 'obs', op: 'eq', value: 'A' }] },
+        },
+      ],
+    }
+    expect(validateRecord(d, { resp: 'T', obs: 'B' })).toEqual([
+      {
+        field_id: 'obs',
+        code: 'rule',
+        message: 'не выполнено правило «Наблюдатель у лидов Т»: проверьте поле «Наблюдатель»',
+      },
+    ])
+    expect(validateRecord(d, { resp: 'T', obs: 'A' })).toEqual([])
+    expect(validateRecord(d, { resp: 'X' })).toEqual([])
+  })
+})

@@ -150,8 +150,23 @@ export function isNestedGroup(c: ConditionItem): c is NestedConditionGroup {
 }
 
 export interface ConditionGroup {
+  /** Название правила («Договор для крупных сделок») — только подпись. */
+  name?: string
   all?: ConditionItem[]
   any?: ConditionItem[]
+}
+
+/**
+ * Правило формы «Если when, то then» (conditions.Rule в forms-api): when
+ * выполнено, а then нет — запись не сохраняется. При fill сравнения «=»
+ * верхнего уровня then подставляются в поля («Наблюдатель = А»).
+ */
+export interface FormRule {
+  id: string
+  name: string
+  when?: ConditionGroup
+  then?: ConditionGroup
+  fill?: boolean
 }
 
 /** Все сравнения группы, включая вложенные. */
@@ -345,6 +360,8 @@ export interface SchemaDocument {
   fields: Field[]
   /** Только у формы-карточки: с какой сущностью какого модуля связана форма. */
   binding?: DocBinding
+  /** Правила формы «если …, то …». */
+  rules?: FormRule[]
 }
 
 /** Блокер публикации (schema.ValidationError). */

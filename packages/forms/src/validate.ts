@@ -14,6 +14,7 @@
  *  - ошибки списком, а не первой попавшейся;
  *  - архивное поле со значением ошибкой не считается.
  */
+import { checkRules, ruleViolationMessage, visibleIfMap } from './conditions/rules.js'
 import { fieldRequirement, fieldVisibility } from './conditions/visibility.js'
 import type {
   Field,
@@ -93,6 +94,11 @@ export function validateRecord(
   // Обязательность — required или выполненное required_if, только у видимого.
   const vis = fieldVisibility(doc.fields, values)
   const req = fieldRequirement(doc.fields, values)
+  // Правила формы «если …, то …»: следствие не выполнено — ошибка с
+  // названием правила (validate.Record в Go).
+  for (const v of checkRules(doc.rules, visibleIfMap(doc.fields), values)) {
+    errs.push({ field_id: v.field, code: 'rule', message: ruleViolationMessage(v, doc.fields) })
+  }
   for (const f of doc.fields) {
     if (isPresentation(f.type) || f.archived || isComputedField(f)) continue
     const visible = vis[f.id] !== false

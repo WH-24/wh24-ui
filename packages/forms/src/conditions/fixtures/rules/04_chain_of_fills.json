@@ -1,0 +1,23 @@
+{
+  "name": "цепочка: Т → наблюдатель А → отдел D (вторая подстановка включается первой)",
+  "visible_if": {},
+  "rules": [
+    {
+      "id": "r2",
+      "name": "Отдел наблюдателя А",
+      "when": { "all": [{ "field": "observer", "op": "eq", "value": "A" }] },
+      "then": { "all": [{ "field": "department", "op": "eq", "value": "D" }] },
+      "fill": true
+    },
+    {
+      "id": "r1",
+      "name": "Наблюдатель у лидов Т",
+      "when": { "all": [{ "field": "responsible", "op": "eq", "value": "T" }] },
+      "then": { "all": [{ "field": "observer", "op": "eq", "value": "A" }] },
+      "fill": true
+    }
+  ],
+  "values": { "responsible": "T" },
+  "filled": { "responsible": "T", "observer": "A", "department": "D" },
+  "violations": []
+}

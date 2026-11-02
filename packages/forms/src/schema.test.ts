@@ -120,3 +120,21 @@ describe('chainDepth / visibilityDeps', () => {
     expect(deps.has('d')).toBe(false)
   })
 })
+
+describe('validateForPublish — правила формы', () => {
+  it('без названия и без «то» — блокеры', () => {
+    const d = {
+      schema_version: 1,
+      title_field: 't',
+      sections: [{ id: 's', title: 'Основное', sort: 0 }],
+      fields: [
+        { id: 't', key: 't', label: 'Название', type: 'text', section_id: 's', span: 12, required: false, show_in_list: false, filterable: false, archived: false },
+      ],
+      rules: [{ id: 'r', name: ' ', when: { all: [{ field: 't', op: 'not_empty' }] } }],
+    } as SchemaDocument
+    expect(validateForPublish(null, d).map((e) => e.message)).toEqual([
+      'Правило №1: не задано название',
+      'Правило №1: не задано, каким должно быть значение («То»)',
+    ])
+  })
+})

@@ -1,0 +1,24 @@
+{
+  "name": "подстановка открывает поле: «Причина» видна при наблюдателе А, и её требует второе правило",
+  "visible_if": {
+    "reason": { "all": [{ "field": "observer", "op": "eq", "value": "A" }] }
+  },
+  "rules": [
+    {
+      "id": "r1",
+      "name": "Наблюдатель у лидов Т",
+      "when": { "all": [{ "field": "responsible", "op": "eq", "value": "T" }] },
+      "then": { "all": [{ "field": "observer", "op": "eq", "value": "A" }] },
+      "fill": true
+    },
+    {
+      "id": "r2",
+      "name": "Причина для наблюдателя А",
+      "when": { "all": [{ "field": "observer", "op": "eq", "value": "A" }] },
+      "then": { "all": [{ "field": "reason", "op": "not_empty" }] }
+    }
+  ],
+  "values": { "responsible": "T" },
+  "filled": { "responsible": "T", "observer": "A" },
+  "violations": ["r2"]
+}
