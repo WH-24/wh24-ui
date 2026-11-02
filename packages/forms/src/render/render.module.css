@@ -20,7 +20,7 @@
 /* Цвет-метка секции — полоса слева поверх рамки (Section.color); у заголовка
    ниже — ещё фон и цвет текста. */
 .section[data-color] {
-  box-shadow: inset 3px 0 0 var(--sec-color);
+  box-shadow: inset 3px 0 0 color-mix(in srgb, var(--sec-color) 50%, var(--surf));
 }
 .sectionTitle {
   margin: 0 0 12px;
@@ -42,7 +42,7 @@
   border-bottom: 1px solid var(--bd-soft);
   border-radius: var(--r-lg) var(--r-lg) 0 0;
   background: color-mix(in srgb, var(--sec-color) 10%, var(--surf));
-  box-shadow: inset 3px 0 0 var(--sec-color);
+  box-shadow: inset 3px 0 0 color-mix(in srgb, var(--sec-color) 50%, var(--surf));
   color: var(--ink-2);
   font-weight: 700;
 }
