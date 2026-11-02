@@ -8,7 +8,7 @@
  * никаких нативных <select>/<input type=date> — вид поля одинаков во всех
  * модулях.
  */
-import { useEffect, useId, useState, type ComponentType, type ReactNode } from 'react'
+import { useEffect, useId, useState, type ComponentType, type CSSProperties, type ReactNode } from 'react'
 import {
   Combobox,
   DateField,
@@ -16,6 +16,7 @@ import {
   Icon,
   Input,
   MultiCombobox,
+  OptionMarker,
   StaticValue,
   Textarea,
   type ComboboxOption,
@@ -37,6 +38,7 @@ import type {
   TableConfig,
   TextConfig,
 } from '../types.js'
+import { sectionColorHex } from '../types.js'
 import {
   currencySign,
   fieldOptions,
@@ -69,6 +71,11 @@ export interface RenderContext extends FormatContext {
    * показывает число контактов и просит открыть запись в портале.
    */
   ContactsControl?: ComponentType<ContactsControlProps>
+  /**
+   * Иконка варианта поля «Выбор» по имени (SelectOption.icon): библиотека иконок
+   * у хоста. Нет — варианты показываются без иконок (цвет остаётся).
+   */
+  OptionIcon?: ComponentType<{ name: string; size?: number }>
 }
 
 /** Что хост получает от поля «Контакт». */
@@ -105,8 +112,40 @@ export interface FieldRenderer {
 
 // ─── Общие кусочки ──────────────────────────────────────────────────────
 
-function toComboOptions(opts: SelectOption[]): ComboboxOption[] {
-  return opts.map((o) => ({ value: o.value, label: o.label }))
+function optionIcon(o: SelectOption, ctx: RenderContext, size = 14): ReactNode {
+  const OptionIcon = ctx.OptionIcon
+  return o.icon && OptionIcon ? <OptionIcon name={o.icon} size={size} /> : undefined
+}
+
+function toComboOptions(opts: SelectOption[], ctx: RenderContext): ComboboxOption[] {
+  return opts.map((o) => ({
+    value: o.value,
+    label: o.label,
+    color: sectionColorHex(o.color),
+    icon: optionIcon(o, ctx),
+  }))
+}
+
+/** Значение варианта в просмотре: чип с иконкой и светлым фоном цвета варианта. */
+function OptionChip({ field, value, ctx }: { field: Field; value: string; ctx: RenderContext }) {
+  const opt = fieldOptions(field, ctx).find((o) => o.value === value)
+  const color = sectionColorHex(opt?.color)
+  const icon = opt ? optionIcon(opt, ctx, 13) : undefined
+  return (
+    <span
+      className={styles.chip}
+      style={color ? ({ '--chip-color': color } as CSSProperties) : undefined}
+      data-color={color ? '' : undefined}
+    >
+      {icon && <OptionMarker icon={icon} color={color} />}
+      {optionLabel(field, value, ctx)}
+    </span>
+  )
+}
+
+/** У варианта поля есть цвет или иконка — показываем значение чипом. */
+function hasMarkedOptions(field: Field, ctx: RenderContext): boolean {
+  return fieldOptions(field, ctx).some((o) => o.color || (o.icon && ctx.OptionIcon))
 }
 
 function orgOptions(list: OrgOption[] | undefined, withAvatar: boolean): ComboboxOption[] {
@@ -496,7 +535,7 @@ const select: FieldRenderer = {
   Edit: ({ field, value, onChange, id, invalid, disabled, ctx }) => (
     <Combobox
       id={id}
-      options={toComboOptions(fieldOptions(field, ctx))}
+      options={toComboOptions(fieldOptions(field, ctx), ctx)}
       value={str(value)}
       onChange={(v) => onChange(v || undefined)}
       placeholder={field.placeholder ?? '— выбрать —'}
@@ -505,14 +544,23 @@ const select: FieldRenderer = {
       disabled={disabled}
     />
   ),
-  View: TextView,
+  // Варианты с цветом или иконкой — значение чипом, как в списке; иначе текстом.
+  View: (p) => {
+    const v = str(p.value)
+    if (!v || !hasMarkedOptions(p.field, p.ctx)) return <TextView {...p} />
+    return (
+      <StaticValue className={styles.chips}>
+        <OptionChip field={p.field} value={v} ctx={p.ctx} />
+      </StaticValue>
+    )
+  },
 }
 
 const multiselect: FieldRenderer = {
   Edit: ({ field, value, onChange, id, invalid, disabled, ctx }) => (
     <MultiCombobox
       id={id}
-      options={toComboOptions(fieldOptions(field, ctx))}
+      options={toComboOptions(fieldOptions(field, ctx), ctx)}
       values={Array.isArray(value) ? value.map(String) : []}
       onChange={(v) => onChange(v.length ? v : undefined)}
       placeholder={field.placeholder ?? '— выбрать —'}
@@ -526,11 +574,7 @@ const multiselect: FieldRenderer = {
       <StaticValue className={styles.chips}>
         {items.length === 0
           ? '—'
-          : items.map((v) => (
-              <span key={v} className={styles.chip}>
-                {optionLabel(field, v, ctx)}
-              </span>
-            ))}
+          : items.map((v) => <OptionChip key={v} field={field} value={v} ctx={ctx} />)}
       </StaticValue>
     )
   },

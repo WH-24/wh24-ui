@@ -193,6 +193,9 @@
   font-weight: var(--fw-semibold);
   line-height: 1.3;
 }
+.mcChip[data-color] {
+  background: color-mix(in srgb, var(--chip-color) 14%, var(--surf));
+}
 .mcChipRm {
   display: inline-flex;
   align-items: center;

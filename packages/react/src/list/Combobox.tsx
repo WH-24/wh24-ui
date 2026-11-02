@@ -6,6 +6,7 @@ import {
   useRef,
   useState,
   type CSSProperties,
+  type ReactNode,
 } from "react";
 import { createPortal } from "react-dom";
 
@@ -33,6 +34,14 @@ export interface ComboboxOption {
    * Опции одной группы должны идти подряд: группировка — по смене значения.
    */
   group?: string;
+  /**
+   * Метка варианта (поле «Выбор» в «Формах»): иконка и/или цвет. Иконка
+   * красится цветом; без иконки цвет — кружком. Рисуется перед подписью и в
+   * списке, и у выбранного значения. Подпись остаётся — цвет только помогает.
+   */
+  icon?: ReactNode;
+  /** CSS-цвет метки варианта. */
+  color?: string;
 }
 
 export interface ComboboxProps {
@@ -84,6 +93,24 @@ function optionInitials(label: string): string {
     .filter(Boolean);
   if (!w.length) return "?";
   return (w[0]![0]! + (w[1]?.[0] ?? "")).toUpperCase();
+}
+
+/** Есть ли у варианта метка (иконка или цвет). */
+export function hasOptionMarker(opt: Pick<ComboboxOption, "icon" | "color">): boolean {
+  return Boolean(opt.icon || opt.color);
+}
+
+/** Метка варианта: иконка цветом варианта, а без иконки — цветной кружок. */
+export function OptionMarker({ icon, color }: Pick<ComboboxOption, "icon" | "color">) {
+  if (icon) {
+    return (
+      <span className={styles.markerIcon} style={color ? { color } : undefined} aria-hidden>
+        {icon}
+      </span>
+    );
+  }
+  if (!color) return null;
+  return <span className={styles.markerDot} style={{ background: color }} aria-hidden />;
 }
 
 function OptionAvatar({ opt }: { opt: ComboboxOption }) {
@@ -189,6 +216,7 @@ export function Combobox({
   };
 
   const withAvatar = selected?.avatar !== undefined;
+  const withMarker = !withAvatar && selected !== null && hasOptionMarker(selected);
 
   const menu =
     open && rect
@@ -237,6 +265,7 @@ export function Combobox({
                     onClick={() => choose(o)}
                   >
                     {o.avatar !== undefined && <OptionAvatar opt={o} />}
+                    {o.avatar === undefined && hasOptionMarker(o) && <OptionMarker {...o} />}
                     <span className={styles.optionTitle}>{o.label}</span>
                     {o.hint && <span className={styles.optionCode}>{o.hint}</span>}
                   </button>
@@ -260,9 +289,19 @@ export function Combobox({
             <OptionAvatar opt={selected} />
           </span>
         )}
+        {withMarker && selected && (
+          <span className={[styles.controlAvatar, styles.controlMarker].join(" ")}>
+            <OptionMarker {...selected} />
+          </span>
+        )}
         <input
           id={id}
-          className={[styles.formInput, styles.input, withAvatar ? styles.inputAvatar : ""]
+          className={[
+            styles.formInput,
+            styles.input,
+            withAvatar ? styles.inputAvatar : "",
+            withMarker ? styles.inputMarker : "",
+          ]
             .filter(Boolean)
             .join(" ")}
           role="combobox"

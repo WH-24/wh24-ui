@@ -110,6 +110,7 @@
 .chip {
   display: inline-flex;
   align-items: center;
+  gap: 5px;
   height: 24px;
   padding: 0 9px;
   border-radius: var(--r-pill);
@@ -117,6 +118,10 @@
   color: var(--ink);
   font-size: 12px;
   font-weight: var(--fw-medium);
+}
+/* Цвет варианта поля «Выбор» — светлым фоном чипа. */
+.chip[data-color] {
+  background: color-mix(in srgb, var(--chip-color) 14%, var(--surf));
 }
 .link {
   color: var(--terra-d);

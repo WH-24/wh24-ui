@@ -455,3 +455,35 @@ describe('цвет секции', () => {
     expect(screen.getByRole('region', { name: 'Прочее' }).hasAttribute('data-color')).toBe(false)
   })
 })
+
+describe('цвет и иконка варианта «Выбора»', () => {
+  const Icon = ({ name }: { name: string }) => <i data-testid="opt-icon">{name}</i>
+  const d = doc([
+    f({
+      id: 'st',
+      type: 'select',
+      config: {
+        options: [
+          { value: 'hot', label: 'Горячий', color: 'red', icon: 'lucide:Flame' },
+          { value: 'cold', label: 'Холодный' },
+        ],
+      },
+    }),
+  ])
+
+  it('в просмотре — чип с иконкой и цветом варианта', () => {
+    render(<FormRenderer doc={d} values={{ st: 'hot' }} mode="view" ctx={{ OptionIcon: Icon }} />)
+    const chip = screen.getByText('Горячий')
+    expect(chip.getAttribute('data-color')).toBe('')
+    expect(chip.style.getPropertyValue('--chip-color')).toBe('#e5484d')
+    expect(within(chip).getByTestId('opt-icon').textContent).toBe('lucide:Flame')
+  })
+
+  it('без цвета и иконки у вариантов — значение текстом, как раньше', () => {
+    const plain = doc([
+      f({ id: 'st', type: 'select', config: { options: [{ value: 'a', label: 'Альфа' }] } }),
+    ])
+    render(<FormRenderer doc={plain} values={{ st: 'a' }} mode="view" />)
+    expect(screen.getByText('Альфа').hasAttribute('data-color')).toBe(false)
+  })
+})

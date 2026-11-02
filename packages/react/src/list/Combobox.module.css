@@ -235,3 +235,30 @@
 .inputAvatar {
   padding-left: 36px;
 }
+/* Метка варианта (иконка или цветной кружок) — перед подписью. */
+.markerIcon {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  color: var(--fg-tertiary);
+}
+.markerIcon svg {
+  width: 14px;
+  height: 14px;
+}
+.markerDot {
+  flex: 0 0 auto;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+.controlMarker {
+  left: 10px;
+  display: inline-flex;
+}
+.inputMarker {
+  padding-left: 32px;
+}

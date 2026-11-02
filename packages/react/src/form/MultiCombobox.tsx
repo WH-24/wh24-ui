@@ -2,7 +2,7 @@ import { useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from '
 import { createPortal } from 'react-dom'
 
 import { Icon } from '../list/Icon.js'
-import type { ComboboxOption } from '../list/Combobox.js'
+import { OptionMarker, hasOptionMarker, type ComboboxOption } from '../list/Combobox.js'
 
 import styles from './form.module.css'
 
@@ -67,7 +67,10 @@ export function MultiCombobox({
   // Чипы в порядке values; для неизвестного id (значение есть, а опции уже
   // нет — справочник почистили) показываем сам id, а не выкидываем значение:
   // молча потерянный выбор хуже некрасивого.
-  const chips = values.map((v) => ({ value: v, label: byValue.get(v)?.label ?? v }))
+  const chips = values.map((v) => {
+    const o = byValue.get(v)
+    return { value: v, label: o?.label ?? v, icon: o?.icon, color: o?.color }
+  })
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -165,6 +168,7 @@ export function MultiCombobox({
                     >
                       {on && <Icon name="check" size={12} />}
                     </span>
+                    {hasOptionMarker(o) && <OptionMarker {...o} />}
                     <span className={styles.optionTitle}>{o.label}</span>
                     {o.hint && <span className={styles.optionCode}>{o.hint}</span>}
                   </button>
@@ -198,7 +202,14 @@ export function MultiCombobox({
         }}
       >
         {chips.map((c) => (
-          <span key={c.value} className={styles.mcChip}>
+          <span
+            key={c.value}
+            className={styles.mcChip}
+            // Цвет варианта — светлым фоном чипа, иконка — перед подписью.
+            style={c.color ? ({ '--chip-color': c.color } as CSSProperties) : undefined}
+            data-color={c.color ? '' : undefined}
+          >
+            {c.icon && <OptionMarker icon={c.icon} color={c.color} />}
             {c.label}
             {!disabled && (
               <button
