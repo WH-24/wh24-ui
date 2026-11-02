@@ -260,16 +260,22 @@ export interface Section {
   color?: SectionColor
 }
 
-/** Палитра цветов секции. Ключи хранит сервер (forms-api SectionColors), оттенки — здесь. */
+/** Палитра цветов секции (15, по кругу оттенков). Ключи хранит сервер (forms-api SectionColors), оттенки — здесь. */
 export const SECTION_COLORS = [
   { key: 'red', label: 'Красный', hex: '#e5484d' },
   { key: 'orange', label: 'Оранжевый', hex: '#ef6c1a' },
+  { key: 'brown', label: 'Коричневый', hex: '#ad7f58' },
   { key: 'yellow', label: 'Жёлтый', hex: '#d9a21b' },
+  { key: 'lime', label: 'Салатовый', hex: '#84b52d' },
   { key: 'green', label: 'Зелёный', hex: '#30a46c' },
   { key: 'teal', label: 'Бирюзовый', hex: '#12a594' },
+  { key: 'cyan', label: 'Голубой', hex: '#00a2c7' },
   { key: 'blue', label: 'Синий', hex: '#0090ff' },
+  { key: 'indigo', label: 'Индиго', hex: '#3e63dd' },
   { key: 'violet', label: 'Фиолетовый', hex: '#8e4ec6' },
+  { key: 'plum', label: 'Сливовый', hex: '#ab4aba' },
   { key: 'pink', label: 'Розовый', hex: '#d6409f' },
+  { key: 'crimson', label: 'Малиновый', hex: '#e93d82' },
   { key: 'gray', label: 'Серый', hex: '#8b8d98' },
 ] as const
 
