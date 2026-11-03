@@ -12,7 +12,7 @@ import type {
   SelectConfig,
   SelectOption,
 } from '../types.js'
-import { catalogKeyOf } from '../types.js'
+import { catalogKeyOf, sectionColorHex, type SectionColor } from '../types.js'
 import type { FormCatalog } from '../api.js'
 
 export interface FormatContext {
@@ -180,12 +180,19 @@ export function plural(n: number, one: string, few: string, many: string): strin
   return `${formatNumber(n)}\u00a0${word}`
 }
 
-/** Опции поля catalog из справочника: значение — id строки (так проверяет бэкенд), подпись — display_column. */
+/**
+ * Опции поля из справочника: значение — id строки (так проверяет бэкенд),
+ * подпись — display_column, иконка и цвет — как у вариантов своего списка.
+ */
 export function catalogOptions(cat: FormCatalog): SelectOption[] {
   return cat.items.map((it) => {
     const raw = it.values[cat.display_column]
     const label = raw == null || raw === '' ? it.id : String(raw)
-    return { value: it.id, label }
+    const opt: SelectOption = { value: it.id, label }
+    const { icon, color } = it.values
+    if (typeof icon === 'string' && icon) opt.icon = icon
+    if (typeof color === 'string' && sectionColorHex(color)) opt.color = color as SectionColor
+    return opt
   })
 }
 
