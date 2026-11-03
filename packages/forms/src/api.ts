@@ -352,6 +352,8 @@ export function createFormsApi(opts: FormsApiOptions) {
         ) => request<CatalogItem>('PUT', `/admin/catalogs/items/${seg(itemId)}`, body),
         archiveItem: (itemId: string) =>
           request<CatalogItem>('POST', `/admin/catalogs/items/${seg(itemId)}/archive`),
+        restoreItem: (itemId: string) =>
+          request<CatalogItem>('POST', `/admin/catalogs/items/${seg(itemId)}/restore`),
       },
       audit: (entityType: 'form' | 'catalog', entityId: string) =>
         request<AuditLogEntry[]>('GET', `/admin/audit/${seg(entityType)}/${seg(entityId)}`),
