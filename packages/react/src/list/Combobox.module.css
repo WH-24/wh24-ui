@@ -152,14 +152,17 @@
 .option[aria-selected='true'] {
   background: var(--bg-hover);
 }
+/* Подпись прижата к началу строки: с меткой варианта перед ней
+   space-between уводил её к правому краю. Код (.optionCode) — справа. */
 .optionTitle {
   flex: 0 0 auto;
   max-width: 60%;
+  margin-right: auto;
   white-space: normal;
   overflow-wrap: break-word;
 }
-/* Опция без кода: подпись на всю ширину (нет .optionCode рядом). */
-.optionTitle:only-child {
+/* Опция без кода: подпись на всю ширину (нет .optionCode после неё). */
+.optionTitle:last-child {
   max-width: 100%;
 }
 .optionCode {
