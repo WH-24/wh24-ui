@@ -1,0 +1,54 @@
+{
+  "name": "@wowhaus-24/brain-react",
+  "version": "0.1.0",
+  "description": "WH24 Brain: компоненты панели «Спросить ИИ» — разметка ответа с цитатами, источники, сообщения, карточка действия агента, композер, клиент brain-api",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/WH-24/wh24-ui.git",
+    "directory": "packages/brain"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com",
+    "access": "restricted"
+  },
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -b tsconfig.json && node scripts/copy-css.mjs",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "clean": "tsc -b tsconfig.json --clean && rm -rf dist *.tsbuildinfo"
+  },
+  "peerDependencies": {
+    "react": ">=18",
+    "react-dom": ">=18"
+  },
+  "dependencies": {
+    "@wowhaus-24/ui-react": "^0.1.1",
+    "@wowhaus-24/ui-tokens": "^0.1.1",
+    "react-markdown": "^10.1.0",
+    "remark-gfm": "^4.0.1"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.1",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "happy-dom": "^21.0.4",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "typescript": "^5.4.5",
+    "vitest": "^4.1.12"
+  }
+}

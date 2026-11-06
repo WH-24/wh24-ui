@@ -1,0 +1,93 @@
+/* Подписи и индикаторы панели ИИ: расход квоты, «Ответ ИИ», приватность. */
+
+.meter {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 8px;
+  font-size: var(--fs-meta);
+  color: var(--ink-3);
+  font-family: var(--font-sans);
+}
+.part {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+.sep {
+  color: var(--ink-4);
+}
+.bar {
+  display: inline-block;
+  width: 36px;
+  height: 4px;
+  border-radius: var(--r-pill);
+  background: var(--surf-3);
+  overflow: hidden;
+}
+.fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--ink-4);
+}
+.meter[data-tone='warn'] .fill {
+  background: var(--warn);
+}
+.meter[data-tone='bad'] .fill {
+  background: var(--bad);
+}
+.note {
+  font-weight: var(--fw-medium);
+}
+.meter[data-tone='warn'] .note {
+  color: var(--warn);
+}
+.meter[data-tone='bad'] .note {
+  color: var(--bad);
+}
+
+.aiLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: var(--fs-meta);
+  font-weight: var(--fw-medium);
+  color: var(--terra-d);
+  font-family: var(--font-sans);
+}
+.labelDim {
+  color: var(--ink-3);
+  font-weight: var(--fw-regular);
+}
+
+.notice {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  padding: 8px 10px;
+  border-radius: var(--r-md);
+  border: 1px solid var(--info-bd);
+  background: var(--info-bg);
+  color: var(--info);
+  font-size: 13px;
+  line-height: 1.45;
+  font-family: var(--font-sans);
+}
+.notice[data-tone='warn'] {
+  border-color: var(--warn-bd);
+  background: var(--warn-bg);
+  color: var(--warn);
+}
+.noticeIcon {
+  display: inline-flex;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+.noticeText {
+  min-width: 0;
+}
+.noticeText p {
+  margin: 0;
+}

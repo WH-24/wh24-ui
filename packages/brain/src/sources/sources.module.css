@@ -1,0 +1,180 @@
+/* Источники ответа: заголовок со счётчиком и карточки документов. */
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.heading,
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--fs-meta);
+  color: var(--ink-3);
+}
+
+.toggle {
+  border: 0;
+  background: none;
+  padding: 2px 0;
+  cursor: pointer;
+  align-self: flex-start;
+  border-radius: var(--r-xs);
+}
+.toggle:hover {
+  color: var(--ink);
+}
+
+.chev {
+  display: inline-flex;
+  transition: transform 0.12s;
+}
+.chev[data-open] {
+  transform: rotate(90deg);
+}
+
+.listTitle {
+  font-weight: var(--fw-medium);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.count {
+  min-width: 18px;
+  padding: 0 6px;
+  border-radius: var(--r-pill);
+  background: var(--surf-3);
+  color: var(--ink-3);
+  font-size: var(--fs-meta-sm);
+  font-weight: var(--fw-medium);
+  text-align: center;
+}
+
+.empty {
+  margin: 0;
+  font-size: 13px;
+  color: var(--ink-3);
+}
+
+.cards {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 12px;
+  border: var(--bd-hairline) solid var(--bd-strong);
+  border-radius: var(--r-lg);
+  background: var(--surf);
+  transition:
+    border-color 0.12s,
+    background 0.12s;
+}
+.card:hover {
+  border-color: var(--terra-bd);
+}
+.card[data-active] {
+  border-color: var(--terra);
+  background: var(--terra-bg);
+}
+.card:focus {
+  outline: none;
+}
+.card:focus-visible {
+  outline: var(--focus-ring-w) solid var(--focus);
+  outline-offset: 2px;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  font-size: var(--fs-meta);
+  color: var(--ink-3);
+}
+
+.n {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: var(--r-pill);
+  background: var(--terra-bg);
+  border: 1px solid var(--terra-bd);
+  color: var(--terra-d);
+  font-size: var(--fs-meta-sm);
+  font-weight: var(--fw-semibold);
+  line-height: 1;
+}
+
+.mod {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dim {
+  color: var(--ink-4);
+}
+
+.date {
+  margin-left: auto;
+  white-space: nowrap;
+  color: var(--ink-4);
+}
+
+.title {
+  font-size: var(--fs-card);
+  font-weight: var(--fw-semibold);
+  color: var(--ink);
+  line-height: var(--lh-snug);
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+.title:hover {
+  color: var(--terra-d);
+}
+
+.snippet {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--ink-2);
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.open {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  align-self: flex-start;
+  margin-top: 2px;
+  font-size: var(--fs-meta);
+  font-weight: var(--fw-medium);
+  color: var(--terra-d);
+  text-decoration: none;
+}
+.open:hover {
+  text-decoration: underline;
+}

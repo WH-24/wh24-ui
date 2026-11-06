@@ -1,0 +1,192 @@
+/* Композер панели ИИ. Фокус показывает вся карточка: голый textarea с кольцом
+   :focus-visible рисовал вторую коробку внутри первой. */
+
+.composer {
+  background: var(--surf);
+  border: var(--bd-hairline) solid var(--bd-strong);
+  border-radius: 14px;
+  padding: 12px 14px;
+  box-shadow: var(--shadow-sm);
+  cursor: text;
+  font-family: var(--font-sans);
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
+}
+.composer:focus-within {
+  border-color: var(--terra);
+  box-shadow:
+    0 0 0 3px var(--terra-bg),
+    var(--shadow-sm);
+}
+.composer[data-dragging] {
+  border-color: var(--terra);
+  border-style: dashed;
+  background: var(--terra-bg);
+}
+.composer[data-disabled] {
+  cursor: default;
+  background: var(--surf-2);
+}
+
+.input {
+  display: block;
+  width: 100%;
+  border: none;
+  background: transparent;
+  resize: none;
+  font-family: inherit;
+  font-size: var(--fs-body);
+  line-height: 1.6;
+  color: var(--ink);
+  min-height: 26px;
+  padding: 0;
+  overflow-y: hidden;
+}
+.input:focus,
+.input:focus-visible {
+  outline: none;
+}
+.input::placeholder {
+  color: var(--ink-3);
+}
+.input:disabled {
+  color: var(--ink-3);
+}
+
+.bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.tools {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.tool {
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: var(--r-md);
+  background: transparent;
+  color: var(--ink-3);
+  cursor: pointer;
+}
+.tool:hover:not(:disabled) {
+  background: var(--surf-3);
+  color: var(--ink);
+}
+.tool:disabled {
+  opacity: var(--disabled-opacity);
+  cursor: not-allowed;
+}
+
+.hint {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--fs-meta);
+  color: var(--ink-3);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.hint[data-tone='warn'] {
+  color: var(--warn);
+  white-space: normal;
+}
+
+.send {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border-radius: var(--r-lg);
+  min-height: 0;
+  flex-shrink: 0;
+}
+.send:disabled {
+  cursor: default;
+}
+.stopIcon {
+  display: block;
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+  background: currentColor;
+}
+
+@media (pointer: coarse) {
+  .tool,
+  .send {
+    min-width: var(--tap-min-compact);
+    min-height: var(--tap-min-compact);
+  }
+}
+
+.fileError {
+  margin-top: 6px;
+  font-size: var(--fs-meta);
+  color: var(--bad);
+}
+
+.files {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.fileChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  max-width: 240px;
+  min-height: 36px;
+  padding: 3px 3px 3px 6px;
+  border: var(--bd-hairline) solid var(--bd-strong);
+  border-radius: var(--r-md);
+  background: var(--surf-2);
+  font-size: var(--fs-meta);
+  color: var(--ink-2);
+}
+.thumb {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--r-sm);
+  object-fit: cover;
+  flex-shrink: 0;
+}
+.fileIcon {
+  display: inline-flex;
+  flex-shrink: 0;
+  color: var(--ink-3);
+}
+.fileName {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.fileRemove {
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--ink-3);
+  cursor: pointer;
+}
+.fileRemove:hover {
+  background: var(--bad-bg);
+  color: var(--bad);
+}

@@ -1,0 +1,199 @@
+/* Сообщения панели: вопрос справа на подложке, ответ — текст без пузыря. */
+
+.assistant {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+  font-family: var(--font-sans);
+  color: var(--ink);
+}
+
+.label {
+  display: flex;
+}
+
+.typing {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 20px;
+}
+.dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--ink-4);
+  animation: brainPulse 1s infinite;
+}
+.dot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+.dot:nth-child(3) {
+  animation-delay: 0.4s;
+}
+@media (prefers-reduced-motion: reduce) {
+  .dot {
+    animation: none;
+    opacity: 0.6;
+  }
+}
+@keyframes brainPulse {
+  0%,
+  100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.error {
+  margin: 0;
+  padding: 8px 10px;
+  border-radius: var(--r-md);
+  border: 1px solid var(--bad-bd);
+  background: var(--bad-bg);
+  color: var(--bad);
+  font-size: 13px;
+}
+
+/* Строка действий: тихие кнопки, появляются когда ответ закончен. */
+.actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 2px;
+  margin-top: -2px;
+}
+
+.act,
+.vote {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 28px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--ink-3);
+  font-size: var(--fs-meta);
+  font-weight: var(--fw-medium);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.act:hover,
+.vote:hover {
+  background: var(--surf-2);
+  color: var(--ink);
+}
+
+.votes {
+  display: inline-flex;
+  gap: 0;
+  margin-left: auto;
+}
+.vote {
+  width: 28px;
+  padding: 0;
+  justify-content: center;
+}
+.vote[aria-pressed='true'] {
+  color: var(--terra-d);
+  background: var(--terra-bg);
+}
+
+@media (pointer: coarse) {
+  .act,
+  .vote {
+    min-height: var(--tap-min-compact);
+  }
+  .vote {
+    min-width: var(--tap-min-compact);
+  }
+}
+
+/* Чипы «спросить дальше». */
+.followups {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.followup {
+  padding: 5px 11px;
+  border: 1px solid var(--bd);
+  border-radius: var(--r-pill);
+  background: var(--surf);
+  color: var(--ink-2);
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 0.1s,
+    color 0.1s;
+}
+.followup:hover {
+  border-color: var(--terra-bd);
+  color: var(--terra-d);
+}
+
+/* Вопрос пользователя. */
+.userWrap {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 3px;
+  min-width: 0;
+}
+.user {
+  max-width: 85%;
+  padding: 8px 12px;
+  border-radius: var(--r-xl);
+  border-bottom-right-radius: var(--r-sm);
+  background: var(--surf-3);
+  color: var(--ink);
+  font-size: var(--fs-card);
+  line-height: 1.5;
+}
+.userText {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.userMeta {
+  font-size: var(--fs-meta-sm);
+  color: var(--ink-4);
+}
+.userFiles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+.userImg {
+  display: block;
+  max-width: 220px;
+  max-height: 160px;
+  border-radius: var(--r-md);
+  border: var(--bd-hairline) solid var(--bd);
+  object-fit: cover;
+}
+.userFile {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  max-width: 220px;
+  padding: 3px 8px;
+  border-radius: var(--r-md);
+  border: var(--bd-hairline) solid var(--bd-strong);
+  background: var(--surf);
+  font-size: var(--fs-meta);
+  color: var(--ink-2);
+}
+.userFileName {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
