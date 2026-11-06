@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import { conditionOps } from './conditions/ops'
-import { computeFormulas, FORMULA_FUNCTIONS, formulaOrder, formulaScope } from './formula/formula'
+import { computeFormulas, evaluateFormula, FORMULA_FUNCTIONS, formulaOrder, formulaScope, parseFormula } from './formula/formula'
 import { validateForPublish } from './schema'
 import type { Field, SchemaDocument } from './types'
 import { FIELD_TYPES, formulaResultField, isComputedField } from './types'
@@ -92,5 +92,26 @@ describe('validateRecord и validateForPublish', () => {
     expect(msgs(doc([f({ id: 'lk', key: 'lk', type: 'lookup', config: {} })]))).toContain('выберите поле «Форма»')
     expect(msgs(doc([fx('x', 'x', '{title}')]))).toBe('')
     expect(msgs(doc([fx('x', 'x', '{y}'), fx('y', 'y', '{x}')]))).toContain('ссылаются друг на друга')
+  })
+})
+
+// Ревью 06.11: паритет с Go и защита от «бомбы».
+describe('formula — правки ревью', () => {
+  it('глубина вложенности ограничена, как в Go (64)', () => {
+    expect(() => parseFormula('('.repeat(200000) + '1' + ')'.repeat(200000))).toThrow(/слож/)
+  })
+  it('дата-время без зоны — не дата (как в Go)', () => {
+    expect(evaluateFormula(parseFormula('{a}'), { a: '2026-11-06T22:30' }, 'date')).toBeNull()
+    expect(evaluateFormula(parseFormula('{a}'), { a: '2026-11-06T22:30:00+03:00' }, 'date')).toBe('2026-11-06')
+  })
+  it('скрытое условием поле для формулы пусто', () => {
+    const d = doc([
+      f({ id: 'fl', key: 'flag', type: 'checkbox' }),
+      f({ id: 'd', key: 'discount', type: 'number', visible_if: { all: [{ field: 'fl', op: 'eq', value: true }] } }),
+      f({ id: 'p', key: 'price', type: 'number' }),
+      fx('t', 'total', '{price}*(1-{discount}/100)'),
+    ])
+    expect(computeFormulas(d, { fl: false, d: 10, p: 100 })).toEqual({ t: 100 })
+    expect(computeFormulas(d, { fl: true, d: 10, p: 100 })).toEqual({ t: 90 })
   })
 })

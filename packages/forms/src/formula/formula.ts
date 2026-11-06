@@ -14,6 +14,7 @@
 import type { Field, FormulaConfig, FormulaResult, RecordData, SchemaDocument, TableConfig } from '../types.js'
 import { isComputedField } from '../types.js'
 import { todayMsk } from '../conditions/conditions.js'
+import { fieldVisibility } from '../conditions/visibility.js'
 
 export class FormulaParseError extends Error {
   pos: number
@@ -144,6 +145,8 @@ const ARITY: Record<string, [number, number]> = {
   MIN: [1, -1], MAX: [1, -1], SUM: [1, -1], COUNT: [1, -1], CONCAT: [1, -1],
 }
 const AGGREGATES = new Set(['SUM', 'COUNT', 'MIN', 'MAX'])
+/** Предел вложенности скобок и вызовов — как в Go (formula.maxDepth): защита от формулы-«бомбы». */
+const MAX_DEPTH = 64
 
 function arityText([min, max]: [number, number]): string {
   if (max < 0) return `нужен хотя бы ${min} аргумент`
@@ -154,6 +157,7 @@ function arityText([min, max]: [number, number]): string {
 
 class Parser {
   i = 0
+  depth = 0
   constructor(private toks: Token[]) {}
   peek(): Token {
     return this.toks[this.i] ?? this.toks[this.toks.length - 1]!
@@ -168,12 +172,19 @@ class Parser {
     return t.kind === 'op' && ops.includes(t.text)
   }
   compare(): Node {
-    let left = this.additive()
-    if (this.isOp('=', '<>', '<', '<=', '>', '>=')) {
-      const op = this.next().text
-      left = { kind: 'bin', op, left, right: this.additive() }
+    this.depth++
+    try {
+      if (this.depth > MAX_DEPTH)
+        throw new FormulaParseError(this.peek().pos, `слишком сложная формула: больше ${MAX_DEPTH} уровней вложенности`)
+      let left = this.additive()
+      if (this.isOp('=', '<>', '<', '<=', '>', '>=')) {
+        const op = this.next().text
+        left = { kind: 'bin', op, left, right: this.additive() }
+      }
+      return left
+    } finally {
+      this.depth--
     }
-    return left
   }
   additive(): Node {
     let left = this.mult()
@@ -309,7 +320,9 @@ function parseDate(s: string): DateVal | null {
     if (Number.isNaN(d.getTime()) || d.toISOString().slice(0, 10) !== t) return null
     return new DateVal(Math.floor(d.getTime() / 86400000))
   }
-  if (t.length > 10 && t[4] === '-' && t[7] === '-') {
+  // Дата-время — только с зоной (RFC 3339), как в Go: без зоны Date.parse
+  // взял бы часовой пояс браузера.
+  if (t.length > 10 && t[4] === '-' && t[7] === '-' && /(Z|[+-]\d{2}:\d{2})$/.test(t)) {
     const ms = Date.parse(t)
     if (Number.isNaN(ms)) return null
     return new DateVal(Math.floor((ms + MSK_OFFSET_MS) / 86400000))
@@ -591,11 +604,16 @@ export function evaluateFormula(
 
 const SCOPE_EXCLUDED = new Set<string>(['section', 'note', 'file', 'contact', 'lookup', 'formula'])
 
-/** Значения записи по ключам полей; таблица — строки с ключами колонок. */
+/**
+ * Значения записи по ключам полей; таблица — строки с ключами колонок. Поле,
+ * скрытое условием показа, для формулы пусто (как для валидатора и зависимых
+ * условий): в data могло остаться старое значение, которого пользователь не видит.
+ */
 export function formulaScope(doc: SchemaDocument, values: RecordData): Record<string, unknown> {
+  const visible = fieldVisibility(doc.fields, values)
   const scope: Record<string, unknown> = {}
   for (const f of doc.fields) {
-    if (f.archived || !f.key || isComputedField(f) || SCOPE_EXCLUDED.has(f.type)) continue
+    if (f.archived || !f.key || isComputedField(f) || SCOPE_EXCLUDED.has(f.type) || visible[f.id] === false) continue
     if (!Object.prototype.hasOwnProperty.call(values, f.id)) continue
     let v = values[f.id]
     if (f.type === 'table' && Array.isArray(v)) {

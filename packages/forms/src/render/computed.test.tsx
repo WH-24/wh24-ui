@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { useState } from 'react'
 import { describe, expect, it } from 'vitest'
 
@@ -55,8 +55,11 @@ describe('формула в форме', () => {
     expect(screen.queryByRole('spinbutton', { name: 'Итого' })).toBeNull()
   })
 
-  it('в просмотре — то же значение; пустые входы — прочерк', () => {
+  it('в просмотре — сохранённое значение (как в списке и выгрузке), без него — расчёт', () => {
     render(<Harness d={doc(priceQty)} initial={{ price: 20, qty: 3, total: 999 }} mode="view" />)
+    expect(screen.getByRole('status', { name: /Итого/ }).textContent).toMatch(/^999\s*₽$/)
+    cleanup()
+    render(<Harness d={doc(priceQty)} initial={{ price: 20, qty: 3 }} mode="view" />)
     expect(screen.getByRole('status', { name: /Итого/ }).textContent).toMatch(/^60\s*₽$/)
   })
 

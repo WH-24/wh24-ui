@@ -128,7 +128,11 @@ export function FormRenderer({
       <FieldControl
         mode={forceView ? 'view' : mode}
         field={f}
-        value={f.type === 'formula' ? computed[f.id] : values[f.id]}
+        value={
+          // Правка — вживую; просмотр — сохранённое сервером (то же, что в
+          // списке и выгрузке), а без него (запись старше формулы) — расчёт.
+          f.type === 'formula' ? (mode === 'edit' && !forceView ? computed[f.id] : (values[f.id] ?? computed[f.id])) : values[f.id]
+        }
         onChange={
           onChange
             ? (v) => {

@@ -1,0 +1,8 @@
+{
+  "name": "24_round_negative_zero",
+  "expr": "ROUND(-0.3)",
+  "values": {},
+  "today": "2026-11-06",
+  "result": "number",
+  "want": 0
+}
