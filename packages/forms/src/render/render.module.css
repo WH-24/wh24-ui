@@ -595,3 +595,6 @@
 .cellCtl {
   min-width: 140px;
 }
+.tagsHint[data-active] {
+  background: var(--terra-bg);
+}
