@@ -205,6 +205,30 @@ table.tbl {
   opacity: 1;
   color: var(--fg-secondary);
 }
+/* Заголовок с действиями (ListColumn.headerActions): подпись режется, кнопки стоят справа. */
+.tbl thead th .thRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+.tbl thead th .thLabel {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tbl thead th .thActions {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  /* Заголовок набран капсом и приглушён — у действий свой вид. */
+  text-transform: none;
+  letter-spacing: normal;
+  font-weight: 400;
+  cursor: default;
+}
 .tbl tbody td {
   padding: 12px 14px;
   border-bottom: 1px solid var(--border-subtle);

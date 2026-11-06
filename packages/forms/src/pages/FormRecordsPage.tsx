@@ -9,7 +9,7 @@
  * текущей странице»: такой фильтр врал бы про остальные 25 страниц.
  */
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
-import { Icon, Input } from '@wowhaus-24/ui-react'
+import { Icon, Input, type ListColumn } from '@wowhaus-24/ui-react'
 
 import { FormsApiError, type FormsApi, type ListRecordsQuery } from '../api.js'
 import type { Field, Form, FormRecord, SchemaDocument } from '../types.js'
@@ -52,6 +52,24 @@ export interface FormRecordsPageProps {
   storageKey?: string
   /** Индикатор первой загрузки (например, лоадер портала); по умолчанию — скелет строк. */
   loader?: ReactNode
+  /**
+   * Дополнительные колонки хоста (например, «Поля ИИ»): рисуются после колонок
+   * схемы, перед «Статус» и «Обновлено», и участвуют в меню «Колонки». Берутся
+   * `key`, `label`, `render`, `width` (иначе `minWidth`, иначе 220), `className` и
+   * `headerActions`; сортировка в них не поддерживается — сортирует сервер.
+   * Ключ не должен совпадать со служебными (`number`, `title`, `status`,
+   * `updated_at`) и схемными (`f:<id>`): колонка с чужим ключом пропускается.
+   * Клик по кнопке или ссылке внутри ячейки не открывает запись.
+   */
+  extraColumns?: ListColumn<FormRecord>[]
+  /**
+   * Набор строк текущей страницы поменялся: после загрузки, смены страницы,
+   * поиска или фильтра «На контроле». Зовётся только при изменении набора
+   * (сравнение по `id`), а не на каждый рендер, — по строкам хост запрашивает
+   * данные для своих колонок. Пустая страница — пустой массив. При ошибке
+   * загрузки не вызывается.
+   */
+  onRowsChange?: (rows: FormRecord[]) => void
 }
 
 type Sort = NonNullable<ListRecordsQuery['sort']>
@@ -64,6 +82,8 @@ interface Column {
   width?: number | string
   /** Скрываемая через меню «Колонки». */
   toggleable: boolean
+  /** Колонка хоста (`extraColumns`): ячейку и действия заголовка рисует хост. */
+  extra?: ListColumn<FormRecord>
 }
 
 type Load =
@@ -201,6 +221,8 @@ export function FormRecordsPage({
   title,
   actions,
   storageKey,
+  extraColumns,
+  onRowsChange,
 }: FormRecordsPageProps) {
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(initialPageSize)
@@ -237,6 +259,18 @@ export function FormRecordsPage({
     setReloadTick((t) => t + 1)
   }, [])
 
+  // Хосту — набор строк, только когда он изменился (по id), а не на каждый рендер.
+  const rowsCb = useRef(onRowsChange)
+  rowsCb.current = onRowsChange
+  const lastRowsKey = useRef<string | null>(null)
+  useEffect(() => {
+    if (load.kind !== 'ready') return
+    const key = load.rows.map((r) => r.id).join('\u0001')
+    if (key === lastRowsKey.current) return
+    lastRowsKey.current = key
+    rowsCb.current?.(load.rows)
+  }, [load])
+
   // ─── Колонки ───
   const columns = useMemo<Column[]>(() => {
     const cols: Column[] = [
@@ -253,10 +287,24 @@ export function FormRecordsPage({
         toggleable: true,
       })
     }
+    // Колонки хоста — после схемных. Чужой ключ (схемный или служебный) пропускаем: иначе
+    // два столбца делили бы одну настройку видимости.
+    const taken = new Set([...cols.map((c) => c.key), 'status', 'updated_at'])
+    for (const x of extraColumns ?? []) {
+      if (!x.key || taken.has(x.key)) continue
+      taken.add(x.key)
+      cols.push({
+        key: x.key,
+        label: x.label,
+        width: x.width ?? x.minWidth ?? 220,
+        toggleable: true,
+        extra: x,
+      })
+    }
     cols.push({ key: 'status', label: 'Статус', width: 150, toggleable: true })
     cols.push({ key: 'updated_at', label: 'Обновлено', width: 150, toggleable: true })
     return cols
-  }, [schema.fields])
+  }, [schema.fields, extraColumns])
 
   const colsKey = `wh24-forms:cols:${storageKey ?? form.id}`
   const [hidden, setHidden] = useState<string[]>(() => readHidden(colsKey))
@@ -407,6 +455,24 @@ export function FormRecordsPage({
                         </span>
                       )}
                     </th>
+                  ) : c.extra ? (
+                    <th key={c.key} className={c.extra.className}>
+                      {c.extra.headerActions ? (
+                        <span className={styles.thRow}>
+                          <span className={styles.thLabel}>{c.label}</span>
+                          <span
+                            className={styles.thActions}
+                            data-testid={`th-actions-${c.key}`}
+                            onClick={(e) => e.stopPropagation()}
+                            onKeyDown={(e) => e.stopPropagation()}
+                          >
+                            {c.extra.headerActions}
+                          </span>
+                        </span>
+                      ) : (
+                        c.label
+                      )}
+                    </th>
                   ) : (
                     <th key={c.key} className={c.align === 'right' ? styles.right : undefined}>
                       {c.label}
@@ -443,6 +509,19 @@ export function FormRecordsPage({
                       return (
                         <td key={c.key} className={styles.muted}>
                           {formatDateTime(r.updated_at)}
+                        </td>
+                      )
+                    if (c.extra)
+                      return (
+                        <td
+                          key={c.key}
+                          className={c.extra.className}
+                          // Кнопка или ссылка в ячейке хоста («Повторить», раскрыть текст) — не открытие записи.
+                          onClick={(e) => {
+                            if ((e.target as HTMLElement).closest('button, a')) e.stopPropagation()
+                          }}
+                        >
+                          {c.extra.render(r)}
                         </td>
                       )
                     return (

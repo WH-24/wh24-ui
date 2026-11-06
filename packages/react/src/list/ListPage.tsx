@@ -54,6 +54,13 @@ export interface ListColumn<T> {
    * сильнее флага.
    */
   primary?: boolean;
+  /**
+   * Кнопки и меню в заголовке колонки справа от названия (например «✨» у колонки
+   * «Поле ИИ»). Клик по ним не меняет сортировку: заголовок сортируемой колонки
+   * кликабелен, а действие в нём — отдельная цель. Ширину колонки не раздвигают —
+   * подпись обрезается многоточием, действия остаются на месте.
+   */
+  headerActions?: ReactNode;
 }
 
 /** Минимум на колонку, если не задан явно. */
@@ -1066,6 +1073,34 @@ export function ListPage<T>({
                   {visibleColumns.map((c, i) => {
                     // Первая колонка резервирует место под чекбокс-по-наведению.
                     const hostCls = selectable && i === 0 ? styles.colSelectHost : undefined;
+                    const arrow = c.sortValue ? (
+                      <span className={styles.sortArrow}>
+                        <Icon name={sort.dir === "asc" ? "sortup" : "sortdown"} size={11} />
+                      </span>
+                    ) : null;
+                    // С действиями в заголовке подпись и кнопки — две цели в одной ячейке:
+                    // подпись режется многоточием, кнопки не двигаются и не запускают сортировку.
+                    const content = c.headerActions ? (
+                      <span className={styles.thRow}>
+                        <span className={styles.thLabel}>
+                          {c.label}
+                          {arrow}
+                        </span>
+                        <span
+                          className={styles.thActions}
+                          data-testid={`th-actions-${c.key}`}
+                          onClick={(e) => e.stopPropagation()}
+                          onKeyDown={(e) => e.stopPropagation()}
+                        >
+                          {c.headerActions}
+                        </span>
+                      </span>
+                    ) : (
+                      <>
+                        {c.label}
+                        {arrow}
+                      </>
+                    );
                     return c.sortValue ? (
                       <th
                         key={c.key}
@@ -1074,14 +1109,11 @@ export function ListPage<T>({
                         data-sort={sort.key === c.key ? sort.dir : undefined}
                         onClick={() => toggleSort(c.key)}
                       >
-                        {c.label}
-                        <span className={styles.sortArrow}>
-                          <Icon name={sort.dir === "asc" ? "sortup" : "sortdown"} size={11} />
-                        </span>
+                        {content}
                       </th>
                     ) : (
                       <th key={c.key} className={hostCls}>
-                        {c.label}
+                        {content}
                       </th>
                     );
                   })}

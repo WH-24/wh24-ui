@@ -414,3 +414,64 @@ describe("ListPage: columnSettings", () => {
     expect(screen.getByText("Код")).toBeTruthy();
   });
 });
+
+describe("ListPage: headerActions", () => {
+  interface C {
+    id: string;
+    name: string;
+  }
+  const data: C[] = [
+    { id: "1", name: "Б" },
+    { id: "2", name: "А" },
+  ];
+  function renderWith(onAction: () => void) {
+    render(
+      <ListPage<C>
+        title="Лиды"
+        data={data}
+        getId={(r) => r.id}
+        columns={[
+          { key: "name", label: "Название", render: (r) => r.name, sortValue: (r) => r.name },
+          {
+            key: "ai",
+            label: "Теплота",
+            render: () => "—",
+            sortValue: () => "",
+            headerActions: (
+              <button type="button" onClick={onAction}>
+                Меню поля
+              </button>
+            ),
+          },
+        ]}
+        filterConfig={{
+          scope: "header-actions-test",
+          fields: [{ key: "name", label: "Название", type: "text", get: (r) => r.name }],
+        }}
+      />,
+    );
+  }
+
+  it("показывает действия справа от названия колонки", () => {
+    renderWith(() => {});
+    const th = screen.getByText("Теплота").closest("th")!;
+    expect(th).toContainElement(screen.getByRole("button", { name: "Меню поля" }));
+  });
+
+  it("клик по действию не запускает сортировку колонки, клик по подписи — запускает", async () => {
+    const onAction = vi.fn();
+    renderWith(onAction);
+    await userEvent.click(screen.getByRole("button", { name: "Меню поля" }));
+    expect(onAction).toHaveBeenCalledTimes(1);
+    expect(screen.getByText("Теплота").closest("th")).not.toHaveAttribute("data-sort");
+
+    await userEvent.click(screen.getByText("Теплота"));
+    expect(screen.getByText("Теплота").closest("th")).toHaveAttribute("data-sort", "asc");
+  });
+
+  it("колонки без действий выглядят как раньше — без обёртки", () => {
+    renderWith(() => {});
+    const th = screen.getByText("Название").closest("th")!;
+    expect(th.querySelector("[data-testid^='th-actions']")).toBeNull();
+  });
+});

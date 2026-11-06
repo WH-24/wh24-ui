@@ -406,3 +406,97 @@ describe('FormRecordsPage — ячейки новых типов (06.11.2026)', 
     expect(screen.getByText('Бирюзовый')).toBeInTheDocument()
   })
 })
+
+describe('FormRecordsPage — колонки хоста и onRowsChange (06.11.2026)', () => {
+  const aiCol = (over: Partial<import('@wowhaus-24/ui-react').ListColumn<FormRecord>> = {}): import('@wowhaus-24/ui-react').ListColumn<FormRecord> => ({
+    key: 'ai_f1',
+    label: 'Теплота',
+    minWidth: 220,
+    render: (r) => (
+      <span>
+        <span>{`ИИ ${r.id}`}</span>
+        <button type="button">{`Повторить ${r.id}`}</button>
+      </span>
+    ),
+    headerActions: <button type="button">Меню поля</button>,
+    ...over,
+  })
+
+  it('extraColumns: после схемных, перед «Статус»; render и headerActions; клик по кнопке в ячейке и в шапке не открывает запись', async () => {
+    const user = userEvent.setup()
+    const onOpen = vi.fn()
+    const { api } = mockApi()
+    render(<FormRecordsPage form={form} schema={schema} api={api} ctx={ctx} onOpen={onOpen} extraColumns={[aiCol()]} />)
+    await screen.findByText('Запись 1')
+    const heads = screen.getAllByRole('columnheader').map((h) => h.textContent)
+    expect(heads).toEqual(['№', 'Название', 'Бюджет', 'Ответственный', 'ТеплотаМеню поля', 'Статус', 'Обновлено'])
+    expect(screen.getByText('ИИ r1')).toBeInTheDocument()
+    expect(screen.getByText('ИИ r2')).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: 'Повторить r1' }))
+    await user.click(screen.getByRole('button', { name: 'Меню поля' }))
+    expect(onOpen).not.toHaveBeenCalled()
+    // Обычный клик по тексту ячейки открывает запись, как и по остальным.
+    await user.click(screen.getByText('ИИ r2'))
+    expect(onOpen).toHaveBeenCalledTimes(1)
+    expect(onOpen).toHaveBeenCalledWith(expect.objectContaining({ id: 'r2' }))
+  })
+
+  it('extraColumns участвуют в меню «Колонки»: скрываются и запоминаются; чужой ключ пропускается', async () => {
+    const user = userEvent.setup()
+    const { api } = mockApi()
+    const cols = [aiCol(), aiCol({ key: 'status', label: 'Подмена' }), aiCol({ key: 'f:budget', label: 'Подмена 2' })]
+    const { unmount } = render(<FormRecordsPage form={form} schema={schema} api={api} extraColumns={cols} />)
+    await screen.findByText('Запись 1')
+    expect(screen.queryByText(/Подмена/)).toBeNull()
+    await user.click(screen.getByRole('button', { name: 'Колонки' }))
+    const item = screen.getByRole('menuitemcheckbox', { name: 'Теплота' })
+    expect(item).not.toBeDisabled()
+    await user.click(item)
+    expect(screen.queryByText('ИИ r1')).toBeNull()
+    unmount()
+    render(<FormRecordsPage form={form} schema={schema} api={api} extraColumns={cols} />)
+    await screen.findByText('Запись 1')
+    expect(screen.queryByText('ИИ r1')).toBeNull()
+  })
+
+  it('onRowsChange: после загрузки — один раз; тот же набор id при перерисовке — без вызова', async () => {
+    const onRowsChange = vi.fn()
+    const { api } = mockApi()
+    const { rerender } = render(<FormRecordsPage form={form} schema={schema} api={api} onRowsChange={onRowsChange} />)
+    await screen.findByText('Запись 1')
+    expect(onRowsChange).toHaveBeenCalledTimes(1)
+    expect(onRowsChange.mock.calls[0]![0].map((r: FormRecord) => r.id)).toEqual(['r1', 'r2'])
+    rerender(<FormRecordsPage form={form} schema={schema} api={api} onRowsChange={onRowsChange} actions={<span>x</span>} />)
+    rerender(<FormRecordsPage form={form} schema={schema} api={api} onRowsChange={vi.fn()} />)
+    await new Promise((r) => setTimeout(r, 30))
+    expect(onRowsChange).toHaveBeenCalledTimes(1)
+  })
+
+  it('onRowsChange: смена страницы и пустой результат поиска — новые вызовы; ошибка — без вызова', async () => {
+    const user = userEvent.setup()
+    const list = vi.fn(async (_id: string, q: { page?: number; search?: string }) => {
+      if (q.search === 'нет') return { data: [], total: 0 }
+      if (q.search === 'ошибка') throw new Error('boom')
+      return q.page === 2 ? { data: [rec(3), rec(4)], total: 4 } : { data: [rec(1), rec(2)], total: 4 }
+    })
+    const { api } = mockApi({ list })
+    const onRowsChange = vi.fn()
+    render(<FormRecordsPage form={form} schema={schema} api={api} pageSize={2} onRowsChange={onRowsChange} />)
+    await screen.findByText('Запись 1')
+    await user.click(screen.getByRole('button', { name: 'Следующая страница' }))
+    await screen.findByText('Запись 3')
+    expect(onRowsChange).toHaveBeenCalledTimes(2)
+    expect(onRowsChange.mock.calls[1]![0].map((r: FormRecord) => r.id)).toEqual(['r3', 'r4'])
+
+    await user.type(screen.getByLabelText('Поиск по названию'), 'нет')
+    await screen.findByText('Ничего не найдено')
+    expect(onRowsChange).toHaveBeenCalledTimes(3)
+    expect(onRowsChange).toHaveBeenLastCalledWith([])
+
+    await user.clear(screen.getByLabelText('Поиск по названию'))
+    await user.type(screen.getByLabelText('Поиск по названию'), 'ошибка')
+    await screen.findByText('Не удалось загрузить записи')
+    expect(onRowsChange).toHaveBeenCalledTimes(3)
+  })
+})
