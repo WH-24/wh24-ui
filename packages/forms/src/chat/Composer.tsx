@@ -24,6 +24,9 @@ import {
   parseMinutes,
   staffIndex,
   type Draft,
+  AI_MENTION_ID,
+  AI_OPTION,
+  mentionsAi,
 } from './logic.js'
 import { listSelection, wrapSelection } from './markup.js'
 import styles from './chat.module.css'
@@ -42,6 +45,8 @@ export interface ComposerProps {
   onCancelReply: () => void
   /** Отклонённая отправка бросает — черновик остаётся. */
   onSend: (d: Draft) => Promise<void>
+  /** «@ИИ»: участник «ИИ» в списке «@» и напоминание о приватности. */
+  ai?: boolean
 }
 
 export function Composer({
@@ -53,6 +58,7 @@ export function Composer({
   replyTo,
   onCancelReply,
   onSend,
+  ai = false,
 }: ComposerProps) {
   const [draft, setDraft] = useState<Draft>(EMPTY_DRAFT)
   const [panel, setPanel] = useState<Panel>(null)
@@ -109,8 +115,11 @@ export function Composer({
   const mentionOptions = useMemo(() => {
     if (!mention) return []
     const q = mention.query.trim().toLowerCase()
-    return staff.filter((s) => !q || s.label.toLowerCase().includes(q)).slice(0, 8)
-  }, [mention, staff])
+    const found = staff.filter((s) => !q || s.label.toLowerCase().includes(q)).slice(0, 8)
+    // «ИИ» — первым, когда после «@» ничего нет или набрано начало «ИИ»/«AI».
+    const aiHit = ai && (!q || 'ии'.startsWith(q) || 'ai'.startsWith(q))
+    return aiHit ? [AI_OPTION, ...found.slice(0, 7)] : found
+  }, [mention, staff, ai])
 
   const pickMention = (s: OrgOption) => {
     if (!mention) return
@@ -118,7 +127,12 @@ export function Composer({
     const caret = el?.selectionStart ?? draft.body.length
     const ins = `@${s.label} `
     const value = draft.body.slice(0, mention.start) + ins + draft.body.slice(caret)
-    setDraft((d) => ({ ...d, body: value, mentions: { ...d.mentions, [s.id]: s.label } }))
+    // «ИИ» — не сотрудник: в упоминания сервера не попадает, остаётся словом в тексте.
+    setDraft((d) =>
+      s.id === AI_MENTION_ID
+        ? { ...d, body: value }
+        : { ...d, body: value, mentions: { ...d.mentions, [s.id]: s.label } },
+    )
     setMention(null)
     const pos = mention.start + ins.length
     requestAnimationFrame(() => {
@@ -436,6 +450,13 @@ export function Composer({
               ))}
             </div>
           )}
+        </div>
+      )}
+
+      {ai && mentionsAi(draft.body) && (
+        <div className={styles.aiNote} role="note">
+          Вопрос к ИИ уйдёт с вашими правами доступа, а ответ увидят все участники записи — в нём только названия
+          источников, без фрагментов текста.
         </div>
       )}
 
