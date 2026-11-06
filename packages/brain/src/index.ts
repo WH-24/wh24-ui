@@ -131,3 +131,31 @@ export {
   endsAtToDate,
 } from './agents/schedule.js'
 export type { Frequency, ScheduleParts, TimezoneOption } from './agents/schedule.js'
+
+// ─── Поля ИИ и генераторы (0.3.0) ───
+export * from './fields/types.js'
+export { createFieldsClient, VALUES_CHUNK, FILL_CHUNK } from './fields/client.js'
+export type { FieldsApi, GeneratorsApi, FieldsClient } from './fields/client.js'
+export { brainErrorText, cellErrorText } from './fields/errors.js'
+export {
+  AI_FIELD_KINDS,
+  AI_FIELD_KIND_LABEL,
+  SENTIMENT_OPTIONS,
+  LANGUAGES,
+  GENERATOR_LABEL,
+  MAX_STANDUP_PEOPLE,
+} from './fields/labels.js'
+export { isoDate, defaultPeriod, periodDays, periodLabel, MAX_PERIOD_DAYS } from './fields/period.js'
+
+export { BrainDialog, BrainConfirm } from './fields/Dialog.js'
+export type { BrainDialogProps, BrainConfirmProps } from './fields/Dialog.js'
+export { AiFieldCell } from './fields/AiFieldCell.js'
+export type { AiFieldCellProps } from './fields/AiFieldCell.js'
+export { AiFieldColumnMenu } from './fields/AiFieldColumnMenu.js'
+export type { AiFieldColumnMenuProps } from './fields/AiFieldColumnMenu.js'
+export { AiFieldDialog } from './fields/AiFieldDialog.js'
+export type { AiFieldDialogProps } from './fields/AiFieldDialog.js'
+export { GeneratorDialog } from './fields/GeneratorDialog.js'
+export type { GeneratorDialogProps, GeneratorDefaults } from './fields/GeneratorDialog.js'
+export { useAiFieldColumns, fillSummary } from './fields/useAiFieldColumns.js'
+export type { UseAiFieldColumnsOptions, UseAiFieldColumnsResult, ConfirmRequest } from './fields/useAiFieldColumns.js'
