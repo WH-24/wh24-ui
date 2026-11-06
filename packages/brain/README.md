@@ -30,7 +30,7 @@
 | `AssistantMessage` | текст без пузыря; строка действий Копировать · Создать задачу · Повторить · 👍 👎 и чипы follow-up — каждая кнопка появляется только от своего колбэка |
 | `UserMessage` | вопрос компактно справа, с вложениями |
 | `AgentSteps`, `AiActionCard` | шаги агента; карточка действия (превью полей, предупреждения, «Подтвердить»/«Отмена», фокус после решения) |
-| `BrainComposer` | автовысота, Enter/Shift+Enter, вложения (скрепка, Ctrl+V, перетаскивание), кнопки «+», «@», «/» от колбэков, `disabledReason` (квота) |
+| `BrainComposer` | автовысота, Enter/Shift+Enter, вложения (скрепка, Ctrl+V, перетаскивание), кнопки «+», «@», «/» от колбэков, меню «/» с навыками (`skills`), `disabledReason` (квота) |
 | `addBrainFiles` | проверка и чтение файлов в data-URL (лимиты как на сервере) |
 | `UsageMeter`, `AiLabel`, `PrivacyNotice` | «Сегодня 12 % · Месяц 40 %» (с 90 % — предупреждение); «Ответ ИИ · по запросу …»; напоминание о приватности |
 | `AgentProfile`, `TriggerEditor`, `ScheduleEditor`, `ToolPicker`, `KnowledgePicker`, `MemoryEditor` | форма профиля агента по секциям и её части — см. «Агенты» |
@@ -38,6 +38,9 @@
 | `AgentCard`, `AgentPresetCard`, `AgentBuilderChat`, `BrainSwitch` | карточка агента и пресета, диалог-конструктор, переключатель — см. «Агенты» |
 | `useAiFieldColumns`, `AiFieldCell`, `AiFieldColumnMenu`, `AiFieldDialog` | колонки «Поле ИИ» для списков, ячейка, меню заголовка, создание/правка колонки — см. «Поля ИИ и генераторы» |
 | `GeneratorDialog`, `BrainDialog`, `BrainConfirm` | окно генераторов; общее модальное окно и подтверждение пакета |
+| `SkillsList`, `SkillCard`, `SkillDialog`, `SkillSuggestionsDialog`, `useSlashSkills` | навыки (`/команды`): список, создание, «Найти в чатах», список для композера — см. «Навыки, память, модели» |
+| `MemoryPanel`, `MemoryImportDialog` | личная память ИИ о человеке — см. «Навыки, память, модели» |
+| `ModelSelect`, `ModelSettingsDialog`, `IndexStatusDialog` | выбор модели в шапке панели, настройки модели/поиска и статус индекса для управляющего |
 | `AskAiPanel` | контейнер `layout: "side" \| "page"`: шапка со слотами контекста и модели, «Новый чат», «⤢», «×», переключатель «Найти \| Спросить», пустое состояние с пресетами, лента, источники, композер, низ |
 
 ## Подключение
@@ -426,6 +429,77 @@ scope: form.id, … })` — колонка принадлежит конкрет
 - Устаревшую ячейку (`stale`) пакет не пересчитывает сам: это решает колонка
   «Обновлять при изменении записи» на сервере или кнопка «Заполнить пустые»
   (пустые, неудавшиеся и устаревшие).
+
+## Навыки, память, модели (0.4.0)
+
+### Клиент
+
+```ts
+api.skills.list(scope?)            // { skills, can_publish }
+api.skills.create(body) / update(id, patch) / remove(id)
+api.skills.suggest()               // «Найти в чатах» → { suggestions, analyzed, reason? }
+api.memory.get() / update({ enabled?, nickname?, role? }) / forget()
+api.memory.addItem({ kind, text }) / removeItem(id) / importText(text)
+api.models.list()                  // { models: [{ id, label }], default_model }
+api.admin.setDefaultModel(id)      // только manage
+api.admin.embeddings.get() / put(provider) / activate() / check(text?)
+api.admin.index.status() / sync() / reindex(source?)
+```
+
+Ошибки — `BrainApiError` (`field` у 400/409: `slash`, `name`, `instructions`…; `code` — `quota`,
+`too_many`); текст сервера показывается как есть, «HTTP NNN» — никогда.
+
+### Навыки и меню «/»
+
+```tsx
+const { skills: slash, reload } = useSlashSkills(api, { enabled: canUseBrain })
+
+<BrainComposer value={v} onChange={setV} onSend={send} skills={slash} />
+
+// Страница «Навыки»:
+<SkillsList
+  skills={skills}
+  onCreate={() => setEdit({})}
+  onSuggest={() => setMine(true)}
+  onEdit={(s) => setEdit({ skill: s })}
+  onSetStatus={(s, status) => api.skills.update(s.id, { status }).then(refresh)}
+  onDelete={(s) => api.skills.remove(s.id).then(refresh)} // подтверждение — внутри списка
+/>
+<SkillDialog api={api} open={!!edit} skill={edit?.skill} initial={edit?.initial} canPublish={canPublish}
+  onClose={() => setEdit(null)} onSaved={() => { refresh(); reload() }} />
+<SkillSuggestionsDialog api={api} open={mine} onClose={() => setMine(false)}
+  onPick={(sg) => setEdit({ initial: sg })} />
+```
+
+Список «/» открывается, пока весь текст — одно слово с «/» в начале; сервер сам находит навык по
+первой команде вопроса (свой включённый, затем общий). `Enter` не отправляет вопрос, пока в списке есть
+варианты; если совпадений нет — подсказка «вопрос уйдёт как есть» и Enter отправляет как обычно.
+`useSlashSkills` ждёт стабильный `api` (иначе будет перечитывать на каждый рендер).
+
+### Память
+
+```tsx
+<MemoryPanel api={api} peopleOptions={staff.map((p) => ({ id: p.id, name: p.name }))} onToast={toast} />
+```
+
+Панель сама грузит и сохраняет: обращение и роль — по потере фокуса/Enter, записи — сразу. Личная память
+видна только владельцу; типы здесь — `UserMemory*` (у агентов своя память, `MemoryKind` и
+`MEMORY_KIND_LABEL` принадлежат им).
+
+### Модели, поиск и индекс (для управляющего)
+
+```tsx
+<ModelSelect models={models} value={model} defaultModel={defaultModel} onChange={setModel}
+  onConfigure={canManage ? () => setSettings(true) : undefined} />
+<ModelSettingsDialog api={api} open={settings} onClose={() => setSettings(false)}
+  onChanged={({ defaultModel }) => setDefaultModel(defaultModel)} />
+<IndexStatusDialog api={api} open={status} onClose={() => setStatus(false)} canManage />
+```
+
+`ModelSettingsDialog` меняет модель по умолчанию сразу; провайдера эмбеддингов — после подтверждения
+(запускается переиндексация, поиск работает на прежней модели, пока новая не досчитается; пока идёт смена,
+покрытие обновляется само); «Переключить поиск на новую модель» при покрытии < 99 % предупреждает.
+Недоступный (не настроенный в окружении сервиса) провайдер выбрать нельзя.
 
 ## Разработка
 

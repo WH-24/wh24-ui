@@ -1,0 +1,228 @@
+/* Личная память ИИ: секции, списки записей, импорт. Только токены. */
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  font-family: var(--font-sans);
+  color: var(--ink);
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px 18px;
+  border: var(--bd-hairline) solid var(--bd-strong);
+  border-radius: var(--r-xl);
+  background: var(--surf);
+}
+.sectionTitle {
+  margin: 0;
+  font-size: var(--fs-card);
+  font-weight: var(--fw-semibold);
+  line-height: 1.3;
+}
+.hint {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--ink-2);
+}
+.empty {
+  margin: 0;
+  font-size: 13px;
+  color: var(--ink-3);
+}
+
+/* Обращение и роль */
+.profile {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.fieldLabel {
+  font-size: 13px;
+  font-weight: var(--fw-medium);
+  color: var(--ink);
+}
+.profileRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.profileRow > :first-child {
+  flex: 1;
+  min-width: 0;
+}
+.saveState {
+  flex: none;
+  min-width: 96px;
+  font-size: 12.5px;
+  color: var(--ink-3);
+}
+.saveState[data-state='saved'] {
+  color: var(--good);
+}
+
+/* Записи */
+.items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 100%;
+  min-height: 32px;
+  padding: 2px 4px 2px 12px;
+  border: var(--bd-hairline) solid var(--bd-strong);
+  border-radius: var(--r-pill);
+  background: var(--surf-2);
+  font-size: 13px;
+  line-height: 1.4;
+}
+.item[data-kind='person'] {
+  background: var(--info-bg);
+  border-color: var(--info-bd);
+}
+.itemText {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.kindTag {
+  margin-right: 6px;
+  padding: 0 6px;
+  border-radius: var(--r-pill);
+  background: var(--surf-3);
+  color: var(--ink-2);
+  font-size: 11.5px;
+  font-weight: var(--fw-medium);
+}
+.itemRemove {
+  position: relative;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--ink-3);
+  cursor: pointer;
+}
+/* Зона касания 44px при размере кнопки 28px. */
+.itemRemove::before {
+  content: '';
+  position: absolute;
+  inset: -8px;
+}
+.itemRemove:hover {
+  background: var(--surf-3);
+  color: var(--ink);
+}
+.itemRemove:focus-visible {
+  outline: var(--focus-ring-w) solid var(--focus);
+  outline-offset: 1px;
+}
+
+.addBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.addRow {
+  display: flex;
+  gap: 8px;
+}
+.addRow > :first-child {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Подвал: счётчик и действия */
+.footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.count {
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--ink-3);
+}
+.footerActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.footerActions [data-danger] {
+  color: var(--bad);
+}
+
+/* Состояния загрузки/ошибки и сообщения */
+.stateBox {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 0;
+  padding: 20px;
+  border: var(--bd-hairline) dashed var(--bd-strong);
+  border-radius: var(--r-xl);
+  background: var(--surf-2);
+  color: var(--ink-2);
+  font-size: 13.5px;
+}
+.stateText {
+  margin: 0;
+}
+.error {
+  margin: 0;
+  padding: 8px 10px;
+  border-radius: var(--r-md);
+  border: 1px solid var(--bad-bd);
+  background: var(--bad-bg);
+  color: var(--bad);
+  font-size: 13px;
+  line-height: 1.45;
+}
+.confirmError {
+  display: block;
+  margin-top: 8px;
+  color: var(--bad);
+}
+.importCount {
+  margin: 8px 0 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--ink-2);
+}
+
+@media (pointer: coarse) {
+  .item {
+    min-height: var(--tap-min-compact);
+  }
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}

@@ -9,6 +9,9 @@
 import { createAgentsClient, type AgentsClient } from './agents/client.js'
 import type { AgentRun } from './agents/types.js'
 import { createFieldsClient, type FieldsClient } from './fields/client.js'
+import { createMemoryClient, type MemoryClient } from './memory/client.js'
+import { createModelsClient, type ModelsClient } from './models/client.js'
+import { createSkillsClient, type SkillsClient } from './skills/client.js'
 import type {
   AskAccepted,
   AskRequest,
@@ -79,7 +82,7 @@ export interface WaitForRunOptions<T extends Run = Run> {
   maxIntervalMs?: number
 }
 
-export interface BrainApi extends AgentsClient, FieldsClient {
+export interface BrainApi extends AgentsClient, FieldsClient, SkillsClient, MemoryClient, ModelsClient {
   search(req: SearchRequest): Promise<SearchResponse>
   ask(req: AskRequest): Promise<AskAccepted>
   getRun<T extends Run = Run>(id: string): Promise<T>
@@ -176,6 +179,9 @@ export function createBrainApi(opts: BrainApiOptions): BrainApi {
   const api: BrainApi = {
     ...createAgentsClient(request),
     ...createFieldsClient(request),
+    ...createSkillsClient(request),
+    ...createMemoryClient(request),
+    ...createModelsClient(request),
     search: (req) => request<SearchResponse>('POST', '/search', req),
     ask: (req) => request<AskAccepted>('POST', '/ask', req),
     getRun: <T extends Run = Run>(id: string) => request<T>('GET', `/runs/${encodeURIComponent(id)}`),
