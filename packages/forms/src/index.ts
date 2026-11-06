@@ -114,3 +114,17 @@ export { RecordChat } from './chat/RecordChat.js'
 export type { RecordChatProps } from './chat/RecordChat.js'
 export { Markup, parseInline, parseBlocks } from './chat/markup.js'
 export { formatMinutes, parseMinutes, CHOICE_LABEL } from './chat/logic.js'
+
+// Формулы (шаг 2 типов полей): TS-порт internal/formula, фикстуры общие с Go.
+export {
+  parseFormula,
+  formulaRefs,
+  evaluateFormula,
+  formulaScope,
+  formulaOrder,
+  computeFormulas,
+  formulaConfigOf,
+  FormulaParseError,
+  FORMULA_FUNCTIONS,
+} from './formula/formula.js'
+export type { FormulaExpr, FormulaRef, FunctionDoc } from './formula/formula.js'

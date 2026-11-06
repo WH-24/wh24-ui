@@ -156,7 +156,7 @@ export function FormRecordView({
         doc={schema}
         values={withSystemValues(schema, record.data, { record, formName: form.name, staff: ctx.staff })}
         mode="view"
-        ctx={ctx}
+        ctx={{ ...ctx, lookups: record.lookups }}
       />
     </div>
   )

@@ -1,0 +1,10 @@
+{
+  "name": "16b_number_plus_date",
+  "expr": "3+{d}",
+  "values": {
+    "d": "2026-11-06"
+  },
+  "today": "2026-11-06",
+  "result": "date",
+  "want": "2026-11-09"
+}

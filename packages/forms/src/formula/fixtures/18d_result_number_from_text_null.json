@@ -1,0 +1,10 @@
+{
+  "name": "18d_result_number_from_text_null",
+  "expr": "{a}",
+  "values": {
+    "a": "много"
+  },
+  "today": "2026-11-06",
+  "result": "number",
+  "want": null
+}

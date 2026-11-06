@@ -10,9 +10,14 @@
  * Сообщения — те же, что у бэкенда, слово в слово: пользователь видит их и
  * до, и после публикации, и они не должны различаться.
  */
+import { FormulaParseError, formulaOrder, formulaRefs, parseFormula } from './formula/formula.js'
 import type {
   ConditionGroup,
   Field,
+  FormulaConfig,
+  FormulaResult,
+  LookupConfig,
+  RecordRefConfig,
   SchemaDocument,
   SchemaValidationError,
   SystemKey,
@@ -22,6 +27,7 @@ import type {
 import {
   FIELD_SPANS,
   FIELD_TYPES,
+  FORMULA_RESULTS,
   conditionLeaves,
   MAX_VISIBILITY_CHAIN_DEPTH,
   SYSTEM_FIELD_TYPES,
@@ -321,6 +327,8 @@ export function validateForPublish(
     }
   }
 
+  errs.push(...validateComputedForPublish(next, byId))
+
   // --- Типы колонок таблицы ---
   for (const f of next.fields) {
     if (f.type !== 'table' || !f.config) continue
@@ -334,5 +342,75 @@ export function validateForPublish(
       }
     }
   }
+  return errs
+}
+
+const FORMULA_REF_EXCLUDED = new Set<string>(['section', 'note', 'file', 'contact', 'lookup'])
+
+/**
+ * Блокеры формул и подстановок (schema.validateComputedForPublish в Go,
+ * тексты те же): формула задана, разбирается, ссылается на активные поля
+ * подходящих типов, формулы не зацикливаются; у подстановки выбраны поле
+ * «Форма» (одна запись) и поле источника.
+ */
+function validateComputedForPublish(next: SchemaDocument, byId: Map<string, Field>): SchemaValidationError[] {
+  const errs: SchemaValidationError[] = []
+  const byKey = new Map(next.fields.filter((f) => !f.archived && f.key).map((f) => [f.key, f]))
+  const archivedKeys = new Set(next.fields.filter((f) => f.archived && f.key).map((f) => f.key))
+  const add = (f: Field, msg: string) => errs.push({ field_id: f.id, message: `Поле «${labelOr(f)}»: ${msg}` })
+  for (const f of next.fields) {
+    if (f.archived) continue
+    if (f.type === 'formula') {
+      const c = (f.config ?? {}) as Partial<FormulaConfig>
+      if (!c.expr) {
+        add(f, 'формула не задана')
+        continue
+      }
+      if (!FORMULA_RESULTS.includes(c.result as FormulaResult)) add(f, 'результат формулы: число, деньги, текст или дата')
+      let refs
+      try {
+        refs = formulaRefs(parseFormula(c.expr))
+      } catch (e) {
+        add(f, `формула: ${e instanceof FormulaParseError ? e.message : String(e)}`)
+        continue
+      }
+      for (const r of refs) {
+        const src = byKey.get(r.key)
+        if (!src) {
+          add(f, archivedKeys.has(r.key) ? `в формуле поле «${r.key}» в архиве` : `в формуле нет поля с ключом «${r.key}»`)
+        } else if (r.col && src.type !== 'table') {
+          add(f, `в формуле поле «${r.key}» — не таблица`)
+        } else if (r.col) {
+          const cols = (src.config as TableConfig | undefined)?.columns ?? []
+          if (!cols.some((col) => col.key === r.col)) add(f, `в формуле в таблице «${r.key}» нет колонки «${r.col}»`)
+        } else if (isComputedField(src) || FORMULA_REF_EXCLUDED.has(src.type) || src.type === 'table') {
+          add(
+            f,
+            `поле «${labelOr(src)}» в формуле недоступно — оно не хранит значение в записи или это таблица (используйте {${r.key}.колонка} внутри SUM, COUNT, MIN, MAX)`,
+          )
+        }
+      }
+    } else if (f.type === 'lookup') {
+      const c = (f.config ?? {}) as Partial<LookupConfig>
+      const src = c.source_field ? byId.get(c.source_field) : undefined
+      if (!src || src.type !== 'record_ref' || src.archived) {
+        add(f, 'подстановка: выберите поле «Форма», из записи которого берётся значение')
+        continue
+      }
+      if ((src.config as RecordRefConfig | undefined)?.multiple)
+        add(f, `подстановка работает только с одной записью — поле «${labelOr(src)}» выбирает несколько`)
+      if (!c.target_field) add(f, 'подстановка: выберите поле формы-источника')
+      if (c.target_type === 'lookup') add(f, 'подстановка из подстановки не считается — выберите обычное поле формы-источника')
+    }
+  }
+  const { cycle } = formulaOrder(next)
+  if (cycle.length > 0) {
+    const names = cycle.map((k) => `«${labelOr(byKey.get(k)!)}»`)
+    const list = names.length > 1 ? `${names.slice(0, -1).join(', ')} и ${names[names.length - 1]}` : names[0]
+    errs.push({ field_id: byKey.get(cycle[0]!)!.id, message: `Формулы ${list} ссылаются друг на друга — так не посчитать` })
+  }
+  const tf = byId.get(next.title_field)
+  if (tf && tf.type === 'lookup')
+    errs.push({ field_id: tf.id, message: 'Название записи не может быть подстановкой — её значение не хранится в записи' })
   return errs
 }

@@ -40,7 +40,7 @@ import type {
   TableConfig,
   TextConfig,
 } from '../types.js'
-import { SECTION_COLORS, ratingMax, sectionColorHex } from '../types.js'
+import { SECTION_COLORS, formulaResultField, lookupTargetField, ratingMax, sectionColorHex } from '../types.js'
 import {
   currencySign,
   fieldOptions,
@@ -1701,8 +1701,49 @@ const color: FieldRenderer = {
   },
 }
 
+// ─── Вычисляемые (шаг 2, 06.11.2026) ────────────────────────────────────
+// Оба — только просмотр: формулу считает FormRenderer вживую (и сервер при
+// сохранении), подстановку приносит сервер в record.lookups (ctx.lookups).
+// role="status": значение меняется само при вводе соседних полей.
+
+function ComputedValue({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <div role="status" aria-label={label}>
+      <StaticValue className={styles.num}>{children}</StaticValue>
+    </div>
+  )
+}
+
+const formula: FieldRenderer = {
+  Edit: ({ field, value, ctx }) => (
+    <ComputedValue label={field.label || field.key}>{formatValue(formulaResultField(field), value, ctx)}</ComputedValue>
+  ),
+  View: ({ field, value, ctx }) => (
+    <ComputedValue label={field.label || field.key}>{formatValue(formulaResultField(field), value, ctx)}</ComputedValue>
+  ),
+  align: 'right',
+}
+
+const lookup: FieldRenderer = {
+  Edit: ({ field, ctx }) => (
+    <div>
+      <ComputedValue label={field.label || field.key}>
+        {formatValue(lookupTargetField(field), ctx.lookups?.[field.id], ctx)}
+      </ComputedValue>
+      <span className={styles.note}>Подставится из выбранной записи после сохранения</span>
+    </div>
+  ),
+  View: ({ field, ctx }) => (
+    <ComputedValue label={field.label || field.key}>
+      {formatValue(lookupTargetField(field), ctx.lookups?.[field.id], ctx)}
+    </ComputedValue>
+  ),
+}
+
 export const fieldRegistry: Record<FieldType, FieldRenderer> = {
   text,
+  formula,
+  lookup,
   textarea,
   number,
   money,

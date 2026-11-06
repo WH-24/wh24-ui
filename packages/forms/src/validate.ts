@@ -100,7 +100,8 @@ export function validateRecord(
     errs.push({ field_id: v.field, code: 'rule', message: ruleViolationMessage(v, doc.fields) })
   }
   for (const f of doc.fields) {
-    if (isPresentation(f.type) || f.archived || isComputedField(f)) continue
+    // Формулу считает сервер — присланное значение не проверяется.
+    if (isPresentation(f.type) || f.archived || isComputedField(f) || f.type === 'formula') continue
     const visible = vis[f.id] !== false
     const present = Object.prototype.hasOwnProperty.call(values, f.id)
     const value = values[f.id]

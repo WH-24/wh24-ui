@@ -1,0 +1,10 @@
+{
+  "name": "16c_date_minus_days",
+  "expr": "{d}-10",
+  "values": {
+    "d": "2026-11-06"
+  },
+  "today": "2026-11-06",
+  "result": "date",
+  "want": "2026-10-27"
+}

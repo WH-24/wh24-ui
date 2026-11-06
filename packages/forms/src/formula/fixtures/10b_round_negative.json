@@ -1,0 +1,8 @@
+{
+  "name": "10b_round_negative",
+  "expr": "ROUND(-2.5)",
+  "values": {},
+  "today": "2026-11-06",
+  "result": "number",
+  "want": -3
+}
