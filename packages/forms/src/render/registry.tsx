@@ -795,7 +795,7 @@ function isNumCol(c: TableColumn): boolean {
   return c.type === 'number' || c.type === 'money'
 }
 
-function cellText(col: TableColumn, v: unknown, currency?: string): string {
+function cellText(col: TableColumn, v: unknown, ctx: RenderContext, currency?: string): string {
   if (isBlank(v)) return '—'
   switch (col.type) {
     case 'number':
@@ -807,7 +807,9 @@ function cellText(col: TableColumn, v: unknown, currency?: string): string {
     case 'checkbox':
       return v === true ? 'Да' : '—'
     default:
-      return str(v)
+      // Остальные типы — тем же форматом, что и поле (сотрудник по имени,
+      // период датами, длительность часами), а не сырым значением.
+      return formatValue(columnField(col), v, ctx)
   }
 }
 
@@ -829,7 +831,7 @@ function sums(cols: TableColumn[], rows: Row[]): Record<string, number> {
   return out
 }
 
-function TableView({ field, value }: FieldRenderProps) {
+function TableView({ field, value, ctx }: FieldRenderProps) {
   const cols = tableColumns(field)
   const rows: Row[] = Array.isArray(value) ? (value as Row[]) : []
   const currency = (field.config as MoneyConfig | undefined)?.currency
@@ -855,7 +857,7 @@ function TableView({ field, value }: FieldRenderProps) {
               <td className={[styles.numCol, styles.rowNum].join(' ')}>{i + 1}</td>
               {cols.map((c) => (
                 <td key={c.id} className={isNumCol(c) ? styles.right : undefined}>
-                  {cellText(c, r[c.id], currency)}
+                  {cellText(c, r[c.id], ctx, currency)}
                 </td>
               ))}
             </tr>
@@ -936,7 +938,6 @@ function TableCell({
     // Типы 06.11.2026 — тем же реестром, что и поле: синтетическое поле из
     // колонки (справочники и сотрудники берутся из ctx).
     case 'user':
-    case 'catalog':
     case 'link':
     case 'rating':
     case 'percent':
@@ -1321,51 +1322,69 @@ const dateRange: FieldRenderer = {
 }
 
 /** Длительность: часы и минуты, значение — минуты. */
-const duration: FieldRenderer = {
-  Edit: ({ field, value, onChange, id, invalid, disabled }) => {
-    const total = typeof value === 'number' ? value : undefined
-    const hours = total == null ? '' : String(Math.floor(total / 60))
-    const mins = total == null ? '' : String(total % 60)
-    const name = field.label || field.key
-    const emit = (h: string, m: string) => {
-      const hn = h.trim() === '' ? 0 : Number(h)
-      const mn = m.trim() === '' ? 0 : Number(m)
-      if (h.trim() === '' && m.trim() === '') return onChange(undefined)
-      if (!Number.isInteger(hn) || !Number.isInteger(mn) || hn < 0 || mn < 0) return onChange(NaN)
-      onChange(hn * 60 + mn)
+/**
+ * Длительность: часы и минуты, значение — минуты. Текст полей живёт локально
+ * (как у SuffixInput): round-trip через число съедал бы ввод и показывал NaN.
+ * Наружу — число, undefined (оба пусты) или сам текст при нечисловом вводе
+ * (валидатор скажет «ожидается длительность»).
+ */
+function DurationEdit({ field, value, onChange, id, invalid, disabled }: FieldRenderProps) {
+  const split = (v: unknown): [string, string] =>
+    typeof v === 'number' && Number.isFinite(v) ? [String(Math.floor(v / 60)), String(v % 60)] : ['', '']
+  const [[hours, mins], setText] = useState<[string, string]>(() => split(value))
+  useEffect(() => {
+    if (typeof value === 'number' || value == null) {
+      const [h, m] = split(value)
+      if (h !== hours || m !== mins) setText([h, m])
     }
-    return (
-      <div className={styles.duration}>
-        <div className={styles.suffixWrap}>
-          <Input
-            id={id}
-            inputMode="numeric"
-            aria-label={`${name}: часы`}
-            value={hours}
-            invalid={invalid}
-            disabled={disabled}
-            onChange={(e) => emit(e.target.value, mins)}
-          />
-          <span className={styles.suffix} aria-hidden>
-            ч
-          </span>
-        </div>
-        <div className={styles.suffixWrap}>
-          <Input
-            inputMode="numeric"
-            aria-label={`${name}: минуты`}
-            value={mins}
-            invalid={invalid}
-            disabled={disabled}
-            onChange={(e) => emit(hours, e.target.value)}
-          />
-          <span className={styles.suffix} aria-hidden>
-            мин
-          </span>
-        </div>
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value])
+  const name = field.label || field.key
+  const emit = (h: string, m: string) => {
+    setText([h, m])
+    if (h.trim() === '' && m.trim() === '') return onChange(undefined)
+    const hn = h.trim() === '' ? 0 : Number(h)
+    const mn = m.trim() === '' ? 0 : Number(m)
+    if (!/^\d*$/.test(h.trim()) || !/^\d*$/.test(m.trim()) || !Number.isInteger(hn) || !Number.isInteger(mn)) {
+      return onChange(`${h.trim()} ч ${m.trim()} мин`)
+    }
+    onChange(hn * 60 + mn)
+  }
+  return (
+    <div className={styles.duration}>
+      <div className={styles.suffixWrap}>
+        <Input
+          id={id}
+          inputMode="numeric"
+          aria-label={`${name}: часы`}
+          value={hours}
+          invalid={invalid}
+          disabled={disabled}
+          onChange={(e) => emit(e.target.value, mins)}
+        />
+        <span className={styles.suffix} aria-hidden>
+          ч
+        </span>
       </div>
-    )
-  },
+      <div className={styles.suffixWrap}>
+        <Input
+          inputMode="numeric"
+          aria-label={`${name}: минуты`}
+          value={mins}
+          invalid={invalid}
+          disabled={disabled}
+          onChange={(e) => emit(hours, e.target.value)}
+        />
+        <span className={styles.suffix} aria-hidden>
+          мин
+        </span>
+      </div>
+    </div>
+  )
+}
+
+const duration: FieldRenderer = {
+  Edit: DurationEdit,
   View: NumView,
   align: 'right',
 }

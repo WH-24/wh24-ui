@@ -122,4 +122,44 @@ describe('контролы новых типов', () => {
     const row = screen.getAllByRole('row')[1]!
     expect(within(row).getAllByRole('radio')).toHaveLength(5)
   })
+  it('таблица в просмотре форматирует новые колонки: период и сотрудник по имени', () => {
+    const tbl = f({
+      id: 'tbl',
+      type: 'table',
+      config: {
+        columns: [
+          { id: 'c1', key: 'when', label: 'Период', type: 'date_range' },
+          { id: 'c2', key: 'who', label: 'Кто', type: 'user' },
+          { id: 'c3', key: 'dur', label: 'Длительность', type: 'duration' },
+        ],
+      },
+    })
+    const staff = [{ id: 'u1', label: 'Иван Петров' }]
+    render(
+      <FormRenderer
+        doc={doc([tbl])}
+        values={{ tbl: [{ c1: { start: '2026-02-01', end: '2026-02-05' }, c2: 'u1', c3: 150 }] }}
+        mode="view"
+        ctx={{ staff }}
+        onChange={() => {}}
+      />,
+    )
+    expect(screen.getByText('01.02.2026 – 05.02.2026')).toBeInTheDocument()
+    expect(screen.getByText('Иван Петров')).toBeInTheDocument()
+    expect(screen.getByText(/^2\s+ч\s+30\s+мин$/)).toBeInTheDocument()
+    expect(screen.queryByText(/object Object/)).not.toBeInTheDocument()
+  })
+  it('длительность: неверный ввод не превращается в NaN и уходит валидатору строкой', async () => {
+    const user = userEvent.setup()
+    render(<Harness d={doc([f({ id: 'dur', type: 'duration' })])} />)
+    const hours = screen.getByLabelText(/часы/i) as HTMLInputElement
+    await user.type(hours, '1.5')
+    expect(hours.value).toBe('1.5')
+    expect((screen.getByLabelText(/минуты/i) as HTMLInputElement).value).toBe('')
+    expect(typeof out().dur).toBe('string')
+    await user.clear(hours)
+    expect(out().dur).toBeUndefined()
+    await user.type(hours, '2')
+    expect(out().dur).toBe(120)
+  })
 })

@@ -107,9 +107,9 @@ export const TABLE_COLUMN_TYPES: readonly FieldType[] = [
   'date',
   'select',
   'checkbox',
-  // 06.11.2026: ячейка рендерится тем же реестром, что и поле.
+  // 06.11.2026: ячейка рендерится тем же реестром, что и поле. catalog —
+  // нет: у колонки нет catalog_key, без справочника ячейка непригодна.
   'user',
-  'catalog',
   'link',
   'rating',
   'percent',

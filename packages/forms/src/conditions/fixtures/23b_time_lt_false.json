@@ -1,0 +1,6 @@
+{
+  "name": "time_lt_false_when_later",
+  "group": { "all": [ { "field": "start", "op": "lt", "value": "09:00" } ] },
+  "values": { "start": "10:15" },
+  "expect": false
+}

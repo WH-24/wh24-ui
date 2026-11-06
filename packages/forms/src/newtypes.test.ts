@@ -43,10 +43,11 @@ describe('контракт новых типов', () => {
     expect(SYSTEM_FIELD_TYPES.updated_by).toBe('user')
     expect(COMPUTED_SYSTEM_KEYS).toEqual(expect.arrayContaining(['number', 'updated_at', 'updated_by']))
   })
-  it('колонки таблицы: добавлены user, catalog, link, rating, percent, duration, date_range, time', () => {
-    for (const t of ['user', 'catalog', 'link', 'rating', 'percent', 'duration', 'date_range', 'time'])
+  it('колонки таблицы: добавлены user, link, rating, percent, duration, date_range, time; catalog — нет (нет catalog_key у колонки)', () => {
+    for (const t of ['user', 'link', 'rating', 'percent', 'duration', 'date_range', 'time'])
       expect(TABLE_COLUMN_TYPES).toContain(t)
     expect(TABLE_COLUMN_TYPES).not.toContain('tags')
+    expect(TABLE_COLUMN_TYPES).not.toContain('catalog')
   })
   it('операторы условий', () => {
     expect(conditionOps('rating')).toContain('gt')
