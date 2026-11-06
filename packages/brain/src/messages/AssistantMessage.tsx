@@ -1,9 +1,10 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { Fragment, useEffect, useRef, useState, type ReactNode } from 'react'
 
 import { AgentSteps } from '../agent/AgentSteps.js'
+import { ChartBlockFallback } from '../blocks/ChartBlockFallback.js'
 import { BrainIcon } from '../icons.js'
 import { Markdown, type MarkdownCitation } from '../markdown/Markdown.js'
-import type { FeedbackVote, RunStep, SuggestedAction } from '../types.js'
+import type { FeedbackVote, RunBlock, RunStep, SuggestedAction } from '../types.js'
 import styles from './messages.module.css'
 
 export interface AssistantMessageProps {
@@ -19,6 +20,13 @@ export interface AssistantMessageProps {
   error?: string | null
   /** Шаги агента («Поиск лидов · Карточка лида») над текстом. */
   steps?: RunStep[]
+  /** Графики и таблицы к ответу (`Run.blocks`) — между текстом и слотом `children`. */
+  blocks?: RunBlock[]
+  /**
+   * Как рисовать блок: хост с Perspective отдаёт свой компонент. Нет колбэка
+   * или он вернул `null`/`undefined` — запасная таблица `ChartBlockFallback`.
+   */
+  renderBlock?: (block: RunBlock) => ReactNode
   /** Подпись над ответом, обычно `AiLabel`. */
   label?: ReactNode
   /** Слот под текстом: карточка действия, список источников. */
@@ -41,8 +49,9 @@ export interface AssistantMessageProps {
 
 /**
  * Ответ ассистента — текст без пузыря (владелец, 06.11.2026): пузырь нужен
- * собеседнику, а ответ ИИ — это содержимое экрана. Под текстом — слот
- * (действие агента, источники) и строка действий.
+ * собеседнику, а ответ ИИ — это содержимое экрана. Порядок: подпись → шаги
+ * агента → текст → блоки (графики) → индикатор → ошибка → слот (действие
+ * агента, источники) → строка действий → чипы «спросить дальше».
  */
 export function AssistantMessage({
   text,
@@ -53,6 +62,8 @@ export function AssistantMessage({
   pending,
   error,
   steps,
+  blocks,
+  renderBlock,
   label,
   children,
   onCopy,
@@ -100,6 +111,13 @@ export function AssistantMessage({
           onCitationClick={onCitationClick}
           onNavigate={onNavigate}
         />
+      )}
+      {blocks && blocks.length > 0 && (
+        <div className={styles.blocks} role="group" aria-label="Графики и таблицы к ответу">
+          {blocks.map((b) => (
+            <Fragment key={b.id}>{renderBlock?.(b) ?? <ChartBlockFallback block={b} />}</Fragment>
+          ))}
+        </div>
       )}
       {pending && (
         <div className={styles.typing} role="status" aria-label="Ассистент отвечает">

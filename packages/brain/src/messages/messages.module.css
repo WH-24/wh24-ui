@@ -13,6 +13,14 @@
   display: flex;
 }
 
+/* Графики и таблицы к ответу — столбиком, каждый на всю ширину ленты. */
+.blocks {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+
 .typing {
   display: inline-flex;
   align-items: center;
