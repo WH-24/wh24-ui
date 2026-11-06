@@ -12,7 +12,8 @@ import { isComputedField } from '../types.js'
 
 export interface SystemSource {
   /** Нет — новая запись: автор и дата создания появятся после сохранения. */
-  record?: Pick<FormRecord, 'created_by' | 'created_at'> | null
+  record?: Pick<FormRecord, 'created_by' | 'created_at'> &
+    Partial<Pick<FormRecord, 'number' | 'updated_at' | 'updated_by'>> | null
   formName?: string
   staff?: OrgOption[]
 }
@@ -31,6 +32,16 @@ export function systemValue(field: Pick<Field, 'system'>, src: SystemSource): un
       return src.record?.created_at || undefined
     case 'form':
       return src.formName || undefined
+    // 06.11.2026: номер записи и последнее изменение — из записи.
+    case 'number':
+      return src.record?.number ?? undefined
+    case 'updated_at':
+      return src.record?.updated_at || undefined
+    case 'updated_by': {
+      const by = src.record?.updated_by
+      if (!by || by === NIL_UUID) return undefined
+      return src.staff?.find((o) => o.auth_user_id === by)?.id ?? by
+    }
     default:
       return undefined
   }

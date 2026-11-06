@@ -4,15 +4,17 @@
  * карточке выглядело одинаково.
  */
 import type {
+  DateRangeValue,
   Field,
   FormFile,
+  LocationValue,
   MoneyConfig,
   OrgOption,
   RecordRefOption,
   SelectConfig,
   SelectOption,
 } from '../types.js'
-import { catalogKeyOf, sectionColorHex, type SectionColor } from '../types.js'
+import { SECTION_COLORS, catalogKeyOf, ratingMax, sectionColorHex, type SectionColor } from '../types.js'
 import type { FormCatalog } from '../api.js'
 
 export interface FormatContext {
@@ -63,6 +65,21 @@ export function formatDateTime(iso: string): string {
   return `${p(d.getDate())}.${p(d.getMonth() + 1)}.${d.getFullYear()}, ${p(d.getHours())}:${p(d.getMinutes())}`
 }
 
+/** Минуты → «2 ч 30 мин», «45 мин», «3 ч»; неразрывные пробелы как у чисел. */
+export function formatDuration(minutes: number): string {
+  const m = Math.max(0, Math.round(minutes))
+  const h = Math.floor(m / 60)
+  const rest = m % 60
+  if (h === 0) return `${rest}\u00a0мин`
+  if (rest === 0) return `${h}\u00a0ч`
+  return `${h}\u00a0ч\u00a0${rest}\u00a0мин`
+}
+
+/** Период «01.02.2026 – 05.02.2026». */
+export function formatDateRange(v: DateRangeValue): string {
+  return `${formatDate(v.start)} – ${formatDate(v.end)}`
+}
+
 export function formatSize(bytes: number): string {
   if (bytes >= 1024 * 1024) return `${(bytes / 1024 / 1024).toFixed(1)} МБ`
   if (bytes >= 1024) return `${Math.round(bytes / 1024)} КБ`
@@ -107,7 +124,7 @@ export function optionLabel(field: Field, value: string, ctx: FormatContext): st
 }
 
 export function isNumericType(t: Field['type']): boolean {
-  return t === 'number' || t === 'money'
+  return t === 'number' || t === 'money' || t === 'rating' || t === 'percent' || t === 'duration'
 }
 
 /** Пусто с точки зрения показа: null, '', [], {}. */
@@ -163,6 +180,29 @@ export function formatValue(field: Field, value: unknown, ctx: FormatContext = {
       const n = Array.isArray(value) ? value.length : 0
       return plural(n, 'строка', 'строки', 'строк')
     }
+    // --- Типы шага 1 «до уровня Monday» (06.11.2026) ---
+    case 'rating':
+      return typeof value === 'number' ? `${value} из ${ratingMax(field)}` : String(value)
+    case 'percent':
+      return typeof value === 'number' ? `${formatNumber(value)}\u00a0%` : String(value)
+    case 'duration':
+      return typeof value === 'number' ? formatDuration(value) : String(value)
+    case 'date_range': {
+      const v = value as Partial<DateRangeValue>
+      return typeof v?.start === 'string' && typeof v?.end === 'string'
+        ? formatDateRange(v as DateRangeValue)
+        : JSON.stringify(value)
+    }
+    case 'tags':
+      return Array.isArray(value) ? value.map(String).join(', ') : String(value)
+    case 'location': {
+      const v = value as Partial<LocationValue>
+      return typeof v?.address === 'string' ? v.address : JSON.stringify(value)
+    }
+    case 'color':
+      return typeof value === 'string'
+        ? (SECTION_COLORS.find((c) => c.key === value)?.label ?? value)
+        : String(value)
     default:
       return typeof value === 'string' ? value : JSON.stringify(value)
   }
