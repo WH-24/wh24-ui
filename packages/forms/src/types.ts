@@ -643,6 +643,15 @@ export interface RecordComment {
   actions: CommentActions
   created_at: string
   files: FormFile[]
+  /** `ai` — ответ «@ИИ» (author — нулевой UUID); у сообщений людей — `user` или пусто. */
+  author_kind?: 'user' | 'ai'
+  /** Учётка спросившего — только у ответа ИИ. */
+  requested_by?: string | null
+  /** Источники ответа ИИ: только названия и адреса; run_id — запуск в brain-api. */
+  meta?: {
+    citations?: { n: number; title: string; url: string }[]
+    run_id?: string
+  }
 }
 
 export type RouteStepState = 'passed' | 'current' | 'rejected' | 'pending'

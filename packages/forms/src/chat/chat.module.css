@@ -587,3 +587,51 @@
   color: var(--terra-d);
   background: var(--terra-bg);
 }
+
+/* «@ИИ»: ответ ИИ в ленте записи, источники названиями, напоминание о приватности. */
+.msg[data-ai] {
+  border-left: 3px solid var(--bd);
+}
+
+.aiLabel {
+  font-weight: var(--fw-semibold);
+}
+
+.aiSources {
+  margin: 4px 0 0;
+  padding-left: 18px;
+  font-size: 12px;
+  color: var(--ink-3);
+}
+
+.aiThinking {
+  color: var(--ink-3);
+  font-size: 13px;
+  padding: 4px 10px;
+  animation: aiPulse 1.4s ease-in-out infinite;
+}
+
+@keyframes aiPulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aiThinking {
+    animation: none;
+  }
+}
+
+.aiNote {
+  color: var(--ink-3);
+  background: var(--surf-2);
+  border: 1px solid var(--bd);
+  border-radius: var(--r-sm);
+  padding: 6px 10px;
+  font-size: 12px;
+}

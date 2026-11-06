@@ -18,7 +18,7 @@ import { formatDate, formatDateTime, formatSize } from '../render/format.js'
 import { Composer } from './Composer.js'
 import { RouteBar } from './RouteBar.js'
 import { Markup } from './markup.js'
-import { CHOICE_LABEL, draftToComment, formatMinutes, staffIndex, type Draft } from './logic.js'
+import { CHOICE_LABEL, draftToComment, formatMinutes, mentionsAi, staffIndex, type Draft } from './logic.js'
 import styles from './chat.module.css'
 
 export interface RecordChatProps {
@@ -35,6 +35,16 @@ export interface RecordChatProps {
   onRecordChange?: (record: FormRecord) => void
   /** Ошибка открытия файла и прочее, что хост показывает тостом. */
   onError?: (message: string) => void
+  /**
+   * «@ИИ» в ленте: нет — участника «ИИ» в списке «@» нет. Вопрос от имени
+   * автора уходит в «мозг» через `onAsk` (хост знает адрес сервиса), ответ
+   * приходит сообщением от ИИ — лента перечитывается, пока оно не появится.
+   */
+  ai?: {
+    onAsk: (q: { commentId: string; text: string }) => void | Promise<void>
+    /** Открыть источник в портале; нет — обычная ссылка. */
+    onNavigate?: (url: string) => void
+  }
 }
 
 type Load = { kind: 'loading' } | { kind: 'error'; message: string } | { kind: 'ready'; feed: RecordFeed }
@@ -52,6 +62,7 @@ export function RecordChat({
   canManageRoute = false,
   onRecordChange,
   onError,
+  ai,
 }: RecordChatProps) {
   const [load, setLoad] = useState<Load>({ kind: 'loading' })
   const [replyTo, setReplyTo] = useState<RecordComment | null>(null)
@@ -80,11 +91,47 @@ export function RecordChat({
     if (el) el.scrollTop = el.scrollHeight
   }, [count])
 
+  // «@ИИ»: после вопроса ждём ответ сообщением от ИИ (перечитываем ленту раз в 2 с, ≈3 минуты).
+  const [waitingAi, setWaitingAi] = useState<string | null>(null)
+  useEffect(() => {
+    if (!waitingAi) return
+    let n = 0
+    let alive = true
+    const t = window.setInterval(() => {
+      n += 1
+      api.records
+        .feed(formId, recordId)
+        .then((feed) => {
+          if (!alive) return
+          setLoad({ kind: 'ready', feed })
+          if (feed.comments.some((c) => c.author_kind === 'ai' && c.reply_to === waitingAi)) setWaitingAi(null)
+        })
+        .catch(() => undefined)
+      if (n >= 90) setWaitingAi(null)
+    }, 2000)
+    return () => {
+      alive = false
+      clearInterval(t)
+    }
+  }, [waitingAi, api, formId, recordId])
+
   const send = async (d: Draft) => {
     const body = draftToComment(d)
     if (replyTo) body.reply_to = replyTo.id
     const res = await api.records.comment(formId, recordId, body)
     setReplyTo(null)
+    if (ai && mentionsAi(d.body)) {
+      // Вопрос уходит в «мозг» правами автора; сбой вопроса не отменяет отправленное сообщение.
+      try {
+        await ai.onAsk({
+          commentId: res.comment.id,
+          text: res.comment.body || d.body,
+        })
+        setWaitingAi(res.comment.id)
+      } catch {
+        onError?.('Сообщение отправлено, но ИИ сейчас недоступен')
+      }
+    }
     setLoad((s) =>
       s.kind === 'ready'
         ? { kind: 'ready', feed: { ...s.feed, comments: [...s.feed.comments, res.comment], route: res.route } }
@@ -165,15 +212,23 @@ export function RecordChat({
             c={c}
             author={people.author(c.author)}
             name={people.name}
-            names={names}
+            names={ai ? [...names, 'ИИ'] : names}
             quoted={c.reply_to ? byId.get(c.reply_to) : undefined}
+            onNavigate={ai?.onNavigate}
             quotedAuthor={(q) => people.author(q.author)}
+            requesterName={people.author}
             onReply={canWrite ? () => setReplyTo(c) : undefined}
             onOpenFile={openFile}
             fileUrl={(f) => api.records.fileUrl(formId, recordId, f.id).then((r) => r.url)}
           />
         ))}
       </div>
+
+      {waitingAi && (
+        <div className={styles.aiThinking} role="status">
+          ИИ ищет по данным портала…
+        </div>
+      )}
 
       {spentTotal > 0 && <div className={styles.total}>Затрачено по записи: {formatMinutes(spentTotal)}</div>}
 
@@ -187,6 +242,7 @@ export function RecordChat({
           replyTo={replyTo ? { author: people.author(replyTo.author), body: replyTo.body } : null}
           onCancelReply={() => setReplyTo(null)}
           onSend={send}
+          ai={Boolean(ai)}
         />
       )}
     </section>
@@ -208,9 +264,11 @@ function Message({
   names,
   quoted,
   quotedAuthor,
+  requesterName,
   onReply,
   onOpenFile,
   fileUrl,
+  onNavigate,
 }: {
   c: RecordComment
   author: string
@@ -218,10 +276,15 @@ function Message({
   names: string[]
   quoted?: RecordComment
   quotedAuthor: (q: RecordComment) => string
+  /** Имя спросившего по его учётке (ответ ИИ: «по запросу …»). */
+  requesterName: (userId: string) => string
   onReply?: () => void
   onOpenFile: (f: FormFile) => void
   fileUrl: (f: FormFile) => Promise<string>
+  onNavigate?: (url: string) => void
 }) {
+  const isAi = c.author_kind === 'ai'
+  const citations = c.meta?.citations ?? []
   const a = c.actions
   const images = c.files.filter((f) => f.mime.startsWith('image/'))
   const others = c.files.filter((f) => !f.mime.startsWith('image/'))
@@ -229,9 +292,23 @@ function Message({
     v == null || v === '' ? 'не задан' : kind === 'staff' ? name(String(v)) : formatDate(String(v))
 
   return (
-    <article className={styles.msg} aria-label={`Сообщение: ${author}`}>
+    <article
+      className={styles.msg}
+      data-ai={isAi || undefined}
+      aria-label={isAi ? `Ответ ИИ по запросу ${author}` : `Сообщение: ${author}`}
+    >
       <header className={styles.msgHead}>
-        <span className={styles.author}>{author}</span>
+        {isAi ? (
+          <span className={styles.author}>
+            <span className={styles.aiLabel}>Ответ ИИ</span>
+            <span className={styles.muted}>
+              {' '}
+              · по запросу {c.requested_by ? requesterName(c.requested_by) : 'коллеги'}
+            </span>
+          </span>
+        ) : (
+          <span className={styles.author}>{author}</span>
+        )}
         <time dateTime={c.created_at} className={styles.time}>
           {formatDateTime(c.created_at)}
         </time>
@@ -264,6 +341,25 @@ function Message({
         <div className={styles.body}>
           <Markup text={c.body} names={names} classes={{ code: styles.code, mention: styles.mention }} />
         </div>
+      )}
+
+      {isAi && citations.length > 0 && (
+        <ol className={styles.aiSources} aria-label="Источники">
+          {citations.map((x) => (
+            <li key={x.n}>
+              <a
+                href={x.url}
+                onClick={(e) => {
+                  if (!onNavigate) return
+                  e.preventDefault()
+                  onNavigate(x.url)
+                }}
+              >
+                {x.title}
+              </a>
+            </li>
+          ))}
+        </ol>
       )}
 
       {a.meeting && (

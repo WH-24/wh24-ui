@@ -171,3 +171,13 @@ export const EMOJI = [
   '❓', '🔥', '⭐', '🎉', '💡', '📌', '📎', '📅',
   '⏰', '🚀', '💰', '📈', '🏗️', '🏠', '✏️', '👀',
 ]
+
+/** Служебный id участника «ИИ» в списке «@»: это не сотрудник, в `mentions` сервера он не уходит. */
+export const AI_MENTION_ID = '__ai__'
+
+export const AI_OPTION: OrgOption = { id: AI_MENTION_ID, label: 'ИИ', hint: 'Спросить ИИ по данным портала' }
+
+/** Текст упоминает ИИ: «@ИИ», «@ии», «@AI» отдельным словом (почта и «@ИИнна» — нет). */
+export function mentionsAi(text: string): boolean {
+  return /(^|[\s,;:(«"'])@(ИИ|ии|Ии|AI|ai)(?=$|[\s.,;:!?)»"'])/u.test(text)
+}
