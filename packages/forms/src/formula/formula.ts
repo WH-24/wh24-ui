@@ -454,8 +454,16 @@ function compare(op: string, a: unknown, b: unknown): boolean {
     const x = numeric(a)
     const y = x === null ? null : numeric(b)
     if (x !== null && y !== null) cmp = x < y ? -1 : x > y ? 1 : 0
-    else if (x !== null) cmp = strcmp(text(a), text(b))
-    else {
+    else if (x !== null) {
+      // Число против не-числа — как строки, «=»/«<>» без регистра (как в Go).
+      let sa = text(a)
+      let sb = text(b)
+      if (op === '=' || op === '<>') {
+        sa = fold(sa)
+        sb = fold(sb)
+      }
+      cmp = strcmp(sa, sb)
+    } else {
       let sa = text(a)
       let sb = text(b)
       if (op === '=' || op === '<>') {
