@@ -13,7 +13,7 @@ import { Icon, Input } from '@wowhaus-24/ui-react'
 
 import { FormsApiError, type FormsApi, type ListRecordsQuery } from '../api.js'
 import type { Field, Form, FormRecord, SchemaDocument } from '../types.js'
-import { isComputedField } from '../types.js'
+import { isComputedField, sectionColorHex } from '../types.js'
 import { systemValue } from '../render/system.js'
 import {
   formatDateTime,
@@ -114,19 +114,49 @@ function Cell({ field, value, ctx }: { field: Field; value: unknown; ctx: Format
         </span>
       )
     }
-    case 'multiselect': {
+    case 'multiselect':
+    case 'tags': {
       const items = Array.isArray(value) ? value.map(String) : []
       const shown = items.slice(0, 2)
+      const text = (v: string) => (field.type === 'tags' ? v : optionLabel(field, v, ctx))
       return (
         <span className={styles.cellChips}>
           {shown.map((v) => (
             <span key={v} className={styles.chip}>
-              {optionLabel(field, v, ctx)}
+              {text(v)}
             </span>
           ))}
           {items.length > shown.length && (
             <span className={styles.more}>+{items.length - shown.length}</span>
           )}
+        </span>
+      )
+    }
+    case 'percent': {
+      const n = typeof value === 'number' ? Math.max(0, Math.min(100, value)) : null
+      if (n == null) return <>{formatValue(field, value, ctx)}</>
+      return (
+        <span className={styles.cellPercent}>
+          <span>{formatValue(field, value, ctx)}</span>
+          <span
+            className={styles.cellBar}
+            role="progressbar"
+            aria-label={field.label || field.key}
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={n}
+          >
+            <span className={styles.cellBarFill} style={{ width: `${n}%` }} />
+          </span>
+        </span>
+      )
+    }
+    case 'color': {
+      const hex = typeof value === 'string' ? sectionColorHex(value) : undefined
+      return (
+        <span className={styles.cellColor}>
+          {hex && <span className={styles.cellSwatch} style={{ background: hex }} aria-hidden />}
+          {formatValue(field, value, ctx)}
         </span>
       )
     }

@@ -114,3 +114,13 @@ describe('createFormsApi', () => {
     expect(calls[0]!.url).toBe('/api/v1/forms/f%2F1/records/..%252Fadmin')
   })
 })
+
+describe('подсказки тегов (06.11.2026)', () => {
+  it('fieldTags → GET /forms/:id/fields/:field_id/tags?q=', async () => {
+    const { fn, calls } = mockFetch(200, { data: ['срочно', 'склад'] })
+    const api = createFormsApi({ baseUrl: '/api/v1', fetch: fn })
+    const tags = await api.fieldTags('f1', 'fld-1', 'с')
+    expect(tags).toEqual(['срочно', 'склад'])
+    expect(calls[0]!.url).toBe('/api/v1/forms/f1/fields/fld-1/tags?q=%D1%81')
+  })
+})

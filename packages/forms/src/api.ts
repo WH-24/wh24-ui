@@ -395,6 +395,10 @@ export function createFormsApi(opts: FormsApiOptions) {
         ),
     },
 
+    /** Подсказки поля «Теги»: уже использованные значения поля в записях формы (06.11.2026). */
+    fieldTags: (formId: string, fieldId: string, q: string) =>
+      request<string[]>('GET', `/forms/${seg(formId)}/fields/${seg(fieldId)}/tags${toQuery({ q })}`),
+
     records: {
       /** Метаданные вложений записи (имена, размеры) — ссылок здесь нет, только через fileUrl. */
       files: (formId: string, id: string) =>
