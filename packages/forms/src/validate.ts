@@ -298,10 +298,13 @@ function checkValue(f: Field, value: unknown): RecordFieldError[] {
         if (!tag) return [typeErr(f, 'список меток без пустых')]
         if (Array.from(tag).length > MAX_TAG_LENGTH)
           return [{ field_id: f.id, code: 'max_length', message: `поле «${label(f)}»: метка не длиннее ${MAX_TAG_LENGTH} символов` }]
+        // Дубль — по обрезанному значению без учёта регистра, раньше пробелов.
         const k = tag.toLowerCase()
         if (seen.has(k))
           return [{ field_id: f.id, code: 'duplicate', message: `поле «${label(f)}»: метка «${tag}» повторяется` }]
         seen.add(k)
+        if (tag !== raw)
+          return [{ field_id: f.id, code: 'format', message: `поле «${label(f)}»: метка «${tag}» с пробелами по краям` }]
       }
       return []
     }
@@ -311,6 +314,8 @@ function checkValue(f: Field, value: unknown): RecordFieldError[] {
       if (typeof addr !== 'string' || addr.trim() === '') return [typeErr(f, 'адрес')]
       if (Array.from(addr).length > MAX_ADDRESS_LENGTH)
         return [{ field_id: f.id, code: 'max_length', message: `поле «${label(f)}»: адрес не длиннее ${MAX_ADDRESS_LENGTH} символов` }]
+      if ((v!.lat == null) !== (v!.lon == null))
+        return [{ field_id: f.id, code: 'format', message: `поле «${label(f)}»: координаты задаются парой — широта и долгота` }]
       const coordOk = (c: unknown, lim: number) => c == null || (typeof c === 'number' && c >= -lim && c <= lim)
       if (!coordOk(v!.lat, 90) || !coordOk(v!.lon, 180))
         return [{ field_id: f.id, code: 'format', message: `поле «${label(f)}»: координаты вне допустимого диапазона` }]

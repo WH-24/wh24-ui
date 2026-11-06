@@ -163,3 +163,63 @@ describe('контролы новых типов', () => {
     expect(out().dur).toBe(120)
   })
 })
+
+describe('мелочи ревью 06.11: доступность и ячейки таблицы', () => {
+  it('ячейки таблицы: id уникальны по строкам, у делегированной ячейки есть имя колонки', () => {
+    const tbl = f({
+      id: 'tbl',
+      type: 'table',
+      config: { columns: [{ id: 'c1', key: 'who', label: 'Кто', type: 'user' }, { id: 'c2', key: 'rate', label: 'Оценка', type: 'rating' }] },
+    })
+    const { container } = render(<Harness d={doc([tbl])} initial={{ tbl: [{ c2: 1 }, { c2: 2 }] }} />)
+    const ids = Array.from(container.querySelectorAll('[id]')).map((e) => e.id)
+    expect(new Set(ids).size).toBe(ids.length)
+    expect(screen.getAllByRole('combobox', { name: 'Кто' })).toHaveLength(2)
+    expect(screen.getAllByRole('radiogroup', { name: 'Оценка' })).toHaveLength(2)
+  })
+  it('звёзды: стрелка вправо переводит и значение, и фокус; просмотр — картинка с подписью', async () => {
+    const user = userEvent.setup()
+    const { unmount } = render(<Harness d={doc([f({ id: 'rating', type: 'rating' })])} initial={{ rating: 2 }} />)
+    const stars = screen.getAllByRole('radio')
+    stars[1]!.focus()
+    await user.keyboard('{ArrowRight}')
+    expect(out().rating).toBe(3)
+    expect(document.activeElement).toBe(screen.getAllByRole('radio')[2])
+    unmount()
+    render(<Harness d={doc([f({ id: 'rating', type: 'rating' })])} initial={{ rating: 4 }} mode="view" />)
+    expect(screen.getByRole('img', { name: '4 из 5' })).toBeInTheDocument()
+    expect(screen.queryByRole('radio')).not.toBeInTheDocument()
+  })
+  it('цвет: один табстоп, стрелки переключают цвет', async () => {
+    const user = userEvent.setup()
+    render(<Harness d={doc([f({ id: 'color', type: 'color' })])} initial={{ color: 'red' }} />)
+    const swatches = screen.getAllByRole('radio')
+    expect(swatches.filter((s) => s.tabIndex === 0)).toHaveLength(1)
+    swatches[0]!.focus()
+    await user.keyboard('{ArrowRight}')
+    expect(out().color).toBe('orange')
+    expect(document.activeElement).toBe(screen.getAllByRole('radio')[1])
+  })
+  it('теги: подсказки без дублей по регистру, выбор стрелками и Enter', async () => {
+    const user = userEvent.setup()
+    const loadTags = vi.fn(async () => ['Срочно', 'склад', 'сметы'])
+    function H() {
+      const [v, setV] = useState<RecordData>({ tags: ['срочно'] })
+      return (
+        <>
+          <FormRenderer doc={doc([f({ id: 'tags', type: 'tags' })])} values={v} mode="edit" ctx={{ loadTags }} onChange={(id, val) => setV((p) => ({ ...p, [id]: val }))} />
+          <output data-testid="out">{JSON.stringify(v)}</output>
+        </>
+      )
+    }
+    render(<H />)
+    const input = screen.getByRole('combobox', { name: /tags/i })
+    expect(input).not.toHaveAttribute('aria-controls')
+    await user.type(input, 'с')
+    const opts = await screen.findAllByRole('option')
+    expect(opts.map((o) => o.textContent)).toEqual(['склад', 'сметы'])
+    expect(input).toHaveAttribute('aria-controls')
+    await user.keyboard('{ArrowDown}{ArrowDown}{Enter}')
+    expect(out().tags).toEqual(['срочно', 'сметы'])
+  })
+})
