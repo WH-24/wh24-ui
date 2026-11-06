@@ -1,0 +1,345 @@
+/* Триггеры агента: список карточек, расписание, поля события. Цвета и радиусы — токены ui-tokens. */
+
+.editor {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-family: var(--font-sans);
+  color: var(--ink);
+  min-width: 0;
+}
+
+.empty,
+.note {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--ink-2);
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px 14px;
+  border: var(--bd-hairline) solid var(--bd-strong);
+  border-radius: var(--r-lg);
+  background: var(--surf);
+  min-width: 0;
+}
+.card[data-off] {
+  background: var(--surf-2);
+}
+
+.cardHead {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 8px;
+}
+.kind {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: var(--fw-semibold);
+  color: var(--ink);
+  margin-right: auto;
+}
+.kind svg {
+  color: var(--terra);
+}
+
+.iconBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: var(--r-md);
+  background: transparent;
+  color: var(--ink-3);
+  cursor: pointer;
+}
+.iconBtn:hover:not(:disabled) {
+  background: var(--surf-3);
+  color: var(--ink);
+}
+.iconBtn:disabled {
+  opacity: var(--disabled-opacity);
+  cursor: default;
+}
+.iconBtn:focus-visible {
+  outline: var(--focus-ring-w) solid var(--focus);
+  outline-offset: 1px;
+}
+
+.lock {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin: 0;
+  padding: 8px 10px;
+  border-radius: var(--r-md);
+  border: var(--bd-hairline) solid var(--info-bd);
+  background: var(--info-bg);
+  color: var(--info);
+  font-size: 13px;
+  line-height: 1.4;
+}
+.lock svg {
+  flex: none;
+  margin-top: 2px;
+}
+
+.fieldError {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.35;
+  color: var(--bad);
+}
+.fieldHint {
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.35;
+  color: var(--ink-3);
+}
+
+.addRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* ─── Расписание ─── */
+.schedule {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+.fullRow {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.groupLabel {
+  font-size: 12px;
+  font-weight: var(--fw-medium);
+  color: var(--ink-2);
+  padding: 0;
+}
+.days {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.day {
+  min-width: 40px;
+  min-height: 32px;
+  padding: 0 10px;
+  border: var(--bd-hairline) solid var(--bd-strong);
+  border-radius: var(--r-md);
+  background: var(--surf);
+  color: var(--ink-2);
+  font-size: 13px;
+  font-weight: var(--fw-medium);
+  cursor: pointer;
+}
+.day:hover:not(:disabled) {
+  background: var(--surf-2);
+}
+.day {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+.day[aria-pressed='true'] {
+  background: var(--terra-bg);
+  border-color: var(--terra);
+  color: var(--ink);
+  font-weight: var(--fw-semibold);
+}
+.dayMark {
+  display: inline-flex;
+  color: var(--terra);
+}
+.day:disabled {
+  opacity: var(--disabled-opacity);
+  cursor: default;
+}
+.day:focus-visible {
+  outline: var(--focus-ring-w) solid var(--focus);
+  outline-offset: 1px;
+}
+
+.nextRun {
+  min-height: 18px;
+  font-size: 13px;
+  color: var(--ink-2);
+}
+.nextRun[data-bad] {
+  color: var(--bad);
+}
+
+.advToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 28px;
+  padding: 0 4px;
+  border: 0;
+  border-radius: var(--r-sm);
+  background: none;
+  color: var(--ink-3);
+  font-size: 12px;
+  font-weight: var(--fw-medium);
+  cursor: pointer;
+}
+.advToggle:hover {
+  color: var(--ink);
+}
+.advToggle:focus-visible {
+  outline: var(--focus-ring-w) solid var(--focus);
+  outline-offset: 1px;
+}
+.chev {
+  display: inline-block;
+  transition: transform 0.12s;
+}
+.chev[data-open] {
+  transform: rotate(90deg);
+}
+.advBody {
+  margin-top: 6px;
+}
+.mono {
+  font-family: var(--font-mono);
+}
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ─── Триггер по событию ─── */
+.eventFields {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+.manualKey {
+  margin-top: -6px;
+}
+.manualRow {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.linkBtn {
+  min-height: 28px;
+  padding: 0 2px;
+  border: 0;
+  background: none;
+  color: var(--terra-d);
+  font-size: 12px;
+  font-weight: var(--fw-medium);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+.linkBtn:focus-visible {
+  outline: var(--focus-ring-w) solid var(--focus);
+  outline-offset: 1px;
+  border-radius: var(--r-xs);
+}
+
+.filter {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+.filter > legend {
+  padding: 0;
+  margin-bottom: 2px;
+}
+.filterHint {
+  margin: 0;
+  font-size: 11.5px;
+  color: var(--ink-3);
+}
+.filterList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.filterRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.filterCell {
+  flex: 0 1 190px;
+  min-width: 140px;
+}
+.filterCellGrow {
+  flex: 1 1 180px;
+  min-width: 140px;
+}
+
+.payload {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chev {
+    transition: none;
+  }
+}
+
+/* Палец, а не курсор: мелкие кнопки до 36 px (--tap-min-compact). */
+@media (pointer: coarse) {
+  .iconBtn {
+    width: var(--tap-min-compact);
+    height: var(--tap-min-compact);
+  }
+  .day {
+    min-height: var(--tap-min-compact);
+    min-width: var(--tap-min-compact);
+  }
+  .advToggle,
+  .linkBtn {
+    min-height: var(--tap-min-compact);
+  }
+}

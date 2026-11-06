@@ -1,0 +1,163 @@
+/* Профиль агента: секции как у карточек портала (forms/render.module.css .section). */
+
+.profile {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  font-family: var(--font-sans);
+  color: var(--ink);
+  min-width: 0;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  background: var(--surf);
+  border: 1px solid var(--bd);
+  border-radius: var(--r-lg);
+  min-width: 0;
+}
+.section[data-changed] {
+  border-color: var(--terra-bd);
+}
+
+@media (max-width: 480px) {
+  .section {
+    padding: 12px;
+  }
+}
+
+.sectionHead {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.sectionTitle {
+  margin: 0;
+  font-size: 11px;
+  font-weight: var(--fw-medium);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.sectionHint {
+  margin: -6px 0 0;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--ink-2);
+}
+
+/* Поле, которое только что изменил конструктор: подпись «Изменено» + подложка, не только цвет. */
+.changedTag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 8px;
+  border-radius: var(--r-pill);
+  border: var(--bd-hairline) solid var(--terra-bd);
+  background: var(--terra-bg);
+  color: var(--ink-2);
+  font-size: var(--fs-meta-sm);
+  font-weight: var(--fw-medium);
+  letter-spacing: 0;
+  text-transform: none;
+  white-space: nowrap;
+}
+.changedTag svg {
+  color: var(--terra);
+}
+.changed {
+  padding: 8px 10px;
+  margin: -8px -10px;
+  border-radius: var(--r-md);
+  background: var(--terra-bg);
+  animation: agentChanged 1.6s ease-out 1;
+}
+@keyframes agentChanged {
+  from {
+    box-shadow: 0 0 0 3px var(--terra-mark);
+  }
+  to {
+    box-shadow: 0 0 0 0 transparent;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .changed {
+    animation: none;
+  }
+}
+
+.error {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.35;
+  color: var(--bad);
+}
+
+/* Политика записи — переключатель из двух карточек. */
+.radios {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+.legend {
+  padding: 0;
+  margin-bottom: 6px;
+  font-size: 12px;
+  font-weight: var(--fw-medium);
+  color: var(--ink-2);
+}
+.radio {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  border: var(--bd-hairline) solid var(--bd-strong);
+  border-radius: var(--r-md);
+  background: var(--surf);
+  cursor: pointer;
+}
+.radio:hover {
+  border-color: var(--terra-bd);
+}
+.radio[data-on] {
+  border-color: var(--terra);
+  background: var(--terra-bg);
+}
+.radio input {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  margin: 1px 0 0;
+  accent-color: var(--terra);
+  cursor: pointer;
+}
+.radio:focus-within {
+  outline: var(--focus-ring-w) solid var(--focus);
+  outline-offset: 1px;
+}
+.radio input:focus-visible {
+  outline: none;
+}
+.radioBody {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.radioTitle {
+  font-size: 13px;
+  font-weight: var(--fw-semibold);
+}
+.radioText {
+  font-size: 12.5px;
+  line-height: 1.4;
+  color: var(--ink-2);
+}

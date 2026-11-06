@@ -63,3 +63,71 @@ export type { AskAiPanelProps, AskAiPreset, BrainMode } from './panel/AskAiPanel
 
 export { BrainIcon } from './icons.js'
 export type { BrainIconName, BrainIconProps } from './icons.js'
+
+// ─── Агенты ИИ (0.2.0): конструктор, триггеры, журнал ───
+export * from './agents/types.js'
+export { createAgentsClient } from './agents/client.js'
+export type { AgentsApi, AgentRunsApi, AgentsClient, Requester } from './agents/client.js'
+
+export { AgentProfile, AGENT_LIMITS } from './agents/AgentProfile.js'
+export type { AgentProfileProps } from './agents/AgentProfile.js'
+export { TriggerEditor, MAX_TRIGGERS, EVENT_LOCKED_HINT } from './agents/TriggerEditor.js'
+export type { TriggerEditorProps } from './agents/TriggerEditor.js'
+export { ScheduleEditor } from './agents/ScheduleEditor.js'
+export type { ScheduleEditorProps, ScheduleValue } from './agents/ScheduleEditor.js'
+export { EventTriggerFields, eventKeyChoices, eventKeyProblem, MAX_FILTER_RULES } from './agents/EventTriggerFields.js'
+export type { EventTriggerFieldsProps } from './agents/EventTriggerFields.js'
+export { ToolPicker } from './agents/ToolPicker.js'
+export type { ToolPickerProps } from './agents/ToolPicker.js'
+export { KnowledgePicker } from './agents/KnowledgePicker.js'
+export type { KnowledgePickerProps, PinnedDocument } from './agents/KnowledgePicker.js'
+export { MemoryEditor } from './agents/MemoryEditor.js'
+export type { MemoryEditorProps } from './agents/MemoryEditor.js'
+export { RunLogTable, RunStatusBadge, runStatusView, RESTRICTED_NOTE } from './agents/RunLogTable.js'
+export type { RunLogTableProps, RunStatusView } from './agents/RunLogTable.js'
+export { RunDetail } from './agents/RunDetail.js'
+export type { RunDetailProps } from './agents/RunDetail.js'
+export { AgentCard, AgentStatusBadge } from './agents/AgentCard.js'
+export type { AgentCardProps } from './agents/AgentCard.js'
+export { AgentPresetCard } from './agents/AgentPresetCard.js'
+export type { AgentPresetCardProps } from './agents/AgentPresetCard.js'
+export { AgentAvatar } from './agents/AgentAvatar.js'
+export type { AgentAvatarProps } from './agents/AgentAvatar.js'
+export { AgentBuilderChat } from './agents/AgentBuilderChat.js'
+export type { AgentBuilderChatProps, BuilderMessage } from './agents/AgentBuilderChat.js'
+export { BrainSwitch } from './agents/Switch.js'
+export type { BrainSwitchProps } from './agents/Switch.js'
+
+export {
+  emptyAgentDraft,
+  agentToDraft,
+  applyAgentPatch,
+  agentPrivacyWarning,
+  patchSummary,
+  triggerSummary,
+} from './agents/draft.js'
+export type { PatchSummaryOptions } from './agents/draft.js'
+export {
+  TRIGGER_KIND_LABEL,
+  AGENT_STATUS_LABEL,
+  RUN_STATUS_LABEL,
+  MEMORY_KIND_LABEL,
+  WRITE_POLICY_LABEL,
+  skipReasonText,
+  formatCost,
+  formatDuration,
+  formatDateTime,
+} from './agents/labels.js'
+export {
+  SCHEDULE_MIN_MINUTES,
+  DEFAULT_TZ,
+  DEFAULT_TIMEZONES,
+  cronFromParts,
+  partsFromCron,
+  scheduleProblem,
+  describeSchedule,
+  describeNextRun,
+  dateToEndsAt,
+  endsAtToDate,
+} from './agents/schedule.js'
+export type { Frequency, ScheduleParts, TimezoneOption } from './agents/schedule.js'

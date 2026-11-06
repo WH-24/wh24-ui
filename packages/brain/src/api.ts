@@ -6,6 +6,8 @@
  * `waitForRun` опрашивает `GET /runs/:id` — один запрос в полёте, пауза 1 → 3 с,
  * при скрытой вкладке опрос останавливается до возвращения.
  */
+import { createAgentsClient, type AgentsClient } from './agents/client.js'
+import type { AgentRun } from './agents/types.js'
 import type {
   AskAccepted,
   AskRequest,
@@ -50,11 +52,25 @@ export class BrainApiError extends Error {
   get quotaExceeded(): boolean {
     return this.status === 429
   }
+  /** Машинный код ошибки из тела (`budget`, `quota`, `bad_request`…), если сервер его прислал. */
+  get code(): string | undefined {
+    const c = (this.data as { code?: unknown } | undefined)?.code
+    return typeof c === 'string' ? c : undefined
+  }
+  /** Поле, не прошедшее проверку (400 у агентов: `name`, `triggers[0]`…). */
+  get field(): string | undefined {
+    const f = (this.data as { field?: unknown } | undefined)?.field
+    return typeof f === 'string' ? f : undefined
+  }
+  /** Дневной бюджет агента исчерпан (429 с кодом `budget`) — не путать с квотой ИИ. */
+  get budgetExceeded(): boolean {
+    return this.status === 429 && this.code === 'budget'
+  }
 }
 
-export interface WaitForRunOptions {
+export interface WaitForRunOptions<T extends Run = Run> {
   /** Каждый свежий снимок прогона — чтобы показывать шаги по ходу. */
-  onUpdate?: (run: Run) => void
+  onUpdate?: (run: T) => void
   signal?: AbortSignal
   /** Первая пауза между опросами, мс. По умолчанию 1000. */
   minIntervalMs?: number
@@ -62,11 +78,13 @@ export interface WaitForRunOptions {
   maxIntervalMs?: number
 }
 
-export interface BrainApi {
+export interface BrainApi extends AgentsClient {
   search(req: SearchRequest): Promise<SearchResponse>
   ask(req: AskRequest): Promise<AskAccepted>
-  getRun(id: string): Promise<Run>
-  waitForRun(id: string, opts?: WaitForRunOptions): Promise<Run>
+  getRun<T extends Run = Run>(id: string): Promise<T>
+  /** Запуск агента (с `agent_id`, `trigger_kind`, `skip_reason`, `restricted`). */
+  getAgentRun(id: string): Promise<AgentRun>
+  waitForRun<T extends Run = Run>(id: string, opts?: WaitForRunOptions<T>): Promise<T>
   feedback(req: FeedbackRequest): Promise<void>
 }
 
@@ -155,10 +173,12 @@ export function createBrainApi(opts: BrainApiOptions): BrainApi {
   }
 
   const api: BrainApi = {
+    ...createAgentsClient(request),
     search: (req) => request<SearchResponse>('POST', '/search', req),
     ask: (req) => request<AskAccepted>('POST', '/ask', req),
-    getRun: (id) => request<Run>('GET', `/runs/${encodeURIComponent(id)}`),
-    async waitForRun(id, o = {}) {
+    getRun: <T extends Run = Run>(id: string) => request<T>('GET', `/runs/${encodeURIComponent(id)}`),
+    getAgentRun: (id) => request<AgentRun>('GET', `/runs/${encodeURIComponent(id)}`),
+    async waitForRun<T extends Run = Run>(id: string, o: WaitForRunOptions<T> = {}) {
       const min = o.minIntervalMs ?? 1000
       const max = o.maxIntervalMs ?? 3000
       let delay = min
@@ -166,7 +186,7 @@ export function createBrainApi(opts: BrainApiOptions): BrainApi {
         throwIfAborted(o.signal)
         await whenVisible(o.signal)
         // Один запрос в полёте: следующий уходит только после ответа на этот.
-        const run = await api.getRun(id)
+        const run = await api.getRun<T>(id)
         throwIfAborted(o.signal)
         o.onUpdate?.(run)
         if (isRunFinished(run.status)) return run

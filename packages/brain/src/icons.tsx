@@ -18,6 +18,10 @@ export type BrainIconName =
   | 'slash'
   | 'external'
   | 'shield'
+  | 'pause'
+  | 'lock'
+  | 'alert'
+  | 'undo'
 
 const paths: Record<BrainIconName, ReactNode> = {
   copy: (
@@ -94,6 +98,30 @@ const paths: Record<BrainIconName, ReactNode> = {
     <>
       <path d="M12 3l7 3v5c0 4.5-3 8.5-7 10-4-1.5-7-5.5-7-10V6z" />
       <path d="M9 12l2 2 4-4" />
+    </>
+  ),
+  pause: (
+    <>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M10 9v6M14 9v6" />
+    </>
+  ),
+  lock: (
+    <>
+      <rect x="5" y="11" width="14" height="9" rx="2" />
+      <path d="M8 11V8a4 4 0 0 1 8 0v3" />
+    </>
+  ),
+  alert: (
+    <>
+      <path d="M12 4l9 16H3z" />
+      <path d="M12 10v4M12 17.2v.1" />
+    </>
+  ),
+  undo: (
+    <>
+      <path d="M9 14L4 9l5-5" />
+      <path d="M4 9h10a6 6 0 0 1 0 12h-3" />
     </>
   ),
 }
