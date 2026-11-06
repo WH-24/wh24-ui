@@ -24,9 +24,11 @@ import {
 } from '@wowhaus-24/ui-react'
 
 import type {
+  DateRangeValue,
   Field,
   FieldType,
   FileConfig,
+  LocationValue,
   FormFile,
   MoneyConfig,
   NumberConfig,
@@ -38,13 +40,14 @@ import type {
   TableConfig,
   TextConfig,
 } from '../types.js'
-import { sectionColorHex } from '../types.js'
+import { SECTION_COLORS, ratingMax, sectionColorHex } from '../types.js'
 import {
   currencySign,
   fieldOptions,
   fileExt,
   formatDate,
   formatDateTime,
+  formatDuration,
   formatMoney,
   formatNumber,
   formatSize,
@@ -76,6 +79,11 @@ export interface RenderContext extends FormatContext {
    * у хоста. Нет — варианты показываются без иконок (цвет остаётся).
    */
   OptionIcon?: ComponentType<{ name: string; size?: number }>
+  /**
+   * Подсказки поля «Теги»: уже использованные значения этого поля (API
+   * /forms/:id/fields/:field_id/tags?q=). Нет — свободный ввод без подсказок.
+   */
+  loadTags?: (field: Field, q: string) => Promise<string[]>
 }
 
 /** Что хост получает от поля «Контакт». */
@@ -787,7 +795,7 @@ function isNumCol(c: TableColumn): boolean {
   return c.type === 'number' || c.type === 'money'
 }
 
-function cellText(col: TableColumn, v: unknown, currency?: string): string {
+function cellText(col: TableColumn, v: unknown, ctx: RenderContext, currency?: string): string {
   if (isBlank(v)) return '—'
   switch (col.type) {
     case 'number':
@@ -799,7 +807,9 @@ function cellText(col: TableColumn, v: unknown, currency?: string): string {
     case 'checkbox':
       return v === true ? 'Да' : '—'
     default:
-      return str(v)
+      // Остальные типы — тем же форматом, что и поле (сотрудник по имени,
+      // период датами, длительность часами), а не сырым значением.
+      return formatValue(columnField(col), v, ctx)
   }
 }
 
@@ -821,7 +831,7 @@ function sums(cols: TableColumn[], rows: Row[]): Record<string, number> {
   return out
 }
 
-function TableView({ field, value }: FieldRenderProps) {
+function TableView({ field, value, ctx }: FieldRenderProps) {
   const cols = tableColumns(field)
   const rows: Row[] = Array.isArray(value) ? (value as Row[]) : []
   const currency = (field.config as MoneyConfig | undefined)?.currency
@@ -847,7 +857,7 @@ function TableView({ field, value }: FieldRenderProps) {
               <td className={[styles.numCol, styles.rowNum].join(' ')}>{i + 1}</td>
               {cols.map((c) => (
                 <td key={c.id} className={isNumCol(c) ? styles.right : undefined}>
-                  {cellText(c, r[c.id], currency)}
+                  {cellText(c, r[c.id], ctx, currency)}
                 </td>
               ))}
             </tr>
@@ -925,6 +935,22 @@ function TableCell({
         </button>
       )
     }
+    // Типы 06.11.2026 — тем же реестром, что и поле: синтетическое поле из
+    // колонки (справочники и сотрудники берутся из ctx).
+    case 'user':
+    case 'link':
+    case 'rating':
+    case 'percent':
+    case 'duration':
+    case 'date_range':
+    case 'time': {
+      const Edit = fieldRegistry[col.type].Edit
+      return (
+        <div className={styles.cellCtl}>
+          <Edit field={columnField(col)} value={value} onChange={onChange} id={`${col.id}-cell`} disabled={disabled} ctx={ctx} />
+        </div>
+      )
+    }
     // select-колонка: у TableColumn бэкенда нет списка вариантов (v1) —
     // честнее свободный ввод, чем пустой дропдаун.
     default:
@@ -937,6 +963,22 @@ function TableCell({
           onChange={(e) => onChange(e.target.value)}
         />
       )
+  }
+}
+
+/** Колонка таблицы как поле — для реестра контролов и formatValue. */
+function columnField(col: TableColumn): Field {
+  return {
+    id: col.id,
+    key: col.key,
+    label: col.label || col.key,
+    type: col.type,
+    section_id: '',
+    span: 12,
+    required: false,
+    show_in_list: false,
+    filterable: false,
+    archived: false,
   }
 }
 
@@ -1131,6 +1173,430 @@ const note: FieldRenderer = {
   View: ({ field }) => <div className={styles.note}>{field.hint || field.label}</div>,
 }
 
+// ─── Типы шага 1 «до уровня Monday» (06.11.2026) ────────────────────────
+
+/** Оценка: ряд звёзд как radiogroup; повторный клик по выбранной — снять. */
+function Stars({
+  value,
+  max,
+  onChange,
+  disabled,
+  label,
+  id,
+  invalid,
+}: {
+  value: unknown
+  max: number
+  onChange?: (v: number | undefined) => void
+  disabled?: boolean
+  label: string
+  id?: string
+  invalid?: boolean
+}) {
+  const n = typeof value === 'number' ? value : 0
+  const readOnly = !onChange
+  return (
+    <div
+      id={id}
+      role="radiogroup"
+      aria-label={label}
+      aria-invalid={invalid || undefined}
+      className={[styles.stars, readOnly ? styles.starsStatic : ''].filter(Boolean).join(' ')}
+      onKeyDown={(e) => {
+        if (readOnly || disabled) return
+        if (e.key === 'ArrowRight' || e.key === 'ArrowUp') {
+          e.preventDefault()
+          onChange(Math.min(max, n + 1))
+        } else if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') {
+          e.preventDefault()
+          onChange(n > 1 ? n - 1 : undefined)
+        }
+      }}
+    >
+      {Array.from({ length: max }, (_, i) => i + 1).map((k) => (
+        <button
+          key={k}
+          type="button"
+          role="radio"
+          aria-checked={k === n}
+          aria-label={`${k} из ${max}`}
+          tabIndex={readOnly ? -1 : k === (n || 1) ? 0 : -1}
+          className={styles.star}
+          data-on={k <= n ? '' : undefined}
+          disabled={disabled || readOnly}
+          onClick={() => onChange?.(k === n ? undefined : k)}
+        >
+          ★
+        </button>
+      ))}
+    </div>
+  )
+}
+
+const rating: FieldRenderer = {
+  Edit: ({ field, value, onChange, id, invalid, disabled }) => (
+    <Stars
+      id={id}
+      value={value}
+      max={ratingMax(field)}
+      onChange={(v) => onChange(v)}
+      disabled={disabled}
+      invalid={invalid}
+      label={field.label || field.key}
+    />
+  ),
+  View: ({ field, value, ctx }) => (
+    <StaticValue className={styles.ratingView}>
+      {typeof value === 'number' ? (
+        <>
+          <Stars value={value} max={ratingMax(field)} label={field.label || field.key} />
+          <span>{formatValue(field, value, ctx)}</span>
+        </>
+      ) : (
+        '—'
+      )}
+    </StaticValue>
+  ),
+  align: 'right',
+}
+
+/** Время «ЧЧ:ММ»: цифры и двоеточие, двоеточие подставляется после часов. */
+function clockText(raw: string): string {
+  const digits = raw.replace(/\D/g, '').slice(0, 4)
+  return digits.length > 2 ? `${digits.slice(0, 2)}:${digits.slice(2)}` : digits
+}
+
+const time: FieldRenderer = {
+  Edit: ({ field, value, onChange, id, invalid, disabled }) => (
+    <Input
+      id={id}
+      inputMode="numeric"
+      placeholder={field.placeholder ?? 'чч:мм'}
+      value={str(value)}
+      invalid={invalid}
+      disabled={disabled}
+      className={styles.clock}
+      onChange={(e) => {
+        const t = clockText(e.target.value)
+        onChange(t || undefined)
+      }}
+    />
+  ),
+  View: TextView,
+}
+
+const dateRange: FieldRenderer = {
+  Edit: ({ field, value, onChange, id, invalid, disabled }) => {
+    const v = (value && typeof value === 'object' ? value : {}) as Partial<DateRangeValue>
+    const set = (patch: Partial<DateRangeValue>) => {
+      const next = { ...v, ...patch }
+      onChange(next.start || next.end ? next : undefined)
+    }
+    const name = field.label || field.key
+    return (
+      <div className={styles.range}>
+        <DateField
+          id={id}
+          ariaLabel={`${name}: с`}
+          value={v.start ?? ''}
+          max={v.end}
+          onChange={(d) => set({ start: d || undefined })}
+          invalid={invalid}
+          disabled={disabled}
+        />
+        <span className={styles.rangeDash} aria-hidden>
+          –
+        </span>
+        <DateField
+          ariaLabel={`${name}: по`}
+          value={v.end ?? ''}
+          min={v.start}
+          onChange={(d) => set({ end: d || undefined })}
+          invalid={invalid}
+          disabled={disabled}
+        />
+      </div>
+    )
+  },
+  View: TextView,
+}
+
+/** Длительность: часы и минуты, значение — минуты. */
+/**
+ * Длительность: часы и минуты, значение — минуты. Текст полей живёт локально
+ * (как у SuffixInput): round-trip через число съедал бы ввод и показывал NaN.
+ * Наружу — число, undefined (оба пусты) или сам текст при нечисловом вводе
+ * (валидатор скажет «ожидается длительность»).
+ */
+function DurationEdit({ field, value, onChange, id, invalid, disabled }: FieldRenderProps) {
+  const split = (v: unknown): [string, string] =>
+    typeof v === 'number' && Number.isFinite(v) ? [String(Math.floor(v / 60)), String(v % 60)] : ['', '']
+  // Текст → значение наружу: число минут, undefined (оба пусты) или сам текст.
+  const parse = (h: string, m: string): unknown => {
+    if (h.trim() === '' && m.trim() === '') return undefined
+    if (!/^\d*$/.test(h.trim()) || !/^\d*$/.test(m.trim())) return `${h.trim()} ч ${m.trim()} мин`
+    return (h.trim() === '' ? 0 : Number(h)) * 60 + (m.trim() === '' ? 0 : Number(m))
+  }
+  const [[hours, mins], setText] = useState<[string, string]>(() => split(value))
+  // Внешняя смена значения (сброс, загрузка записи) → пересинхронизировать
+  // текст; свой же ввод не трогаем, пока он парсится в то же значение.
+  useEffect(() => {
+    if (parse(hours, mins) !== value) setText(split(value))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value])
+  const name = field.label || field.key
+  const emit = (h: string, m: string) => {
+    setText([h, m])
+    onChange(parse(h, m))
+  }
+  return (
+    <div className={styles.duration}>
+      <div className={styles.suffixWrap}>
+        <Input
+          id={id}
+          inputMode="numeric"
+          aria-label={`${name}: часы`}
+          value={hours}
+          invalid={invalid}
+          disabled={disabled}
+          onChange={(e) => emit(e.target.value, mins)}
+        />
+        <span className={styles.suffix} aria-hidden>
+          ч
+        </span>
+      </div>
+      <div className={styles.suffixWrap}>
+        <Input
+          inputMode="numeric"
+          aria-label={`${name}: минуты`}
+          value={mins}
+          invalid={invalid}
+          disabled={disabled}
+          onChange={(e) => emit(hours, e.target.value)}
+        />
+        <span className={styles.suffix} aria-hidden>
+          мин
+        </span>
+      </div>
+    </div>
+  )
+}
+
+const duration: FieldRenderer = {
+  Edit: DurationEdit,
+  View: NumView,
+  align: 'right',
+}
+
+const percent: FieldRenderer = {
+  Edit: ({ field, value, onChange, id, invalid, disabled }) => (
+    <SuffixInput
+      id={id}
+      value={value}
+      onChange={onChange}
+      suffix="%"
+      invalid={invalid}
+      disabled={disabled}
+      placeholder={field.placeholder}
+    />
+  ),
+  View: ({ field, value, ctx }) => {
+    const n = typeof value === 'number' ? Math.max(0, Math.min(100, value)) : null
+    return (
+      <StaticValue className={styles.percentView}>
+        {n == null ? (
+          '—'
+        ) : (
+          <>
+            <span className={styles.num}>{formatValue(field, value, ctx)}</span>
+            <span
+              className={styles.bar}
+              role="progressbar"
+              aria-label={field.label || field.key}
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={n}
+            >
+              <span className={styles.barFill} style={{ width: `${n}%` }} />
+            </span>
+          </>
+        )}
+      </StaticValue>
+    )
+  },
+  align: 'right',
+}
+
+/** Теги: чипы + ввод; Enter или запятая добавляет, подсказки из ctx.loadTags. */
+function TagsEdit({ field, value, onChange, id, invalid, disabled, ctx }: FieldRenderProps) {
+  const tags = Array.isArray(value) ? value.map(String) : []
+  const [text, setText] = useState('')
+  const [hints, setHints] = useState<string[]>([])
+  const listId = useId()
+  useEffect(() => {
+    const q = text.trim()
+    if (!q || !ctx.loadTags) {
+      setHints([])
+      return
+    }
+    let alive = true
+    ctx.loadTags(field, q).then(
+      (list) => alive && setHints(list.filter((t) => !tags.includes(t)).slice(0, 8)),
+      () => alive && setHints([]),
+    )
+    return () => {
+      alive = false
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [text])
+  const add = (raw: string) => {
+    const t = raw.trim()
+    if (!t) return
+    if (!tags.some((x) => x.toLowerCase() === t.toLowerCase())) onChange([...tags, t])
+    setText('')
+    setHints([])
+  }
+  const remove = (t: string) => {
+    const next = tags.filter((x) => x !== t)
+    onChange(next.length ? next : undefined)
+  }
+  return (
+    <div className={[styles.tags, invalid ? styles.tagsInvalid : ''].filter(Boolean).join(' ')}>
+      {tags.map((t) => (
+        <span key={t} className={styles.chip}>
+          {t}
+          {!disabled && (
+            <button type="button" className={styles.chipRm} aria-label={`Убрать метку ${t}`} onClick={() => remove(t)}>
+              <Icon name="close" size={10} />
+            </button>
+          )}
+        </span>
+      ))}
+      <input
+        id={id}
+        role="combobox"
+        aria-expanded={hints.length > 0}
+        aria-controls={listId}
+        aria-autocomplete="list"
+        aria-invalid={invalid || undefined}
+        className={styles.tagsInput}
+        placeholder={tags.length ? '' : (field.placeholder ?? 'Метка и Enter')}
+        value={text}
+        disabled={disabled}
+        onChange={(e) => setText(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ',') {
+            e.preventDefault()
+            add(text)
+          } else if (e.key === 'Backspace' && text === '' && tags.length) {
+            remove(tags[tags.length - 1]!)
+          }
+        }}
+        onBlur={() => text.trim() && add(text)}
+      />
+      {hints.length > 0 && (
+        <ul id={listId} role="listbox" className={styles.tagsHints}>
+          {hints.map((h) => (
+            <li key={h} role="option" aria-selected={false} className={styles.tagsHint} onMouseDown={(e) => e.preventDefault()} onClick={() => add(h)}>
+              {h}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  )
+}
+
+const tags: FieldRenderer = {
+  Edit: TagsEdit,
+  View: ({ value }) => {
+    const items = Array.isArray(value) ? value.map(String) : []
+    return (
+      <StaticValue className={styles.chips}>
+        {items.length === 0
+          ? '—'
+          : items.map((t) => (
+              <span key={t} className={styles.chip}>
+                {t}
+              </span>
+            ))}
+      </StaticValue>
+    )
+  },
+}
+
+const location: FieldRenderer = {
+  Edit: ({ field, value, onChange, id, invalid, disabled }) => {
+    const v = (value && typeof value === 'object' ? value : {}) as Partial<LocationValue>
+    return (
+      <Input
+        id={id}
+        value={v.address ?? ''}
+        placeholder={field.placeholder ?? 'Город, улица, дом'}
+        invalid={invalid}
+        disabled={disabled}
+        onChange={(e) => {
+          const address = e.target.value
+          onChange(address.trim() === '' && v.lat == null ? undefined : { ...v, address })
+        }}
+      />
+    )
+  },
+  View: ({ value }) => {
+    const v = (value && typeof value === 'object' ? value : {}) as Partial<LocationValue>
+    if (!v.address) return <StaticValue>—</StaticValue>
+    return (
+      <StaticValue className={styles.locationView}>
+        <span>{v.address}</span>
+        <a
+          className={styles.link}
+          href={`https://yandex.ru/maps/?text=${encodeURIComponent(v.address)}`}
+          target="_blank"
+          rel="noreferrer"
+        >
+          на карте
+        </a>
+      </StaticValue>
+    )
+  },
+}
+
+const color: FieldRenderer = {
+  Edit: ({ field, value, onChange, id, invalid, disabled }) => (
+    <div id={id} role="radiogroup" aria-label={field.label || field.key} aria-invalid={invalid || undefined} className={styles.swatches}>
+      {SECTION_COLORS.map((c) => (
+        <button
+          key={c.key}
+          type="button"
+          role="radio"
+          aria-checked={value === c.key}
+          aria-label={c.label}
+          title={c.label}
+          className={styles.swatch}
+          style={{ '--swatch': c.hex } as CSSProperties}
+          disabled={disabled}
+          onClick={() => onChange(value === c.key ? undefined : c.key)}
+        />
+      ))}
+    </div>
+  ),
+  View: ({ field, value, ctx }) => {
+    const hex = typeof value === 'string' ? sectionColorHex(value) : undefined
+    return (
+      <StaticValue className={styles.colorView}>
+        {hex ? (
+          <>
+            <span className={styles.swatch} data-static="" style={{ '--swatch': hex } as CSSProperties} aria-hidden />
+            <span>{formatValue(field, value, ctx)}</span>
+          </>
+        ) : (
+          '—'
+        )}
+      </StaticValue>
+    )
+  },
+}
+
 export const fieldRegistry: Record<FieldType, FieldRenderer> = {
   text,
   textarea,
@@ -1151,6 +1617,14 @@ export const fieldRegistry: Record<FieldType, FieldRenderer> = {
   file,
   record_ref: recordRef,
   contact,
+  rating,
+  time,
+  date_range: dateRange,
+  duration,
+  percent,
+  tags,
+  location,
+  color,
   section,
   note,
 }

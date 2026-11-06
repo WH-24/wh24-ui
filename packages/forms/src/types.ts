@@ -31,6 +31,16 @@ export const FIELD_TYPES = [
   'file',
   'record_ref',
   'contact',
+  // Типы «до уровня Monday», шаг 1 (06.11.2026, спека в wh24-forms-api
+  // docs/superpowers/specs/2026-11-06-field-types-monday-design.md).
+  'rating',
+  'time',
+  'date_range',
+  'duration',
+  'percent',
+  'tags',
+  'location',
+  'color',
   'section',
   'note',
 ] as const
@@ -48,7 +58,17 @@ export function isPresentation(t: FieldType): boolean {
  * Системные поля записи (schema/system.go, владелец 17.10.2026 — как блок
  * «Системные» в Pyrus). Каждое — не больше одного на форму.
  */
-export const SYSTEM_KEYS = ['author', 'responsible', 'created_at', 'due', 'form'] as const
+export const SYSTEM_KEYS = [
+  'author',
+  'responsible',
+  'created_at',
+  'due',
+  'form',
+  // 06.11.2026: номер записи и «кто и когда менял последним» — вычисляемые.
+  'number',
+  'updated_at',
+  'updated_by',
+] as const
 
 export type SystemKey = (typeof SYSTEM_KEYS)[number]
 
@@ -59,10 +79,20 @@ export const SYSTEM_FIELD_TYPES: Record<SystemKey, FieldType> = {
   created_at: 'datetime',
   due: 'date',
   form: 'text',
+  number: 'number',
+  updated_at: 'datetime',
+  updated_by: 'user',
 }
 
 /** Вычисляемые: значение из записи (автор, дата создания) и формы (название), в data не хранится. */
-export const COMPUTED_SYSTEM_KEYS: readonly SystemKey[] = ['author', 'created_at', 'form']
+export const COMPUTED_SYSTEM_KEYS: readonly SystemKey[] = [
+  'author',
+  'created_at',
+  'form',
+  'number',
+  'updated_at',
+  'updated_by',
+]
 
 /** Поле заполняется само и в data его нет (schema.Field.IsComputed). */
 export function isComputedField(f: { system?: SystemKey }): boolean {
@@ -77,6 +107,15 @@ export const TABLE_COLUMN_TYPES: readonly FieldType[] = [
   'date',
   'select',
   'checkbox',
+  // 06.11.2026: ячейка рендерится тем же реестром, что и поле. catalog —
+  // нет: у колонки нет catalog_key, без справочника ячейка непригодна.
+  'user',
+  'link',
+  'rating',
+  'percent',
+  'duration',
+  'date_range',
+  'time',
 ]
 
 /** Типы, из которых можно брать название записи (schema.titleCapableTypes). */
@@ -231,6 +270,28 @@ export interface FileConfig {
  * формы. Значение — id записи, при multiple — список id. У формы-карточки
  * (проекты, лиды ОУП) id — это id сущности модуля.
  */
+/** Поле «Оценка»: максимум звёзд 2..10 (schema.RatingConfig), без config — RATING_DEFAULT_MAX. */
+export interface RatingConfig {
+  max?: number
+}
+export const RATING_DEFAULT_MAX = 5
+export const RATING_MIN_MAX = 2
+export const RATING_MAX_MAX = 10
+export function ratingMax(field: Pick<Field, 'config'>): number {
+  const m = (field.config as RatingConfig | undefined)?.max
+  return m && m > 0 ? m : RATING_DEFAULT_MAX
+}
+/** Значение поля «Период»: ГГГГ-ММ-ДД, start ≤ end. */
+export interface DateRangeValue {
+  start: string
+  end: string
+}
+/** Значение поля «Адрес»: адрес текстом, координаты необязательны. */
+export interface LocationValue {
+  address: string
+  lat?: number
+  lon?: number
+}
 export interface RecordRefConfig {
   form_id?: string
   multiple?: boolean

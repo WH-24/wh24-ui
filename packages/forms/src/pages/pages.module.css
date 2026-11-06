@@ -573,3 +573,33 @@
   text-decoration: line-through;
   margin-right: 6px;
 }
+
+/* Ячейки типов 06.11.2026 */
+.cellPercent {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-variant-numeric: tabular-nums;
+}
+.cellBar {
+  width: 56px;
+  height: 5px;
+  border-radius: 3px;
+  background: var(--bd);
+  overflow: hidden;
+}
+.cellBarFill {
+  display: block;
+  height: 100%;
+  background: var(--terra);
+}
+.cellColor {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.cellSwatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}

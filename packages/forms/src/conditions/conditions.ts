@@ -116,16 +116,31 @@ function toFloat(v: unknown): number | null {
   return null
 }
 
+/** «ЧЧ:ММ» → минуты от полуночи; иначе null (conditions.go toClock). */
+function toClock(v: unknown): number | null {
+  if (typeof v !== 'string' || !/^([01]\d|2[0-3]):[0-5]\d$/.test(v)) return null
+  return Number(v.slice(0, 2)) * 60 + Number(v.slice(3, 5))
+}
+
 /** gt/gte/lt/lte: обе стороны — числа (или числовые строки) либо обе даты
  *  (см. toDate); иначе — false, не ошибка. */
 function compareOrdered(op: Op, val: unknown, other: unknown): boolean {
   let a = toFloat(val)
   let b = toFloat(other)
   if (a === null || b === null) {
-    const da = toDate(val)
-    const db = toDate(other)
-    if (!da || !db) return false
-    ;[a, b] = dateKeys(da, db)
+    // Время дня «ЧЧ:ММ» (поле time, 06.11.2026): минуты от полуночи, как в Go.
+    const ca = toClock(val)
+    if (ca !== null) {
+      const cb = toClock(other)
+      if (cb === null) return false
+      a = ca
+      b = cb
+    } else {
+      const da = toDate(val)
+      const db = toDate(other)
+      if (!da || !db) return false
+      ;[a, b] = dateKeys(da, db)
+    }
   }
   switch (op) {
     case 'gt':

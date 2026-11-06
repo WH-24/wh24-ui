@@ -379,3 +379,30 @@ describe('FormRecordEditor', () => {
     await waitFor(() => expect(create).toHaveBeenCalledWith('form-1', expect.objectContaining({ title: 'Ручное' })))
   })
 })
+
+describe('FormRecordsPage — ячейки новых типов (06.11.2026)', () => {
+  it('теги — чипы и «+N», процент — progressbar, цвет — подпись', async () => {
+    const sch: SchemaDocument = {
+      ...schema,
+      fields: [
+        f({ id: 'name', type: 'text', label: 'Название', required: true }),
+        f({ id: 'tg', type: 'tags', label: 'Метки', show_in_list: true }),
+        f({ id: 'pct', type: 'percent', label: 'Готовность', show_in_list: true }),
+        f({ id: 'col', type: 'color', label: 'Цвет', show_in_list: true }),
+      ],
+    }
+    const list = vi.fn(async () => ({
+      data: [rec(1, { data: { name: 'Запись 1', tg: ['a', 'b', 'c'], pct: 45, col: 'teal' } })],
+      total: 1,
+    }))
+    const { api } = mockApi({ list })
+    render(<FormRecordsPage form={form} schema={sch} api={api} ctx={ctx} />)
+    expect(await screen.findByText('Запись 1')).toBeInTheDocument()
+    expect(screen.getByText('a')).toBeInTheDocument()
+    expect(screen.getByText('b')).toBeInTheDocument()
+    expect(screen.queryByText('c')).not.toBeInTheDocument()
+    expect(screen.getByText('+1')).toBeInTheDocument()
+    expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '45')
+    expect(screen.getByText('Бирюзовый')).toBeInTheDocument()
+  })
+})

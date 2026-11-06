@@ -29,7 +29,7 @@ import type {
   TableConfig,
   TextConfig,
 } from './types.js'
-import { catalogKeyOf, isComputedField, isPresentation } from './types.js'
+import { SECTION_COLORS, catalogKeyOf, isComputedField, isPresentation, ratingMax } from './types.js'
 
 function cfg<T>(f: Pick<Field, 'config'>): T {
   return (f.config ?? {}) as T
@@ -253,10 +253,83 @@ function checkValue(f: Field, value: unknown): RecordFieldError[] {
     }
     case 'table':
       return checkTable(f, value)
+    // --- Типы шага 1 «до уровня Monday» (06.11.2026), коды как в Go ---
+    case 'rating': {
+      if (typeof value !== 'number' || !Number.isInteger(value)) return [typeErr(f, 'целая оценка')]
+      if (value < 1) return [{ field_id: f.id, code: 'min', message: `поле «${label(f)}»: оценка не меньше 1` }]
+      const m = ratingMax(f)
+      if (value > m) return [{ field_id: f.id, code: 'max', message: `поле «${label(f)}»: оценка не больше ${m}` }]
+      return []
+    }
+    case 'time':
+      if (typeof value !== 'string') return [typeErr(f, 'время в формате ЧЧ:ММ')]
+      if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(value))
+        return [{ field_id: f.id, code: 'format', message: `поле «${label(f)}»: время должно быть вида ЧЧ:ММ` }]
+      return []
+    case 'date_range': {
+      const v = value as { start?: unknown; end?: unknown } | null
+      const start = v && typeof v === 'object' ? v.start : undefined
+      const end = v && typeof v === 'object' ? v.end : undefined
+      if (typeof start !== 'string' || typeof end !== 'string' || !validDate(start) || !validDate(end))
+        return [typeErr(f, 'период: даты начала и конца в формате ГГГГ-ММ-ДД')]
+      if (end < start)
+        return [{ field_id: f.id, code: 'range', message: `поле «${label(f)}»: конец периода раньше начала` }]
+      return []
+    }
+    case 'duration':
+      if (typeof value !== 'number' || !Number.isInteger(value))
+        return [typeErr(f, 'длительность в минутах, целое число')]
+      if (value < 0)
+        return [{ field_id: f.id, code: 'min', message: `поле «${label(f)}»: длительность не бывает отрицательной` }]
+      return []
+    case 'percent':
+      if (typeof value !== 'number' || !Number.isFinite(value)) return [typeErr(f, 'процент числом')]
+      if (value < 0) return [{ field_id: f.id, code: 'min', message: `поле «${label(f)}»: процент не меньше 0` }]
+      if (value > 100) return [{ field_id: f.id, code: 'max', message: `поле «${label(f)}»: процент не больше 100` }]
+      return []
+    case 'tags': {
+      const items = toStringArray(value)
+      if (!items) return [typeErr(f, 'список меток')]
+      if (items.length > MAX_TAGS)
+        return [{ field_id: f.id, code: 'max_items', message: `поле «${label(f)}»: не больше ${MAX_TAGS} меток` }]
+      const seen = new Set<string>()
+      for (const raw of items) {
+        const tag = raw.trim()
+        if (!tag) return [typeErr(f, 'список меток без пустых')]
+        if (Array.from(tag).length > MAX_TAG_LENGTH)
+          return [{ field_id: f.id, code: 'max_length', message: `поле «${label(f)}»: метка не длиннее ${MAX_TAG_LENGTH} символов` }]
+        const k = tag.toLowerCase()
+        if (seen.has(k))
+          return [{ field_id: f.id, code: 'duplicate', message: `поле «${label(f)}»: метка «${tag}» повторяется` }]
+        seen.add(k)
+      }
+      return []
+    }
+    case 'location': {
+      const v = value as { address?: unknown; lat?: unknown; lon?: unknown } | null
+      const addr = v && typeof v === 'object' ? v.address : undefined
+      if (typeof addr !== 'string' || addr.trim() === '') return [typeErr(f, 'адрес')]
+      if (Array.from(addr).length > MAX_ADDRESS_LENGTH)
+        return [{ field_id: f.id, code: 'max_length', message: `поле «${label(f)}»: адрес не длиннее ${MAX_ADDRESS_LENGTH} символов` }]
+      const coordOk = (c: unknown, lim: number) => c == null || (typeof c === 'number' && c >= -lim && c <= lim)
+      if (!coordOk(v!.lat, 90) || !coordOk(v!.lon, 180))
+        return [{ field_id: f.id, code: 'format', message: `поле «${label(f)}»: координаты вне допустимого диапазона` }]
+      return []
+    }
+    case 'color':
+      if (typeof value !== 'string') return [typeErr(f, 'цвет из палитры')]
+      if (!SECTION_COLORS.some((c) => c.key === value))
+        return [{ field_id: f.id, code: 'format', message: `поле «${label(f)}»: такого цвета нет в палитре` }]
+      return []
     default:
       return []
   }
 }
+
+/** Пределы полей «Теги» и «Адрес» (validate.go). */
+const MAX_TAGS = 30
+const MAX_TAG_LENGTH = 50
+const MAX_ADDRESS_LENGTH = 500
 
 function colLabel(c: TableColumn): string {
   return c.label || c.key

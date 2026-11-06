@@ -1,0 +1,6 @@
+{
+  "name": "time_between_inclusive",
+  "group": { "all": [ { "field": "start", "op": "between", "value": ["09:00", "18:00"] } ] },
+  "values": { "start": "18:00" },
+  "expect": true
+}

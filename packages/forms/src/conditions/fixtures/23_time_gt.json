@@ -1,0 +1,6 @@
+{
+  "name": "time_gt_lexicographic",
+  "group": { "all": [ { "field": "start", "op": "gt", "value": "09:00" } ] },
+  "values": { "start": "09:30" },
+  "expect": true
+}
