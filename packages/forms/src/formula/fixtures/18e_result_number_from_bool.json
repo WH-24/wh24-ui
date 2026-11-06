@@ -1,0 +1,10 @@
+{
+  "name": "18e_result_number_from_bool",
+  "expr": "{a} > 1",
+  "values": {
+    "a": 2
+  },
+  "today": "2026-11-06",
+  "result": "number",
+  "want": 1
+}

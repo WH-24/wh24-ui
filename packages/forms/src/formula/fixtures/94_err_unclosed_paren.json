@@ -1,0 +1,5 @@
+{
+  "name": "94_err_unclosed_paren",
+  "expr": "(1+2",
+  "parse_error": true
+}

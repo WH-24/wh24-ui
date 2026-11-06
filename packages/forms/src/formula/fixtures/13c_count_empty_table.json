@@ -1,0 +1,10 @@
+{
+  "name": "13c_count_empty_table",
+  "expr": "COUNT({items.sum})",
+  "values": {
+    "items": []
+  },
+  "today": "2026-11-06",
+  "result": "number",
+  "want": 0
+}

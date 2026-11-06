@@ -1,0 +1,5 @@
+{
+  "name": "97_err_trailing",
+  "expr": "1 2",
+  "parse_error": true
+}

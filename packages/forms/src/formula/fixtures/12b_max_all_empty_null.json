@@ -1,0 +1,8 @@
+{
+  "name": "12b_max_all_empty_null",
+  "expr": "MAX({a}, {b})",
+  "values": {},
+  "today": "2026-11-06",
+  "result": "number",
+  "want": null
+}

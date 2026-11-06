@@ -1,0 +1,11 @@
+{
+  "name": "03_refs_mul",
+  "expr": "{price}*{qty}",
+  "values": {
+    "price": 20,
+    "qty": 3
+  },
+  "today": "2026-11-06",
+  "result": "number",
+  "want": 60
+}

@@ -1,0 +1,5 @@
+{
+  "name": "92_err_arity_if",
+  "expr": "IF(1, 2)",
+  "parse_error": true
+}
