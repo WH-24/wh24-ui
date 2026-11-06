@@ -437,7 +437,14 @@ export interface Section {
   color?: SectionColor
 }
 
-/** Палитра цветов секции (15, по кругу оттенков). Ключи хранит сервер (forms-api SectionColors), оттенки — здесь. */
+/**
+ * Палитра цветов секции (и варианта списка, и поля «Цвет»): 30 оттенков. Ключи
+ * хранит сервер (forms-api SectionColors), оттенки — здесь. Первые 15 — круг
+ * оттенков, дальше промежуточные тона и тёмные: на длинной карточке секций
+ * больше, чем ярких цветов, а тёмные читаются как «другая группа» даже рядом.
+ * Порядок — порядок свотчей в палитре; новые добавлять в конец, ключи не менять
+ * (они записаны в схемах опубликованных форм).
+ */
 export const SECTION_COLORS = [
   { key: 'red', label: 'Красный', hex: '#e5484d' },
   { key: 'orange', label: 'Оранжевый', hex: '#ef6c1a' },
@@ -454,6 +461,21 @@ export const SECTION_COLORS = [
   { key: 'pink', label: 'Розовый', hex: '#d6409f' },
   { key: 'crimson', label: 'Малиновый', hex: '#e93d82' },
   { key: 'gray', label: 'Серый', hex: '#8b8d98' },
+  { key: 'tomato', label: 'Томатный', hex: '#e54d2e' },
+  { key: 'ruby', label: 'Рубиновый', hex: '#e54666' },
+  { key: 'gold', label: 'Золотистый', hex: '#978365' },
+  { key: 'olive', label: 'Оливковый', hex: '#7d8f3a' },
+  { key: 'grass', label: 'Травяной', hex: '#46a758' },
+  { key: 'jade', label: 'Нефритовый', hex: '#29a383' },
+  { key: 'iris', label: 'Ирисовый', hex: '#5b5bd6' },
+  { key: 'magenta', label: 'Пурпурный', hex: '#b5179e' },
+  { key: 'maroon', label: 'Бордовый', hex: '#8c1d35' },
+  { key: 'chocolate', label: 'Шоколадный', hex: '#6b3f24' },
+  { key: 'forest', label: 'Тёмно-зелёный', hex: '#1f6b45' },
+  { key: 'navy', label: 'Тёмно-синий', hex: '#1f3a8a' },
+  { key: 'aubergine', label: 'Баклажановый', hex: '#5b2a86' },
+  { key: 'steel', label: 'Стальной', hex: '#5f7a8a' },
+  { key: 'graphite', label: 'Графитовый', hex: '#3f3f46' },
 ] as const
 
 export type SectionColor = (typeof SECTION_COLORS)[number]['key']
