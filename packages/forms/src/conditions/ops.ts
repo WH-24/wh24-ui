@@ -28,7 +28,15 @@ export function conditionOps(type: FieldType): Op[] {
     case 'money':
     case 'date':
     case 'datetime':
+    case 'rating':
+    case 'duration':
+    case 'percent':
+    case 'time':
       return ORDERED
+    case 'tags':
+      return ['in', 'not_in', 'contains', 'not_contains', 'empty', 'not_empty']
+    case 'color':
+      return CHOICE
     case 'text':
     case 'textarea':
     case 'email':
@@ -39,6 +47,8 @@ export function conditionOps(type: FieldType): Op[] {
     case 'table':
     case 'record_ref':
     case 'contact':
+    case 'date_range':
+    case 'location':
       return FILLED
     default:
       return []
