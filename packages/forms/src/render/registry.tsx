@@ -1331,24 +1331,23 @@ const dateRange: FieldRenderer = {
 function DurationEdit({ field, value, onChange, id, invalid, disabled }: FieldRenderProps) {
   const split = (v: unknown): [string, string] =>
     typeof v === 'number' && Number.isFinite(v) ? [String(Math.floor(v / 60)), String(v % 60)] : ['', '']
+  // Текст → значение наружу: число минут, undefined (оба пусты) или сам текст.
+  const parse = (h: string, m: string): unknown => {
+    if (h.trim() === '' && m.trim() === '') return undefined
+    if (!/^\d*$/.test(h.trim()) || !/^\d*$/.test(m.trim())) return `${h.trim()} ч ${m.trim()} мин`
+    return (h.trim() === '' ? 0 : Number(h)) * 60 + (m.trim() === '' ? 0 : Number(m))
+  }
   const [[hours, mins], setText] = useState<[string, string]>(() => split(value))
+  // Внешняя смена значения (сброс, загрузка записи) → пересинхронизировать
+  // текст; свой же ввод не трогаем, пока он парсится в то же значение.
   useEffect(() => {
-    if (typeof value === 'number' || value == null) {
-      const [h, m] = split(value)
-      if (h !== hours || m !== mins) setText([h, m])
-    }
+    if (parse(hours, mins) !== value) setText(split(value))
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value])
   const name = field.label || field.key
   const emit = (h: string, m: string) => {
     setText([h, m])
-    if (h.trim() === '' && m.trim() === '') return onChange(undefined)
-    const hn = h.trim() === '' ? 0 : Number(h)
-    const mn = m.trim() === '' ? 0 : Number(m)
-    if (!/^\d*$/.test(h.trim()) || !/^\d*$/.test(m.trim()) || !Number.isInteger(hn) || !Number.isInteger(mn)) {
-      return onChange(`${h.trim()} ч ${m.trim()} мин`)
-    }
-    onChange(hn * 60 + mn)
+    onChange(parse(h, m))
   }
   return (
     <div className={styles.duration}>
