@@ -1,8 +1,10 @@
 # @wowhaus-24/brain-react
 
-Компоненты панели «Спросить ИИ» (WH24 Brain) для портала и фронтов модулей:
-разметка ответа с цитатами, источники, сообщения, карточка действия агента,
-композер, индикатор квоты и типизированный клиент `wh24-brain-api`.
+Компоненты панели «Спросить ИИ» и экрана «Агенты» (WH24 Brain) для портала и
+фронтов модулей: разметка ответа с цитатами, источники, сообщения, карточка
+действия агента, композер, индикатор квоты; конструктор агента (профиль,
+триггеры, инструменты, знания, память), журнал запусков и типизированный клиент
+`wh24-brain-api`.
 
 Пакет **data-agnostic**: данные и действия приходят через пропсы и колбэки,
 состояние разговора (тред, сообщения, выбранная модель) держит хост. Пакет
@@ -20,7 +22,7 @@
 
 | Экспорт | Что делает |
 |---|---|
-| `createBrainApi({ base, fetch?, headers? })` | `search`, `ask` (202 `{run_id}`), `getRun`, `waitForRun` (опрос 1 → 3 с, один запрос в полёте, пауза при скрытой вкладке, `signal`), `feedback`; ошибки — `BrainApiError` (`quotaExceeded` = 429) |
+| `createBrainApi({ base, fetch?, headers? })` | `search`, `ask` (202 `{run_id}`), `getRun`, `getAgentRun`, `waitForRun` (опрос 1 → 3 с, один запрос в полёте, пауза при скрытой вкладке, `signal`), `feedback`; агенты — см. раздел ниже; ошибки — `BrainApiError` (`quotaExceeded` = 429, `budgetExceeded` = 429 `budget`, `field` у 400, `code`) |
 | Типы | `BrainContext`, `SearchHit`, `Run`, `Citation`, `RunStep`, `PendingAction`, `SuggestedAction`, `BrainSource` … |
 | `Markdown` | ответ в markdown без сырого HTML; `[n]` → `CitationChip` (`onCitationClick`), внутренние ссылки → `onNavigate(path)`, внешние — `_blank noreferrer`; под таблицей «Скачать .xlsx», под кодом «Скачать .csv/.txt» |
 | `SourceCard`, `SourceList` | иконка модуля, заголовок, сниппет как прислал сервер, «Открыть» через `onOpen(url)`; `activeN` подсвечивает и прокручивает к источнику |
@@ -30,6 +32,9 @@
 | `BrainComposer` | автовысота, Enter/Shift+Enter, вложения (скрепка, Ctrl+V, перетаскивание), кнопки «+», «@», «/» от колбэков, `disabledReason` (квота) |
 | `addBrainFiles` | проверка и чтение файлов в data-URL (лимиты как на сервере) |
 | `UsageMeter`, `AiLabel`, `PrivacyNotice` | «Сегодня 12 % · Месяц 40 %» (с 90 % — предупреждение); «Ответ ИИ · по запросу …»; напоминание о приватности |
+| `AgentProfile`, `TriggerEditor`, `ScheduleEditor`, `ToolPicker`, `KnowledgePicker`, `MemoryEditor` | форма профиля агента по секциям и её части — см. «Агенты» |
+| `RunLogTable`, `RunDetail` | журнал запусков и детали запуска — см. «Агенты» |
+| `AgentCard`, `AgentPresetCard`, `AgentBuilderChat`, `BrainSwitch` | карточка агента и пресета, диалог-конструктор, переключатель — см. «Агенты» |
 | `AskAiPanel` | контейнер `layout: "side" \| "page"`: шапка со слотами контекста и модели, «Новый чат», «⤢», «×», переключатель «Найти \| Спросить», пустое состояние с пресетами, лента, источники, композер, низ |
 
 ## Подключение
@@ -142,6 +147,193 @@ export function AskAiDrawer({ onClose, navigateTo }: { onClose: () => void; navi
 хост; `AskAiPanel layout="side"` отвечает только за внутреннюю раскладку и
 держит ленту у последнего сообщения.
 
+## Агенты (0.2.0)
+
+Компоненты экрана «Агенты»: конструктор, триггеры, журнал. Как и всё в пакете —
+data-agnostic: данные и действия через пропсы и колбэки, состояние (черновик
+профиля, сообщения конструктора, список запусков) держит хост, в `localStorage`
+пакет ничего не пишет. Контракт — `wh24-brain-api/docs/API.md`, раздел «Агенты ИИ».
+
+### Клиент
+
+```ts
+const brain = createBrainApi({ base: '/brain/api/v1', fetch: whFetch })
+
+brain.agents.list({ scope: 'mine' | 'shared' })      // Agent[]
+brain.agents.get(id)                                  // Agent
+brain.agents.create({ name, instructions, … } | { preset_key: 'standup', name? })
+brain.agents.update(id, patch)                        // частичная правка; triggers заменяет набор целиком
+brain.agents.remove(id) · brain.agents.duplicate(id)
+brain.agents.run(id, { input? })                      // { run_id } → brain.waitForRun(run_id)
+brain.agents.runs(id, { status?, limit?, before? })   // журнал одного агента
+brain.agents.memory(id) · brain.agents.deleteMemory(id, memoryId)
+brain.agentRuns.list({ agent_id?, status?, limit?, before? })   // общий журнал
+brain.agentPresets() · brain.agentTools()
+brain.agentDraft({ message, history?, agent? })       // { reply, patch, notes? } — ничего не сохраняет
+```
+
+`before` — `queued_at` последнего запуска в списке. Ошибки — `BrainApiError`:
+`e.field` (у 400: `name`, `triggers[0]`…) — для подсветки поля в `AgentProfile.errors`,
+`e.forbidden` (403), `e.budgetExceeded` (429 `budget`: дневной бюджет агента),
+`e.quotaExceeded` (429 вообще; у `agentDraft` — лимит ИИ).
+
+### Компоненты
+
+| Компонент | Главные пропсы |
+|---|---|
+| `AgentProfile` | `value: AgentDraft`, `onChange`, `readOnly`, `canManage`, `highlight: string[]` (поля, изменённые конструктором), `errors: Record<string,string>`; данные для выбора: `tools`, `eventKeyOptions`, `timezones`, `modelOptions`, `userOptions`, `moduleKeys`, `pinnedDocuments`, `onPickDocument`, `memory`, `onForgetMemory` |
+| `TriggerEditor` | `value: Trigger[]`, `onChange`, `canManage`, `readOnly`, `eventKeyOptions: {key,label}[]`, `errors` |
+| `ScheduleEditor` | `value: {cron, tz, ends_at}`, `onChange`, `timezones` — человеческий ввод ⇄ cron, «Следующий запуск …», раскрывающееся поле cron |
+| `ToolPicker` | `tools: AgentToolInfo[]`, `value: string[]` (пусто = все доступные), `onChange`, `writePolicy` |
+| `KnowledgePicker` | `modules`, `onModulesChange`, `pinned: PinnedDocument[]`, `onRemovePinned`, `onPickDocument` |
+| `MemoryEditor` | `items: AgentMemoryItem[]`, `onForget` |
+| `RunLogTable` | `runs: AgentRun[]`, `onOpen(run)`, `hasMore`, `onLoadMore`, `showAgent`, `emptyAction` |
+| `RunDetail` | `run: AgentRun`, `onConfirmAction(action)`, `onCancelAction(action)`, `onRetry(run)`, `onNavigate`, `onOpenSource` |
+| `AgentCard` | `agent: Agent`, `onOpen`, `onRun` (по `can.run`), `onDuplicate`, `onDelete` (по `can.delete`) |
+| `AgentPresetCard` | `preset: AgentPreset`, `onCreate(preset)` |
+| `AgentBuilderChat` | `messages: BuilderMessage[]`, `busy`, `onSend(text)`, `onUndo`, `tools` |
+| `BrainSwitch` | `checked`, `onChange(checked)`, `children` — `role="switch"` для статуса агента и своих экранов |
+
+Помощники без React: `emptyAgentDraft()`, `agentToDraft(agent)`,
+`applyAgentPatch(draft, patch)` → `{ draft, changed }` (`changed` — в `highlight`),
+`patchSummary(patch)` (подписи «Что изменено в профиле»), `agentPrivacyWarning(draft)`,
+`cronFromParts` / `partsFromCron` / `scheduleProblem` / `describeSchedule` /
+`describeNextRun`, `skipReasonText(reason)`.
+
+### Что важно знать при подключении
+
+- 🔴 **Права проверяет сервер.** `canManage` и `agent.can.*` только решают, что показать:
+  триггеры по событиям, общий агент, `can_trigger`, «от чьего имени» — при `canManage=false`
+  скрыты или заблокированы с подсказкой «Триггеры по событиям настраивает управляющий
+  модулем ИИ». Запуск агента идёт правами нажавшего (по расписанию — правами `run_as`),
+  поэтому «знания» и «инструменты» права не расширяют.
+- **Расписание.** `ScheduleEditor` собирает cron (`по будням в 09:30` → `30 9 * * 1-5`),
+  конец расписания пишет как `ends_at` (конец дня в часовом поясе расписания, RFC 3339).
+  «Следующий запуск» считается по cron, который сейчас в поле, а не берётся из сохранённого
+  `next_run_at` (он устаревает при правке). Чаще раза в 5 минут — запрещено понятным текстом;
+  проверка — `scheduleProblem(cron)`.
+- **Запуски `restricted`.** Управляющий журналом видит запуск чужого агента без содержимого:
+  `RunLogTable` помечает «Содержимое видно только участнику», `RunDetail` показывает только
+  метаданные. Причины пропуска (`skip_reason`) показываются человеческим текстом.
+- **Предупреждение о приватности.** `AgentProfile` показывает баннер, когда у агента включён
+  триггер по событию или он общий с расписанием/событием (`agentPrivacyWarning`). Подтверждение
+  перед включением (`ConfirmDialog` портала) — у хоста.
+- **Конструктор.** `agentDraft` ничего не сохраняет: хост применяет `patch` сразу
+  (`applyAgentPatch`), подсвечивает изменённые поля (`highlight`) и хранит историю для
+  `onUndo`; «Сохранить» — отдельное действие человека.
+- Удаление агента: `AgentCard.onDelete` только сообщает хосту — подтверждение показывает хост.
+
+### Пример: редактор агента с конструктором и журналом
+
+```tsx
+import { useEffect, useState } from 'react'
+import {
+  AgentBuilderChat, AgentProfile, BrainApiError, RunDetail, RunLogTable,
+  agentToDraft, applyAgentPatch, createBrainApi, emptyAgentDraft,
+  type AgentDraft, type AgentRun, type AgentToolInfo, type BuilderMessage,
+} from '@wowhaus-24/brain-react'
+
+const brain = createBrainApi({ base: '/brain/api/v1', fetch: whFetch })
+
+export function AgentEditor({ agentId, canManage }: { agentId?: string; canManage: boolean }) {
+  const [draft, setDraft] = useState<AgentDraft>(emptyAgentDraft())
+  const [tools, setTools] = useState<AgentToolInfo[]>([])
+  const [highlight, setHighlight] = useState<string[]>([])
+  const [errors, setErrors] = useState<Record<string, string>>({})
+  const [messages, setMessages] = useState<BuilderMessage[]>([])
+  const [history, setHistory] = useState<AgentDraft[]>([]) // для «Отменить правку»
+  const [busy, setBusy] = useState(false)
+
+  useEffect(() => {
+    void brain.agentTools().then(setTools)
+    if (agentId) void brain.agents.get(agentId).then((a) => setDraft(agentToDraft(a)))
+  }, [agentId])
+
+  async function send(text: string) {
+    setMessages((m) => [...m, { id: crypto.randomUUID(), role: 'user', text }])
+    setBusy(true)
+    try {
+      const res = await brain.agentDraft({
+        message: text,
+        history: messages.map((m) => ({ role: m.role, content: m.text })),
+        agent: draft,
+      })
+      const { draft: next, changed } = applyAgentPatch(draft, res.patch)
+      setHistory((h) => [...h, draft])
+      setDraft(next)
+      setHighlight(changed)
+      setMessages((m) => [...m, { id: crypto.randomUUID(), role: 'assistant', text: res.reply, patch: res.patch, notes: res.notes }])
+    } catch (e) {
+      const error = e instanceof BrainApiError ? e.message : 'Не удалось связаться с конструктором'
+      setMessages((m) => [...m, { id: crypto.randomUUID(), role: 'assistant', text: '', error }])
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  function undo() {
+    const prev = history.at(-1)
+    if (!prev) return
+    setDraft(prev)
+    setHistory((h) => h.slice(0, -1))
+    setHighlight([])
+    setMessages((m) => {
+      const last = [...m].reverse().find((x) => x.patch && !x.undone)
+      return m.map((x) => (x === last ? { ...x, undone: true } : x))
+    })
+  }
+
+  async function save() {
+    try {
+      const saved = draft.id ? await brain.agents.update(draft.id, draft) : await brain.agents.create(draft)
+      setDraft(agentToDraft(saved))
+      setErrors({})
+    } catch (e) {
+      if (e instanceof BrainApiError && e.field) setErrors({ [e.field]: e.message })
+    }
+  }
+
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: 16 }}>
+      <div>
+        <AgentProfile
+          value={draft}
+          onChange={(d) => { setDraft(d); setHighlight([]) }}
+          canManage={canManage}
+          highlight={highlight}
+          errors={errors}
+          tools={tools}
+        />
+        <button type="button" className="btn btn-primary" onClick={() => void save()}>Сохранить</button>
+      </div>
+      <AgentBuilderChat messages={messages} busy={busy} onSend={(t) => void send(t)} onUndo={undo} tools={tools} />
+    </div>
+  )
+}
+
+// Журнал: общий список с догрузкой, детали — рядом.
+export function AgentJournal() {
+  const [runs, setRuns] = useState<AgentRun[]>([])
+  const [open, setOpen] = useState<AgentRun | null>(null)
+  const [more, setMore] = useState(false)
+
+  async function load(before?: string) {
+    const page = await brain.agentRuns.list({ limit: 30, before })
+    setRuns((r) => (before ? [...r, ...page] : page))
+    setMore(page.length === 30)
+  }
+  useEffect(() => { void load() }, [])
+
+  return (
+    <>
+      <RunLogTable runs={runs} onOpen={setOpen} selectedId={open?.id} hasMore={more}
+        onLoadMore={() => void load(runs.at(-1)?.queued_at)} />
+      {open && <RunDetail run={open} onRetry={(r) => r.agent_id && void brain.agents.run(r.agent_id)} />}
+    </>
+  )
+}
+```
+
 ## Разработка
 
 ```bash
@@ -151,3 +343,7 @@ npm test -w @wowhaus-24/brain-react        # vitest + happy-dom
 
 Тесты идут по исходникам `ui-react` (alias в `vitest.config.ts`), потому что
 корневой `tsc -b` не копирует CSS-модули в `dist/`.
+
+Выбор из списков в пакете — только общий `Combobox`/`MultiCombobox` из `ui-react`
+(никаких нативных `<select>`/`<datalist>`); переключатель в `ui-react` отсутствует —
+пакет держит свой `BrainSwitch`.

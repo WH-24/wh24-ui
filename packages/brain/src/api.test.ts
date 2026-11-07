@@ -194,3 +194,150 @@ describe('waitForRun', () => {
     }
   })
 })
+
+describe('createBrainApi: агенты', () => {
+  const agent = { id: 'a/1', name: 'Стендап', can: { edit: true, run: true, delete: true, journal: true } }
+
+  it('agents.list → GET /agents?scope=…, разворачивает {agents}', async () => {
+    const { fn, calls } = mockFetch([
+      { status: 200, body: { agents: [agent] } },
+      { status: 200, body: {} },
+    ])
+    const api = createBrainApi({ base: '/b', fetch: fn })
+    expect(await api.agents.list({ scope: 'shared' })).toHaveLength(1)
+    expect(calls[0]!.url).toBe('/b/agents?scope=shared')
+    expect(calls[0]!.init.method).toBe('GET')
+    expect(await api.agents.list()).toEqual([])
+    expect(calls[1]!.url).toBe('/b/agents')
+  })
+
+  it('agents.get/create/update/duplicate: пути, методы и тела; id экранируется', async () => {
+    const { fn, calls } = mockFetch([{ status: 200, body: { agent } }])
+    const api = createBrainApi({ base: '/b', fetch: fn })
+    expect((await api.agents.get('a/1')).name).toBe('Стендап')
+    await api.agents.create({ preset_key: 'standup', name: 'Мой стендап' })
+    await api.agents.create({ name: 'Новый', instructions: 'x' })
+    await api.agents.update('a/1', { name: 'Новое имя', triggers: [] })
+    await api.agents.duplicate('a/1')
+    expect(calls.map((c) => `${c.init.method} ${c.url}`)).toEqual([
+      'GET /b/agents/a%2F1',
+      'POST /b/agents',
+      'POST /b/agents',
+      'PATCH /b/agents/a%2F1',
+      'POST /b/agents/a%2F1/duplicate',
+    ])
+    expect(calls[1]!.init.body).toBe('{"preset_key":"standup","name":"Мой стендап"}')
+    expect(calls[2]!.init.body).toBe('{"name":"Новый","instructions":"x"}')
+    expect(calls[3]!.init.body).toBe('{"name":"Новое имя","triggers":[]}')
+  })
+
+  it('agents.remove и deleteMemory принимают пустой 204', async () => {
+    const { fn, calls } = mockFetch([{ status: 204, body: null }])
+    const api = createBrainApi({ base: '/b', fetch: fn })
+    await expect(api.agents.remove('a1')).resolves.toBeUndefined()
+    await expect(api.agents.deleteMemory('a1', 'm/2')).resolves.toBeUndefined()
+    expect(calls[0]!.init.method).toBe('DELETE')
+    expect(calls[0]!.url).toBe('/b/agents/a1')
+    expect(calls[1]!.url).toBe('/b/agents/a1/memory/m%2F2')
+  })
+
+  it('agents.run → POST /agents/:id/run {input} → {run_id}', async () => {
+    const { fn, calls } = mockFetch([{ status: 202, body: { run_id: 'r1', status: 'queued' } }])
+    const api = createBrainApi({ base: '/b', fetch: fn })
+    expect((await api.agents.run('a1', { input: 'апдейт по Офису' })).run_id).toBe('r1')
+    await api.agents.run('a1')
+    expect(calls[0]!.url).toBe('/b/agents/a1/run')
+    expect(calls[0]!.init.body).toBe('{"input":"апдейт по Офису"}')
+    expect(calls[1]!.init.body).toBe('{}')
+  })
+
+  it('agents.runs и agentRuns.list: фильтры в строке запроса, пустые пропускаются', async () => {
+    const { fn, calls } = mockFetch([{ status: 200, body: { runs: [{ id: 'r1', status: 'completed' }] } }])
+    const api = createBrainApi({ base: '/b', fetch: fn })
+    expect(await api.agents.runs('a1', { status: 'skipped', limit: 20, before: '2026-11-06T10:00:00Z' })).toHaveLength(1)
+    await api.agentRuns.list({ agent_id: 'a1', status: '', limit: 30 })
+    await api.agentRuns.list()
+    expect(calls[0]!.url).toBe('/b/agents/a1/runs?status=skipped&limit=20&before=2026-11-06T10%3A00%3A00Z')
+    expect(calls[1]!.url).toBe('/b/agent-runs?agent_id=a1&limit=30')
+    expect(calls[2]!.url).toBe('/b/agent-runs')
+  })
+
+  it('agents.memory, agentPresets, agentTools разворачивают обёртки', async () => {
+    const { fn, calls } = mockFetch([
+      { status: 200, body: { memory: [{ id: 'm1', kind: 'fact', text: 'Любит кратко' }] } },
+      { status: 200, body: { presets: [{ key: 'standup', available: true }] } },
+      { status: 200, body: { tools: [{ name: 'search_workspace', write: false }] } },
+    ])
+    const api = createBrainApi({ base: '/b', fetch: fn })
+    expect((await api.agents.memory('a1'))[0]!.text).toBe('Любит кратко')
+    expect((await api.agentPresets())[0]!.key).toBe('standup')
+    expect((await api.agentTools())[0]!.name).toBe('search_workspace')
+    expect(calls.map((c) => c.url)).toEqual(['/b/agents/a1/memory', '/b/agent-presets', '/b/agent-tools'])
+  })
+
+  it('agentDraft → POST /agent-draft с историей и текущим профилем', async () => {
+    const { fn, calls } = mockFetch([
+      { status: 200, body: { reply: 'Готово', patch: { name: 'Стендап' }, notes: ['Триггер по событию недоступен'] } },
+    ])
+    const api = createBrainApi({ base: '/b', fetch: fn })
+    const res = await api.agentDraft({
+      message: 'каждое утро',
+      history: [{ role: 'user', content: 'привет' }],
+      agent: { name: 'A' },
+    })
+    expect(res.patch.name).toBe('Стендап')
+    expect(res.notes).toEqual(['Триггер по событию недоступен'])
+    expect(calls[0]!.url).toBe('/b/agent-draft')
+    expect(JSON.parse(String(calls[0]!.init.body))).toEqual({
+      message: 'каждое утро',
+      history: [{ role: 'user', content: 'привет' }],
+      agent: { name: 'A' },
+    })
+  })
+
+  it('400 → BrainApiError с полем; 429 budget отличается от квоты ИИ', async () => {
+    const api = createBrainApi({
+      base: '/b',
+      fetch: mockFetch([
+        { status: 400, body: { error: 'не длиннее 80 знаков', code: 'bad_request', field: 'name' } },
+        { status: 429, body: { error: 'дневной бюджет агента исчерпан', code: 'budget' } },
+        { status: 429, body: { error: 'лимит ИИ исчерпан', code: 'quota' } },
+        { status: 403, body: { error: 'агент выключен — включите его, чтобы запускать', code: 'forbidden' } },
+      ]).fn,
+    })
+    const e1 = await api.agents.update('a1', { name: 'x'.repeat(81) }).catch((x) => x as BrainApiError)
+    expect(e1).toBeInstanceOf(BrainApiError)
+    expect(e1.status).toBe(400)
+    expect(e1.field).toBe('name')
+    expect(e1.message).toBe('не длиннее 80 знаков')
+    expect(e1.budgetExceeded).toBe(false)
+
+    const e2 = await api.agents.run('a1').catch((x) => x as BrainApiError)
+    expect(e2.status).toBe(429)
+    expect(e2.budgetExceeded).toBe(true)
+    expect(e2.quotaExceeded).toBe(true)
+    expect(e2.code).toBe('budget')
+
+    const e3 = await api.agentDraft({ message: 'x' }).catch((x) => x as BrainApiError)
+    expect(e3.budgetExceeded).toBe(false)
+    expect(e3.quotaExceeded).toBe(true)
+
+    const e4 = await api.agents.run('a1').catch((x) => x as BrainApiError)
+    expect(e4.forbidden).toBe(true)
+    expect(e4.field).toBeUndefined()
+  })
+
+  it('getAgentRun отдаёт поля агента; ошибка 404 — notFound', async () => {
+    const { fn } = mockFetch([
+      { status: 200, body: { id: 'r1', status: 'skipped', skip_reason: 'budget', trigger_kind: 'schedule' } },
+      { status: 404, body: { error: 'запуск не найден' } },
+    ])
+    const api = createBrainApi({ base: '/b', fetch: fn })
+    const r = await api.getAgentRun('r1')
+    expect(r.skip_reason).toBe('budget')
+    expect(r.trigger_kind).toBe('schedule')
+    const e = await api.getAgentRun('x').catch((x) => x as BrainApiError)
+    expect(e.notFound).toBe(true)
+  })
+})
+
