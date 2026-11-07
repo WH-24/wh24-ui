@@ -1,13 +1,13 @@
 /**
- * Сопоставление поля формы-карточки с полем Pyrus (решение владельца
- * 15.10.2026: поле заводится в конструкторе и там же сопоставляется с полем
- * Pyrus, публикация пишет карту вебхука ОУП).
+ * Сопоставление поля формы с полем Pyrus — у любой формы (решение владельца
+ * 07.11.2026; до этого — только у карточек ОУП, 15.10.2026). Связь: форма —
+ * `doc.pyrus.form_id`, поле — `field.pyrus.field_id`.
  *
  * Правила совместимости — копия wh24-forms-api `internal/cardimport/mapping.go`
  * (`PyrusCompat`), а те — правил вебхука wowhaus-api (`internal/pyrus`
  * checkCustomType / builtinCompatible). Правка — во всех трёх местах сразу.
  */
-import type { Field } from './types.js'
+import type { Field, SchemaDocument } from './types.js'
 
 /** Узел схемы формы Pyrus из зеркала (`GET /pyrus/api/v1/forms/{id}/schema`). */
 export interface PyrusSchemaField {
@@ -141,4 +141,114 @@ export function pyrusCompat(f: Field, p: Pick<FlatPyrusField, 'type' | 'deleted'
       return 'контакты выбираются из реестра ОУП, из Pyrus их не перенести'
   }
   return `тип Pyrus «${t}» не подходит полю «${f.type}»`
+}
+
+/** Структура формы Pyrus из `GET /admin/forms/:id/pyrus-schema`. */
+export interface PyrusFormSchema {
+  form_id: number
+  name: string
+  fields: PyrusSchemaField[]
+  steps?: { step: number; name: string }[]
+}
+
+export const PYRUS_TYPE_LABEL: Record<string, string> = {
+  text: 'Текст',
+  multiple_choice: 'Выбор',
+  catalog: 'Справочник',
+  checkmark: 'Галочка',
+  date: 'Дата',
+  due_date: 'Срок',
+  due_date_time: 'Срок со временем',
+  creation_date: 'Дата создания',
+  number: 'Число',
+  money: 'Сумма',
+  phone: 'Телефон',
+  email: 'Почта',
+  person: 'Человек',
+  author: 'Автор',
+  file: 'Файл',
+  title: 'Группа',
+  table: 'Таблица',
+  form_link: 'Связь с задачей',
+  note: 'Примечание',
+  step: 'Этап',
+  status: 'Статус',
+}
+
+export const pyrusTypeLabel = (t: string): string => PYRUS_TYPE_LABEL[t] ?? t
+
+export interface PyrusOption {
+  field: FlatPyrusField
+  /** «Тип · обязательно с этапа «…»» — подсказка в списке. */
+  hint: string
+}
+
+export interface PyrusUnavailable {
+  field: FlatPyrusField
+  reason: string
+}
+
+/** Поля формы, уже связанные с полями Pyrus (кроме `exceptId`, без архивных). */
+export function takenPyrusFields(doc: SchemaDocument, exceptId: string): Map<number, Field> {
+  const out = new Map<number, Field>()
+  for (const f of doc.fields) {
+    const id = f.pyrus?.field_id
+    if (id && f.id !== exceptId && !f.archived) out.set(id, f)
+  }
+  return out
+}
+
+export function pyrusStepName(steps: { step: number; name: string }[] | undefined, n: number): string {
+  const s = steps?.find((x) => x.step === n)
+  return s?.name ? `«${s.name}»` : String(n)
+}
+
+/** Поле Pyrus по id в дереве схемы (вместе с вложенными). */
+export function findPyrusField(schema: PyrusFormSchema | null | undefined, id: number): FlatPyrusField | null {
+  if (!schema) return null
+  return flattenPyrusFields(schema.fields).find((f) => f.field_id === id) ?? null
+}
+
+/**
+ * Список выбора «Поле Pyrus» для поля формы: подходящие и свободные поля
+ * Pyrus — в `options` (тип и этап обязательности в подсказке), остальные — в
+ * `unavailable` с причиной. Группы и таблицы сами не выбираются.
+ */
+export function pyrusChoices(
+  doc: SchemaDocument,
+  field: Field,
+  schema: Pick<PyrusFormSchema, 'fields' | 'steps'>,
+): { options: PyrusOption[]; unavailable: PyrusUnavailable[] } {
+  const taken = takenPyrusFields(doc, field.id)
+  const options: PyrusOption[] = []
+  const unavailable: PyrusUnavailable[] = []
+  for (const p of flattenPyrusFields(schema.fields)) {
+    if (p.type === 'title' || p.type === 'table') continue
+    const owner = taken.get(p.field_id)
+    const reason = owner ? `уже сопоставлено с полем «${owner.label || owner.key}»` : pyrusCompat(field, p)
+    if (reason) {
+      if (!p.deleted) unavailable.push({ field: p, reason })
+      continue
+    }
+    const parts = [pyrusTypeLabel(p.type)]
+    if (p.required_step != null) parts.push(`обязательно с этапа ${pyrusStepName(schema.steps, p.required_step)}`)
+    options.push({ field: p, hint: parts.join(' · ') })
+  }
+  return { options, unavailable }
+}
+
+/**
+ * Документ без связи с Pyrus: форма отвязана — связи полей снимаются вместе с
+ * ней (сервер не примет поле, связанное с полем Pyrus без формы Pyrus).
+ */
+export function withoutPyrus(doc: SchemaDocument): SchemaDocument {
+  const { pyrus: _drop, ...rest } = doc
+  return {
+    ...rest,
+    fields: doc.fields.map((f) => {
+      if (!f.pyrus) return f
+      const { pyrus: _p, ...field } = f
+      return field
+    }),
+  }
 }

@@ -7,6 +7,7 @@
  * 503 — роль спросить не удалось (модуль лежит). Сводить 503 к «нет доступа»
  * нельзя: это маскирует аварию под отказ.
  */
+import type { PyrusFormSchema } from './pyrusMapping.js'
 import type {
   AuditLogEntry,
   Catalog,
@@ -27,6 +28,7 @@ import type {
   RecordFieldError,
   RecordHistoryEntry,
   RecordRoute,
+  PyrusSyncStatus,
   SchemaDocument,
   SchemaValidationError,
 } from './types.js'
@@ -329,6 +331,14 @@ export function createFormsApi(opts: FormsApiOptions) {
             'POST',
             `/admin/forms/${seg(id)}/sync${dryRun ? '?dry_run=1' : ''}`,
           ),
+        /**
+         * Структура связанной формы Pyrus (черновика, иначе опубликованной
+         * версии) для «Поле Pyrus» в конструкторе — у любой формы.
+         */
+        pyrusSchema: (id: string) => request<PyrusFormSchema>('GET', `/admin/forms/${seg(id)}/pyrus-schema`),
+        /** Сверка записей с задачами Pyrus; null — ещё не проходила. */
+        pyrusStatus: (id: string) =>
+          request<PyrusSyncStatus | null>('GET', `/admin/forms/${seg(id)}/pyrus-status`),
         /** Что сделает публикация черновика карточки — без записи. */
         previewCardSync: (id: string) =>
           request<CardSyncPreview>('POST', `/admin/forms/${seg(id)}/sync?draft=1`, undefined, {

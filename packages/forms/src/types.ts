@@ -377,9 +377,18 @@ export interface TableConfig {
 /** native — своя колонка сущности (sys_*), custom — jsonb custom по id поля. */
 export type FieldStorage = 'native' | 'custom'
 
-/** Поле Pyrus, из которого вебхук ОУП пишет значение. */
+/** Поле Pyrus, с которым связано поле формы (у любой формы). */
 export interface PyrusLink {
   field_id: number
+}
+
+/**
+ * Форма Pyrus, с которой связана форма (у любой формы, 07.11.2026). У
+ * карточки ОУП значения ведёт ОУП, у обычной формы — синхронизация записей с
+ * задачами Pyrus в сервисе «Формы».
+ */
+export interface PyrusFormLink {
+  form_id: number
 }
 
 export interface FieldBinding {
@@ -391,7 +400,6 @@ export interface FieldBinding {
   show_always?: boolean
   read_modules?: string[]
   write_modules?: string[]
-  pyrus?: PyrusLink
 }
 
 export interface DocBinding {
@@ -399,7 +407,6 @@ export interface DocBinding {
   system: string
   /** project, lead или id привязки Pyrus пользовательской категории (ФМ). */
   entity: string
-  pyrus_form_id?: number
 }
 
 /** UNSECTIONED_ID — раздел «без раздела» (section_id NULL в ОУП). */
@@ -427,6 +434,8 @@ export interface Field {
   binding?: FieldBinding
   /** Системное поле записи (автор, ответственный, дата создания, срок, форма). */
   system?: SystemKey
+  /** Поле Pyrus, с которым связано поле. */
+  pyrus?: PyrusLink
 }
 
 export interface Section {
@@ -493,6 +502,8 @@ export interface SchemaDocument {
   fields: Field[]
   /** Только у формы-карточки: с какой сущностью какого модуля связана форма. */
   binding?: DocBinding
+  /** Форма Pyrus, с которой связана форма. */
+  pyrus?: PyrusFormLink
   /** Правила формы «если …, то …». */
   rules?: FormRule[]
 }
@@ -566,6 +577,26 @@ export interface FormRecord {
   deleted_at: string | null
   /** Значения полей «Подстановка» (id поля → значение); в списке — только у полей с show_in_list. */
   lookups?: Record<string, unknown>
+  /** Задача связанной формы Pyrus, с которой сверяется запись. */
+  pyrus_task_id?: number | null
+}
+
+/** Сверка записей обычной формы с задачами Pyrus (`GET /admin/forms/:id/pyrus-status`). */
+export interface PyrusSyncStatus {
+  form_id: string
+  pyrus_form_id: number
+  cursor: string | null
+  last_run_at: string | null
+  last_ok_at: string | null
+  /** Ошибка последнего прохода; пусто — прошёл. */
+  last_error: string
+  /** Записей заведено из задач / обновлено (с начала сверки этой формы Pyrus). */
+  created_total: number
+  updated_total: number
+  /** Записей формы, связанных с задачами. */
+  linked: number
+  /** Значения задач, не легшие в записи в последнем проходе. */
+  skipped_last: { task_id: number; field_id: string; reason: string }[]
 }
 
 export type RecordHistoryAction = 'created' | 'updated' | 'deleted' | 'restored'
