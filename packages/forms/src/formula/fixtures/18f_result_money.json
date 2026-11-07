@@ -1,0 +1,10 @@
+{
+  "name": "18f_result_money",
+  "expr": "{a}*1.2",
+  "values": {
+    "a": 100
+  },
+  "today": "2026-11-06",
+  "result": "money",
+  "want": 120
+}

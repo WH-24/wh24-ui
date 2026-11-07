@@ -1,0 +1,5 @@
+{
+  "name": "93_err_table_ref_outside_aggregate",
+  "expr": "{t.c}+1",
+  "parse_error": true
+}

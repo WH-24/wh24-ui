@@ -134,6 +134,78 @@ export interface RunUsage {
   model?: string
 }
 
+/** Тип значения колонки блока; сервер может прислать и другой (строкой). */
+export type RunBlockColumnType = 'string' | 'integer' | 'float' | 'date' | 'datetime' | 'boolean' | string
+
+/** Колонка таблицы блока. `title` — как в наборе данных (Perspective адресует колонки по названию). */
+export interface RunBlockColumn {
+  key: string
+  title: string
+  type: RunBlockColumnType
+}
+
+/** Показатель, который посчитан в блоке: ключ, название и формула текстом. */
+export interface RunBlockMetric {
+  key: string
+  title: string
+  formula?: string
+}
+
+/** Фильтр, по которому отобраны строки блока (`op` — как в `bi/query`: eq, in, between…). */
+export interface RunBlockFilter {
+  column: string
+  op: string
+  value?: unknown
+  values?: unknown[]
+}
+
+/** «Что посчитано»: набор, показатели, период, фильтры и объём данных блока. */
+export interface RunBlockExplain {
+  dataset?: string
+  dataset_title?: string
+  metrics?: RunBlockMetric[]
+  period?: { from?: string; to?: string }
+  /** Период не задан в вопросе — сервер взял свой (12 полных месяцев). */
+  period_defaulted?: boolean
+  /** Разрез времени: month | quarter | year. */
+  granularity?: string
+  filters?: RunBlockFilter[]
+  /** Сколько строк в блоке. */
+  row_count?: number
+  /** Сколько строк было до обрезки лимитом. */
+  source_rows?: number
+  truncated?: boolean
+  /** Когда посчитано (ISO 8601). */
+  computed_at?: string
+  /** Текст запроса — только у блоков `bi_sql` администратора. */
+  sql?: string
+}
+
+export type RunBlockSource = 'bi_query' | 'bi_sql'
+
+/** Значение ячейки блока. */
+export type RunBlockCell = string | number | boolean | null
+
+/**
+ * Структурный блок ответа: данные + декларативная конфигурация графика
+ * (`view` — ViewConfig Perspective) + «что посчитано». Хост рисует его своим
+ * просмотрщиком (`renderBlock`), без него — запасная таблица пакета.
+ */
+export interface RunBlock {
+  id: string
+  type: 'chart'
+  title: string
+  dataset: string
+  /** Запрос к `bi/query`, которым получены данные — чтобы перерисовать позже. */
+  query: Record<string, unknown>
+  columns: RunBlockColumn[]
+  rows: RunBlockCell[][]
+  /** Конфигурация графика Perspective (`plugin`, `group_by`, `columns`, …). */
+  view: Record<string, unknown>
+  explain: RunBlockExplain
+  source: RunBlockSource
+}
+
 export interface Run {
   id: string
   status: RunStatus
@@ -142,6 +214,8 @@ export interface Run {
   steps: RunStep[]
   pending_action?: PendingAction | null
   suggested_actions: SuggestedAction[]
+  /** Графики и таблицы к ответу; нет поля — ответ только текстом. */
+  blocks?: RunBlock[]
   usage?: RunUsage
   /** Текст ошибки при `failed`, по-русски — можно показывать как есть. */
   error?: string

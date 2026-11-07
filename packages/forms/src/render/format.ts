@@ -14,7 +14,15 @@ import type {
   SelectConfig,
   SelectOption,
 } from '../types.js'
-import { SECTION_COLORS, catalogKeyOf, ratingMax, sectionColorHex, type SectionColor } from '../types.js'
+import {
+  SECTION_COLORS,
+  catalogKeyOf,
+  formulaResultField,
+  lookupTargetField,
+  ratingMax,
+  sectionColorHex,
+  type SectionColor,
+} from '../types.js'
 import type { FormCatalog } from '../api.js'
 
 export interface FormatContext {
@@ -28,6 +36,8 @@ export interface FormatContext {
   recordRefs?: Record<string, RecordRefOption[]>
   /** id контакта реестра ОУП → ФИО (поле «Контакт»). */
   contactNames?: Record<string, string>
+  /** id поля «Подстановка» → значение из записи-источника (record.lookups). */
+  lookups?: Record<string, unknown>
 }
 
 const nf = new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 2 })
@@ -143,6 +153,10 @@ export function isBlank(v: unknown): boolean {
 export function formatValue(field: Field, value: unknown, ctx: FormatContext = {}): string {
   if (isBlank(value)) return '—'
   switch (field.type) {
+    case 'formula':
+      return formatValue(formulaResultField(field), value, ctx)
+    case 'lookup':
+      return formatValue(lookupTargetField(field), value, ctx)
     case 'number':
       return typeof value === 'number' ? formatNumber(value) : String(value)
     case 'money':

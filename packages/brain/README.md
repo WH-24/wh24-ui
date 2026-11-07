@@ -24,10 +24,11 @@
 | Экспорт | Что делает |
 |---|---|
 | `createBrainApi({ base, fetch?, headers? })` | `search`, `ask` (202 `{run_id}`), `getRun`, `getAgentRun`, `waitForRun` (опрос 1 → 3 с, один запрос в полёте, пауза при скрытой вкладке, `signal`), `feedback`; агенты — см. раздел ниже; ошибки — `BrainApiError` (`quotaExceeded` = 429, `budgetExceeded` = 429 `budget`, `field` у 400, `code`) |
-| Типы | `BrainContext`, `SearchHit`, `Run`, `Citation`, `RunStep`, `PendingAction`, `SuggestedAction`, `BrainSource` … |
+| Типы | `BrainContext`, `SearchHit`, `Run`, `Citation`, `RunStep`, `RunBlock` (+ `RunBlockColumn`, `RunBlockExplain`, `RunBlockCell`), `PendingAction`, `SuggestedAction`, `BrainSource` … |
 | `Markdown` | ответ в markdown без сырого HTML; `[n]` → `CitationChip` (`onCitationClick`), внутренние ссылки → `onNavigate(path)`, внешние — `_blank noreferrer`; под таблицей «Скачать .xlsx», под кодом «Скачать .csv/.txt» |
 | `SourceCard`, `SourceList` | иконка модуля, заголовок, сниппет как прислал сервер, «Открыть» через `onOpen(url)`; `activeN` подсвечивает и прокручивает к источнику |
-| `AssistantMessage` | текст без пузыря; строка действий Копировать · Создать задачу · Повторить · 👍 👎 и чипы follow-up — каждая кнопка появляется только от своего колбэка |
+| `AssistantMessage` | текст без пузыря; `blocks` (`Run.blocks`) — графики и таблицы между текстом и слотом `children`, рисуются через `renderBlock(block)` хоста, без него — `ChartBlockFallback`; строка действий Копировать · Создать задачу · Повторить · 👍 👎 и чипы follow-up — каждая кнопка появляется только от своего колбэка |
+| `ChartBlockFallback`, `BlockExplain` | запасной вид блока «график» без Perspective: заголовок, таблица первых 20 строк (`maxRows`), «Скачать .xlsx», и свёрнутый `<details>` «Что посчитано» — набор, показатели с формулой, период (+ «по умолчанию»), разрез времени, фильтры, строк, посчитано, SQL (если есть). Помощники `formatBlockValue`, `blockToRows`, `formatBlockFilter`, `formatBlockDate` |
 | `UserMessage` | вопрос компактно справа, с вложениями |
 | `AgentSteps`, `AiActionCard` | шаги агента; карточка действия (превью полей, предупреждения, «Подтвердить»/«Отмена», фокус после решения) |
 | `BrainComposer` | автовысота, Enter/Shift+Enter, вложения (скрепка, Ctrl+V, перетаскивание), кнопки «+», «@», «/» от колбэков, меню «/» с навыками (`skills`), `disabledReason` (квота) |
@@ -134,6 +135,8 @@ export function AskAiDrawer({ onClose, navigateTo }: { onClose: () => void; navi
             pending={busy && m.id === messages.at(-1)?.id}
             citations={m.run?.citations}
             steps={m.run?.steps}
+            blocks={m.run?.blocks}
+            renderBlock={(b) => <BrainChartBlock block={b} />}
             activeCitation={activeSource}
             onCitationClick={setActiveSource}
             onNavigate={navigateTo}
@@ -430,7 +433,7 @@ scope: form.id, … })` — колонка принадлежит конкрет
   «Обновлять при изменении записи» на сервере или кнопка «Заполнить пустые»
   (пустые, неудавшиеся и устаревшие).
 
-## Навыки, память, модели (0.4.0)
+## Навыки, память, модели (0.5.0)
 
 ### Клиент
 
@@ -500,6 +503,29 @@ const { skills: slash, reload } = useSlashSkills(api, { enabled: canUseBrain })
 (запускается переиндексация, поиск работает на прежней модели, пока новая не досчитается; пока идёт смена,
 покрытие обновляется само); «Переключить поиск на новую модель» при покрытии < 99 % предупреждает.
 Недоступный (не настроенный в окружении сервиса) провайдер выбрать нельзя.
+
+## Графики в ответе (0.4.0, `Run.blocks`)
+
+Ответ на вопрос про цифры приходит со структурными блоками: `RunBlock` =
+данные (`columns`, `rows`) + запрос, которым они получены (`query`) +
+декларативная конфигурация графика Perspective (`view`) + «что посчитано»
+(`explain`). Пакет от Perspective не зависит: хост с просмотрщиком отдаёт
+`renderBlock`, остальные получают `ChartBlockFallback`.
+
+```tsx
+<AssistantMessage
+  text={run.answer_md}
+  blocks={run.blocks}
+  renderBlock={(b) => <BrainChartBlock block={b} />} // портал: Perspective + BlockExplain
+/>
+```
+
+- `renderBlock` не задан или вернул `null`/`undefined` → запасная таблица
+  `ChartBlockFallback` (первые 20 строк, «Скачать .xlsx», `BlockExplain`).
+- `BlockExplain explain={b.explain}` можно положить под свой график: это чистый
+  HTML (`<details>` «Что посчитано», свёрнут по умолчанию, `open` раскрывает).
+- Блоки идут после текста и до слота `children`; пустой `blocks` ничего не
+  добавляет.
 
 ## Разработка
 

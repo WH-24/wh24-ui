@@ -1,0 +1,10 @@
+{
+  "name": "19_concat_bool",
+  "expr": "CONCAT({a} > 1, \"/\", {a} > 5)",
+  "values": {
+    "a": 2
+  },
+  "today": "2026-11-06",
+  "result": "text",
+  "want": "да/нет"
+}

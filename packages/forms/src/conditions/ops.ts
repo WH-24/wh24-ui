@@ -4,15 +4,22 @@
  * там он может быть только шире): оператор вне списка — условие, которое не
  * сработает так, как ожидал автор.
  */
-import type { FieldType, Op } from '../types.js'
+import type { Field, FieldType, Op } from '../types.js'
+import { formulaResultField } from '../types.js'
 
 const CHOICE: Op[] = ['eq', 'ne', 'in', 'not_in', 'empty', 'not_empty']
 const ORDERED: Op[] = ['eq', 'ne', 'gt', 'gte', 'lt', 'lte', 'between', 'empty', 'not_empty']
 const TEXT: Op[] = ['eq', 'ne', 'contains', 'not_contains', 'empty', 'not_empty']
 const FILLED: Op[] = ['not_empty', 'empty']
 
-/** Операторы для условия по полю этого типа (первый — по умолчанию). */
-export function conditionOps(type: FieldType): Op[] {
+/**
+ * Операторы для условия по полю этого типа (первый — по умолчанию). У формулы
+ * — по типу результата (нужно само поле), у подстановки — ни одного: в data
+ * её нет, условие не сработает.
+ */
+export function conditionOps(type: FieldType, field?: Pick<Field, 'config'>): Op[] {
+  if (type === 'formula') return conditionOps(formulaResultField({ type, config: field?.config } as Field).type)
+  if (type === 'lookup') return []
   switch (type) {
     case 'checkbox':
       // «Отмечено / не отмечено» — это eq true / eq false.

@@ -33,6 +33,11 @@ export type { AssistantMessageProps } from './messages/AssistantMessage.js'
 export { UserMessage } from './messages/UserMessage.js'
 export type { UserMessageProps, UserMessageAttachment } from './messages/UserMessage.js'
 
+export { BlockExplain, formatBlockDate, formatBlockFilter } from './blocks/BlockExplain.js'
+export type { BlockExplainProps } from './blocks/BlockExplain.js'
+export { ChartBlockFallback, formatBlockValue, blockToRows, isNumericColumn } from './blocks/ChartBlockFallback.js'
+export type { ChartBlockFallbackProps } from './blocks/ChartBlockFallback.js'
+
 export { AgentSteps } from './agent/AgentSteps.js'
 export type { AgentStepsProps } from './agent/AgentSteps.js'
 export { AiActionCard, ACTION_STATUS_LABEL } from './agent/AiActionCard.js'

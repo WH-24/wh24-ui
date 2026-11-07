@@ -1,0 +1,10 @@
+{
+  "name": "15b_days_until_due",
+  "expr": "DAYS({due}, TODAY())",
+  "values": {
+    "due": "2026-11-20"
+  },
+  "today": "2026-11-06",
+  "result": "number",
+  "want": 14
+}

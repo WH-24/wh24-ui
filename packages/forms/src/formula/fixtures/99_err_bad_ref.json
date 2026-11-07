@@ -1,0 +1,5 @@
+{
+  "name": "99_err_bad_ref",
+  "expr": "{a b}",
+  "parse_error": true
+}

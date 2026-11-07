@@ -529,9 +529,11 @@ export function FormRecordsPage({
                         <Cell
                           field={c.field!}
                           value={
-                            isComputedField(c.field!)
-                              ? systemValue(c.field!, { record: r, formName: form.name, staff: ctx.staff })
-                              : r.data?.[c.field!.id]
+                            c.field!.type === 'lookup'
+                              ? r.lookups?.[c.field!.id]
+                              : isComputedField(c.field!)
+                                ? systemValue(c.field!, { record: r, formName: form.name, staff: ctx.staff })
+                                : r.data?.[c.field!.id]
                           }
                           ctx={ctx}
                         />
