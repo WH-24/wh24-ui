@@ -3,8 +3,9 @@
 Компоненты панели «Спросить ИИ» и экрана «Агенты» (WH24 Brain) для портала и
 фронтов модулей: разметка ответа с цитатами, источники, сообщения, карточка
 действия агента, композер, индикатор квоты; конструктор агента (профиль,
-триггеры, инструменты, знания, память), журнал запусков и типизированный клиент
-`wh24-brain-api`.
+триггеры, инструменты, знания, память), журнал запусков, «Поля ИИ» (колонки
+списков, которые заполняет модель), генераторы (итог недели, стендап, дайджест
+проекта, сводка руководителя) и типизированный клиент `wh24-brain-api`.
 
 Пакет **data-agnostic**: данные и действия приходят через пропсы и колбэки,
 состояние разговора (тред, сообщения, выбранная модель) держит хост. Пакет
@@ -23,10 +24,11 @@
 | Экспорт | Что делает |
 |---|---|
 | `createBrainApi({ base, fetch?, headers? })` | `search`, `ask` (202 `{run_id}`), `getRun`, `getAgentRun`, `waitForRun` (опрос 1 → 3 с, один запрос в полёте, пауза при скрытой вкладке, `signal`), `feedback`; агенты — см. раздел ниже; ошибки — `BrainApiError` (`quotaExceeded` = 429, `budgetExceeded` = 429 `budget`, `field` у 400, `code`) |
-| Типы | `BrainContext`, `SearchHit`, `Run`, `Citation`, `RunStep`, `PendingAction`, `SuggestedAction`, `BrainSource` … |
+| Типы | `BrainContext`, `SearchHit`, `Run`, `Citation`, `RunStep`, `RunBlock` (+ `RunBlockColumn`, `RunBlockExplain`, `RunBlockCell`), `PendingAction`, `SuggestedAction`, `BrainSource` … |
 | `Markdown` | ответ в markdown без сырого HTML; `[n]` → `CitationChip` (`onCitationClick`), внутренние ссылки → `onNavigate(path)`, внешние — `_blank noreferrer`; под таблицей «Скачать .xlsx», под кодом «Скачать .csv/.txt» |
 | `SourceCard`, `SourceList` | иконка модуля, заголовок, сниппет как прислал сервер, «Открыть» через `onOpen(url)`; `activeN` подсвечивает и прокручивает к источнику |
-| `AssistantMessage` | текст без пузыря; строка действий Копировать · Создать задачу · Повторить · 👍 👎 и чипы follow-up — каждая кнопка появляется только от своего колбэка |
+| `AssistantMessage` | текст без пузыря; `blocks` (`Run.blocks`) — графики и таблицы между текстом и слотом `children`, рисуются через `renderBlock(block)` хоста, без него — `ChartBlockFallback`; строка действий Копировать · Создать задачу · Повторить · 👍 👎 и чипы follow-up — каждая кнопка появляется только от своего колбэка |
+| `ChartBlockFallback`, `BlockExplain` | запасной вид блока «график» без Perspective: заголовок, таблица первых 20 строк (`maxRows`), «Скачать .xlsx», и свёрнутый `<details>` «Что посчитано» — набор, показатели с формулой, период (+ «по умолчанию»), разрез времени, фильтры, строк, посчитано, SQL (если есть). Помощники `formatBlockValue`, `blockToRows`, `formatBlockFilter`, `formatBlockDate` |
 | `UserMessage` | вопрос компактно справа, с вложениями |
 | `AgentSteps`, `AiActionCard` | шаги агента; карточка действия (превью полей, предупреждения, «Подтвердить»/«Отмена», фокус после решения) |
 | `BrainComposer` | автовысота, Enter/Shift+Enter, вложения (скрепка, Ctrl+V, перетаскивание), кнопки «+», «@», «/» от колбэков, `disabledReason` (квота) |
@@ -35,6 +37,8 @@
 | `AgentProfile`, `TriggerEditor`, `ScheduleEditor`, `ToolPicker`, `KnowledgePicker`, `MemoryEditor` | форма профиля агента по секциям и её части — см. «Агенты» |
 | `RunLogTable`, `RunDetail` | журнал запусков и детали запуска — см. «Агенты» |
 | `AgentCard`, `AgentPresetCard`, `AgentBuilderChat`, `BrainSwitch` | карточка агента и пресета, диалог-конструктор, переключатель — см. «Агенты» |
+| `useAiFieldColumns`, `AiFieldCell`, `AiFieldColumnMenu`, `AiFieldDialog` | колонки «Поле ИИ» для списков, ячейка, меню заголовка, создание/правка колонки — см. «Поля ИИ и генераторы» |
+| `GeneratorDialog`, `BrainDialog`, `BrainConfirm` | окно генераторов; общее модальное окно и подтверждение пакета |
 | `AskAiPanel` | контейнер `layout: "side" \| "page"`: шапка со слотами контекста и модели, «Новый чат», «⤢», «×», переключатель «Найти \| Спросить», пустое состояние с пресетами, лента, источники, композер, низ |
 
 ## Подключение
@@ -128,6 +132,8 @@ export function AskAiDrawer({ onClose, navigateTo }: { onClose: () => void; navi
             pending={busy && m.id === messages.at(-1)?.id}
             citations={m.run?.citations}
             steps={m.run?.steps}
+            blocks={m.run?.blocks}
+            renderBlock={(b) => <BrainChartBlock block={b} />}
             activeCitation={activeSource}
             onCitationClick={setActiveSource}
             onNavigate={navigateTo}
@@ -333,6 +339,119 @@ export function AgentJournal() {
   )
 }
 ```
+
+## Поля ИИ и генераторы (0.3.0)
+
+🔴 **Права — на сервере.** Значение ячейки хранится рядом с записью индекса и
+читается по правам на запись: общая колонка видна всем, а ячейка — только тому,
+кто видит запись. Чужие записи в ответ `fields.values` не попадают, ячейка
+остаётся «—». Пакет ничего не кеширует в `localStorage`.
+
+### Клиент
+
+| Метод | Что делает |
+|---|---|
+| `api.fields.list(module, entityType, scope?)` | `{fields, daily_limit, supported}` — свои и общие колонки списка; `supported:false` — для списка поля ИИ не поддерживаются. `scope` — id формы: колонки записей **формы** принадлежат ей (без `scope` у форм — `supported:false`) |
+| `api.fields.create(draft)` / `update(id, patch)` / `remove(id)` | колонка (вид, модуль и тип записи не меняются); `update` отдаёт `{field, values_reset}` — сменился смысл ячейки, значения стёрты |
+| `api.fields.values(module, entityType, ids, scope?)` | `{<field_id>: {<entity_id>: {status, text, error?, error_code?}}}`; длинный список клиент делит по 100 id |
+| `api.fields.fill(id, {entity_ids, force?})` | поставить записи в очередь: `{queued, requested, no_access, skipped_limit, up_to_date, limit_left}`; делит по 500 |
+| `api.fields.preview(draft + entity_ids)` / `getPreview(id)` | «Попробовать на 3 строках» — проба несохранённой колонки |
+| `api.generate(kind, body)` | `week_summary \| standup \| project_update \| exec_summary` → `{run_id}`; результат — `waitForRun` |
+
+Статусы ячейки: `fresh`, `stale` (запись изменилась после расчёта), `queued`,
+`computing`, `failed`. `brainErrorText(e)` превращает `BrainApiError` в фразу для
+человека («HTTP 403» наружу не выходит).
+
+### Колонки в списке портала
+
+`useAiFieldColumns` ведёт всё сам: грузит колонки списка, запрашивает значения
+для строк на экране, раз в 2–3 с переспрашивает только ячейки в работе (пауза при
+скрытой вкладке) и отдаёт готовые `columns`, кнопку «Поле ИИ» и диалоги.
+
+```tsx
+const ai = useAiFieldColumns<Lead>({
+  api, // createBrainApi(...)
+  module: 'oup',
+  entityType: 'lead',
+  rows: leads, // строки списка на экране
+  getId: (l) => l.id, // = entity_id в индексе
+  canCreate: role !== 'view', // «Поле ИИ» — роль edit
+  canManage: role === 'manage', // «Видна всем» — manage
+  enabled: hasBrainAccess,
+  confirm: (req) => confirm(req), // необязательно: своё подтверждение
+  notify: (text, tone) => toast(text, tone), // необязательно: свои тосты
+})
+
+<ListPage columns={[...baseColumns, ...ai.columns]} toolbarEnd={() => ai.addButton} … />
+{ai.dialogs}
+```
+
+Записи формы: `useAiFieldColumns({ module: 'forms', entityType: 'form_record',
+scope: form.id, … })` — колонка принадлежит конкретной форме и в других формах не
+видна (`AiField.scope`; у лидов, проектов и задач он пустой).
+
+Колонка получает `headerActions` (✨ с меню «Заполнить пустые», «Обновить все»,
+«Настроить…», «Удалить…») — это поле `ListColumn.headerActions` из `ui-react`.
+В «Формах» (`FormRecordsPage` из `forms-react`) колонки передаются в
+`extraColumns`, строки страницы приходят из `onRowsChange`, а `addButton` идёт в
+`actions`.
+
+### Генераторы
+
+```tsx
+<GeneratorDialog
+  api={api}
+  open={open}
+  onClose={() => setOpen(false)}
+  kind="week_summary" // или kinds={['standup', 'project_update']} — сегмент
+  autoRun // «Итог недели» одним нажатием
+  defaults={{ selfName: me.name }}
+  onNavigate={(url) => navigateTo(url)}
+/>
+```
+
+Период по умолчанию тот же, что подставит сервер (итог недели — пн–вс текущей
+недели, остальное — последние 7 дней). Результат — `Markdown` с цитатами `[n]` и
+`SourceList`; ошибки, квота и бюджет — понятным текстом.
+
+### Что важно знать при подключении
+
+- Модальные окна пакета (`BrainDialog`) держат фокус внутри, возвращают его на
+  кнопку-открывашку, закрываются по Esc (Esc, закрывающий список общего
+  `Combobox`, окно не закрывает; наружу, на хост, Esc не уходит) и на телефоне
+  становятся «шторкой» на всю ширину. Их `z-index` — 85 (`--brain-dialog-z`), ниже
+  выпадающих списков общих `Combobox` (90).
+- Меню колонки рисуется порталом в `<body>` с `position: fixed` — таблицу с
+  горизонтальной прокруткой оно не обрежет.
+- Пока колонок нет и заводить их нельзя (`canCreate=false`), значения не
+  запрашиваются; ошибка загрузки колонок (нет доступа к модулю ИИ) просто прячет
+  колонки — страница работает как раньше.
+- Устаревшую ячейку (`stale`) пакет не пересчитывает сам: это решает колонка
+  «Обновлять при изменении записи» на сервере или кнопка «Заполнить пустые»
+  (пустые, неудавшиеся и устаревшие).
+
+## Графики в ответе (0.4.0, `Run.blocks`)
+
+Ответ на вопрос про цифры приходит со структурными блоками: `RunBlock` =
+данные (`columns`, `rows`) + запрос, которым они получены (`query`) +
+декларативная конфигурация графика Perspective (`view`) + «что посчитано»
+(`explain`). Пакет от Perspective не зависит: хост с просмотрщиком отдаёт
+`renderBlock`, остальные получают `ChartBlockFallback`.
+
+```tsx
+<AssistantMessage
+  text={run.answer_md}
+  blocks={run.blocks}
+  renderBlock={(b) => <BrainChartBlock block={b} />} // портал: Perspective + BlockExplain
+/>
+```
+
+- `renderBlock` не задан или вернул `null`/`undefined` → запасная таблица
+  `ChartBlockFallback` (первые 20 строк, «Скачать .xlsx», `BlockExplain`).
+- `BlockExplain explain={b.explain}` можно положить под свой график: это чистый
+  HTML (`<details>` «Что посчитано», свёрнут по умолчанию, `open` раскрывает).
+- Блоки идут после текста и до слота `children`; пустой `blocks` ничего не
+  добавляет.
 
 ## Разработка
 

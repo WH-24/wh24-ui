@@ -1,0 +1,182 @@
+/* Блоки ответа: «Что посчитано» (свёрнутый <details>) и запасная таблица
+   графика для хостов без Perspective. Таблица повторяет таблицы разметки
+   ответа (markdown.module.css), чтобы блок не выглядел чужим в ленте. */
+
+/* ─── «Что посчитано» ─── */
+.explain {
+  min-width: 0;
+  font-family: var(--font-sans);
+  font-size: var(--fs-meta);
+  line-height: 1.5;
+  color: var(--ink-3);
+}
+.summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 2px 0;
+  border-radius: var(--r-xs);
+  list-style: none;
+  color: var(--ink-3);
+  font-weight: var(--fw-medium);
+  cursor: pointer;
+  user-select: none;
+}
+.summary::-webkit-details-marker {
+  display: none;
+}
+/* Свой маркер-уголок: браузерный треугольник у каждого браузера свой. */
+.summary::before {
+  content: '';
+  width: 5px;
+  height: 5px;
+  margin-left: 2px;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: rotate(-45deg);
+  transition: transform 0.12s;
+}
+.explain[open] > .summary::before {
+  transform: rotate(45deg);
+}
+.summary:hover {
+  color: var(--ink);
+}
+.summary:focus {
+  outline: none;
+}
+.summary:focus-visible {
+  outline: var(--focus-ring-w) solid var(--focus);
+  outline-offset: 2px;
+}
+
+.facts {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: 3px 12px;
+  margin: 6px 0 0;
+}
+.facts dt {
+  color: var(--ink-4);
+  white-space: nowrap;
+}
+.facts dd {
+  margin: 0;
+  color: var(--ink-2);
+  overflow-wrap: anywhere;
+}
+.metrics {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.formula,
+.hint {
+  color: var(--ink-4);
+}
+.sql {
+  max-height: 240px;
+  margin: 8px 0 0;
+  padding: 8px 10px;
+  border: var(--bd-hairline) solid var(--bd);
+  border-radius: var(--r-md);
+  background: var(--surf-2);
+  color: var(--ink-2);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  overflow: auto;
+}
+
+/* ─── Запасная таблица блока ─── */
+.block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  padding: 12px 14px;
+  border: var(--bd-hairline) solid var(--bd);
+  border-radius: var(--r-lg);
+  background: var(--surf);
+  font-family: var(--font-sans);
+  color: var(--ink);
+}
+.title {
+  margin: 0;
+  font-size: var(--fs-card);
+  font-weight: var(--fw-semibold);
+  line-height: var(--lh-snug);
+  color: var(--ink);
+}
+.tablewrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.table {
+  border-collapse: collapse;
+  min-width: 100%;
+  font-size: 13.5px;
+}
+.table th,
+.table td {
+  padding: 5px 10px;
+  border: var(--bd-hairline) solid var(--bd);
+  text-align: left;
+  vertical-align: top;
+  white-space: nowrap;
+}
+.table th {
+  background: var(--surf-2);
+  font-weight: var(--fw-semibold);
+  color: var(--ink);
+}
+.table th[data-num],
+.table td[data-num] {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.table td[data-empty] {
+  color: var(--ink-4);
+}
+.empty {
+  margin: 0;
+  font-size: var(--fs-meta);
+  color: var(--ink-4);
+}
+.foot {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+}
+.more {
+  font-size: var(--fs-meta);
+  color: var(--ink-4);
+}
+.download {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  padding: 5px 10px;
+  border: var(--bd-hairline) solid var(--bd-strong);
+  border-radius: var(--r-md);
+  background: var(--surf-2);
+  color: var(--ink-2);
+  font-size: var(--fs-meta);
+  font-weight: var(--fw-medium);
+  cursor: pointer;
+}
+.download:hover {
+  border-color: var(--terra);
+  color: var(--terra-d);
+}
+
+@media (pointer: coarse) {
+  .summary,
+  .download {
+    min-height: var(--tap-min-compact);
+  }
+}
