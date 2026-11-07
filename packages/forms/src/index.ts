@@ -61,8 +61,21 @@ export {
   flattenPyrusFields,
   isPyrusPersonType,
   isPyrusValuelessType,
+  PYRUS_TYPE_LABEL,
+  pyrusTypeLabel,
+  takenPyrusFields,
+  pyrusStepName,
+  findPyrusField,
+  pyrusChoices,
+  withoutPyrus,
 } from './pyrusMapping.js'
-export type { PyrusSchemaField, FlatPyrusField } from './pyrusMapping.js'
+export type {
+  PyrusSchemaField,
+  FlatPyrusField,
+  PyrusFormSchema,
+  PyrusOption,
+  PyrusUnavailable,
+} from './pyrusMapping.js'
 
 // React-рендер записи: реестр контролов по типу поля + тело формы.
 export { fieldRegistry, FieldControl } from './render/registry.js'
