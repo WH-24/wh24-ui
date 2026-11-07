@@ -1,0 +1,8 @@
+{
+  "name": "10_round_half_away",
+  "expr": "ROUND(2.5)",
+  "values": {},
+  "today": "2026-11-06",
+  "result": "number",
+  "want": 3
+}

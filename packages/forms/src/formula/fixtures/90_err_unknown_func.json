@@ -1,0 +1,5 @@
+{
+  "name": "90_err_unknown_func",
+  "expr": "FOO(1)",
+  "parse_error": true
+}

@@ -1,0 +1,10 @@
+{
+  "name": "22b_inf_string_null",
+  "expr": "{q}+1",
+  "values": {
+    "q": "inf"
+  },
+  "today": "2026-11-06",
+  "result": "number",
+  "want": null
+}

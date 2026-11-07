@@ -19,6 +19,7 @@ import { applyFillsOnChange, visibleIfMap } from '../conditions/rules.js'
 import { fieldRequirement, fieldVisibility } from '../conditions/visibility.js'
 import type { Field, RecordData, RecordFieldError, SchemaDocument, Section } from '../types.js'
 import { isComputedField, isPresentation, sectionColorHex } from '../types.js'
+import { computeFormulas } from '../formula/formula.js'
 import { isBlank } from './format.js'
 import { FieldControl, type RenderContext, type RenderMode } from './registry.js'
 import styles from './render.module.css'
@@ -107,6 +108,9 @@ export function FormRenderer({
     [doc.sections],
   )
   const visible = visibleFields(doc, values)
+  // Формулы — вживую по текущим значениям, тем же вычислителем, что сервер
+  // при сохранении; сохранённое в data значение в форме не показывается.
+  const computed = useMemo(() => computeFormulas(doc, values), [doc, values])
   // Звёздочка — и у полей, обязательных по условию (required_if выполнено).
   const required = fieldRequirement(doc.fields, values)
   const bySection = new Map<string, Field[]>()
@@ -124,7 +128,11 @@ export function FormRenderer({
       <FieldControl
         mode={forceView ? 'view' : mode}
         field={f}
-        value={values[f.id]}
+        value={
+          // Правка — вживую; просмотр — сохранённое сервером (то же, что в
+          // списке и выгрузке), а без него (запись старше формулы) — расчёт.
+          f.type === 'formula' ? (mode === 'edit' && !forceView ? computed[f.id] : (values[f.id] ?? computed[f.id])) : values[f.id]
+        }
         onChange={
           onChange
             ? (v) => {
@@ -180,7 +188,13 @@ export function FormRenderer({
       >
         {s.title && <h3 className={styles.sectionTitle}>{s.title}</h3>}
         {/* Вычисляемые системные поля (автор, дата создания, форма) не вводятся — всегда просмотр. */}
-        <FieldGrid>{fields.map((f) => renderField(f, isComputedField(f)))}</FieldGrid>
+        <FieldGrid>
+          {fields.map((f) =>
+            // Системные вычисляемые и формула — всегда просмотр; у подстановки
+            // свой read-only Edit с подсказкой «после сохранения».
+            renderField(f, isComputedField({ system: f.system }) || f.type === 'formula'),
+          )}
+        </FieldGrid>
       </section>
     )
   }

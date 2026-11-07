@@ -1,0 +1,8 @@
+{
+  "name": "16_date_plus_days",
+  "expr": "\"2026-11-06\"+3",
+  "values": {},
+  "today": "2026-11-06",
+  "result": "date",
+  "want": "2026-11-09"
+}

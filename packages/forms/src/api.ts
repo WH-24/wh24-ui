@@ -343,6 +343,9 @@ export function createFormsApi(opts: FormsApiOptions) {
         update: (id: string, body: { name?: string; columns?: unknown; display_column?: string }) =>
           request<Catalog>('PUT', `/admin/catalogs/${seg(id)}`, body),
         archive: (id: string) => request<Catalog>('POST', `/admin/catalogs/${seg(id)}/archive`),
+        /** Удалить насовсем (роль manage). 409 — справочник в полях живых форм: `data.forms` — какие. */
+        remove: (id: string) =>
+          request<{ id: string; deleted: true }>('DELETE', `/admin/catalogs/${seg(id)}`),
         items: (id: string) => request<CatalogItem[]>('GET', `/admin/catalogs/${seg(id)}/items`),
         addItem: (id: string, body: { values: Record<string, unknown>; sort_order?: number }) =>
           request<CatalogItem>('POST', `/admin/catalogs/${seg(id)}/items`, body),

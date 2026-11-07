@@ -1,0 +1,11 @@
+{
+  "name": "17_compare_dates",
+  "expr": "IF({a} < {b}, 1, 0)",
+  "values": {
+    "a": "2026-11-06",
+    "b": "2026-11-07"
+  },
+  "today": "2026-11-06",
+  "result": "number",
+  "want": 1
+}

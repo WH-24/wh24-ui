@@ -1,0 +1,8 @@
+{
+  "name": "14c_days_not_date_null",
+  "expr": "DAYS(\"x\", \"2026-11-06\")",
+  "values": {},
+  "today": "2026-11-06",
+  "result": "number",
+  "want": null
+}

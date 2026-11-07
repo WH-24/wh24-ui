@@ -1,0 +1,11 @@
+{
+  "name": "04_div_zero_null",
+  "expr": "{a}/{b}",
+  "values": {
+    "a": 1,
+    "b": 0
+  },
+  "today": "2026-11-06",
+  "result": "number",
+  "want": null
+}

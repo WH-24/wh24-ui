@@ -1,0 +1,8 @@
+{
+  "name": "02_parens_unary",
+  "expr": "-(2+3)",
+  "values": {},
+  "today": "2026-11-06",
+  "result": "number",
+  "want": -5
+}

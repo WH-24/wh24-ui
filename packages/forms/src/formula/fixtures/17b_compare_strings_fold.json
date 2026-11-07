@@ -1,0 +1,10 @@
+{
+  "name": "17b_compare_strings_fold",
+  "expr": "IF({a} = \"да\", 1, 0)",
+  "values": {
+    "a": " ДА "
+  },
+  "today": "2026-11-06",
+  "result": "number",
+  "want": 1
+}

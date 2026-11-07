@@ -1,0 +1,8 @@
+{
+  "name": "01_arith_precedence",
+  "expr": "2+3*4",
+  "values": {},
+  "today": "2026-11-06",
+  "result": "number",
+  "want": 14
+}

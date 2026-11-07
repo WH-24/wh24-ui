@@ -1,0 +1,10 @@
+{
+  "name": "18c_result_date_from_number_null",
+  "expr": "{a}",
+  "values": {
+    "a": 5
+  },
+  "today": "2026-11-06",
+  "result": "date",
+  "want": null
+}

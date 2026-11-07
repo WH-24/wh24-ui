@@ -1,0 +1,10 @@
+{
+  "name": "13d_min_empty_table_null",
+  "expr": "MIN({items.sum})",
+  "values": {
+    "items": []
+  },
+  "today": "2026-11-06",
+  "result": "number",
+  "want": null
+}

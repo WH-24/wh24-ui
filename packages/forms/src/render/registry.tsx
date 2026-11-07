@@ -8,7 +8,7 @@
  * никаких нативных <select>/<input type=date> — вид поля одинаков во всех
  * модулях.
  */
-import { useEffect, useId, useState, type ComponentType, type CSSProperties, type ReactNode } from 'react'
+import { useEffect, useId, useRef, useState, type ComponentType, type CSSProperties, type ReactNode } from 'react'
 import {
   Combobox,
   DateField,
@@ -40,7 +40,7 @@ import type {
   TableConfig,
   TextConfig,
 } from '../types.js'
-import { SECTION_COLORS, ratingMax, sectionColorHex } from '../types.js'
+import { SECTION_COLORS, formulaResultField, lookupTargetField, ratingMax, sectionColorHex } from '../types.js'
 import {
   currencySign,
   fieldOptions,
@@ -109,6 +109,8 @@ export interface FieldRenderProps {
   invalid?: boolean
   disabled?: boolean
   ctx: RenderContext
+  /** Доступное имя контрола, когда <label> рядом нет (ячейка таблицы). */
+  ariaLabel?: string
 }
 
 export interface FieldRenderer {
@@ -206,6 +208,7 @@ function SuffixInput({
   invalid,
   disabled,
   placeholder,
+  ariaLabel,
 }: {
   id: string
   value: unknown
@@ -214,6 +217,7 @@ function SuffixInput({
   invalid?: boolean
   disabled?: boolean
   placeholder?: string
+  ariaLabel?: string
 }) {
   const [text, setText] = useState(() => numberText(value))
   // Внешняя смена значения (сброс, загрузка записи) → пересинхронизировать
@@ -226,6 +230,7 @@ function SuffixInput({
     <div className={styles.suffixWrap}>
       <Input
         id={id}
+        aria-label={ariaLabel}
         inputMode="decimal"
         value={text}
         placeholder={placeholder}
@@ -512,9 +517,10 @@ function isHttpUrl(v: unknown): v is string {
 }
 
 const link: FieldRenderer = {
-  Edit: ({ field, value, onChange, id, invalid, disabled }) => (
+  Edit: ({ field, value, onChange, id, invalid, disabled, ariaLabel }) => (
     <Input
       id={id}
+      aria-label={ariaLabel}
       type="url"
       inputMode="url"
       value={str(value)}
@@ -610,9 +616,10 @@ function PersonView({ field, value, ctx }: FieldRenderProps) {
 }
 
 const user: FieldRenderer = {
-  Edit: ({ field, value, onChange, id, invalid, disabled, ctx }) => (
+  Edit: ({ field, value, onChange, id, invalid, disabled, ctx, ariaLabel }) => (
     <Combobox
       id={id}
+      inputAriaLabel={ariaLabel}
       options={orgOptions(ctx.staff, true)}
       value={str(value)}
       onChange={(v) => onChange(v || undefined)}
@@ -886,12 +893,14 @@ function TableView({ field, value, ctx }: FieldRenderProps) {
 
 function TableCell({
   col,
+  row,
   value,
   onChange,
   disabled,
   ctx,
 }: {
   col: TableColumn
+  row: number
   value: unknown
   onChange: (v: unknown) => void
   disabled?: boolean
@@ -947,7 +956,15 @@ function TableCell({
       const Edit = fieldRegistry[col.type].Edit
       return (
         <div className={styles.cellCtl}>
-          <Edit field={columnField(col)} value={value} onChange={onChange} id={`${col.id}-cell`} disabled={disabled} ctx={ctx} />
+          <Edit
+            field={columnField(col)}
+            value={value}
+            onChange={onChange}
+            id={`${col.id}-r${row}`}
+            ariaLabel={col.label || col.key}
+            disabled={disabled}
+            ctx={ctx}
+          />
         </div>
       )
     }
@@ -1064,6 +1081,7 @@ function TableEdit({ field, value, onChange, disabled, ctx }: FieldRenderProps) 
                   <td key={c.id}>
                     <TableCell
                       col={c}
+                      row={i}
                       value={r[c.id]}
                       onChange={(v) => setCell(i, c.id, v)}
                       disabled={disabled}
@@ -1175,7 +1193,8 @@ const note: FieldRenderer = {
 
 // ─── Типы шага 1 «до уровня Monday» (06.11.2026) ────────────────────────
 
-/** Оценка: ряд звёзд как radiogroup; повторный клик по выбранной — снять. */
+/** Оценка: ряд звёзд как radiogroup; повторный клик по выбранной — снять;
+ *  стрелки меняют значение и переводят фокус на новую звезду. */
 function Stars({
   value,
   max,
@@ -1187,44 +1206,52 @@ function Stars({
 }: {
   value: unknown
   max: number
-  onChange?: (v: number | undefined) => void
+  onChange: (v: number | undefined) => void
   disabled?: boolean
   label: string
   id?: string
   invalid?: boolean
 }) {
   const n = typeof value === 'number' ? value : 0
-  const readOnly = !onChange
+  const refs = useRef<Array<HTMLButtonElement | null>>([])
+  const move = (next: number | undefined) => {
+    onChange(next)
+    const target = refs.current[(next ?? 1) - 1]
+    target?.focus()
+  }
   return (
     <div
       id={id}
       role="radiogroup"
       aria-label={label}
       aria-invalid={invalid || undefined}
-      className={[styles.stars, readOnly ? styles.starsStatic : ''].filter(Boolean).join(' ')}
+      className={styles.stars}
       onKeyDown={(e) => {
-        if (readOnly || disabled) return
+        if (disabled) return
         if (e.key === 'ArrowRight' || e.key === 'ArrowUp') {
           e.preventDefault()
-          onChange(Math.min(max, n + 1))
+          move(Math.min(max, n + 1))
         } else if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') {
           e.preventDefault()
-          onChange(n > 1 ? n - 1 : undefined)
+          move(n > 1 ? n - 1 : undefined)
         }
       }}
     >
       {Array.from({ length: max }, (_, i) => i + 1).map((k) => (
         <button
           key={k}
+          ref={(el) => {
+            refs.current[k - 1] = el
+          }}
           type="button"
           role="radio"
           aria-checked={k === n}
           aria-label={`${k} из ${max}`}
-          tabIndex={readOnly ? -1 : k === (n || 1) ? 0 : -1}
+          tabIndex={k === (n || 1) ? 0 : -1}
           className={styles.star}
           data-on={k <= n ? '' : undefined}
-          disabled={disabled || readOnly}
-          onClick={() => onChange?.(k === n ? undefined : k)}
+          disabled={disabled}
+          onClick={() => onChange(k === n ? undefined : k)}
         >
           ★
         </button>
@@ -1233,8 +1260,21 @@ function Stars({
   )
 }
 
+/** Звёзды для чтения: одна картинка с подписью «4 из 5», без интерактива. */
+function StarsStatic({ value, max, label }: { value: number; max: number; label: string }) {
+  return (
+    <span role="img" aria-label={label} className={[styles.stars, styles.starsStatic].join(' ')}>
+      {Array.from({ length: max }, (_, i) => i + 1).map((k) => (
+        <span key={k} className={styles.star} data-on={k <= value ? '' : undefined} aria-hidden>
+          ★
+        </span>
+      ))}
+    </span>
+  )
+}
+
 const rating: FieldRenderer = {
-  Edit: ({ field, value, onChange, id, invalid, disabled }) => (
+  Edit: ({ field, value, onChange, id, invalid, disabled, ariaLabel }) => (
     <Stars
       id={id}
       value={value}
@@ -1242,14 +1282,14 @@ const rating: FieldRenderer = {
       onChange={(v) => onChange(v)}
       disabled={disabled}
       invalid={invalid}
-      label={field.label || field.key}
+      label={ariaLabel ?? (field.label || field.key)}
     />
   ),
   View: ({ field, value, ctx }) => (
     <StaticValue className={styles.ratingView}>
       {typeof value === 'number' ? (
         <>
-          <Stars value={value} max={ratingMax(field)} label={field.label || field.key} />
+          <StarsStatic value={value} max={ratingMax(field)} label={formatValue(field, value, ctx)} />
           <span>{formatValue(field, value, ctx)}</span>
         </>
       ) : (
@@ -1267,9 +1307,10 @@ function clockText(raw: string): string {
 }
 
 const time: FieldRenderer = {
-  Edit: ({ field, value, onChange, id, invalid, disabled }) => (
+  Edit: ({ field, value, onChange, id, invalid, disabled, ariaLabel }) => (
     <Input
       id={id}
+      aria-label={ariaLabel}
       inputMode="numeric"
       placeholder={field.placeholder ?? 'чч:мм'}
       value={str(value)}
@@ -1286,13 +1327,13 @@ const time: FieldRenderer = {
 }
 
 const dateRange: FieldRenderer = {
-  Edit: ({ field, value, onChange, id, invalid, disabled }) => {
+  Edit: ({ field, value, onChange, id, invalid, disabled, ariaLabel }) => {
     const v = (value && typeof value === 'object' ? value : {}) as Partial<DateRangeValue>
     const set = (patch: Partial<DateRangeValue>) => {
       const next = { ...v, ...patch }
       onChange(next.start || next.end ? next : undefined)
     }
-    const name = field.label || field.key
+    const name = ariaLabel ?? (field.label || field.key)
     return (
       <div className={styles.range}>
         <DateField
@@ -1328,7 +1369,7 @@ const dateRange: FieldRenderer = {
  * Наружу — число, undefined (оба пусты) или сам текст при нечисловом вводе
  * (валидатор скажет «ожидается длительность»).
  */
-function DurationEdit({ field, value, onChange, id, invalid, disabled }: FieldRenderProps) {
+function DurationEdit({ field, value, onChange, id, invalid, disabled, ariaLabel }: FieldRenderProps) {
   const split = (v: unknown): [string, string] =>
     typeof v === 'number' && Number.isFinite(v) ? [String(Math.floor(v / 60)), String(v % 60)] : ['', '']
   // Текст → значение наружу: число минут, undefined (оба пусты) или сам текст.
@@ -1344,7 +1385,7 @@ function DurationEdit({ field, value, onChange, id, invalid, disabled }: FieldRe
     if (parse(hours, mins) !== value) setText(split(value))
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value])
-  const name = field.label || field.key
+  const name = ariaLabel ?? (field.label || field.key)
   const emit = (h: string, m: string) => {
     setText([h, m])
     onChange(parse(h, m))
@@ -1389,9 +1430,10 @@ const duration: FieldRenderer = {
 }
 
 const percent: FieldRenderer = {
-  Edit: ({ field, value, onChange, id, invalid, disabled }) => (
+  Edit: ({ field, value, onChange, id, invalid, disabled, ariaLabel }) => (
     <SuffixInput
       id={id}
+      ariaLabel={ariaLabel}
       value={value}
       onChange={onChange}
       suffix="%"
@@ -1428,11 +1470,13 @@ const percent: FieldRenderer = {
 }
 
 /** Теги: чипы + ввод; Enter или запятая добавляет, подсказки из ctx.loadTags. */
-function TagsEdit({ field, value, onChange, id, invalid, disabled, ctx }: FieldRenderProps) {
+function TagsEdit({ field, value, onChange, id, invalid, disabled, ctx, ariaLabel }: FieldRenderProps) {
   const tags = Array.isArray(value) ? value.map(String) : []
   const [text, setText] = useState('')
   const [hints, setHints] = useState<string[]>([])
+  const [active, setActive] = useState(-1)
   const listId = useId()
+  const has = (t: string) => tags.some((x) => x.toLowerCase() === t.toLowerCase())
   useEffect(() => {
     const q = text.trim()
     if (!q || !ctx.loadTags) {
@@ -1441,7 +1485,11 @@ function TagsEdit({ field, value, onChange, id, invalid, disabled, ctx }: FieldR
     }
     let alive = true
     ctx.loadTags(field, q).then(
-      (list) => alive && setHints(list.filter((t) => !tags.includes(t)).slice(0, 8)),
+      (list) => {
+        if (!alive) return
+        setHints(list.filter((t) => !has(t)).slice(0, 8))
+        setActive(-1)
+      },
       () => alive && setHints([]),
     )
     return () => {
@@ -1452,9 +1500,10 @@ function TagsEdit({ field, value, onChange, id, invalid, disabled, ctx }: FieldR
   const add = (raw: string) => {
     const t = raw.trim()
     if (!t) return
-    if (!tags.some((x) => x.toLowerCase() === t.toLowerCase())) onChange([...tags, t])
+    if (!has(t)) onChange([...tags, t])
     setText('')
     setHints([])
+    setActive(-1)
   }
   const remove = (t: string) => {
     const next = tags.filter((x) => x !== t)
@@ -1475,8 +1524,10 @@ function TagsEdit({ field, value, onChange, id, invalid, disabled, ctx }: FieldR
       <input
         id={id}
         role="combobox"
+        aria-label={ariaLabel}
         aria-expanded={hints.length > 0}
-        aria-controls={listId}
+        aria-controls={hints.length > 0 ? listId : undefined}
+        aria-activedescendant={active >= 0 ? `${listId}-${active}` : undefined}
         aria-autocomplete="list"
         aria-invalid={invalid || undefined}
         className={styles.tagsInput}
@@ -1485,9 +1536,18 @@ function TagsEdit({ field, value, onChange, id, invalid, disabled, ctx }: FieldR
         disabled={disabled}
         onChange={(e) => setText(e.target.value)}
         onKeyDown={(e) => {
-          if (e.key === 'Enter' || e.key === ',') {
+          if (e.key === 'ArrowDown' && hints.length) {
             e.preventDefault()
-            add(text)
+            setActive((a) => (a + 1) % hints.length)
+          } else if (e.key === 'ArrowUp' && hints.length) {
+            e.preventDefault()
+            setActive((a) => (a <= 0 ? hints.length - 1 : a - 1))
+          } else if (e.key === 'Enter' || e.key === ',') {
+            e.preventDefault()
+            add(active >= 0 ? hints[active]! : text)
+          } else if (e.key === 'Escape' && hints.length) {
+            setHints([])
+            setActive(-1)
           } else if (e.key === 'Backspace' && text === '' && tags.length) {
             remove(tags[tags.length - 1]!)
           }
@@ -1496,8 +1556,17 @@ function TagsEdit({ field, value, onChange, id, invalid, disabled, ctx }: FieldR
       />
       {hints.length > 0 && (
         <ul id={listId} role="listbox" className={styles.tagsHints}>
-          {hints.map((h) => (
-            <li key={h} role="option" aria-selected={false} className={styles.tagsHint} onMouseDown={(e) => e.preventDefault()} onClick={() => add(h)}>
+          {hints.map((h, i) => (
+            <li
+              key={h}
+              id={`${listId}-${i}`}
+              role="option"
+              aria-selected={i === active}
+              className={styles.tagsHint}
+              data-active={i === active ? '' : undefined}
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => add(h)}
+            >
               {h}
             </li>
           ))}
@@ -1526,11 +1595,12 @@ const tags: FieldRenderer = {
 }
 
 const location: FieldRenderer = {
-  Edit: ({ field, value, onChange, id, invalid, disabled }) => {
+  Edit: ({ field, value, onChange, id, invalid, disabled, ariaLabel }) => {
     const v = (value && typeof value === 'object' ? value : {}) as Partial<LocationValue>
     return (
       <Input
         id={id}
+        aria-label={ariaLabel}
         value={v.address ?? ''}
         placeholder={field.placeholder ?? 'Город, улица, дом'}
         invalid={invalid}
@@ -1561,17 +1631,47 @@ const location: FieldRenderer = {
   },
 }
 
-const color: FieldRenderer = {
-  Edit: ({ field, value, onChange, id, invalid, disabled }) => (
-    <div id={id} role="radiogroup" aria-label={field.label || field.key} aria-invalid={invalid || undefined} className={styles.swatches}>
-      {SECTION_COLORS.map((c) => (
+function ColorEdit({ field, value, onChange, id, invalid, disabled, ariaLabel }: FieldRenderProps) {
+  const refs = useRef<Array<HTMLButtonElement | null>>([])
+  const idx = Math.max(
+    0,
+    SECTION_COLORS.findIndex((c) => c.key === value),
+  )
+  const pick = (i: number) => {
+    const c = SECTION_COLORS[(i + SECTION_COLORS.length) % SECTION_COLORS.length]!
+    onChange(c.key)
+    refs.current[SECTION_COLORS.indexOf(c)]?.focus()
+  }
+  return (
+    <div
+      id={id}
+      role="radiogroup"
+      aria-label={ariaLabel ?? (field.label || field.key)}
+      aria-invalid={invalid || undefined}
+      className={styles.swatches}
+      onKeyDown={(e) => {
+        if (disabled) return
+        if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+          e.preventDefault()
+          pick(idx + 1)
+        } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+          e.preventDefault()
+          pick(idx - 1)
+        }
+      }}
+    >
+      {SECTION_COLORS.map((c, i) => (
         <button
           key={c.key}
+          ref={(el) => {
+            refs.current[i] = el
+          }}
           type="button"
           role="radio"
           aria-checked={value === c.key}
           aria-label={c.label}
           title={c.label}
+          tabIndex={i === idx ? 0 : -1}
           className={styles.swatch}
           style={{ '--swatch': c.hex } as CSSProperties}
           disabled={disabled}
@@ -1579,7 +1679,11 @@ const color: FieldRenderer = {
         />
       ))}
     </div>
-  ),
+  )
+}
+
+const color: FieldRenderer = {
+  Edit: ColorEdit,
   View: ({ field, value, ctx }) => {
     const hex = typeof value === 'string' ? sectionColorHex(value) : undefined
     return (
@@ -1597,8 +1701,49 @@ const color: FieldRenderer = {
   },
 }
 
+// ─── Вычисляемые (шаг 2, 06.11.2026) ────────────────────────────────────
+// Оба — только просмотр: формулу считает FormRenderer вживую (и сервер при
+// сохранении), подстановку приносит сервер в record.lookups (ctx.lookups).
+// role="status": значение меняется само при вводе соседних полей.
+
+function ComputedValue({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <div role="status" aria-label={label}>
+      <StaticValue className={styles.num}>{children}</StaticValue>
+    </div>
+  )
+}
+
+const formula: FieldRenderer = {
+  Edit: ({ field, value, ctx }) => (
+    <ComputedValue label={field.label || field.key}>{formatValue(formulaResultField(field), value, ctx)}</ComputedValue>
+  ),
+  View: ({ field, value, ctx }) => (
+    <ComputedValue label={field.label || field.key}>{formatValue(formulaResultField(field), value, ctx)}</ComputedValue>
+  ),
+  align: 'right',
+}
+
+const lookup: FieldRenderer = {
+  Edit: ({ field, ctx }) => (
+    <div>
+      <ComputedValue label={field.label || field.key}>
+        {formatValue(lookupTargetField(field), ctx.lookups?.[field.id], ctx)}
+      </ComputedValue>
+      <span className={styles.note}>Подставится из выбранной записи после сохранения</span>
+    </div>
+  ),
+  View: ({ field, ctx }) => (
+    <ComputedValue label={field.label || field.key}>
+      {formatValue(lookupTargetField(field), ctx.lookups?.[field.id], ctx)}
+    </ComputedValue>
+  ),
+}
+
 export const fieldRegistry: Record<FieldType, FieldRenderer> = {
   text,
+  formula,
+  lookup,
   textarea,
   number,
   money,

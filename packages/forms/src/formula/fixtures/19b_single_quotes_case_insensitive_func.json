@@ -1,0 +1,8 @@
+{
+  "name": "19b_single_quotes_case_insensitive_func",
+  "expr": "concat('a', 'b')",
+  "values": {},
+  "today": "2026-11-06",
+  "result": "text",
+  "want": "ab"
+}
