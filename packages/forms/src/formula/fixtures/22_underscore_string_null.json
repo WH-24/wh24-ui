@@ -1,0 +1,10 @@
+{
+  "name": "22_underscore_string_null",
+  "expr": "{q}*2",
+  "values": {
+    "q": "1_000"
+  },
+  "today": "2026-11-06",
+  "result": "number",
+  "want": null
+}

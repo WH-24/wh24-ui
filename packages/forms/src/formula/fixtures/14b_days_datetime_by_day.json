@@ -1,0 +1,11 @@
+{
+  "name": "14b_days_datetime_by_day",
+  "expr": "DAYS({a}, {b})",
+  "values": {
+    "a": "2026-11-10T23:59:00+03:00",
+    "b": "2026-11-06"
+  },
+  "today": "2026-11-06",
+  "result": "number",
+  "want": 4
+}

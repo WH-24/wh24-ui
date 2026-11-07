@@ -1,0 +1,5 @@
+{
+  "name": "99b_err_today_arity",
+  "expr": "TODAY(1)",
+  "parse_error": true
+}

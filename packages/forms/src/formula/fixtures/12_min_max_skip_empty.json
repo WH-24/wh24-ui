@@ -1,0 +1,11 @@
+{
+  "name": "12_min_max_skip_empty",
+  "expr": "MIN({a}, {b}, {c})",
+  "values": {
+    "a": 5,
+    "c": 2
+  },
+  "today": "2026-11-06",
+  "result": "number",
+  "want": 2
+}

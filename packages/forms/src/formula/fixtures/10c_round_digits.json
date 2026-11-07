@@ -1,0 +1,8 @@
+{
+  "name": "10c_round_digits",
+  "expr": "ROUND(1.005, 2)",
+  "values": {},
+  "today": "2026-11-06",
+  "result": "number",
+  "want": 1.01
+}

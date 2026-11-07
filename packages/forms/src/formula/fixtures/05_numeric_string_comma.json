@@ -1,0 +1,8 @@
+{
+  "name": "05_numeric_string_comma",
+  "expr": "\"1,5\"+1",
+  "values": {},
+  "today": "2026-11-06",
+  "result": "number",
+  "want": 2.5
+}

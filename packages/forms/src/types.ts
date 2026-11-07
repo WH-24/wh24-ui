@@ -41,6 +41,11 @@ export const FIELD_TYPES = [
   'tags',
   'location',
   'color',
+  // Шаг 2 (06.11.2026): вычисляемые. formula — выражение над полями записи,
+  // считается сервером и хранится в data; lookup — поле записи-источника
+  // через поле «Форма», в data не хранится, приходит в record.lookups.
+  'formula',
+  'lookup',
   'section',
   'note',
 ] as const
@@ -94,9 +99,13 @@ export const COMPUTED_SYSTEM_KEYS: readonly SystemKey[] = [
   'updated_by',
 ]
 
-/** Поле заполняется само и в data его нет (schema.Field.IsComputed). */
-export function isComputedField(f: { system?: SystemKey }): boolean {
-  return f.system != null && COMPUTED_SYSTEM_KEYS.includes(f.system)
+/**
+ * Поле заполняется само и в data его нет (schema.Field.IsComputed):
+ * вычисляемое системное или подстановка. Формула сюда НЕ входит — её значение
+ * хранится в data, условия и правила по ней работают.
+ */
+export function isComputedField(f: { system?: SystemKey; type?: FieldType }): boolean {
+  return (f.system != null && COMPUTED_SYSTEM_KEYS.includes(f.system)) || f.type === 'lookup'
 }
 
 /** Типы, допустимые для КОЛОНОК таблицы (schema.tableColumnAllowedTypes). */
@@ -270,6 +279,47 @@ export interface FileConfig {
  * формы. Значение — id записи, при multiple — список id. У формы-карточки
  * (проекты, лиды ОУП) id — это id сущности модуля.
  */
+/** Результат формулы (formula.Result в Go). */
+export const FORMULA_RESULTS = ['number', 'money', 'text', 'date'] as const
+export type FormulaResult = (typeof FORMULA_RESULTS)[number]
+
+/** Поле «Формула» (schema.FormulaConfig). */
+export interface FormulaConfig {
+  expr: string
+  result: FormulaResult
+  /** Валюта при result = money. */
+  currency?: string
+}
+
+/**
+ * Поле «Подстановка» (schema.LookupConfig): source_field — id поля «Форма»
+ * этой формы (одна запись), target_field — id поля формы-источника.
+ * target_type/target_config редактор копирует из поля-источника при выборе —
+ * по ним клиент форматирует значение, не загружая чужую схему.
+ */
+export interface LookupConfig {
+  source_field: string
+  target_field: string
+  target_type?: FieldType
+  target_config?: Record<string, unknown>
+}
+
+const FORMULA_RESULT_TYPES: Record<FormulaResult, FieldType> = { number: 'number', money: 'money', text: 'text', date: 'date' }
+
+/** Копия поля формулы с типом результата (money — с валютой): формат, выгрузка, операторы условий. */
+export function formulaResultField(f: Field): Field {
+  if (f.type !== 'formula') return f
+  const c = (f.config ?? {}) as Partial<FormulaConfig>
+  const type = FORMULA_RESULT_TYPES[c.result ?? 'number'] ?? 'number'
+  return { ...f, type, config: type === 'money' && c.currency ? { currency: c.currency } : undefined }
+}
+
+/** Поле-источник подстановки в виде, пригодном для formatValue. */
+export function lookupTargetField(f: Field): Field {
+  const c = (f.config ?? {}) as Partial<LookupConfig>
+  return { ...f, type: c.target_type ?? 'text', config: c.target_config as Field['config'] }
+}
+
 /** Поле «Оценка»: максимум звёзд 2..10 (schema.RatingConfig), без config — RATING_DEFAULT_MAX. */
 export interface RatingConfig {
   max?: number
@@ -387,7 +437,14 @@ export interface Section {
   color?: SectionColor
 }
 
-/** Палитра цветов секции (15, по кругу оттенков). Ключи хранит сервер (forms-api SectionColors), оттенки — здесь. */
+/**
+ * Палитра цветов секции (и варианта списка, и поля «Цвет»): 30 оттенков. Ключи
+ * хранит сервер (forms-api SectionColors), оттенки — здесь. Первые 15 — круг
+ * оттенков, дальше промежуточные тона и тёмные: на длинной карточке секций
+ * больше, чем ярких цветов, а тёмные читаются как «другая группа» даже рядом.
+ * Порядок — порядок свотчей в палитре; новые добавлять в конец, ключи не менять
+ * (они записаны в схемах опубликованных форм).
+ */
 export const SECTION_COLORS = [
   { key: 'red', label: 'Красный', hex: '#e5484d' },
   { key: 'orange', label: 'Оранжевый', hex: '#ef6c1a' },
@@ -404,6 +461,21 @@ export const SECTION_COLORS = [
   { key: 'pink', label: 'Розовый', hex: '#d6409f' },
   { key: 'crimson', label: 'Малиновый', hex: '#e93d82' },
   { key: 'gray', label: 'Серый', hex: '#8b8d98' },
+  { key: 'tomato', label: 'Томатный', hex: '#e54d2e' },
+  { key: 'ruby', label: 'Рубиновый', hex: '#e54666' },
+  { key: 'gold', label: 'Золотистый', hex: '#978365' },
+  { key: 'olive', label: 'Оливковый', hex: '#7d8f3a' },
+  { key: 'grass', label: 'Травяной', hex: '#46a758' },
+  { key: 'jade', label: 'Нефритовый', hex: '#29a383' },
+  { key: 'iris', label: 'Ирисовый', hex: '#5b5bd6' },
+  { key: 'magenta', label: 'Пурпурный', hex: '#b5179e' },
+  { key: 'maroon', label: 'Бордовый', hex: '#8c1d35' },
+  { key: 'chocolate', label: 'Шоколадный', hex: '#6b3f24' },
+  { key: 'forest', label: 'Тёмно-зелёный', hex: '#1f6b45' },
+  { key: 'navy', label: 'Тёмно-синий', hex: '#1f3a8a' },
+  { key: 'aubergine', label: 'Баклажановый', hex: '#5b2a86' },
+  { key: 'steel', label: 'Стальной', hex: '#5f7a8a' },
+  { key: 'graphite', label: 'Графитовый', hex: '#3f3f46' },
 ] as const
 
 export type SectionColor = (typeof SECTION_COLORS)[number]['key']
@@ -492,6 +564,8 @@ export interface FormRecord {
   created_at: string
   updated_at: string
   deleted_at: string | null
+  /** Значения полей «Подстановка» (id поля → значение); в списке — только у полей с show_in_list. */
+  lookups?: Record<string, unknown>
 }
 
 export type RecordHistoryAction = 'created' | 'updated' | 'deleted' | 'restored'

@@ -1,0 +1,11 @@
+{
+  "name": "20_if_truthy_string",
+  "expr": "IF({s}, 1, 0) + IF({e}, 10, 0)",
+  "values": {
+    "s": "x",
+    "e": ""
+  },
+  "today": "2026-11-06",
+  "result": "number",
+  "want": 1
+}

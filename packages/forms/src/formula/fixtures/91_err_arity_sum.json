@@ -1,0 +1,5 @@
+{
+  "name": "91_err_arity_sum",
+  "expr": "SUM()",
+  "parse_error": true
+}

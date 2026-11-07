@@ -1,0 +1,8 @@
+{
+  "name": "17e_compare_empty_ordered_false",
+  "expr": "IF({a} > 5, 1, 0)",
+  "values": {},
+  "today": "2026-11-06",
+  "result": "number",
+  "want": 0
+}

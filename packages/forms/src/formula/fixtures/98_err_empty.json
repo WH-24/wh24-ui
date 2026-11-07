@@ -1,0 +1,5 @@
+{
+  "name": "98_err_empty",
+  "expr": "   ",
+  "parse_error": true
+}
