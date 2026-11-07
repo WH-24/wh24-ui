@@ -577,6 +577,26 @@ export interface FormRecord {
   deleted_at: string | null
   /** Значения полей «Подстановка» (id поля → значение); в списке — только у полей с show_in_list. */
   lookups?: Record<string, unknown>
+  /** Задача связанной формы Pyrus, с которой сверяется запись. */
+  pyrus_task_id?: number | null
+}
+
+/** Сверка записей обычной формы с задачами Pyrus (`GET /admin/forms/:id/pyrus-status`). */
+export interface PyrusSyncStatus {
+  form_id: string
+  pyrus_form_id: number
+  cursor: string | null
+  last_run_at: string | null
+  last_ok_at: string | null
+  /** Ошибка последнего прохода; пусто — прошёл. */
+  last_error: string
+  /** Записей заведено из задач / обновлено (с начала сверки этой формы Pyrus). */
+  created_total: number
+  updated_total: number
+  /** Записей формы, связанных с задачами. */
+  linked: number
+  /** Значения задач, не легшие в записи в последнем проходе. */
+  skipped_last: { task_id: number; field_id: string; reason: string }[]
 }
 
 export type RecordHistoryAction = 'created' | 'updated' | 'deleted' | 'restored'

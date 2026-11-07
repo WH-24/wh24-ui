@@ -28,6 +28,7 @@ import type {
   RecordFieldError,
   RecordHistoryEntry,
   RecordRoute,
+  PyrusSyncStatus,
   SchemaDocument,
   SchemaValidationError,
 } from './types.js'
@@ -335,6 +336,9 @@ export function createFormsApi(opts: FormsApiOptions) {
          * версии) для «Поле Pyrus» в конструкторе — у любой формы.
          */
         pyrusSchema: (id: string) => request<PyrusFormSchema>('GET', `/admin/forms/${seg(id)}/pyrus-schema`),
+        /** Сверка записей с задачами Pyrus; null — ещё не проходила. */
+        pyrusStatus: (id: string) =>
+          request<PyrusSyncStatus | null>('GET', `/admin/forms/${seg(id)}/pyrus-status`),
         /** Что сделает публикация черновика карточки — без записи. */
         previewCardSync: (id: string) =>
           request<CardSyncPreview>('POST', `/admin/forms/${seg(id)}/sync?draft=1`, undefined, {
