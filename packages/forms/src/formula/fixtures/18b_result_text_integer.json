@@ -1,0 +1,10 @@
+{
+  "name": "18b_result_text_integer",
+  "expr": "{a}*2",
+  "values": {
+    "a": 3
+  },
+  "today": "2026-11-06",
+  "result": "text",
+  "want": "6"
+}

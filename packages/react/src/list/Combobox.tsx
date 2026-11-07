@@ -52,6 +52,8 @@ export interface ComboboxProps {
   placeholder?: string;
   id?: string;
   ariaLabel?: string;
+  /** Доступное имя самого поля ввода, когда рядом нет <label> (ячейка таблицы). */
+  inputAriaLabel?: string;
   /** Доп. класс на корень `.combo` (например для тулбара). */
   className?: string;
   /** Доп. класс на портальное меню — чтобы стилизовать опции точечно. */
@@ -141,6 +143,7 @@ export function Combobox({
   placeholder = "— не выбрано —",
   id,
   ariaLabel = "Открыть список",
+  inputAriaLabel,
   className,
   menuClassName,
   style,
@@ -305,6 +308,7 @@ export function Combobox({
             .filter(Boolean)
             .join(" ")}
           role="combobox"
+          aria-label={inputAriaLabel}
           aria-expanded={open}
           aria-autocomplete={searchable ? "list" : "none"}
           aria-invalid={invalid || undefined}

@@ -1,0 +1,10 @@
+{
+  "name": "22c_hex_string_null",
+  "expr": "{q}+1",
+  "values": {
+    "q": "0x1p-2"
+  },
+  "today": "2026-11-06",
+  "result": "number",
+  "want": null
+}

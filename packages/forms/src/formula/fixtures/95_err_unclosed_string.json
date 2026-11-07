@@ -1,0 +1,5 @@
+{
+  "name": "95_err_unclosed_string",
+  "expr": "\"abc",
+  "parse_error": true
+}

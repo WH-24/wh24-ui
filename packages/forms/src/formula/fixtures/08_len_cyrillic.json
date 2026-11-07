@@ -1,0 +1,8 @@
+{
+  "name": "08_len_cyrillic",
+  "expr": "LEN(\"Привет\")",
+  "values": {},
+  "today": "2026-11-06",
+  "result": "number",
+  "want": 6
+}

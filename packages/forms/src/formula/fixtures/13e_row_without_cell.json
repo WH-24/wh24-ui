@@ -1,0 +1,17 @@
+{
+  "name": "13e_row_without_cell",
+  "expr": "SUM({items.sum})",
+  "values": {
+    "items": [
+      {
+        "sum": 10
+      },
+      {
+        "name": "x"
+      }
+    ]
+  },
+  "today": "2026-11-06",
+  "result": "number",
+  "want": 10
+}

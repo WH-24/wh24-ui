@@ -1,0 +1,5 @@
+{
+  "name": "96_err_unexpected_char",
+  "expr": "1 ? 2",
+  "parse_error": true
+}

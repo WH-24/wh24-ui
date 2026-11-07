@@ -47,6 +47,25 @@ describe('createFormsApi', () => {
     )
   })
 
+  it('удаление справочника — DELETE, 409 несёт формы в data', async () => {
+    const ok = mockFetch(200, { data: { id: 'c1', deleted: true } })
+    const api = createFormsApi({ baseUrl: '/api/v1', fetch: ok.fn })
+    expect(await api.admin.catalogs.remove('c1')).toEqual({ id: 'c1', deleted: true })
+    expect(ok.calls[0]!.url).toBe('/api/v1/admin/catalogs/c1')
+    expect(ok.calls[0]!.init.method).toBe('DELETE')
+
+    const busy = mockFetch(409, {
+      error: 'справочник используют формы: «Карточка лида»',
+      data: { forms: [{ id: 'f1', name: 'Карточка лида', module_key: 'oup' }] },
+    })
+    const err = await createFormsApi({ baseUrl: '/api/v1', fetch: busy.fn })
+      .admin.catalogs.remove('c1')
+      .catch((e) => e)
+    expect(err).toBeInstanceOf(FormsApiError)
+    expect(err.status).toBe(409)
+    expect((err.data as { forms: unknown[] }).forms).toHaveLength(1)
+  })
+
   it('400 с fields → FormsApiError.fields списком', async () => {
     const { fn } = mockFetch(400, {
       error: 'значения не прошли проверку',

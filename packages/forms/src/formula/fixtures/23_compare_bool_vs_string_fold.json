@@ -1,0 +1,10 @@
+{
+  "name": "23_compare_bool_vs_string_fold",
+  "expr": "IF({flag} = \"ДА\", 1, 0)",
+  "values": {
+    "flag": true
+  },
+  "today": "2026-11-06",
+  "result": "number",
+  "want": 1
+}
