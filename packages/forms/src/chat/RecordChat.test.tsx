@@ -5,7 +5,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { FormsApiError, commentForm, type FormsApi } from '../api'
 import type { NewComment, OrgOption, RecordComment, RecordFeed, RecordRoute } from '../types'
 import { RecordChat } from './RecordChat'
-import { buildMeeting, draftToComment, EMPTY_DRAFT, parseMinutes } from './logic'
+import { buildMeeting, draftToComment, EMPTY_DRAFT, parseMinutes, mentionsAi } from './logic'
 
 const staff: OrgOption[] = [
   { id: 's1', label: 'Иванов Иван', auth_user_id: 'u1', hint: 'Руководитель' },
@@ -209,5 +209,86 @@ describe('логика панели', () => {
     expect(fd.get('due')).toBe('')
     expect(fd.get('responsible')).toBe('')
     expect(fd.has('body')).toBe(false)
+  })
+})
+
+describe('RecordChat — «@ИИ»', () => {
+  it('«ИИ» первым в списке «@», в упоминания сервера не уходит; вопрос → ответ ИИ с источниками', async () => {
+    const user = userEvent.setup()
+    const answer = comment({
+      id: 'c-ai',
+      author: '00000000-0000-0000-0000-000000000000',
+      body: 'Смету нужно сдать к пятнице [1].',
+      reply_to: 'c2',
+      author_kind: 'ai',
+      requested_by: 'u1',
+      meta: { citations: [{ n: 1, title: 'Задача: смета', url: '/tasks/77' }] },
+    })
+    const { api, sent } = fakeApi(baseFeed())
+    // после отправки сервер уже держит ответ ИИ — опрос ленты его находит
+    const feedMock = api.records.feed as unknown as ReturnType<typeof vi.fn>
+    feedMock.mockResolvedValueOnce(baseFeed()).mockResolvedValue(
+      baseFeed({
+        comments: [
+          comment(),
+          comment({
+            id: 'c2',
+            author: 'u1',
+            body: '@ИИ когда сдавать смету?',
+          }),
+          answer,
+        ],
+      }),
+    )
+    const onAsk = vi.fn(async () => undefined)
+    const onNavigate = vi.fn()
+    render(<RecordChat api={api} formId="f1" recordId="r1" staff={staff} ai={{ onAsk, onNavigate }} />)
+    const box = await screen.findByRole('textbox')
+    await user.click(box)
+    await user.type(box, '@')
+    const list = await screen.findByRole('listbox', { name: 'Упомянуть' })
+    expect(within(list).getAllByRole('option')[0]).toHaveTextContent('ИИ')
+    await user.click(within(list).getAllByRole('option')[0]!)
+    await user.type(box, 'когда сдавать смету?')
+    expect(await screen.findByRole('note')).toHaveTextContent('только названия')
+    await user.click(screen.getByRole('button', { name: 'Отправить' }))
+    await waitFor(() => expect(sent).toHaveLength(1))
+    // «ИИ» остался словом в тексте, но не стал упоминанием сотрудника
+    expect(sent[0]?.body).toBe('@ИИ когда сдавать смету?')
+    expect(sent[0]?.mentions).toBeUndefined()
+    await waitFor(() =>
+      expect(onAsk).toHaveBeenCalledWith({
+        commentId: 'c2',
+        text: '@ИИ когда сдавать смету?',
+      }),
+    )
+    // ответ ИИ — с пометкой, по чьей просьбе, и источником названием
+    expect(await screen.findByText(/Ответ ИИ/, {}, { timeout: 5000 })).toBeTruthy()
+    expect(screen.getByText(/по запросу Иванов Иван/)).toBeTruthy()
+    const link = screen.getByRole('link', { name: 'Задача: смета' })
+    await user.click(link)
+    expect(onNavigate).toHaveBeenCalledWith('/tasks/77')
+  })
+
+  it('без свойства ai участника «ИИ» в списке нет, вопрос не уходит', async () => {
+    const user = userEvent.setup()
+    const { api, sent } = fakeApi(baseFeed())
+    render(<RecordChat api={api} formId="f1" recordId="r1" staff={staff} />)
+    const box = await screen.findByRole('textbox')
+    await user.click(box)
+    await user.type(box, '@')
+    const list = await screen.findByRole('listbox', { name: 'Упомянуть' })
+    expect(within(list).queryByText('ИИ')).toBeNull()
+    await user.type(box, 'ИИ привет')
+    expect(screen.queryByRole('note')).toBeNull()
+    await user.click(screen.getByRole('button', { name: 'Отправить' }))
+    await waitFor(() => expect(sent).toHaveLength(1))
+  })
+
+  it('mentionsAi: отдельное слово, не почта и не имя', () => {
+    expect(mentionsAi('@ИИ сколько часов?')).toBe(true)
+    expect(mentionsAi('Коллеги, @ии, что по срокам?')).toBe(true)
+    expect(mentionsAi('письмо ai@wowhaus.ru')).toBe(false)
+    expect(mentionsAi('@ИИнна, привет')).toBe(false)
   })
 })
