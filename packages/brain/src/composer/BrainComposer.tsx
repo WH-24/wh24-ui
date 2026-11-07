@@ -1,7 +1,8 @@
-import { useLayoutEffect, useRef, useState, type ReactNode } from 'react'
+import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { Icon } from '@wowhaus-24/ui-react'
 
 import { BrainIcon } from '../icons.js'
+import type { SlashSkill } from '../skills/types.js'
 import { ACCEPT, formatSize, type BrainFile } from './files.js'
 import styles from './composer.module.css'
 
@@ -37,6 +38,12 @@ export interface BrainComposerProps {
   onMention?: () => void
   /** «/» — навык. */
   onSkill?: () => void
+  /**
+   * Навыки для меню «/»: пока весь текст — это одно слово, начинающееся с «/», под полем
+   * появляется список (↑/↓ — выбор, Enter/Tab — вставить `/команду `, Esc — закрыть).
+   * Пока список с вариантами открыт, Enter не отправляет вопрос. Источник — `useSlashSkills`.
+   */
+  skills?: SlashSkill[]
   /** Свои кнопки в панели инструментов (после стандартных). */
   tools?: ReactNode
 
@@ -49,6 +56,28 @@ export interface BrainComposerProps {
 }
 
 const DEFAULT_HINT = 'Enter — отправить, Shift+Enter — новая строка'
+const SLASH_HINT = '↑↓ — выбрать, Enter или Tab — вставить, Esc — закрыть'
+const SLASH_MAX = 8
+
+/** Что набрано после «/», если весь текст — одно слово с «/» в начале; иначе `null`. */
+export function slashQuery(value: string): string | null {
+  const m = /^\/(\S*)$/.exec(value)
+  return m ? m[1]! : null
+}
+
+/** Подходящие навыки: сначала те, чья команда начинается с введённого, затем где оно встречается. */
+export function matchSlashSkills(skills: SlashSkill[], query: string): SlashSkill[] {
+  const q = query.toLowerCase()
+  if (!q) return skills.slice(0, SLASH_MAX)
+  const starts: SlashSkill[] = []
+  const contains: SlashSkill[] = []
+  for (const s of skills) {
+    const slash = s.slash.toLowerCase()
+    if (slash.startsWith(q)) starts.push(s)
+    else if (slash.includes(q) || s.name.toLowerCase().includes(q)) contains.push(s)
+  }
+  return [...starts, ...contains].slice(0, SLASH_MAX)
+}
 
 /**
  * Поле вопроса. Перенесено из wh24-ai-web/src/components/ChatComposer.tsx.
@@ -75,6 +104,7 @@ export function BrainComposer({
   onContext,
   onMention,
   onSkill,
+  skills,
   tools,
   autoFocus = true,
   maxHeight = 180,
@@ -85,6 +115,17 @@ export function BrainComposer({
   const fileRef = useRef<HTMLInputElement>(null)
   const [dragging, setDragging] = useState(false)
   const disabled = Boolean(disabledReason)
+  const listId = useId()
+  const optId = (i: number) => `${listId}-o${i}`
+  const [active, setActive] = useState(0)
+  // Esc закрывает список до следующей правки текста.
+  const [dismissedFor, setDismissedFor] = useState<string | null>(null)
+  const query = skills && skills.length > 0 && !disabled ? slashQuery(value) : null
+  const menuOpen = query !== null && dismissedFor !== value
+  const matches = useMemo(() => (menuOpen && skills ? matchSlashSkills(skills, query ?? '') : []), [menuOpen, skills, query])
+  const hasOptions = menuOpen && matches.length > 0
+  const activeIdx = Math.min(active, Math.max(0, matches.length - 1))
+  useEffect(() => setActive(0), [query])
   const canAttach = Boolean(onAddFiles) && !disabled && (maxFiles == null || files.length < maxFiles)
   const canSend = !busy && !disabled && (value.trim().length > 0 || files.length > 0)
 
@@ -105,6 +146,17 @@ export function BrainComposer({
 
   const send = () => {
     if (canSend) onSend()
+  }
+
+  const insertSkill = (sk: SlashSkill) => {
+    const text = `/${sk.slash} `
+    onChange(text)
+    requestAnimationFrame(() => {
+      const el = ref.current
+      if (!el) return
+      el.focus()
+      el.setSelectionRange(text.length, text.length)
+    })
   }
 
   const addFiles = (list: File[]) => {
@@ -180,7 +232,30 @@ export function BrainComposer({
             addFiles(pasted)
           }
         }}
+        aria-autocomplete={hasOptions ? 'list' : undefined}
+        aria-controls={hasOptions ? listId : undefined}
+        aria-activedescendant={hasOptions ? optId(activeIdx) : undefined}
         onKeyDown={(e) => {
+          if (menuOpen && !e.nativeEvent.isComposing) {
+            if (hasOptions && (e.key === 'ArrowDown' || e.key === 'ArrowUp')) {
+              e.preventDefault()
+              const n = matches.length
+              setActive((i) => (e.key === 'ArrowDown' ? (Math.min(i, n - 1) + 1) % n : (Math.min(i, n - 1) - 1 + n) % n))
+              return
+            }
+            if (hasOptions && ((e.key === 'Enter' && !e.shiftKey) || (e.key === 'Tab' && !e.shiftKey))) {
+              e.preventDefault()
+              insertSkill(matches[activeIdx]!)
+              return
+            }
+            if (e.key === 'Escape') {
+              // Esc, закрывающий список, не должен закрыть ещё и панель хоста.
+              e.preventDefault()
+              e.stopPropagation()
+              setDismissedFor(value)
+              return
+            }
+          }
           // isComposing — набор через IME: Enter подтверждает слово.
           if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
             e.preventDefault()
@@ -190,6 +265,33 @@ export function BrainComposer({
         placeholder={placeholder}
         rows={1}
       />
+      {menuOpen && (
+        <div className={styles.slashMenu} onMouseDown={(e) => e.preventDefault()} onClick={(e) => e.stopPropagation()}>
+          {matches.length > 0 ? (
+            <ul id={listId} role="listbox" aria-label="Навыки" className={styles.slashList}>
+              {matches.map((sk, i) => (
+                <li
+                  key={sk.slash}
+                  id={optId(i)}
+                  role="option"
+                  aria-selected={i === activeIdx}
+                  className={styles.slashOption}
+                  onMouseEnter={() => setActive(i)}
+                  onClick={() => insertSkill(sk)}
+                >
+                  <span className={styles.slashCmd}>/{sk.slash}</span>
+                  <span className={styles.slashName}>{sk.name}</span>
+                  {sk.description && <span className={styles.slashDesc}>{sk.description}</span>}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p role="status" className={styles.slashEmpty}>
+              Нет навыка с такой командой — вопрос уйдёт как есть.
+            </p>
+          )}
+        </div>
+      )}
       {fileError && (
         <div role="alert" className={styles.fileError}>
           {fileError}
@@ -268,7 +370,7 @@ export function BrainComposer({
           data-tone={disabled ? 'warn' : undefined}
           role={disabled ? 'status' : undefined}
         >
-          {disabled ? disabledReason : dragging ? 'Отпустите, чтобы приложить' : hint}
+          {disabled ? disabledReason : dragging ? 'Отпустите, чтобы приложить' : hasOptions ? SLASH_HINT : hint}
         </span>
         {busy && onStop ? (
           <button
