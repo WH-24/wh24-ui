@@ -3,6 +3,7 @@ import { Fragment, useEffect, useRef, useState, type ReactNode } from 'react'
 import { AgentSteps } from '../agent/AgentSteps.js'
 import { ChartBlockFallback } from '../blocks/ChartBlockFallback.js'
 import { BrainIcon } from '../icons.js'
+import { htmlForCopy } from '../copy.js'
 import { Markdown, type MarkdownCitation } from '../markdown/Markdown.js'
 import type { FeedbackVote, RunBlock, RunStep, SuggestedAction } from '../types.js'
 import styles from './messages.module.css'
@@ -33,7 +34,12 @@ export interface AssistantMessageProps {
   children?: ReactNode
 
   // Строка действий. Нет колбэка — нет кнопки.
-  onCopy?: (text: string) => void | Promise<void>
+  /**
+   * Копирование: `text` — markdown ответа, `html` — отрисованный ответ без
+   * кнопок (для вставки с форматированием). Готовая реализация — `copyAnswer`.
+   * Вернул `false` — кнопка покажет «Не удалось скопировать».
+   */
+  onCopy?: (text: string, html?: string) => void | boolean | Promise<void | boolean>
   onCreateTask?: (text: string) => void
   onRetry?: () => void
   onFeedback?: (vote: FeedbackVote) => void
@@ -76,8 +82,9 @@ export function AssistantMessage({
   onFollowUp,
   className,
 }: AssistantMessageProps) {
-  const [copied, setCopied] = useState(false)
+  const [copyState, setCopyState] = useState<'idle' | 'copied' | 'failed'>('idle')
   const timer = useRef<number | null>(null)
+  const mdRef = useRef<HTMLDivElement>(null)
   useEffect(
     () => () => {
       if (timer.current) window.clearTimeout(timer.current)
@@ -87,11 +94,18 @@ export function AssistantMessage({
 
   const copy = async () => {
     if (!onCopy) return
-    await onCopy(text)
-    setCopied(true)
+    let ok = true
+    try {
+      ok = (await onCopy(text, mdRef.current ? htmlForCopy(mdRef.current) : undefined)) !== false
+    } catch {
+      ok = false
+    }
+    setCopyState(ok ? 'copied' : 'failed')
     if (timer.current) window.clearTimeout(timer.current)
-    timer.current = window.setTimeout(() => setCopied(false), 1500)
+    timer.current = window.setTimeout(() => setCopyState('idle'), 2000)
   }
+  const copyLabel =
+    copyState === 'copied' ? 'Скопировано' : copyState === 'failed' ? 'Не удалось скопировать' : 'Копировать'
 
   const hasActions = Boolean(onCopy || onCreateTask || onRetry || onFeedback || extraActions)
   const showActions = hasActions && !pending
@@ -104,13 +118,15 @@ export function AssistantMessage({
       {label && <div className={styles.label}>{label}</div>}
       {steps && steps.length > 0 && <AgentSteps steps={steps} />}
       {text && (
-        <Markdown
-          text={text}
-          citations={citations}
-          activeCitation={activeCitation}
-          onCitationClick={onCitationClick}
-          onNavigate={onNavigate}
-        />
+        <div ref={mdRef}>
+          <Markdown
+            text={text}
+            citations={citations}
+            activeCitation={activeCitation}
+            onCitationClick={onCitationClick}
+            onNavigate={onNavigate}
+          />
+        </div>
       )}
       {blocks && blocks.length > 0 && (
         <div className={styles.blocks} role="group" aria-label="Графики и таблицы к ответу">
@@ -133,11 +149,54 @@ export function AssistantMessage({
       )}
       {children}
       {showActions && (
+        // Как в ChatGPT: иконки без подписи (подсказка — при наведении), рядом
+        // «Создать задачу» и действия хоста словами — их иконкой не угадать.
         <div className={styles.actions} aria-label="Действия с ответом">
           {onCopy && (
-            <button type="button" className={styles.act} onClick={() => void copy()}>
-              <BrainIcon name="copy" size={14} />
-              {copied ? 'Скопировано' : 'Копировать'}
+            <button
+              type="button"
+              className={styles.iconAct}
+              data-state={copyState}
+              aria-label={copyLabel}
+              title={copyLabel}
+              onClick={() => void copy()}
+            >
+              <BrainIcon name={copyState === 'copied' ? 'check' : 'copy'} size={16} />
+            </button>
+          )}
+          {onFeedback && (
+            <>
+              <button
+                type="button"
+                className={styles.iconAct}
+                aria-label="Полезно"
+                title="Полезно"
+                aria-pressed={feedback === 'up'}
+                onClick={() => onFeedback('up')}
+              >
+                <BrainIcon name="thumbup" size={16} />
+              </button>
+              <button
+                type="button"
+                className={styles.iconAct}
+                aria-label="Не полезно"
+                title="Не полезно"
+                aria-pressed={feedback === 'down'}
+                onClick={() => onFeedback('down')}
+              >
+                <BrainIcon name="thumbdown" size={16} />
+              </button>
+            </>
+          )}
+          {onRetry && (
+            <button
+              type="button"
+              className={styles.iconAct}
+              aria-label="Повторить"
+              title="Повторить"
+              onClick={onRetry}
+            >
+              <BrainIcon name="refresh" size={16} />
             </button>
           )}
           {onCreateTask && (
@@ -146,35 +205,10 @@ export function AssistantMessage({
               Создать задачу
             </button>
           )}
-          {onRetry && (
-            <button type="button" className={styles.act} onClick={onRetry}>
-              <BrainIcon name="refresh" size={14} />
-              Повторить
-            </button>
-          )}
           {extraActions}
-          {onFeedback && (
-            <span className={styles.votes}>
-              <button
-                type="button"
-                className={styles.vote}
-                aria-label="Полезно"
-                aria-pressed={feedback === 'up'}
-                onClick={() => onFeedback('up')}
-              >
-                <BrainIcon name="thumbup" size={14} />
-              </button>
-              <button
-                type="button"
-                className={styles.vote}
-                aria-label="Не полезно"
-                aria-pressed={feedback === 'down'}
-                onClick={() => onFeedback('down')}
-              >
-                <BrainIcon name="thumbdown" size={14} />
-              </button>
-            </span>
-          )}
+          <span className={styles.copyStatus} role="status">
+            {copyState === 'idle' ? '' : copyLabel}
+          </span>
         </div>
       )}
       {!pending && followUps && followUps.length > 0 && onFollowUp && (

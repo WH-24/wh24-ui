@@ -113,6 +113,10 @@ export function AskAiPanel({
     stickToBottom.current = true
   }, [isEmpty])
 
+  // Модель — во второй строке, рядом с режимом: в первой ей с заголовком и
+  // кнопками не хватало места, и шапка переносилась в три строки.
+  const secondRow = Boolean(contextSlot || onModeChange)
+
   const heading = (
     <>
       <span className={styles.titleIcon}>
@@ -140,7 +144,7 @@ export function AskAiPanel({
         <div className={styles.headRow}>
           {heading}
           <div className={styles.headActions}>
-            {modelSlot && <div className={styles.model}>{modelSlot}</div>}
+            {modelSlot && !secondRow && <div className={styles.model}>{modelSlot}</div>}
             {onNewChat && (
               <button type="button" className="btn btn-ghost btn-sm" onClick={onNewChat}>
                 <Icon name="plus" size={14} />
@@ -164,7 +168,7 @@ export function AskAiPanel({
             )}
           </div>
         </div>
-        {(contextSlot || onModeChange) && (
+        {secondRow && (
           <div className={styles.headRow}>
             {onModeChange && (
               <div className={styles.modes} role="group" aria-label="Режим">
@@ -189,6 +193,7 @@ export function AskAiPanel({
               </div>
             )}
             {contextSlot && <div className={styles.context}>{contextSlot}</div>}
+            {modelSlot && <div className={styles.model}>{modelSlot}</div>}
           </div>
         )}
       </header>

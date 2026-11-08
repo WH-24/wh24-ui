@@ -30,6 +30,13 @@ describe('AssistantMessage', () => {
     expect(screen.queryByRole('button')).toBeNull()
   })
 
+  it('копирование не удалось — кнопка так и говорит', async () => {
+    render(<AssistantMessage text="Ответ [3]." onCopy={() => false} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Копировать' }))
+    await act(async () => {})
+    expect(screen.getByRole('button', { name: 'Не удалось скопировать' })).toBeInTheDocument()
+  })
+
   it('каждая кнопка появляется от своего колбэка и зовёт его', async () => {
     vi.useFakeTimers()
     try {
@@ -51,11 +58,13 @@ describe('AssistantMessage', () => {
         />,
       )
       fireEvent.click(screen.getByRole('button', { name: 'Копировать' }))
-      expect(onCopy).toHaveBeenCalledWith('Текст ответа')
+      // markdown и HTML отрисованного ответа — для вставки с форматированием.
+      expect(onCopy).toHaveBeenCalledWith('Текст ответа', expect.stringContaining('Текст ответа'))
       await act(async () => {})
       expect(screen.getByRole('button', { name: 'Скопировано' })).toBeInTheDocument()
+      expect(screen.getByRole('status')).toHaveTextContent('Скопировано')
       await act(async () => {
-        vi.advanceTimersByTime(1600)
+        vi.advanceTimersByTime(2100)
       })
       expect(screen.getByRole('button', { name: 'Копировать' })).toBeInTheDocument()
 

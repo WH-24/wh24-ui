@@ -198,7 +198,11 @@ describe('RunDetail', () => {
     expect(screen.getByRole('heading', { name: 'Утренний стендап' })).toBeInTheDocument()
     expect(screen.getByText('По расписанию')).toBeInTheDocument()
     expect(screen.getByText('Готово')).toBeInTheDocument()
-    expect(screen.getByText(/Вчера изменился лид «Офис»/)).toBeInTheDocument()
+    expect(
+      screen.getByText(
+        (_, el) => el?.tagName === 'P' && (el.textContent ?? '').replace(/\u00a0/g, ' ').includes('Вчера изменился лид «Офис»'),
+      ),
+    ).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Источник 1: Лид «Офис»' })).toBeInTheDocument()
     expect(screen.getByRole('region', { name: /Источники/ })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Лид «Офис»' })).toHaveAttribute('href', '/pm/leads/1')

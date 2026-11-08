@@ -67,59 +67,84 @@
   font-size: 13px;
 }
 
-/* Строка действий: тихие кнопки, появляются когда ответ закончен. */
+/* Строка действий — как в ChatGPT: тихие иконки под ответом, подсказка при
+   наведении; появляются, когда ответ закончен. Левый край иконки — по тексту. */
 .actions {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
   gap: 2px;
-  margin-top: -2px;
+  margin: -4px 0 0 -6px;
 }
 
-.act,
-.vote {
+.iconAct,
+.act {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 5px;
-  height: 28px;
-  padding: 0 8px;
+  height: 30px;
   border: 0;
-  border-radius: var(--r-sm);
+  border-radius: var(--r-md);
   background: transparent;
   color: var(--ink-3);
-  font-size: var(--fs-meta);
-  font-weight: var(--fw-medium);
   cursor: pointer;
   white-space: nowrap;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
 }
-.act:hover,
-.vote:hover {
+.iconAct {
+  width: 30px;
+  padding: 0;
+}
+.act {
+  padding: 0 8px;
+  font-size: var(--fs-meta);
+  font-weight: var(--fw-medium);
+}
+.iconAct:hover,
+.act:hover {
   background: var(--surf-2);
   color: var(--ink);
 }
-
-.votes {
-  display: inline-flex;
-  gap: 0;
-  margin-left: auto;
+.iconAct:focus-visible,
+.act:focus-visible {
+  outline: var(--focus-ring-w, 2px) solid var(--terra);
+  outline-offset: 1px;
 }
-.vote {
-  width: 28px;
-  padding: 0;
-  justify-content: center;
-}
-.vote[aria-pressed='true'] {
+.iconAct[aria-pressed='true'],
+.iconAct[data-state='copied'] {
   color: var(--terra-d);
+}
+.iconAct[aria-pressed='true'] {
   background: var(--terra-bg);
+}
+.iconAct[data-state='failed'] {
+  color: var(--bad);
+}
+.copyStatus {
+  margin-left: 4px;
+  font-size: var(--fs-meta-sm);
+  color: var(--ink-3);
+}
+.copyStatus:empty {
+  display: none;
 }
 
 @media (pointer: coarse) {
-  .act,
-  .vote {
+  .iconAct,
+  .act {
     min-height: var(--tap-min-compact);
   }
-  .vote {
+  .iconAct {
     min-width: var(--tap-min-compact);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .iconAct,
+  .act {
+    transition: none;
   }
 }
 
