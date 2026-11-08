@@ -8,6 +8,9 @@
 
 ## [Unreleased]
 
+### Исправлено — `@wowhaus-24/brain-react` 0.5.1
+- «Спросить ИИ»: иконка на кнопках «Отправить» и «Стоп» снова полного размера. Кнопка — ещё и `.btn` хоста, его стили подключаются позже пакета и перебивали `padding: 0`: квадрату 36×36 оставалось 6px под иконку, и самолётик сжимался в точку.
+
 ### Изменено — `@wowhaus-24/forms-react`
 - Связь с Pyrus — у любой формы, а не только у карточки ОУП: форма — `SchemaDocument.pyrus` (`{form_id}`), поле — `Field.pyrus` (`{field_id}`). Из `DocBinding` и `FieldBinding` поля Pyrus убраны (сервис «Формы» переносит их сам). Список «Поле Pyrus» — `pyrusChoices` (вместе с `pyrusTypeLabel`, `takenPyrusFields`, `pyrusStepName`, `findPyrusField`), отвязка формы вместе со связями полей — `withoutPyrus`, структура связанной формы — `api.admin.forms.pyrusSchema(id)`. У записи — `pyrus_task_id` (задача Pyrus, с которой она сверяется), состояние сверки формы — `api.admin.forms.pyrusStatus(id)` (`PyrusSyncStatus`).
 

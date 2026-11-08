@@ -103,7 +103,11 @@
   white-space: normal;
 }
 
-.send {
+/* Кнопка ещё и `.btn` хоста: её стили подключаются позже пакета и при той же
+   специфичности перебивали `padding: 0` — квадрату 36×36 оставалось 6px под
+   иконку, и самолётик сжимался в точку. `:global(.btn)` поднимает специфичность. */
+.send,
+.send:global(.btn) {
   width: 36px;
   height: 36px;
   padding: 0;
@@ -124,7 +128,8 @@
 
 @media (pointer: coarse) {
   .tool,
-  .send {
+  .send,
+  .send:global(.btn) {
     min-width: var(--tap-min-compact);
     min-height: var(--tap-min-compact);
   }
