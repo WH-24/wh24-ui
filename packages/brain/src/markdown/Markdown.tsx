@@ -238,11 +238,27 @@ export function Markdown({
           </>
         )
       },
-      [CITATION_TAG]: ({ 'data-n': raw }: { 'data-n'?: string | number }) => {
+      [CITATION_TAG]: ({
+        'data-n': raw,
+        'data-lead': lead,
+      }: {
+        'data-n'?: string | number
+        'data-lead'?: string
+      }) => {
         const n = Number(raw)
         if (!Number.isFinite(n)) return null
-        return (
+        const chip = (
           <CitationChip n={n} title={titles.get(n)} active={activeCitation === n} onClick={onCitationClick} />
+        )
+        // Слово перед номером и сам чип — неразрывно (см. remarkCitations).
+        return lead ? (
+          <span className={styles.citeGroup}>
+            {lead}
+            {'\u00a0'}
+            {chip}
+          </span>
+        ) : (
+          chip
         )
       },
     }

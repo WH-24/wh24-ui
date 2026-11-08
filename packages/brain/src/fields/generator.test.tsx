@@ -7,6 +7,11 @@ import type { Run } from '../types'
 import { GeneratorDialog, type GeneratorDialogProps } from './GeneratorDialog'
 import { defaultPeriod, isoDate, periodDays, periodLabel } from './period'
 
+// Последнее слово перед номером источника рисуется вместе с чипом — фраза
+// разбита на узлы, поэтому ищем пункт списка по его тексту целиком.
+const liWith = (phrase: string) => (_: string, el: Element | null) =>
+  el?.tagName === 'LI' && (el.textContent ?? '').replace(/\u00a0/g, ' ').includes(phrase)
+
 const doneRun = (over: Partial<Run> = {}): Run => ({
   id: 'r1',
   status: 'completed',
@@ -65,7 +70,7 @@ describe('GeneratorDialog', () => {
       'week_summary',
       expect.objectContaining({ self_name: 'Иван Петров', from: expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/), to: expect.any(String) }),
     )
-    expect(await screen.findByText('Согласовали КП')).toBeInTheDocument()
+    expect(await screen.findByText(liWith('Согласовали КП'))).toBeInTheDocument()
     // Цитата [1] стала чипом, источник — карточкой.
     expect(screen.getByRole('button', { name: /Источник 1/ })).toBeInTheDocument()
     await userEvent.click(screen.getByRole('button', { name: /Скопировать/ }))
@@ -162,7 +167,7 @@ describe('GeneratorDialog', () => {
     const api = makeApi()
     const { rerender } = open(api, { kind: 'week_summary', autoRun: true })
     await waitFor(() => expect(api.generate).toHaveBeenCalledTimes(1))
-    expect(await screen.findByText('Согласовали КП')).toBeInTheDocument()
+    expect(await screen.findByText(liWith('Согласовали КП'))).toBeInTheDocument()
     rerender(<GeneratorDialog api={api as unknown as GeneratorDialogProps['api']} open onClose={() => {}} kind="week_summary" autoRun />)
     expect(api.generate).toHaveBeenCalledTimes(1)
   })
@@ -194,7 +199,7 @@ describe('GeneratorDialog', () => {
     const onClose = vi.fn()
     open(api, { kind: 'week_summary', onNavigate, onClose })
     await userEvent.click(screen.getByRole('button', { name: 'Составить итог недели' }))
-    await screen.findByText('Согласовали КП')
+    await screen.findByText(liWith('Согласовали КП'))
     await userEvent.click(screen.getByRole('button', { name: /Источники/ }))
     await userEvent.click(await screen.findByRole('link', { name: /Лид «Офис»/ }).catch(() => screen.getByText('Лид «Офис»')))
     expect(onNavigate).toHaveBeenCalledWith('/pm/leads/l1')

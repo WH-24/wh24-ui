@@ -20,6 +20,17 @@ describe('splitCitations', () => {
 })
 
 describe('Markdown', () => {
+  it('последнее слово и номер источника — один неразрывный кусок', () => {
+    const { container } = render(
+      <Markdown text="Лид поставлен на стоп [2]." citations={[{ n: 2, title: 'Лид' }]} />,
+    )
+    const chip = container.querySelector('[aria-label^="Источник 2"]')!
+    const group = chip.parentElement!
+    expect(group.tagName).toBe('SPAN')
+    expect(group.textContent).toBe('стоп\u00a02')
+    expect(container.querySelector('p')!.textContent).toBe('Лид поставлен на стоп\u00a02.')
+  })
+
   it('цитаты [n] из списка источников → чипы, клик отдаёт номер', () => {
     const onCitationClick = vi.fn()
     render(

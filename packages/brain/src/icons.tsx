@@ -22,8 +22,10 @@ export type BrainIconName =
   | 'lock'
   | 'alert'
   | 'undo'
+  | 'check'
 
 const paths: Record<BrainIconName, ReactNode> = {
+  check: <path d="M5 12.5l4.5 4.5L19 7.5" />,
   copy: (
     <>
       <rect x="9" y="9" width="11" height="11" rx="2" />
