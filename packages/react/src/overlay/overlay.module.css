@@ -6,6 +6,9 @@
   inset: 0;
   background: rgba(15, 23, 42, 0.45);
   z-index: var(--z-modal, 200);
+  /* Окно поверх модального Radix-диалога (тот ставит body
+     pointer-events: none) обязано оставаться кликабельным. */
+  pointer-events: auto;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -102,6 +105,7 @@
   inset: 0;
   background: rgba(15, 23, 42, 0.32);
   z-index: var(--z-backdrop, 40);
+  pointer-events: auto;
 }
 :global(html[data-theme='dark']) .drawerBackdrop {
   background: rgba(0, 0, 0, 0.55);
@@ -116,6 +120,7 @@
   border-left: 1px solid var(--border-default);
   box-shadow: var(--shadow-drawer);
   z-index: var(--z-drawer, 50);
+  pointer-events: auto;
   display: flex;
   flex-direction: column;
   outline: none;

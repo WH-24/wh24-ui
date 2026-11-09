@@ -1,4 +1,4 @@
-import { Suspense, useId, type MouseEvent, type KeyboardEvent, type ReactNode } from 'react'
+import { Suspense, useEffect, useId, useRef, type MouseEvent, type KeyboardEvent, type ReactNode } from 'react'
 
 import { Icon, type IconName } from '../list/Icon.js'
 import { Loader } from '../page/Loader.js'
@@ -83,8 +83,15 @@ export interface ModuleNavLinkProps {
 
 export function ModuleNavLink({ label, icon, active = false, href, onClick, count }: ModuleNavLinkProps) {
   const showCount = count !== undefined && count !== '' && count !== 0
+  const ref = useRef<HTMLAnchorElement>(null)
+  // На узком экране панель — полоса вкладок с прокруткой: текущий пункт не
+  // должен оставаться за краем. `nearest` не двигает то, что уже видно.
+  useEffect(() => {
+    if (active) ref.current?.scrollIntoView?.({ block: 'nearest', inline: 'nearest' })
+  }, [active])
   return (
     <a
+      ref={ref}
       className={styles.link}
       data-active={String(active)}
       aria-current={active ? 'page' : undefined}
