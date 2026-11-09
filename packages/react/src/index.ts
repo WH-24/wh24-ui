@@ -126,6 +126,42 @@ export type {
   DirectoryTab,
 } from './DirectoryPicker/DirectoryPicker.js'
 
+// Стандарт страницы модуля (перенесён из портала WH_Portale, 09.11.2026):
+// панель модуля, заголовок страницы, вкладки, пустые/ошибочные состояния,
+// окна, подтверждения, тосты. Стили — на именах `@wowhaus-24/ui-tokens/bridge.css`.
+export { ModuleLayout, ModuleNavLink, ModuleNavList, ModuleNavGroup } from './module/ModuleLayout.js'
+export type {
+  ModuleLayoutProps,
+  ModuleNavLinkProps,
+  ModuleNavItem,
+  ModuleNavListProps,
+  ModuleNavGroupProps,
+} from './module/ModuleLayout.js'
+export { Page } from './page/Page.js'
+export type { PageProps } from './page/Page.js'
+export { PageHeader } from './page/PageHeader.js'
+export type { PageHeaderProps } from './page/PageHeader.js'
+export { EmptyState } from './page/EmptyState.js'
+export type { EmptyStateProps } from './page/EmptyState.js'
+export { ErrorState } from './page/ErrorState.js'
+export type { ErrorStateProps } from './page/ErrorState.js'
+export { Loader } from './page/Loader.js'
+export type { LoaderProps } from './page/Loader.js'
+export { Tabs, TabPanel } from './tabs/Tabs.js'
+export type { TabSpec, TabsProps, TabPanelProps } from './tabs/Tabs.js'
+export { SegmentedControl } from './tabs/SegmentedControl.js'
+export type { SegmentOption, SegmentedControlProps } from './tabs/SegmentedControl.js'
+export { Modal } from './overlay/Modal.js'
+export type { ModalProps } from './overlay/Modal.js'
+export { Drawer } from './overlay/Drawer.js'
+export type { DrawerProps } from './overlay/Drawer.js'
+export { ConfirmProvider, useConfirm, useAlert } from './overlay/Confirm.js'
+export type { ConfirmOptions, ConfirmFn } from './overlay/Confirm.js'
+export { ToastProvider, useToast } from './overlay/Toast.js'
+export type { ToastApi, ToastAction, ToastOptions, ToastType } from './overlay/Toast.js'
+export { useFocusTrap, getFocusableElements } from './overlay/useFocusTrap.js'
+export type { FocusTrapOptions } from './overlay/useFocusTrap.js'
+
 // Бренд-настройки сервиса (логотип/цвет/шрифт/радиусы) + применение в рантайме.
 export { applyBrand, BRAND_FONTS, BRAND_RADIUS_SCALES } from './brand/brand.js'
 export type { BrandSettings } from './brand/brand.js'

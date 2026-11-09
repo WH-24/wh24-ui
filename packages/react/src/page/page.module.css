@@ -1,0 +1,177 @@
+/* Страница стандарта — метрики 1:1 с порталом (`apps/hr/styles.css`:
+   `.page`, `.page-header`, `.empty*`, `.loader`). */
+
+.page {
+  flex: 1;
+  min-width: 0;
+  padding: 8px 28px 40px;
+}
+/* Таблица во всю высоту: последний блок тянется, снизу без отступа. */
+.fill {
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 0;
+}
+.fill > * {
+  flex-shrink: 0;
+}
+.fill > :last-child {
+  flex-grow: 1;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 16px;
+}
+.headText {
+  min-width: 0;
+}
+.title {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1.25;
+  color: var(--fg-primary);
+  letter-spacing: -0.01em;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.titleCount {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--fg-tertiary);
+  padding: 2px 8px;
+  background: var(--bg-muted);
+  border-radius: 999px;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+}
+.subtitle {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: var(--fg-tertiary);
+}
+.actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-shrink: 0;
+}
+@media (max-width: 720px) {
+  .header,
+  .actions {
+    flex-wrap: wrap;
+  }
+}
+
+/* ── Пусто ── */
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  text-align: center;
+  color: var(--fg-tertiary);
+}
+.emptyIcon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: var(--bg-muted);
+  color: var(--fg-tertiary);
+  display: grid;
+  place-items: center;
+  margin-bottom: 14px;
+}
+.emptyTitle {
+  font-size: 14px;
+  color: var(--fg-primary);
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+.emptyDesc {
+  font-size: 13px;
+  max-width: 360px;
+  line-height: 1.45;
+}
+.emptyActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  margin-top: 16px;
+}
+.emptyPage {
+  padding: 80px 24px;
+  min-height: 50vh;
+}
+.emptyIconLg {
+  width: 72px;
+  height: 72px;
+  border-radius: var(--radius-lg);
+  background: var(--accent-50);
+  color: var(--accent-600);
+  margin-bottom: 20px;
+}
+.emptyTitleLg {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+.emptyDescLg {
+  font-size: 14px;
+  line-height: 1.5;
+  max-width: 440px;
+}
+
+/* ── Лоадер ── */
+.loader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 180px;
+  flex: 1;
+}
+.loaderOverlay {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  min-height: 0;
+  background: var(--bg-app);
+}
+.loaderLogo {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+  margin-bottom: 4px;
+}
+.spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--bg-muted);
+  border-top-color: var(--accent-500);
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+.loaderLabel {
+  font-size: 13px;
+  color: var(--fg-muted);
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation-duration: 1.6s;
+  }
+}

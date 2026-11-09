@@ -52,3 +52,32 @@ describe('статусные цвета — контраст в обеих те�
     }
   })
 })
+
+describe('bridge.css — серый текст стандарта ≥ 4.5 в обеих темах', () => {
+  let bridge = ''
+  beforeAll(async () => {
+    const fs = (await import(/* @vite-ignore */ 'node:' + 'fs')) as {
+      readFileSync: (p: string, enc: string) => string
+    }
+    bridge = fs.readFileSync('../tokens/src/bridge.css', 'utf8')
+  })
+  const part = (src: string, sel: string) => src.split(sel)[1]?.split('\n}')[0] ?? ''
+
+  it('третичный и приглушённый текст на всех поверхностях', () => {
+    const themes: Array<[string, string, string]> = [
+      ['светлая', ':root {', ':root {'],
+      ['тёмная', "html[data-theme='dark'] {", "html[data-theme='dark'] {"],
+    ]
+    for (const [name, bridgeSel, tokenSel] of themes) {
+      const b = part(bridge, bridgeSel)
+      const t = block(tokenSel)
+      for (const fgName of ['fg-tertiary', 'fg-muted']) {
+        const fg = hex(b, fgName)
+        expect(fg, `${name}: --${fgName}`).toBeTruthy()
+        for (const surf of ['bg', 'surf', 'surf-2', 'surf-3']) {
+          expect(contrast(fg!, hex(t, surf)!), `${name}: --${fgName} на --${surf}`).toBeGreaterThanOrEqual(4.5)
+        }
+      }
+    }
+  })
+})

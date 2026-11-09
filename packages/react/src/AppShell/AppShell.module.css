@@ -70,6 +70,12 @@
   gap: 10px;
 }
 
+.full {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
 .page {
   max-width: 1080px;
   margin: 0 auto;

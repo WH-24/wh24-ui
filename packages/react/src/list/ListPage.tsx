@@ -975,7 +975,9 @@ export function ListPage<T>({
     <div className={styles.page}>
       <div className={styles.pageHeader}>
         <div>
-          <div className={styles.pageTitle}>{title}</div>
+          {/* h1 — у страницы-списка это заголовок страницы: читалка и переход по
+              заголовкам должны его находить (раньше был div). */}
+          <h1 className={styles.pageTitle}>{title}</h1>
           {subtitle && <div className={styles.pageSubtitle}>{subtitle}</div>}
         </div>
       </div>

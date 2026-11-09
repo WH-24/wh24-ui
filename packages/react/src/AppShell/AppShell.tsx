@@ -60,6 +60,12 @@ export interface AppShellProps {
 
   /** Search pill keyboard shortcut hint. Default '⌘ K'. */
   searchKbd?: string
+  /**
+   * Содержимое во всю ширину, без центрированной колонки 1080px и её
+   * отступов: страница со своей раскладкой (панель модуля `ModuleLayout`
+   * + страницы стандарта) управляет полями сама.
+   */
+  fullWidth?: boolean
 }
 
 const defaultLink = ({ href, className, children, ariaLabel }: AppShellLinkRendererProps) => (
@@ -87,6 +93,7 @@ export function AppShell({
   rightExtras,
   searchPlaceholder = 'Поиск, навигация, действия',
   searchKbd = '⌘ K',
+  fullWidth = false,
 }: AppShellProps) {
   const brand = renderLink({
     href: homeHref,
@@ -127,7 +134,7 @@ export function AppShell({
         </header>
       ) : null}
 
-      <main className={styles.page}>{children}</main>
+      <main className={fullWidth ? styles.full : styles.page}>{children}</main>
     </div>
   )
 }

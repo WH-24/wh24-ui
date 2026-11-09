@@ -1,0 +1,100 @@
+/* Вкладки страницы — как `.tabs/.tab` портала; переключатель вида — как
+   `.view-switch--text`. */
+
+.tabs {
+  display: flex;
+  gap: 2px;
+  border-bottom: 1px solid var(--border-default);
+  padding: 0 4px;
+  margin-bottom: 16px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 0 14px;
+  font: inherit;
+  font-size: 13px;
+  color: var(--fg-tertiary);
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    color 0.1s,
+    border-color 0.1s;
+}
+.tab:hover {
+  color: var(--fg-primary);
+}
+.tab[aria-selected='true'] {
+  color: var(--fg-primary);
+  border-bottom-color: var(--accent-600);
+  font-weight: 500;
+}
+.tab:focus-visible {
+  outline: 2px solid var(--accent-500);
+  outline-offset: -2px;
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+}
+
+.count {
+  font-size: 11px;
+  font-weight: 500;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: var(--bg-muted);
+  color: var(--fg-secondary);
+  font-variant-numeric: tabular-nums;
+}
+.tab[aria-selected='true'] .count,
+.segBtn[aria-pressed='true'] .count {
+  background: var(--accent-50);
+  color: var(--accent-700);
+}
+
+.seg {
+  display: inline-flex;
+  background: var(--bg-muted);
+  border-radius: var(--radius-md);
+  padding: 2px;
+  gap: 2px;
+}
+.segBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 28px;
+  padding: 4px 10px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  font: inherit;
+  font-size: 13px;
+  color: var(--fg-tertiary);
+  white-space: nowrap;
+  cursor: pointer;
+}
+.segBtn:hover {
+  color: var(--fg-primary);
+}
+.segBtn[aria-pressed='true'] {
+  background: var(--bg-surface);
+  color: var(--fg-primary);
+  box-shadow: var(--shadow-sm);
+}
+.segBtn:focus-visible {
+  outline: 2px solid var(--accent-500);
+  outline-offset: 1px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tab {
+    transition: none;
+  }
+}

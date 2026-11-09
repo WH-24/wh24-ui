@@ -46,8 +46,23 @@ reporting/presentations, wh24-wiki-web, wh24-aho-web, Auth-SPA и все буд�
 import "@wowhaus-24/ui-tokens/tokens.css";
 import "@wowhaus-24/ui-tokens/base.css";
 import "@wowhaus-24/ui-tokens/button.css";
+import "@wowhaus-24/ui-tokens/bridge.css"; // имена портала: --fg-*, --bg-*, --accent-*…
 import { ThemeProvider } from "@wowhaus-24/ui-react";
 ```
+
+**Стандарт страницы модуля** (тот же вид, что у страниц портала) — из
+`@wowhaus-24/ui-react`, своих копий в модуле не заводим:
+
+| Что | Компонент |
+|---|---|
+| Панель модуля (одна на модуль; < 900px — полоса вкладок) | `ModuleLayout` + `ModuleNavGroup` / `ModuleNavLink` / `ModuleNavList` |
+| Заголовок страницы, счётчик, кнопки справа | `PageHeader` (+ `Page` — поле страницы) |
+| Вкладки страницы / переключатель вида | `Tabs` + `TabPanel` / `SegmentedControl` |
+| Список, таблица, фильтр | `ListPage` |
+| Выбор, дата | `Combobox`, `MultiCombobox`, `DateField` (нативных `select`/`date` нет) |
+| Пусто / ошибка / загрузка | `EmptyState` (с действием, где оно есть) / `ErrorState` («Повторить») / `Loader` |
+| Окно, подтверждение, тост, боковая панель | `Modal`, `useConfirm`/`useAlert` (`ConfirmProvider`), `useToast` (`ToastProvider`), `Drawer` |
+| Иконки | `Icon` (SVG, одна линия); юникод-глифы и эмодзи вместо иконок не используем |
 
 - Легаси-модуль с собственными именами переменных → тонкий bridge-слой,
   где каждая старая переменная — алиас токена wh24-ui (эталон:
@@ -76,6 +91,10 @@ import { ThemeProvider } from "@wowhaus-24/ui-react";
 | `1024px` | iPad-ландшафт (главный таргет) | коллапс сайдбара в rail, ужатие drawer, padding топбара |
 | `768px` | iPad-портрет / нижняя граница | формы и kv-list в 1 колонку, drawer fullscreen |
 | `640px` | крупный телефон | максимальное схлопывание |
+
+Исключение одно: **`900px` — панель модуля** (`ModuleLayout`) становится
+полосой вкладок. Это граница узкого режима самого портала (`NARROW_QUERY`):
+модуль-iframe переключается одновременно с оболочкой вокруг него.
 
 Правило: использовать **только** значения из этой шкалы, промежуточные
 (`880`, `940`, `1100` и т.п.) не выдумывать — при работе над файлом мигрировать

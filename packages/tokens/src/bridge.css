@@ -1,0 +1,94 @@
+/* ======================================================================
+   bridge.css — семантические имена портала WH24 поверх токенов wh24-ui.
+
+   Портал (WH_Portale `apps/hr/styles.css`) пишет стили на именах
+   `--accent-*`, `--fg-*`, `--bg-*`, `--border-*`, `--radius-*`, `--shadow-*`,
+   `--z-*`. Компоненты стандарта в @wowhaus-24/ui-react (панель модуля,
+   заголовок страницы, вкладки, окна, тосты) написаны на тех же именах, чтобы
+   выглядеть в модуле так же, как в портале. Модулю-iframe (вики, АХО, …)
+   достаточно подключить этот файл после tokens.css:
+
+     import '@wowhaus-24/ui-tokens/tokens.css'
+     import '@wowhaus-24/ui-tokens/bridge.css'
+
+   Значения — копия портальных (светлая и тёмная тема). Текст не ниже WCAG AA
+   4.5:1: --fg-tertiary/--fg-muted — свои значения, а не ink-3/ink-4
+   (те дают 3.6–4.3 и 2.0:1 на светлых поверхностях).
+   ====================================================================== */
+
+:root {
+  /* Бренд → терракота */
+  --accent-50: var(--terra-bg);
+  --accent-100: var(--terra-bg);
+  --accent-200: var(--terra-mark);
+  --accent-400: var(--terra);
+  --accent-500: var(--terra);
+  --accent-600: var(--terra-d);
+  --accent-700: var(--terra-d);
+  --accent-800: var(--terra-d);
+  --accent-fg: #ffffff;
+  --accent-hover-fg: var(--terra-d);
+
+  /* Статусы */
+  --success-bg: var(--good-bg);
+  --success-fg: var(--good);
+  --success-bd: var(--good-bd);
+  --warning-bg: var(--warn-bg);
+  --warning-fg: var(--warn);
+  --warning-bd: var(--warn-bd);
+  --danger-bg: var(--bad-bg);
+  --danger-fg: var(--bad);
+  --danger-bd: var(--bad-bd);
+  --info-fg: var(--info);
+
+  /* Поверхности */
+  --bg-app: var(--bg);
+  --bg-surface: var(--surf);
+  --bg-subtle: var(--surf-2);
+  --bg-muted: var(--surf-3);
+  --bg-hover: var(--surf-2);
+  --bg-active: var(--surf-3);
+
+  /* Текст */
+  --fg-primary: var(--ink);
+  --fg-secondary: var(--ink-2);
+  --fg-tertiary: #5c5c5c;
+  --fg-muted: #696969;
+  --fg-disabled: var(--ink-5);
+
+  /* Границы */
+  --border-default: var(--bd);
+  --border-strong: var(--bd-strong);
+  --border-subtle: var(--bd-soft);
+
+  /* Тени */
+  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.1), 0 2px 6px rgba(0, 0, 0, 0.04);
+  --shadow-drawer: -16px 0 48px rgba(0, 0, 0, 0.1);
+
+  /* Радиусы */
+  --radius-xs: var(--r-xs);
+  --radius-sm: var(--r-sm);
+  --radius-md: var(--r-md);
+  --radius-lg: var(--r-lg);
+  --radius-xl: var(--r-xl);
+
+  /* Панель модуля */
+  --sidebar-w-section: 240px;
+  --sidebar-section-bg: var(--surf);
+
+  /* Слои: те же числа, что в портале */
+  --z-backdrop: 40;
+  --z-drawer: 50;
+  --z-modal: 200;
+  --z-confirm: 240;
+  --z-toast: 400;
+}
+
+html[data-theme='dark'] {
+  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.55), 0 2px 6px rgba(0, 0, 0, 0.35);
+  --shadow-drawer: -16px 0 48px rgba(0, 0, 0, 0.55);
+  --accent-hover-fg: var(--terra);
+  --danger-fg: #f87171;
+  --fg-tertiary: #a9aa9f;
+  --fg-muted: #94968c;
+}

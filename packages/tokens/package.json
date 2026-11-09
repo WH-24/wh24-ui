@@ -23,6 +23,7 @@
     "./tokens.css": "./src/tokens.css",
     "./base.css": "./src/base.css",
     "./button.css": "./src/button.css",
+    "./bridge.css": "./src/bridge.css",
     "./theme": {
       "types": "./dist/theme.d.ts",
       "import": "./dist/theme.js"
@@ -32,7 +33,8 @@
     "dist",
     "src/tokens.css",
     "src/base.css",
-    "src/button.css"
+    "src/button.css",
+    "src/bridge.css"
   ],
   "scripts": {
     "build": "tsc -b tsconfig.json",
