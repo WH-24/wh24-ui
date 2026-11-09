@@ -91,3 +91,20 @@ describe('AppShell', () => {
     expect(screen.getByRole('button', { name: 'Role' })).toBeInTheDocument()
   })
 })
+
+describe('AppShell fullWidth', () => {
+  it('без центрированной колонки — содержимое прямо в main', () => {
+    const { container, rerender } = render(
+      <AppShell user={{ initials: 'ТК', name: 'Тест' }} fullWidth>
+        <p>страница</p>
+      </AppShell>,
+    )
+    const full = container.querySelector('main')!.className
+    rerender(
+      <AppShell user={{ initials: 'ТК', name: 'Тест' }}>
+        <p>страница</p>
+      </AppShell>,
+    )
+    expect(container.querySelector('main')!.className).not.toBe(full)
+  })
+})

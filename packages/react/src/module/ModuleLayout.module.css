@@ -19,10 +19,11 @@
 }
 .panelInner {
   position: sticky;
-  top: 0;
+  /* Под липкой шапкой приложения, если она есть (модуль вне портала). */
+  top: var(--module-sticky-top, 0px);
   display: flex;
   flex-direction: column;
-  max-height: 100vh;
+  max-height: calc(100vh - var(--module-sticky-top, 0px));
   overflow-y: auto;
 }
 
