@@ -1,0 +1,234 @@
+/* Окна стандарта — метрики 1:1 с порталом (`.modal-*`, `.confirm-*`,
+   `.drawer*`, `.toast*` в `apps/hr/styles.css`). */
+
+.backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  z-index: var(--z-modal, 200);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+:global(html[data-theme='dark']) .backdrop {
+  background: rgba(0, 0, 0, 0.6);
+}
+
+.card {
+  width: 100%;
+  background: var(--bg-surface);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--border-default);
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 48px);
+  overflow: hidden;
+  outline: none;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 20px 14px;
+  border-bottom: 1px solid var(--border-subtle);
+  flex-shrink: 0;
+}
+.title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--fg-primary);
+}
+.close {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  display: grid;
+  place-items: center;
+  color: var(--fg-tertiary);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.close:hover {
+  background: var(--bg-hover);
+  color: var(--fg-primary);
+}
+.close:focus-visible {
+  outline: 2px solid var(--accent-500);
+  outline-offset: 1px;
+}
+.body {
+  padding: 20px;
+  overflow-y: auto;
+  flex: 1;
+  font-size: 14px;
+  color: var(--fg-secondary);
+}
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 14px 20px;
+  border-top: 1px solid var(--border-subtle);
+  flex-shrink: 0;
+}
+
+.confirmBackdrop {
+  z-index: var(--z-confirm, 240);
+}
+.confirmCard {
+  max-width: 400px;
+}
+.confirmMessage {
+  font-size: 13px;
+  line-height: 1.5;
+}
+.confirmMessage b,
+.confirmMessage strong {
+  color: var(--fg-primary);
+}
+
+/* ── Боковая панель ── */
+.drawerBackdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.32);
+  z-index: var(--z-backdrop, 40);
+}
+:global(html[data-theme='dark']) .drawerBackdrop {
+  background: rgba(0, 0, 0, 0.55);
+}
+.drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  max-width: 96vw;
+  background: var(--bg-surface);
+  border-left: 1px solid var(--border-default);
+  box-shadow: var(--shadow-drawer);
+  z-index: var(--z-drawer, 50);
+  display: flex;
+  flex-direction: column;
+  outline: none;
+  animation: drawer-in 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+@keyframes drawer-in {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+.drawerHead {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.drawerActions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.drawerBody {
+  flex: 1;
+  overflow: auto;
+  padding: 20px;
+  min-height: 0;
+}
+
+/* ── Тосты ── */
+.toastStack {
+  position: fixed;
+  bottom: 24px;
+  right: 16px;
+  z-index: var(--z-toast, 400);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  pointer-events: none;
+}
+.toast {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: var(--fg-primary);
+  color: var(--bg-surface);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  font-size: 13px;
+  min-width: 220px;
+  max-width: 360px;
+  cursor: pointer;
+  pointer-events: auto;
+  animation: toast-in 0.2s ease;
+}
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.toastIcon {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.18);
+}
+.toastMsg {
+  flex: 1;
+}
+.toastAction {
+  flex-shrink: 0;
+  margin-left: 4px;
+  padding: 4px 8px;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+.toastAction:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+.toastAction:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+.toast_success {
+  background: var(--good-strong);
+  color: #fff;
+}
+.toast_error {
+  background: var(--bad-strong);
+  color: #fff;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .drawer,
+  .toast {
+    animation: none;
+  }
+}

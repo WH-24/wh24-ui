@@ -1,0 +1,202 @@
+/* Панель модуля — метрики 1:1 с порталом (`apps/hr/styles.css`,
+   `.section-*` и `.module-layout`). Имена переменных — из bridge.css. */
+
+.layout {
+  display: grid;
+  grid-template-columns: var(--sidebar-w-section, 240px) minmax(0, 1fr);
+  flex: 1 1 auto;
+  min-height: 0;
+  min-width: 0;
+}
+
+/* Колонка тянется на всю высоту (граница справа до низа), а её содержимое
+   прилипает к верху: модуль-iframe прокручивает документ целиком, портал —
+   свою страницу; в обоих случаях панель остаётся на месте. */
+.panel {
+  background: var(--sidebar-section-bg, var(--bg-surface));
+  border-right: 1px solid var(--border-default);
+  min-width: 0;
+}
+.panelInner {
+  position: sticky;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  max-height: 100vh;
+  overflow-y: auto;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px 12px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--fg-primary);
+}
+.titleIcon {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  background: var(--accent-50);
+  color: var(--accent-700);
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+:global(html[data-theme='dark']) .titleIcon {
+  color: var(--accent-400);
+}
+
+.nav {
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.link {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 9px 11px;
+  border-radius: var(--radius-sm);
+  color: var(--fg-secondary);
+  font-size: 14px;
+  line-height: 1.3;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+.link:hover {
+  background: var(--bg-hover);
+  color: var(--fg-primary);
+}
+.link[data-active='true'] {
+  background: var(--accent-50);
+  color: var(--accent-700);
+  font-weight: 500;
+}
+:global(html[data-theme='dark']) .link[data-active='true'] {
+  color: var(--accent-400);
+}
+.link:focus-visible {
+  outline: 2px solid var(--accent-500);
+  outline-offset: -2px;
+}
+.linkIcon {
+  display: inline-flex;
+  flex-shrink: 0;
+}
+.linkLabel {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.count {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--fg-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.groupLabel {
+  padding: 14px 11px 6px;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--fg-muted);
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
+
+/* Узкий экран: панель — полоса вкладок над содержимым (решение владельца
+   15.09.2026), заголовок панели не нужен. */
+.layout[data-narrow='true'] {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto 1fr;
+}
+.layout[data-narrow='true'] .panel {
+  border-right: 0;
+  border-bottom: 1px solid var(--border-default);
+}
+.layout[data-narrow='true'] .panelInner {
+  position: static;
+  max-height: none;
+}
+.layout[data-narrow='true'] .head,
+.layout[data-narrow='true'] .groupLabel {
+  display: none;
+}
+.layout[data-narrow='true'] .nav,
+.layout[data-narrow='true'] .group {
+  flex-direction: row;
+  gap: 4px;
+}
+.layout[data-narrow='true'] .nav {
+  overflow-x: auto;
+  padding: 6px 8px;
+}
+.layout[data-narrow='true'] .link {
+  flex: 0 0 auto;
+  white-space: nowrap;
+  min-height: 44px;
+}
+
+@media (max-width: 900px) {
+  .layout:not([data-narrow='false']) {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto 1fr;
+  }
+  .layout:not([data-narrow='false']) .panel {
+    border-right: 0;
+    border-bottom: 1px solid var(--border-default);
+  }
+  .layout:not([data-narrow='false']) .panelInner {
+    position: static;
+    max-height: none;
+  }
+  .layout:not([data-narrow='false']) .head,
+  .layout:not([data-narrow='false']) .groupLabel {
+    display: none;
+  }
+  .layout:not([data-narrow='false']) .nav,
+  .layout:not([data-narrow='false']) .group {
+    flex-direction: row;
+    gap: 4px;
+  }
+  .layout:not([data-narrow='false']) .nav {
+    overflow-x: auto;
+    padding: 6px 8px;
+  }
+  .layout:not([data-narrow='false']) .link {
+    flex: 0 0 auto;
+    white-space: nowrap;
+    min-height: 44px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .link {
+    transition: none;
+  }
+}

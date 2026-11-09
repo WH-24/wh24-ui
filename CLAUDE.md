@@ -6,7 +6,7 @@
 
 | Пакет | Версия | Что внутри |
 |---|---|---|
-| `@wowhaus-24/ui-tokens` | 0.1.1 | Frame-agnostic CSS-переменные + базовые стили + vanilla theme API. CSS-экспорты: `./tokens.css` (палитра/радиусы/типографика), `./base.css`, `./button.css` (канонические `.btn-*`, primary = терракот `--terra`). JS: `.` (типизир. токены), `./theme` (`setTheme`) |
+| `@wowhaus-24/ui-tokens` | 0.1.1 | Frame-agnostic CSS-переменные + базовые стили + vanilla theme API. CSS-экспорты: `./tokens.css` (палитра/радиусы/типографика), `./base.css`, `./button.css` (канонические `.btn-*`, primary = терракот `--terra`), `./bridge.css` (имена переменных портала `--fg-*/--bg-*/--accent-*/--border-*/--radius-*/--z-*` для компонентов стандарта). JS: `.` (типизир. токены), `./theme` (`setTheme`) |
 | `@wowhaus-24/ui-react` | 0.1.1 | React 18+ headless-компоненты (Radix Primitives + Floating UI, без CSS-in-JS, без Tailwind). Зависит от `ui-tokens` |
 | `@wowhaus-24/forms-react` | 0.1.0 | Платформа «Формы» (wh24-forms-api): типы схемы/модели, `evaluate` (visible_if, фикстуры общие с Go), `validateRecord`, `createFormsApi`, React-рендер записей. Зависит от `ui-react` |
 | `@wowhaus-24/brain-react` | 0.6.0 | WH24 Brain — панель «Спросить ИИ», экран «Агенты», «Поля ИИ» в списках и генераторы, навыки, память, модели: `createBrainApi` (search/ask/runs/feedback, опрос `waitForRun`; агенты: `agents.*`, `agentRuns`, `agentPresets`, `agentTools`, `agentDraft`), `Markdown` с цитатами `[n]` (последнее слово и чип — неразрывно) и экспортом таблиц в .xlsx, `renumberCitations` (номера источников 1, 2, 3… по порядку ссылок), копирование ответа `copyAnswer`/`htmlForCopy`/`stripCitations` (HTML + markdown без `[n]`), `SourceCard`/`SourceList`, `AssistantMessage`/`UserMessage` (блоки `Run.blocks` через `renderBlock` хоста), `ChartBlockFallback`/`BlockExplain` (график без Perspective: таблица + «Что посчитано»), `AgentSteps`/`AiActionCard`, `BrainComposer`, `UsageMeter`/`AiLabel`/`PrivacyNotice`, контейнер `AskAiPanel`; агенты — `AgentProfile` (+ `TriggerEditor`/`ScheduleEditor`, `ToolPicker`, `KnowledgePicker`, `MemoryEditor`), `RunLogTable`/`RunDetail`, `AgentCard`/`AgentPresetCard`, `AgentBuilderChat`, `BrainSwitch`; поля ИИ — `useAiFieldColumns`, `AiFieldDialog`/`AiFieldCell`/`AiFieldColumnMenu`, `api.fields.*`; генераторы — `GeneratorDialog`, `api.generate`; `BrainDialog`/`BrainConfirm`; навыки — `SkillsList`/`SkillCard`/`SkillDialog`/`SkillSuggestionsDialog`, `useSlashSkills` + меню «/» в `BrainComposer` (`skills`), `api.skills.*`; память — `MemoryPanel`/`MemoryImportDialog`, `api.memory.*`; модели и индекс — `ModelSelect`, `ModelSettingsDialog`, `IndexStatusDialog`, `api.models.list`, `api.admin.*`. Data-agnostic, источники — как прислал сервер, права проверяет сервер. Зависит от `ui-react`, `react-markdown`, `remark-gfm` |
@@ -18,7 +18,12 @@
 `FilterBar`, `useFilterState`, `matchItem`, `activeCount`, общий `Combobox` (`src/list/`, экспортирован:
 группы, `searchable`, аватар, `invalid`); примитивы формы (`src/form/`: `Input`, `Textarea`,
 `FieldRow`/`FieldGrid`/`StaticValue`, `MultiCombobox`, `DateField`, `FileDrop`); `Icon`; бренд —
-`applyBrand`, `BRAND_FONTS`, `BRAND_RADIUS_SCALES`. Пакет форм — `packages/forms` (ниже).
+`applyBrand`, `BRAND_FONTS`, `BRAND_RADIUS_SCALES`. Стандарт страницы модуля (перенесён из портала
+09.11.2026, стили на именах `ui-tokens/bridge.css`): `ModuleLayout`/`ModuleNavGroup`/`ModuleNavLink`/
+`ModuleNavList` (`src/module/`), `Page`/`PageHeader`/`EmptyState`/`ErrorState`/`Loader` (`src/page/`),
+`Tabs`/`TabPanel`/`SegmentedControl` (`src/tabs/`), `Modal`/`Drawer`/`ConfirmProvider`+`useConfirm`/`useAlert`/
+`ToastProvider`+`useToast`/`useFocusTrap` (`src/overlay/`). Портал пока рисует то же своими копиями
+(`apps/hr/src/components/*`, классы `.section-*/.page-*/.modal-*` в `styles.css`). Пакет форм — `packages/forms` (ниже).
 
 Тема: `html[data-theme="dark"]`. Persistence — `localStorage['wh-ui-theme']`, cross-tab sync. Терракот не меняется между темами.
 
