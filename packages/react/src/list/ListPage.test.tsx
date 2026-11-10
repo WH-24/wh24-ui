@@ -281,6 +281,46 @@ describe("ListPage — доска", () => {
   });
 });
 
+describe("ListPage — дашборд", () => {
+  const view = (props: { defaultView?: "list" | "dashboard" } = {}) =>
+    render(
+      <ListPage<Row>
+        title="Проекты"
+        data={rows.slice(0, 4)}
+        getId={(r) => r.id}
+        columns={[{ key: "name", label: "Название", render: (r) => r.name }]}
+        filterConfig={filterConfig}
+        pageSize={2}
+        renderDashboard={(list) => <div data-testid="dash">сводка: {list.length}</div>}
+        {...props}
+      />,
+    );
+
+  it("кнопка «Дашборд» в переключателе показывает сводку вместо таблицы", async () => {
+    view();
+    const btn = screen.getByRole("button", { name: "Дашборд" });
+    expect(btn).toHaveAttribute("aria-pressed", "false");
+    await userEvent.click(btn);
+    // Сводка — по всем отфильтрованным строкам, не по порции догрузки (pageSize=2).
+    expect(await screen.findByTestId("dash")).toHaveTextContent("сводка: 4");
+    expect(screen.queryByRole("table")).toBeNull();
+    expect(screen.getByRole("button", { name: "Дашборд" })).toHaveAttribute("aria-pressed", "true");
+  });
+
+  it("без renderDashboard кнопки нет", () => {
+    render(
+      <ListPage<Row>
+        title="Проекты"
+        data={rows.slice(0, 2)}
+        getId={(r) => r.id}
+        columns={[{ key: "name", label: "Название", render: (r) => r.name }]}
+        filterConfig={filterConfig}
+      />,
+    );
+    expect(screen.queryByRole("button", { name: "Дашборд" })).toBeNull();
+  });
+});
+
 // Горизонтальная полоса прокрутки таблицы стоит у НИЖНЕГО КРАЯ ЭКРАНА, а не в
 // конце страницы: в списке на двести строк до неё иначе надо долистать донизу,
 // а вернуться к нужной строке — обратно наверх.
