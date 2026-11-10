@@ -181,7 +181,7 @@ interface SortState {
 }
 
 /** Режимы показа списка. 'cards' и 'board' доступны, только если заданы. */
-export type ListView = "list" | "cards" | "board";
+export type ListView = "list" | "cards" | "board" | "dashboard";
 
 /** Папка списка. Порядок в `ListGroups.items` — порядок показа. */
 export interface ListGroup {
@@ -287,6 +287,12 @@ export interface ListPageProps<T> {
    */
   renderBoard?: (rows: T[]) => ReactNode;
   /**
+   * Дашборд: сводка по строкам (показатели, графики) вместо самих строк.
+   * Получает УЖЕ отфильтрованные строки целиком — фильтр и поиск тулбара
+   * сужают и дашборд, как таблицу. Раскладку решает потребитель.
+   */
+  renderDashboard?: (rows: T[]) => ReactNode;
+  /**
    * Стартовый режим показа. По умолчанию таблица; для списков, где важнее
    * визуал (превью, обложки), потребитель ставит 'cards'. Выбор пользователя
    * запоминается (localStorage по scope фильтра) и перекрывает это значение.
@@ -341,6 +347,7 @@ export function ListPage<T>({
   defaultSort,
   renderCard,
   renderBoard,
+  renderDashboard,
   defaultView = "list",
   emptyTitle = "Ничего не найдено",
   emptyIcon = "search",
@@ -364,11 +371,16 @@ export function ListPage<T>({
   // Переключатель есть только там, где кроме таблицы задан хоть один вид.
   const hasCards = Boolean(renderCard);
   const hasBoard = Boolean(renderBoard);
+  const hasDashboard = Boolean(renderDashboard);
+  const hasAltViews = hasCards || hasBoard || hasDashboard;
   const viewKey = `wh24:list-view:${filterConfig.scope}`;
   const viewAvailable = useCallback(
     (v: string): v is ListView =>
-      v === "list" || (v === "cards" && hasCards) || (v === "board" && hasBoard),
-    [hasCards, hasBoard],
+      v === "list" ||
+      (v === "cards" && hasCards) ||
+      (v === "board" && hasBoard) ||
+      (v === "dashboard" && hasDashboard),
+    [hasCards, hasBoard, hasDashboard],
   );
   const [viewMode, setViewMode] = useState<ListView>(() => {
     try {
@@ -385,13 +397,13 @@ export function ListPage<T>({
     if (!viewAvailable(viewMode)) setViewMode("list");
   }, [viewMode, viewAvailable]);
   useEffect(() => {
-    if (!hasCards && !hasBoard) return;
+    if (!hasAltViews) return;
     try {
       localStorage.setItem(viewKey, viewMode);
     } catch {
       /* приватный режим — выбор не сохранится, UI работает */
     }
-  }, [viewMode, viewKey, hasCards, hasBoard]);
+  }, [viewMode, viewKey, hasAltViews]);
   // Ни карточки, ни таблица не листаются постранично: показываем растущий срез
   // и догружаем очередную порцию, когда низ списка появляется в зоне
   // видимости. Таблица — так же с 30.10.2026 (владелец: «убрать и сделать
@@ -713,7 +725,7 @@ export function ListPage<T>({
   // сразу зовёт колбэк, если сентинел всё ещё виден, и грузим дальше — пока он
   // не уйдёт за пределы rootMargin или не покажем всё.
   useEffect(() => {
-    if (viewMode === "board" || !hasMore) return;
+    if (viewMode === "board" || viewMode === "dashboard" || !hasMore) return;
     const el = sentinelRef.current;
     if (!el || typeof IntersectionObserver === "undefined") return;
     const io = new IntersectionObserver(
@@ -1010,11 +1022,13 @@ export function ListPage<T>({
           </>
         )}
 
-        {(hasCards || hasBoard) && (
+        {hasAltViews && (
           <div className={styles.viewSwitch}>
             <button
               data-active={String(viewMode === "list")}
               title="Таблица"
+              aria-label="Таблица"
+              aria-pressed={viewMode === "list"}
               onClick={() => setViewMode("list")}
             >
               <Icon name="list" size={14} />
@@ -1023,6 +1037,8 @@ export function ListPage<T>({
               <button
                 data-active={String(viewMode === "cards")}
                 title="Карточки"
+                aria-label="Карточки"
+                aria-pressed={viewMode === "cards"}
                 onClick={() => setViewMode("cards")}
               >
                 <Icon name="cards" size={14} />
@@ -1032,9 +1048,22 @@ export function ListPage<T>({
               <button
                 data-active={String(viewMode === "board")}
                 title="Доска"
+                aria-label="Доска"
+                aria-pressed={viewMode === "board"}
                 onClick={() => setViewMode("board")}
               >
                 <Icon name="board" size={14} />
+              </button>
+            )}
+            {hasDashboard && (
+              <button
+                data-active={String(viewMode === "dashboard")}
+                title="Дашборд"
+                aria-label="Дашборд"
+                aria-pressed={viewMode === "dashboard"}
+                onClick={() => setViewMode("dashboard")}
+              >
+                <Icon name="dashboard" size={14} />
               </button>
             )}
           </div>
@@ -1043,7 +1072,7 @@ export function ListPage<T>({
         {toolbarEnd?.({ viewMode })}
       </div>
 
-      {viewMode !== "board" && (dropBar || crumbs)}
+      {viewMode !== "board" && viewMode !== "dashboard" && (dropBar || crumbs)}
 
       {viewMode === "list" && (
         <>
@@ -1306,6 +1335,10 @@ export function ListPage<T>({
       {viewMode === "board" &&
         renderBoard &&
         (filtered.length === 0 ? empty : <>{renderBoard(filtered)}</>)}
+
+      {viewMode === "dashboard" &&
+        renderDashboard &&
+        (filtered.length === 0 ? empty : <>{renderDashboard(filtered)}</>)}
 
       {/* Под таблицей строки нет: она догружается по прокрутке, как карточки
           (владелец, 30.10.2026), и под папками тоже
