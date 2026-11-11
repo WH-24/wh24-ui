@@ -226,3 +226,22 @@ button.cardBody {
     transition: none;
   }
 }
+
+/* Перестановка внутри колонки: черта там, куда встанет карточка. */
+.cardInsert {
+  box-shadow: 0 -3px 0 -1px var(--terra);
+}
+
+.insertMark {
+  list-style: none;
+  height: 3px;
+  margin: 2px 4px;
+  border-radius: 2px;
+  background: var(--terra);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .cardInsert {
+    transform: translateY(3px);
+  }
+}
