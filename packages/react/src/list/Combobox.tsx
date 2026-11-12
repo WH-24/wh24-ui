@@ -1,6 +1,7 @@
 import {
   Fragment,
   useEffect,
+  useId,
   useLayoutEffect,
   useMemo,
   useRef,
@@ -157,7 +158,13 @@ export function Combobox({
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState(selected?.label ?? "");
   const controlRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   const [rect, setRect] = useState<MenuRect | null>(null);
+  // Подсвеченный стрелками вариант (индекс в filtered). Enter выбирает его, а
+  // не первый в списке: иначе Enter на поле с выбранным значением молча менял
+  // выбор на первый вариант (так «Участник» становился «Администратором»).
+  const [active, setActive] = useState(-1);
+  const baseId = useId();
 
   // Внешняя смена value (сброс формы, выбор отдела и т.п.) синхронизирует поле.
   useEffect(() => {
@@ -175,6 +182,17 @@ export function Combobox({
       (o) => o.label.toLowerCase().includes(q) || (o.hint ?? "").toLowerCase().includes(q),
     );
   }, [options, query, selected?.label, searchable]);
+
+  // При открытии и смене отбора подсветка встаёт на выбранное значение (если оно
+  // в списке), иначе — на первый вариант набранного запроса.
+  useEffect(() => {
+    if (!open) {
+      setActive(-1);
+      return;
+    }
+    const sel = filtered.findIndex((o) => o.value === value);
+    setActive(sel >= 0 ? sel : filtered.length > 0 && query.trim() !== "" ? 0 : -1);
+  }, [open, filtered, value, query]);
 
   // Позиционируем портальное меню под контролом и держим в пределах вьюпорта.
   useLayoutEffect(() => {
@@ -261,9 +279,13 @@ export function Combobox({
                   )}
                   <button
                     type="button"
-                    className={styles.option}
+                    id={`${baseId}-opt-${i}`}
+                    className={[styles.option, i === active ? styles.optionActive : ""]
+                      .filter(Boolean)
+                      .join(" ")}
                     role="option"
                     aria-selected={o.value === value}
+                    onMouseEnter={() => setActive(i)}
                     onMouseDown={(e) => e.preventDefault()}
                     onClick={() => choose(o)}
                   >
@@ -298,6 +320,7 @@ export function Combobox({
           </span>
         )}
         <input
+          ref={inputRef}
           id={id}
           className={[
             styles.formInput,
@@ -310,6 +333,7 @@ export function Combobox({
           role="combobox"
           aria-label={inputAriaLabel}
           aria-expanded={open}
+          aria-activedescendant={open && active >= 0 ? `${baseId}-opt-${active}` : undefined}
           aria-autocomplete={searchable ? "list" : "none"}
           aria-invalid={invalid || undefined}
           disabled={disabled}
@@ -325,13 +349,40 @@ export function Combobox({
             setOpen(true);
           }}
           onKeyDown={(e) => {
+            if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+              e.preventDefault();
+              if (!open) {
+                setOpen(true);
+                return;
+              }
+              const n = filtered.length;
+              if (n === 0) return;
+              const step = e.key === "ArrowDown" ? 1 : -1;
+              setActive((a) => (a < 0 ? (step > 0 ? 0 : n - 1) : (a + step + n) % n));
+              return;
+            }
             if (e.key === "Escape") {
+              // Открытый список закрывается сам по себе; preventDefault говорит
+              // окну вокруг (модалке), что Escape уже обработан и закрываться не
+              // нужно. Закрытый — пусть Escape уходит дальше.
+              if (open) {
+                e.preventDefault();
+                e.stopPropagation();
+              }
               setOpen(false);
               setQuery(selected?.label ?? "");
+              return;
             }
-            if (e.key === "Enter" && filtered[0]) {
+            if (e.key === "Enter" && open) {
               e.preventDefault();
-              choose(filtered[0]);
+              const opt = active >= 0 ? filtered[active] : undefined;
+              // Ничего не подсвечено или подсвечено текущее — оставить как есть.
+              if (!opt || opt.value === value) {
+                setOpen(false);
+                setQuery(selected?.label ?? "");
+                return;
+              }
+              choose(opt);
             }
           }}
         />
@@ -341,7 +392,16 @@ export function Combobox({
           aria-label={ariaLabel}
           disabled={disabled}
           onMouseDown={(e) => e.preventDefault()}
-          onClick={() => !disabled && setOpen((v) => !v)}
+          onClick={() => {
+            if (disabled) return;
+            // Фокус остаётся в поле: иначе после клика по стрелке он уходил на
+            // body, и клавиатура (стрелки, Escape) переставала работать.
+            if (open) setOpen(false);
+            else {
+              inputRef.current?.focus();
+              setOpen(true);
+            }
+          }}
         >
           <Icon name="chevdown_sm" size={14} />
         </button>

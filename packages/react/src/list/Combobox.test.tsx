@@ -29,3 +29,51 @@ describe("Combobox: метка варианта", () => {
     expect(rows[2].querySelector("span[aria-hidden]")).toBeNull();
   });
 });
+
+// Клавиатура (окно «Участники пространства», 12.11.2026): Enter на поле с
+// выбранным значением выдавал первый вариант — «Администратора».
+const roles = [
+  { value: "admin", label: "Администратор" },
+  { value: "member", label: "Участник" },
+  { value: "viewer", label: "Наблюдатель" },
+];
+
+describe("Combobox: клавиатура", () => {
+  it("Enter без выбора стрелками оставляет текущее значение", async () => {
+    const changes: string[] = [];
+    render(<Combobox options={roles} value="member" onChange={(v) => changes.push(v)} />);
+    await userEvent.click(screen.getByRole("combobox"));
+    await userEvent.keyboard("{Enter}");
+    expect(changes).toEqual([]);
+    expect(screen.queryByRole("listbox")).toBeNull();
+  });
+
+  it("стрелки подсвечивают вариант, Enter выбирает подсвеченный", async () => {
+    const changes: string[] = [];
+    render(<Combobox options={roles} value="member" onChange={(v) => changes.push(v)} />);
+    await userEvent.click(screen.getByRole("combobox"));
+    await userEvent.keyboard("{ArrowDown}");
+    const input = screen.getByRole("combobox");
+    const activeId = input.getAttribute("aria-activedescendant");
+    expect(document.getElementById(activeId!)?.textContent).toBe("Наблюдатель");
+    await userEvent.keyboard("{Enter}");
+    expect(changes).toEqual(["viewer"]);
+  });
+
+  it("Escape в открытом списке помечен обработанным — окно вокруг не закрывается", async () => {
+    let outside = 0;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && !e.defaultPrevented) outside++;
+    };
+    document.addEventListener("keydown", onKey);
+    render(<Combobox options={roles} value="member" onChange={() => {}} />);
+    await userEvent.click(screen.getByRole("combobox"));
+    await userEvent.keyboard("{Escape}");
+    expect(screen.queryByRole("listbox")).toBeNull();
+    expect(outside).toBe(0);
+    // Закрытый список Escape не глотает.
+    await userEvent.keyboard("{Escape}");
+    expect(outside).toBe(1);
+    document.removeEventListener("keydown", onKey);
+  });
+});
