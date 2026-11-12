@@ -33,6 +33,13 @@ export interface KanbanProps<T> {
   canMove?: (item: T, toColumn: string) => boolean
   /** Без onMove доска только для чтения: ни переноса, ни меню. */
   onMove?: (item: T, toColumn: string) => void | Promise<void>
+  /**
+   * Порядок внутри колонки: карточку бросили перед карточкой beforeId (null —
+   * в конец своей колонки). Без onReorder порядок задаёт потребитель через
+   * `items`, и переставлять карточки нельзя. В меню карточки — «Выше»/«Ниже»
+   * (альтернатива перетаскиванию с клавиатуры).
+   */
+  onReorder?: (item: T, beforeId: string | null) => void | Promise<void>
   onOpen?: (item: T) => void
   emptyText?: string
   ariaLabel?: string
@@ -62,16 +69,34 @@ export function Kanban<T>({
   getLabel,
   canMove,
   onMove,
+  onReorder,
   onOpen,
   emptyText = 'Пусто',
   ariaLabel = 'Канбан',
 }: KanbanProps<T>) {
   const [dragId, setDragId] = useState('')
   const [overCol, setOverCol] = useState('')
+  // Куда встанет карточку при переносе внутри колонки: перед этой карточкой
+  // ('' — в конец колонки, null — не над своей колонкой).
+  const [insertBefore, setInsertBefore] = useState<string | null>(null)
   const [busy, setBusy] = useState<Record<string, boolean>>({})
   const byId = new Map(items.map((it) => [getId(it), it]))
   const dragged = dragId ? byId.get(dragId) : undefined
   const allowed = (item: T, col: string) => getColumn(item) !== col && (canMove ? canMove(item, col) : true)
+
+  const run = async (item: T, act: () => void | Promise<void>) => {
+    const id = getId(item)
+    setBusy((b) => ({ ...b, [id]: true }))
+    try {
+      await act()
+    } finally {
+      setBusy(({ [id]: _, ...rest }) => rest)
+    }
+  }
+  const reorder = (item: T, beforeId: string | null) => {
+    if (!onReorder || beforeId === getId(item)) return
+    void run(item, () => onReorder(item, beforeId))
+  }
 
   const move = async (item: T, col: string) => {
     if (!onMove || !allowed(item, col)) return
@@ -89,25 +114,35 @@ export function Kanban<T>({
       {columns.map((col) => {
         const cards = items.filter((it) => getColumn(it) === col.id)
         const droppable = !!dragged && allowed(dragged, col.id)
-        const dropProps = onMove
-          ? {
-              onDragOver: (e: DragEvent) => {
-                if (!droppable) return
-                e.preventDefault()
-                e.dataTransfer.dropEffect = 'move'
-                if (overCol !== col.id) setOverCol(col.id)
-              },
-              onDragLeave: (e: DragEvent) => {
-                if (!e.currentTarget.contains(e.relatedTarget as Node)) setOverCol('')
-              },
-              onDrop: (e: DragEvent) => {
-                e.preventDefault()
-                setOverCol('')
-                if (dragged && droppable) void move(dragged, col.id)
-                setDragId('')
-              },
-            }
-          : {}
+        // Своя колонка — перестановка (если потребитель её поддерживает).
+        const sorting = !!dragged && !!onReorder && getColumn(dragged) === col.id
+        const dropProps =
+          onMove || onReorder
+            ? {
+                onDragOver: (e: DragEvent) => {
+                  if (!droppable && !sorting) return
+                  e.preventDefault()
+                  e.dataTransfer.dropEffect = 'move'
+                  if (droppable && overCol !== col.id) setOverCol(col.id)
+                  // Пустое место колонки под карточками — в конец.
+                  if (sorting && e.target === e.currentTarget) setInsertBefore('')
+                },
+                onDragLeave: (e: DragEvent) => {
+                  if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+                    setOverCol('')
+                    setInsertBefore(null)
+                  }
+                },
+                onDrop: (e: DragEvent) => {
+                  e.preventDefault()
+                  setOverCol('')
+                  if (dragged && droppable) void move(dragged, col.id)
+                  else if (dragged && sorting && insertBefore !== null) reorder(dragged, insertBefore || null)
+                  setInsertBefore(null)
+                  setDragId('')
+                },
+              }
+            : {}
         const cls = [
           styles.col,
           dragged && !droppable && getColumn(dragged) !== col.id ? styles.colBlocked : '',
@@ -130,29 +165,47 @@ export function Kanban<T>({
             </header>
             <ul className={styles.cards}>
               {cards.length === 0 && <li className={styles.empty}>{emptyText}</li>}
-              {cards.map((it) => {
+              {cards.map((it, i) => {
                 const id = getId(it)
                 const targets = onMove ? columns.filter((c) => allowed(it, c.id)) : []
+                const prev = cards[i - 1]
+                const next = cards[i + 1]
+                const after = cards[i + 2]
                 return (
                   <KanbanCard
                     key={id}
                     label={getLabel(it)}
                     busy={!!busy[id]}
                     dragging={dragId === id}
-                    draggable={targets.length > 0 && !busy[id]}
+                    draggable={(targets.length > 0 || (!!onReorder && cards.length > 1)) && !busy[id]}
+                    insertMark={sorting && insertBefore === id && dragId !== id}
                     onDragStart={() => setDragId(id)}
                     onDragEnd={() => {
                       setDragId('')
                       setOverCol('')
+                      setInsertBefore(null)
                     }}
+                    onDragOverCard={
+                      sorting
+                        ? (e) => {
+                            // Верхняя половина карточки — встаём перед ней, нижняя — после.
+                            const r = e.currentTarget.getBoundingClientRect()
+                            const before = e.clientY < r.top + r.height / 2
+                            setInsertBefore(before ? id : next ? getId(next) : '')
+                          }
+                        : undefined
+                    }
                     onOpen={onOpen ? () => onOpen(it) : undefined}
                     targets={targets}
                     onMove={(colId) => void move(it, colId)}
+                    onUp={onReorder && prev ? () => reorder(it, getId(prev)) : undefined}
+                    onDown={onReorder && next ? () => reorder(it, after ? getId(after) : null) : undefined}
                   >
                     {renderCard(it)}
                   </KanbanCard>
                 )
               })}
+              {sorting && insertBefore === '' && <li className={styles.insertMark} aria-hidden="true" />}
             </ul>
             {col.footer && <div className={styles.footer}>{col.footer}</div>}
           </section>
@@ -167,15 +220,35 @@ interface CardProps {
   busy: boolean
   dragging: boolean
   draggable: boolean
+  /** Перед карточкой встанет переносимая — показываем черту. */
+  insertMark: boolean
   onDragStart: () => void
   onDragEnd: () => void
+  onDragOverCard?: (e: DragEvent<HTMLLIElement>) => void
   onOpen?: () => void
   targets: KanbanColumn[]
   onMove: (colId: string) => void
+  onUp?: () => void
+  onDown?: () => void
   children: ReactNode
 }
 
-function KanbanCard({ label, busy, dragging, draggable, onDragStart, onDragEnd, onOpen, targets, onMove, children }: CardProps) {
+function KanbanCard({
+  label,
+  busy,
+  dragging,
+  draggable,
+  insertMark,
+  onDragStart,
+  onDragEnd,
+  onDragOverCard,
+  onOpen,
+  targets,
+  onMove,
+  onUp,
+  onDown,
+  children,
+}: CardProps) {
   const [menu, setMenu] = useState(false)
   // Меню — position: fixed от кнопки: колонка прокручивается сама, и
   // абсолютное меню у нижней карточки обрезалось бы её краем.
@@ -217,7 +290,14 @@ function KanbanCard({ label, busy, dragging, draggable, onDragStart, onDragEnd, 
     }
   }, [menu])
 
-  const cls = [styles.card, onOpen ? styles.cardOpen : '', dragging ? styles.cardDragging : '', busy ? styles.cardBusy : '']
+  const hasMenu = targets.length > 0 || !!onUp || !!onDown
+  const cls = [
+    styles.card,
+    onOpen ? styles.cardOpen : '',
+    dragging ? styles.cardDragging : '',
+    busy ? styles.cardBusy : '',
+    insertMark ? styles.cardInsert : '',
+  ]
     .filter(Boolean)
     .join(' ')
   return (
@@ -231,6 +311,7 @@ function KanbanCard({ label, busy, dragging, draggable, onDragStart, onDragEnd, 
         onDragStart()
       }}
       onDragEnd={onDragEnd}
+      onDragOver={onDragOverCard}
     >
       {onOpen ? (
         <button type="button" className={styles.cardBody} onClick={onOpen} aria-label={label}>
@@ -239,7 +320,7 @@ function KanbanCard({ label, busy, dragging, draggable, onDragStart, onDragEnd, 
       ) : (
         <div className={styles.cardBody}>{children}</div>
       )}
-      {targets.length > 0 && (
+      {hasMenu && (
         <div className={styles.moveWrap}>
           <button
             ref={btnRef}
@@ -274,7 +355,38 @@ function KanbanCard({ label, busy, dragging, draggable, onDragStart, onDragEnd, 
                 }
               }}
             >
-              <div className={styles.menuTitle}>Переместить в</div>
+              {(onUp || onDown) && (
+                <>
+                  <div className={styles.menuTitle}>Порядок</div>
+                  {onUp && (
+                    <button
+                      type="button"
+                      role="menuitem"
+                      className={styles.menuItem}
+                      onClick={() => {
+                        setMenu(false)
+                        onUp()
+                      }}
+                    >
+                      ↑ Выше
+                    </button>
+                  )}
+                  {onDown && (
+                    <button
+                      type="button"
+                      role="menuitem"
+                      className={styles.menuItem}
+                      onClick={() => {
+                        setMenu(false)
+                        onDown()
+                      }}
+                    >
+                      ↓ Ниже
+                    </button>
+                  )}
+                </>
+              )}
+              {targets.length > 0 && <div className={styles.menuTitle}>Переместить в</div>}
               {targets.map((t) => (
                 <button
                   key={t.id}

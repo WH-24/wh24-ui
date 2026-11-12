@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { createEvent, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 
@@ -103,5 +103,48 @@ describe('Kanban', () => {
     setup({ onMove: undefined })
     expect(screen.queryByRole('button', { name: /Переместить/ })).toBeNull()
     expect(screen.getByRole('button', { name: 'Смета' }).closest('li')!.getAttribute('draggable')).toBe('false')
+  })
+
+  describe('порядок внутри колонки', () => {
+    const three: Item[] = [
+      { id: 'a', title: 'Первая', col: 'todo' },
+      { id: 'b', title: 'Вторая', col: 'todo' },
+      { id: 'c', title: 'Третья', col: 'todo' },
+    ]
+
+    it('меню «Выше»/«Ниже»: соседи в колонке, у крайних — только своё направление', async () => {
+      const onReorder = vi.fn()
+      setup({ items: three, onReorder })
+      await userEvent.click(screen.getByRole('button', { name: 'Переместить «Вторая»' }))
+      const menu = screen.getByRole('menu')
+      await userEvent.click(within(menu).getByRole('menuitem', { name: '↑ Выше' }))
+      expect(onReorder).toHaveBeenCalledWith(three[1], 'a')
+      await userEvent.click(screen.getByRole('button', { name: 'Переместить «Вторая»' }))
+      await userEvent.click(within(screen.getByRole('menu')).getByRole('menuitem', { name: '↓ Ниже' }))
+      expect(onReorder).toHaveBeenLastCalledWith(three[1], null)
+      await userEvent.click(screen.getByRole('button', { name: 'Переместить «Первая»' }))
+      expect(within(screen.getByRole('menu')).queryByRole('menuitem', { name: '↑ Выше' })).toBeNull()
+    })
+
+    it('мышью: бросок на верхнюю половину карточки — перед ней', () => {
+      const onReorder = vi.fn()
+      setup({ items: three, onReorder })
+      const card = (t: string) => screen.getByRole('button', { name: t }).closest('li')!
+      fireEvent.dragStart(card('Третья'), { dataTransfer: { setData: () => {}, effectAllowed: '' } })
+      const target = card('Первая')
+      target.getBoundingClientRect = () => ({ top: 0, height: 40 }) as DOMRect
+      // jsdom не передаёт clientY в DragEvent — ставим вручную.
+      const over = createEvent.dragOver(target, { dataTransfer: { dropEffect: '' } })
+      Object.defineProperty(over, 'clientY', { value: 5 })
+      fireEvent(target, over)
+      fireEvent.drop(target.closest('section')!, { dataTransfer: {} })
+      expect(onReorder).toHaveBeenCalledWith(three[2], 'a')
+    })
+
+    it('без onReorder пунктов порядка нет', async () => {
+      setup({ items: three })
+      await userEvent.click(screen.getByRole('button', { name: 'Переместить «Вторая»' }))
+      expect(within(screen.getByRole('menu')).queryByRole('menuitem', { name: '↑ Выше' })).toBeNull()
+    })
   })
 })
