@@ -88,7 +88,9 @@
   display: flex;
   /* Фиксированная ширина — дропдаун не «прыгает» при смене вкладки/фильтра. */
   width: 440px;
-  max-width: 92vw;
+  /* Потребитель может ограничить панель (узкое окно на телефоне):
+     --dp-panel-max-width: 100% — не шире самого поля поиска. */
+  max-width: var(--dp-panel-max-width, 92vw);
   background: var(--surf);
   border: 0.5px solid var(--bd-soft);
   border-radius: var(--r-lg);
