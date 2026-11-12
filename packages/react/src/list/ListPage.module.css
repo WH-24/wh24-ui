@@ -179,6 +179,10 @@ table.tbl {
   background: var(--bg-subtle);
   position: sticky;
   top: 0;
+  /* Шапка липнет к верху области таблицы — строки уезжают ПОД неё. Ячейки
+     с позиционированием (аватар, чекбокс выбора, метки) иначе рисуются
+     поверх шапки. */
+  z-index: 3;
   user-select: none;
 }
 .tbl thead th[data-sortable] {
