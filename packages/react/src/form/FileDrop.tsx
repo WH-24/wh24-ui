@@ -66,6 +66,8 @@ export function FileDrop({
 }: FileDropProps) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [over, setOver] = useState(false)
+  // Сколько файлов не вошло по лимиту — говорим, а не отбрасываем молча.
+  const [skipped, setSkipped] = useState(0)
 
   const full = maxFiles != null && files.length >= maxFiles
   const canAdd = Boolean(onAdd) && !disabled && !full
@@ -77,6 +79,7 @@ export function FileDrop({
     // и пользователь узнает о потолке после ожидания загрузки.
     const room = maxFiles == null ? picked.length : Math.max(0, maxFiles - files.length)
     if (room > 0) onAdd(picked.slice(0, room))
+    setSkipped(Math.max(0, picked.length - room))
   }
 
   const onDrop = (e: DragEvent<HTMLDivElement>) => {
@@ -160,6 +163,9 @@ export function FileDrop({
           }}
           onDragLeave={(e) => {
             e.preventDefault()
+            // Переход курсора на подпись внутри зоны — тоже dragleave; без
+            // этой проверки подсветка зоны мигала.
+            if (e.currentTarget.contains(e.relatedTarget as Node | null)) return
             setOver(false)
           }}
           onDrop={onDrop}
@@ -186,6 +192,13 @@ export function FileDrop({
               e.target.value = ''
             }}
           />
+        </div>
+      )}
+      {/* Вне зоны: когда лимит набран, зона исчезает, а сообщение — нет. */}
+      {skipped > 0 && (
+        <div className={styles.fdSkipped} role="status">
+          {skipped === 1 ? 'Один файл не добавлен' : `Не добавлено файлов: ${skipped}`} — можно не больше{' '}
+          {maxFiles}.
         </div>
       )}
     </div>

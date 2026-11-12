@@ -271,3 +271,22 @@
     animation: none;
   }
 }
+
+/* Телефон: вкладки — строкой над списком. Колонка вкладок 130px съедала
+   43% панели шириной 301px, и фамилии обрезались («Анисимо…»). */
+@media (max-width: 520px) {
+  .panel {
+    flex-direction: column;
+  }
+  .rail {
+    flex-direction: row;
+    flex-shrink: 0;
+    width: auto;
+    overflow-x: auto;
+    border-right: 0;
+    border-bottom: 0.5px solid var(--bd-soft);
+  }
+  .tab {
+    flex: 0 0 auto;
+  }
+}

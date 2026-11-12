@@ -166,7 +166,9 @@ export function useFocusTrap({ open, containerRef, onEscape }: FocusTrapOptions)
         onEscape()
         return
       }
-      if (e.key !== 'Tab') return
+      // Tab, уже обработанный вложенным слоем (календарь в портале водит
+      // фокус по кругу сам), не перехватываем.
+      if (e.key !== 'Tab' || e.defaultPrevented) return
       const container = containerRef.current
       if (!container) return
       const focusable = getFocusableElements(container)

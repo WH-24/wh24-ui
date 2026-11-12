@@ -1,4 +1,4 @@
-import type { CSSProperties, ReactNode } from 'react'
+import { cloneElement, isValidElement, useId, type CSSProperties, type ReactElement, type ReactNode } from 'react'
 
 import styles from './form.module.css'
 
@@ -31,6 +31,10 @@ export interface FieldRowProps {
  * Ошибка вытесняет подсказку, а не добавляется к ней: два текста подряд под
  * полем читаются как один и пользователь не понимает, что из этого претензия
  * к введённому значению.
+ *
+ * Подсказка и ошибка связаны с контролом через `aria-describedby` (если
+ * ребёнок — один элемент): читалка читает их вместе с полем. Ошибка —
+ * `role="alert"`, её зачитают сразу, как она появилась.
  */
 export function FieldRow({
   label,
@@ -43,6 +47,14 @@ export function FieldRow({
   style,
   children,
 }: FieldRowProps) {
+  const descId = useId()
+  const described = Boolean(error || hint)
+  let control = children
+  if (described && isValidElement(children)) {
+    const el = children as ReactElement<{ 'aria-describedby'?: string }>
+    const own = el.props['aria-describedby']
+    control = cloneElement(el, { 'aria-describedby': own ? `${own} ${descId}` : descId })
+  }
   return (
     <div
       className={[styles.row, className].filter(Boolean).join(' ')}
@@ -59,11 +71,15 @@ export function FieldRow({
           )}
         </label>
       )}
-      {children}
+      {control}
       {error ? (
-        <div className={styles.error}>{error}</div>
+        <div id={descId} className={styles.error} role="alert">
+          {error}
+        </div>
       ) : hint ? (
-        <div className={styles.hint}>{hint}</div>
+        <div id={descId} className={styles.hint}>
+          {hint}
+        </div>
       ) : null}
     </div>
   )
