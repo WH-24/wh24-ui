@@ -29,7 +29,7 @@
 
 .req {
   margin-left: 2px;
-  color: var(--terra);
+  color: var(--terra-text);
 }
 
 .hint {
@@ -86,7 +86,8 @@
   min-width: 0;
   height: 36px;
   padding: 0 10px;
-  border: 1px solid var(--bd-strong);
+  /* Рамка поля — ≥ 3:1 к поверхности (--field-bd), а не волосок --bd-strong. */
+  border: 1px solid var(--field-bd, var(--bd-strong));
   border-radius: var(--r-md);
   background: var(--surf);
   color: var(--ink);
@@ -98,7 +99,7 @@
     box-shadow 0.1s;
 }
 .control::placeholder {
-  color: var(--ink-4);
+  color: var(--ink-3);
 }
 .control:focus {
   border-color: var(--terra);
@@ -228,7 +229,7 @@
   font-size: 13px;
 }
 .mcInput::placeholder {
-  color: var(--ink-4);
+  color: var(--ink-3);
 }
 .mcToggle {
   position: absolute;
@@ -257,7 +258,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border: 1.5px solid var(--bd-strong);
+  border: 1.5px solid var(--field-bd, var(--bd-strong));
   border-radius: var(--r-sm);
   color: #fff;
 }
@@ -334,7 +335,7 @@
   outline: none;
 }
 .dpInput::placeholder {
-  color: var(--ink-4);
+  color: var(--ink-3);
 }
 .dpIcon {
   display: inline-flex;
@@ -419,13 +420,13 @@
 }
 .dpToday {
   border-color: var(--terra-bd);
-  color: var(--terra-d);
+  color: var(--terra-text);
   font-weight: var(--fw-semibold);
 }
 .dpSel,
 .dpSel:hover {
-  background: var(--terra);
-  border-color: var(--terra);
+  background: var(--terra-solid, var(--terra-d));
+  border-color: var(--terra-solid, var(--terra-d));
   color: #fff;
   font-weight: var(--fw-semibold);
 }
@@ -448,7 +449,7 @@
 .dpLink {
   font-size: 12.5px;
   font-weight: var(--fw-medium);
-  color: var(--terra-d);
+  color: var(--terra-text);
   background: transparent;
   border: none;
   padding: 4px 6px;
@@ -517,7 +518,7 @@
   color: var(--ink-3);
 }
 .fdLink {
-  color: var(--terra-d);
+  color: var(--terra-text);
   text-decoration: underline;
 }
 .fdList {
@@ -549,7 +550,7 @@
   text-decoration: none;
 }
 .fdName[href]:hover {
-  color: var(--terra-d);
+  color: var(--terra-text);
   text-decoration: underline;
 }
 .fdSize {

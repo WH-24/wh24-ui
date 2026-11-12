@@ -46,7 +46,7 @@
 }
 
 .value.accent {
-  color: var(--terra);
+  color: var(--terra-text);
 }
 
 .trend {
@@ -64,7 +64,7 @@
 }
 
 .trend.bp {
-  color: var(--terra);
+  color: var(--terra-text);
 }
 
 @media (max-width: 880px) {

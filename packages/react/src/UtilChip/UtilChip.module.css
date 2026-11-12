@@ -25,7 +25,7 @@
 
 .chip.onboard {
   border-color: var(--terra-bd);
-  color: var(--terra-d);
+  color: var(--terra-text);
   background: var(--terra-bg);
 }
 

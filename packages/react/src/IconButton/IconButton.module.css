@@ -31,7 +31,7 @@
 }
 
 .btn[aria-pressed='true'] {
-  color: var(--terra-d);
+  color: var(--terra-text);
 }
 
 .icon {

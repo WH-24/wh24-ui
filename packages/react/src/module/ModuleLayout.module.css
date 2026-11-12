@@ -47,13 +47,10 @@
   height: 22px;
   border-radius: 6px;
   background: var(--accent-50);
-  color: var(--accent-700);
+  color: var(--accent-text, var(--accent-700));
   display: grid;
   place-items: center;
   flex-shrink: 0;
-}
-:global(html[data-theme='dark']) .titleIcon {
-  color: var(--accent-400);
 }
 
 .nav {
@@ -82,11 +79,8 @@
 }
 .link[data-active='true'] {
   background: var(--accent-50);
-  color: var(--accent-700);
+  color: var(--accent-text, var(--accent-700));
   font-weight: 500;
-}
-:global(html[data-theme='dark']) .link[data-active='true'] {
-  color: var(--accent-400);
 }
 .link:focus-visible {
   outline: 2px solid var(--accent-500);

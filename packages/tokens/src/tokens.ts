@@ -12,6 +12,9 @@ export const colors = {
   terraBg: 'var(--terra-bg)',
   terraBd: 'var(--terra-bd)',
   terraMark: 'var(--terra-mark)',
+  terraText: 'var(--terra-text)',
+  terraSolid: 'var(--terra-solid)',
+  terraSolidHover: 'var(--terra-solid-hover)',
 
   ink: 'var(--ink)',
   ink2: 'var(--ink-2)',

@@ -13,7 +13,9 @@
   box-sizing: border-box;
   padding: 0 32px;
   border-bottom: 0.5px solid var(--bd);
-  background: rgba(250, 250, 247, 0.85);
+  /* От фона темы, а не светлый литерал: в тёмной теме шапка была почти
+     белой под светлым текстом. */
+  background: color-mix(in srgb, var(--bg) 85%, transparent);
   backdrop-filter: saturate(180%) blur(8px);
   position: sticky;
   top: 0;

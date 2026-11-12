@@ -79,7 +79,7 @@
   padding: var(--sp-4) var(--sp-2);
   text-align: center;
   font-size: var(--fs-meta);
-  color: var(--ink-4);
+  color: var(--ink-3);
 }
 
 .footer {
@@ -186,7 +186,7 @@ button.cardBody {
 .menuTitle {
   padding: var(--sp-1) var(--sp-2);
   font-size: var(--fs-meta-sm, 11px);
-  color: var(--ink-4);
+  color: var(--ink-3);
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }

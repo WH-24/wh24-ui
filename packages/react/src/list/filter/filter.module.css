@@ -10,13 +10,17 @@
 .msMenu {
   --fg-primary: #1a1a1a;
   --fg-secondary: #3d3d3d;
-  --fg-tertiary: #7a7a7a;
-  --fg-muted: #b4b2a9;
+  /* Как в ui-tokens/bridge.css: текст ≥ 4.5:1 (прежние #7a7a7a/#b4b2a9 —
+     4.29 и 2.1:1). */
+  --fg-tertiary: #5c5c5c;
+  --fg-muted: #696969;
   --accent-50: #fbeee5;
   --accent-400: #dd6731;
   --accent-500: #dd6731;
   --accent-600: #b8501f;
   --accent-700: #b8501f;
+  /* Терракота текстом: ≥ 4.9:1 и на белом, и на --accent-50. */
+  --accent-text: var(--terra-text, #a8481b);
   --bg-surface: #ffffff;
   --bg-subtle: #f7f5f0;
   --bg-muted: #efece4;
@@ -38,8 +42,9 @@
   --fg-primary: #f2f2ef;
   --fg-secondary: #d8d8d1;
   --fg-tertiary: #a9aa9f;
-  --fg-muted: #7b7d74;
+  --fg-muted: #94968c;
   --accent-50: rgba(221, 103, 49, 0.2);
+  --accent-text: var(--terra-text, #e57a48);
   --bg-surface: #161816;
   --bg-subtle: #1c1f1c;
   --bg-muted: #272b27;
@@ -71,7 +76,7 @@
 }
 .formInput:focus {
   border-color: var(--accent-500);
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+  box-shadow: 0 0 0 3px var(--accent-50);
 }
 
 .filterBar {
@@ -109,7 +114,7 @@
   box-shadow: 0 0 0 3px var(--accent-50);
 }
 :where([data-theme="dark"]) .filterSearch[data-active="true"] {
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.14);
+  box-shadow: 0 0 0 3px var(--accent-50);
 }
 .filterSearchIcon {
   display: flex;
@@ -162,12 +167,12 @@
   font-size: 12px;
   border-radius: 999px;
   background: var(--accent-50);
-  color: var(--accent-700);
+  color: var(--accent-text);
   max-width: 220px;
 }
 :where([data-theme="dark"]) .filterApplied {
-  background: rgba(59, 130, 246, 0.14);
-  color: var(--accent-400);
+  background: var(--accent-50);
+  color: var(--accent-text);
 }
 .filterAppliedPreset {
   font-weight: 500;
@@ -258,11 +263,11 @@
   color: var(--fg-primary);
 }
 .filterPreset[data-active="true"] {
-  color: var(--accent-700);
+  color: var(--accent-text);
   font-weight: 500;
 }
 :where([data-theme="dark"]) .filterPreset[data-active="true"] {
-  color: var(--accent-400);
+  color: var(--accent-text);
 }
 .filterPresetName {
   flex: 1;
@@ -310,7 +315,7 @@
   color: var(--accent-600);
 }
 .filterPresetPin[data-pinned="true"]:hover {
-  color: var(--accent-700);
+  color: var(--accent-text);
 }
 .filterPresetRename {
   flex: 1;
@@ -637,7 +642,7 @@
   cursor: pointer;
 }
 .filterAddfield:hover {
-  color: var(--accent-700);
+  color: var(--accent-text);
   text-decoration: underline;
 }
 

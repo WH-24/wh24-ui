@@ -28,7 +28,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--terra-d);
+  color: var(--terra-text);
   font-size: 18px;
   flex-shrink: 0;
 }
@@ -54,7 +54,7 @@
 }
 
 .arr {
-  color: var(--terra-d);
+  color: var(--terra-text);
   font-size: 16px;
   transition: transform 0.15s;
   flex-shrink: 0;

@@ -54,7 +54,8 @@ select {
 :focus-visible {
   outline: var(--focus-ring-w) solid var(--focus);
   outline-offset: var(--focus-ring-offset);
-  border-radius: 2px;
+  /* Без border-radius: обводка сама повторяет скругление элемента, а
+     прежние 2px «квадратили» в фокусе пилюли, поля и кнопки. */
 }
 
 ::selection {
