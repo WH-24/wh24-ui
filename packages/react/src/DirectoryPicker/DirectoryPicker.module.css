@@ -270,6 +270,9 @@
   .panel {
     animation: none;
   }
+  .twisty {
+    transition: none;
+  }
 }
 
 /* Телефон: вкладки — строкой над списком. Колонка вкладок 130px съедала

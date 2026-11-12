@@ -60,6 +60,10 @@
   flex-shrink: 0;
 }
 
-.tile:hover .arr {
-  transform: translateX(2px);
+/* Сдвиг стрелки — только под настоящим курсором: на тач-экране :hover
+   «залипает» после касания. При «уменьшить движение» — без сдвига. */
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .tile:hover .arr {
+    transform: translateX(2px);
+  }
 }

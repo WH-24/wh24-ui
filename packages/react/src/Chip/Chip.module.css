@@ -17,21 +17,33 @@
   border-color: var(--terra-bd);
 }
 
+/* Видимый крестик 16px, цель — 24px (WCAG 2.5.8) за счёт поля вокруг. */
 .remove {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 14px;
-  height: 14px;
+  width: 16px;
+  height: 16px;
+  margin-right: -4px;
   padding: 0;
   background: transparent;
   border: none;
+  border-radius: 50%;
+  color: inherit;
   cursor: pointer;
-  opacity: 0.5;
-  font-size: 14px;
-  line-height: 1;
+  opacity: 0.7;
 }
-
-.remove:hover {
+.remove::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+}
+.remove:hover,
+.remove:focus-visible {
   opacity: 1;
+}
+.remove:focus-visible {
+  outline: 2px solid var(--focus, var(--terra));
+  outline-offset: 1px;
 }

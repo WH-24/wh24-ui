@@ -509,6 +509,12 @@
     color 0.1s,
     background 0.1s;
 }
+/* На сенсорном экране наведения нет — крестик поля виден всегда. */
+@media (hover: none) {
+  .filterFieldRemove {
+    opacity: 1;
+  }
+}
 .filterField:hover .filterFieldRemove,
 .filterFieldRemove:focus-visible {
   opacity: 1;

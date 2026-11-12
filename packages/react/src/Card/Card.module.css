@@ -62,3 +62,8 @@
   right: 9px;
   z-index: 2;
 }
+
+.card[tabindex='0']:focus-visible {
+  outline: var(--focus-ring-w, 2px) solid var(--focus, var(--terra));
+  outline-offset: var(--focus-ring-offset, 2px);
+}

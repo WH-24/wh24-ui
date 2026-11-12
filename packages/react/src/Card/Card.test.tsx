@@ -70,4 +70,18 @@ describe('Card', () => {
     await userEvent.click(screen.getByRole('article'))
     expect(onClick).toHaveBeenCalledTimes(1)
   })
+
+  it('карточка с onClick открывается с клавиатуры: Tab, Enter, пробел', async () => {
+    const onClick = vi.fn()
+    render(
+      <Card variant="noCover" onClick={onClick}>
+        <h3>Click me</h3>
+      </Card>,
+    )
+    await userEvent.tab()
+    expect(screen.getByRole('article')).toHaveFocus()
+    await userEvent.keyboard('{Enter}')
+    await userEvent.keyboard(' ')
+    expect(onClick).toHaveBeenCalledTimes(2)
+  })
 })

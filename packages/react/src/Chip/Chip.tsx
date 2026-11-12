@@ -1,5 +1,7 @@
 import type { ReactNode } from 'react'
 
+import { Icon } from '../list/Icon.js'
+
 import styles from './Chip.module.css'
 
 export type ChipVariant = 'default' | 'tag'
@@ -21,6 +23,7 @@ export function Chip({
   onRemove,
   removeLabel = 'Удалить',
 }: ChipProps) {
+  const label = removeLabel
   const className = variant === 'tag' ? `${styles.chip} ${styles.tag}` : styles.chip
   return (
     <span className={className}>
@@ -29,10 +32,10 @@ export function Chip({
         <button
           type="button"
           className={styles.remove}
-          aria-label={removeLabel}
+          aria-label={label}
           onClick={onRemove}
         >
-          ×
+          <Icon name="close" size={12} />
         </button>
       ) : null}
     </span>

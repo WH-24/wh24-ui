@@ -1,7 +1,7 @@
 .btn {
   width: 32px;
   height: 32px;
-  border-radius: 6px;
+  border-radius: var(--r-sm, 6px);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -12,7 +12,16 @@
   font-family: inherit;
   transition:
     background 0.15s,
-    color 0.15s;
+    color 0.15s,
+    transform var(--dur-fast, 120ms) var(--ease-out, ease-out);
+}
+.btn:active:not(:disabled) {
+  transform: scale(0.94);
+}
+@media (prefers-reduced-motion: reduce) {
+  .btn:active:not(:disabled) {
+    transform: none;
+  }
 }
 
 .btn:hover:not(:disabled) {
@@ -26,7 +35,7 @@
 }
 
 .btn:disabled {
-  opacity: 0.4;
+  opacity: var(--disabled-opacity, 0.45);
   cursor: default;
 }
 

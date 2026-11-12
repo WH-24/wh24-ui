@@ -30,7 +30,21 @@
   white-space: nowrap;
   cursor: pointer;
   text-decoration: none;
-  transition: background 0.1s, border-color 0.1s, color 0.1s;
+  transition:
+    background 0.1s,
+    border-color 0.1s,
+    color 0.1s,
+    transform var(--dur-fast, 120ms) var(--ease-out, ease-out);
+}
+/* Отклик на нажатие (Emil Kowalski): кнопка чуть «проседает» — интерфейс
+   слышит палец. 0.97, не меньше: заметно, но не прыгает. */
+.btn:active:not(:disabled):not([aria-disabled='true']) {
+  transform: scale(0.97);
+}
+@media (prefers-reduced-motion: reduce) {
+  .btn:active:not(:disabled) {
+    transform: none;
+  }
 }
 .btn:focus-visible {
   outline: var(--focus-ring-w) solid var(--focus);
