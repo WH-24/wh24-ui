@@ -354,7 +354,12 @@ export function SearchModule<T>({
                   onChange={(e) => setRenameValue(e.target.value)}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') commitRename(p.id)
-                    if (e.key === 'Escape') setRenamingId(null)
+                    if (e.key === 'Escape') {
+                      // Отмена переименования — не закрытие всей панели.
+                      e.preventDefault()
+                      e.stopPropagation()
+                      setRenamingId(null)
+                    }
                   }}
                   onBlur={() => commitRename(p.id)}
                 />
@@ -430,6 +435,8 @@ export function SearchModule<T>({
               onKeyDown={(e) => {
                 if (e.key === 'Enter') saveCurrentPreset()
                 if (e.key === 'Escape') {
+                  e.preventDefault()
+                  e.stopPropagation()
                   setSaving(false)
                   setPresetName('')
                   setSaveForAll(false)

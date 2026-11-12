@@ -240,7 +240,10 @@ export function MultiCombobox({
             setOpen(true)
           }}
           onKeyDown={(e) => {
-            if (e.key === 'Escape') {
+            if (e.key === 'Escape' && open) {
+              // Открытый список съедает Esc: окно вокруг не закрывается.
+              e.preventDefault()
+              e.stopPropagation()
               setOpen(false)
               setQuery('')
             }

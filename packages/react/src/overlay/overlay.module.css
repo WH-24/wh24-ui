@@ -13,6 +13,7 @@
   align-items: center;
   justify-content: center;
   padding: 16px;
+  animation: overlay-fade-in var(--dur-base, 180ms) var(--ease-out, ease-out);
 }
 :global(html[data-theme='dark']) .backdrop {
   background: rgba(0, 0, 0, 0.6);
@@ -27,8 +28,28 @@
   display: flex;
   flex-direction: column;
   max-height: calc(100vh - 48px);
+  max-height: calc(100dvh - 48px);
   overflow: hidden;
   outline: none;
+  /* Появление: из 0.97, а не из нуля — окно «проявляется» на месте. */
+  animation: modal-in 190ms var(--ease-out, cubic-bezier(0.23, 1, 0.32, 1));
+}
+@keyframes overlay-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes modal-in {
+  from {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+}
+/* Закрывающееся окно доигрывает выход и не ловит клики. */
+.backdrop[data-state='closed'],
+.drawerBackdrop[data-state='closed'],
+.drawer[data-state='closed'] {
+  pointer-events: none;
 }
 
 .head {
@@ -70,6 +91,7 @@
 .body {
   padding: 20px;
   overflow-y: auto;
+  overscroll-behavior: contain;
   flex: 1;
   font-size: 14px;
   color: var(--fg-secondary);
@@ -106,6 +128,7 @@
   background: rgba(15, 23, 42, 0.32);
   z-index: var(--z-backdrop, 40);
   pointer-events: auto;
+  animation: overlay-fade-in 200ms var(--ease-out, ease-out);
 }
 :global(html[data-theme='dark']) .drawerBackdrop {
   background: rgba(0, 0, 0, 0.55);
@@ -124,14 +147,12 @@
   display: flex;
   flex-direction: column;
   outline: none;
-  animation: drawer-in 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  /* Кривая листа iOS: быстрый старт, долгий мягкий доезд. */
+  animation: drawer-in var(--dur-slow, 240ms) var(--ease-drawer, cubic-bezier(0.32, 0.72, 0, 1));
 }
 @keyframes drawer-in {
   from {
     transform: translateX(100%);
-  }
-  to {
-    transform: translateX(0);
   }
 }
 .drawerHead {
@@ -150,6 +171,7 @@
 .drawerBody {
   flex: 1;
   overflow: auto;
+  overscroll-behavior: contain;
   padding: 20px;
   min-height: 0;
 }
@@ -179,18 +201,16 @@
   max-width: 360px;
   cursor: pointer;
   pointer-events: auto;
-  animation: toast-in 0.2s ease;
+  animation: toast-in var(--dur-base, 180ms) var(--ease-out, cubic-bezier(0.23, 1, 0.32, 1));
 }
 @keyframes toast-in {
   from {
     opacity: 0;
     transform: translateY(8px);
   }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
 }
+/* Подложки значка и кнопок — от цвета текста тоста, а не белые: в тёмной
+   теме обычный тост светлый, и белые подложки на нём пропадали. */
 .toastIcon {
   width: 18px;
   height: 18px;
@@ -198,7 +218,30 @@
   display: grid;
   place-items: center;
   flex-shrink: 0;
-  background: rgba(255, 255, 255, 0.18);
+  background: color-mix(in srgb, currentColor 18%, transparent);
+}
+.toastClose {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  margin: -4px -8px -4px 0;
+  display: grid;
+  place-items: center;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: inherit;
+  opacity: 0.75;
+  cursor: pointer;
+}
+.toastClose:hover {
+  opacity: 1;
+  background: color-mix(in srgb, currentColor 15%, transparent);
+}
+.toastClose:focus-visible {
+  opacity: 1;
+  outline: 2px solid currentColor;
+  outline-offset: 1px;
 }
 .toastMsg {
   flex: 1;
@@ -207,7 +250,7 @@
   flex-shrink: 0;
   margin-left: 4px;
   padding: 4px 8px;
-  border: 1px solid rgba(255, 255, 255, 0.45);
+  border: 1px solid color-mix(in srgb, currentColor 45%, transparent);
   border-radius: var(--radius-sm);
   background: transparent;
   color: inherit;
@@ -216,7 +259,7 @@
   cursor: pointer;
 }
 .toastAction:hover {
-  background: rgba(255, 255, 255, 0.15);
+  background: color-mix(in srgb, currentColor 15%, transparent);
 }
 .toastAction:focus-visible {
   outline: 2px solid currentColor;
@@ -231,9 +274,24 @@
   color: #fff;
 }
 
+/* Телефон: тосты во всю ширину с полями, над нижним краем и «чёлкой». */
+@media (max-width: 560px) {
+  .toastStack {
+    left: 16px;
+    right: 16px;
+    bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  }
+  .toast {
+    max-width: none;
+  }
+}
+
+/* «Уменьшить движение» — мягче, а не ноль: без сдвигов и масштаба, но
+   короткое затухание оставляет смену состояния заметной. */
 @media (prefers-reduced-motion: reduce) {
   .drawer,
-  .toast {
-    animation: none;
+  .toast,
+  .card {
+    animation: overlay-fade-in 140ms ease-out;
   }
 }

@@ -18,7 +18,10 @@ import { useEffect, useId, type RefObject } from 'react'
  *   • Esc зовёт `onEscape` (если он дан);
  *   • при открытии фокус переносится внутрь окна — но только если он
  *     ещё не там (иначе украли бы `autoFocus` у поля внутри диалога);
- *   • при закрытии фокус возвращается на элемент-инициатор.
+ *   • при закрытии фокус возвращается на элемент-инициатор;
+ *   • Esc, уже обработанный внутри окна (открытый список, календарь,
+ *     фильтр звали `preventDefault`), окно не закрывает — закрывается
+ *     только верхний слой, а введённое в форму не теряется.
  *
  * 🔴 Про возврат фокуса. Наивное «всегда возвращать инициатору» дерётся
  * с собственной передачей фокуса приложения: палитра блоков закрывается
@@ -67,8 +70,57 @@ const FOCUSABLE_SELECTOR = [
   '[tabindex]:not([tabindex="-1"])',
 ].join(',')
 
+/**
+ * Элемент виден и доступен: не внутри `hidden`/`inert`, ни один предок до
+ * контейнера не `display: none`, сам не `visibility: hidden`. Иначе
+ * скрытая кнопка оказывалась «последней», Tab с настоящей последней не
+ * заворачивался и фокус утекал на страницу под окном.
+ */
+function isReachable(el: HTMLElement, container: HTMLElement): boolean {
+  if (el.closest('[hidden], [inert]')) return false
+  if (getComputedStyle(el).visibility === 'hidden') return false
+  for (let n: HTMLElement | null = el; n && n !== container; n = n.parentElement) {
+    if (getComputedStyle(n).display === 'none') return false
+  }
+  return true
+}
+
 export function getFocusableElements(container: HTMLElement): HTMLElement[] {
-  return Array.from(container.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR))
+  return Array.from(container.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR)).filter((el) =>
+    isReachable(el, container),
+  )
+}
+
+/** Сколько окон держат прокрутку страницы; снимаем с последним. */
+let scrollLocks = 0
+let savedScroll: { overflow: string; paddingRight: string } | null = null
+
+/**
+ * Страница под модальным окном не прокручивается: колесо над подложкой
+ * уводило список под окном на тысячи пикселей. Счётчик общий — окно над
+ * окном не снимает блокировку раньше времени. Ширину исчезнувшей полосы
+ * прокрутки возвращаем отступом, чтобы страница не дёргалась вбок.
+ */
+export function useScrollLock(active: boolean): void {
+  useEffect(() => {
+    if (!active) return
+    const body = document.body
+    if (scrollLocks === 0) {
+      const gap = window.innerWidth - document.documentElement.clientWidth
+      savedScroll = { overflow: body.style.overflow, paddingRight: body.style.paddingRight }
+      body.style.overflow = 'hidden'
+      if (gap > 0) body.style.paddingRight = `${gap}px`
+    }
+    scrollLocks++
+    return () => {
+      scrollLocks--
+      if (scrollLocks === 0 && savedScroll) {
+        body.style.overflow = savedScroll.overflow
+        body.style.paddingRight = savedScroll.paddingRight
+        savedScroll = null
+      }
+    }
+  }, [active])
 }
 
 export function useFocusTrap({ open, containerRef, onEscape }: FocusTrapOptions): void {
@@ -86,10 +138,15 @@ export function useFocusTrap({ open, containerRef, onEscape }: FocusTrapOptions)
     return () => {
       const at = openTraps.lastIndexOf(id)
       if (at >= 0) openTraps.splice(at, 1)
-      if (!opener) return
+      // Инициатор мог исчезнуть (пункт меню строки) — фокусировать нечего.
+      if (!opener || !opener.isConnected) return
       const active = document.activeElement
-      if (!active || active === document.body) opener.focus()
+      // Окно с анимацией выхода ещё в DOM, и фокус может стоять внутри
+      // него — это тоже «в никуда»: пользователь окно уже закрыл.
+      const inClosing = !!active && !!containerRef.current?.contains(active)
+      if (!active || active === document.body || inClosing) opener.focus()
     }
+    // containerRef стабилен (useRef) — в зависимостях не нужен.
   }, [open, id])
 
   // Клавиши. Слушаем на документе: фокус может стоять где угодно, в том
@@ -102,7 +159,9 @@ export function useFocusTrap({ open, containerRef, onEscape }: FocusTrapOptions)
       // клавиши себе целиком.
       if (openTraps[openTraps.length - 1] !== id) return
       if (e.key === 'Escape') {
-        if (!onEscape) return
+        // Esc уже съел вложенный слой (список, календарь, фильтр) — окно
+        // остаётся открытым, введённое не теряется.
+        if (!onEscape || e.defaultPrevented) return
         e.preventDefault()
         onEscape()
         return

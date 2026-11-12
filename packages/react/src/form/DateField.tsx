@@ -170,7 +170,11 @@ export function DateField({
       setOpen(false)
     }
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setOpen(false)
+      if (e.key !== 'Escape') return
+      // Esc закрывает только календарь: окно вокруг (модалка, панель)
+      // видит defaultPrevented и остаётся открытым — форма не теряется.
+      e.preventDefault()
+      setOpen(false)
     }
     window.addEventListener('mousedown', onDown, true)
     window.addEventListener('keydown', onKey, true)

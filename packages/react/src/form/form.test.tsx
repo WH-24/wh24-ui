@@ -10,6 +10,7 @@ import { FileDrop } from './FileDrop'
 import { Input } from './Input'
 import { MultiCombobox } from './MultiCombobox'
 import { Textarea } from './Textarea'
+import { Modal } from '../overlay/Modal'
 
 describe('FieldRow / FieldGrid', () => {
   it('ошибка вытесняет подсказку, а не добавляется к ней', () => {
@@ -305,5 +306,41 @@ describe('Combobox (общий из list/)', () => {
   it('invalid ставит aria-invalid на поле', () => {
     render(<Combobox options={grouped} value="" onChange={() => {}} invalid />)
     expect(screen.getByRole('combobox')).toHaveAttribute('aria-invalid', 'true')
+  })
+})
+
+describe('Esc внутри окна', () => {
+  function InModal() {
+    const [open, setOpen] = useState(true)
+    const [d, setD] = useState('')
+    const [m, setM] = useState<string[]>([])
+    return (
+      <Modal open={open} title="Новая задача" onClose={() => setOpen(false)}>
+        <DateField value={d} onChange={setD} ariaLabel="Срок" />
+        <MultiCombobox options={opts} values={m} onChange={setM} placeholder="Соисполнители" />
+      </Modal>
+    )
+  }
+
+  it('Esc в открытом календаре закрывает календарь, а не окно', async () => {
+    const user = userEvent.setup()
+    render(<InModal />)
+    await user.click(screen.getByRole('button', { name: 'Открыть календарь' }))
+    expect(screen.getByRole('button', { name: 'Сегодня' })).toBeInTheDocument()
+    await user.keyboard('{Escape}')
+    expect(screen.queryByRole('button', { name: 'Сегодня' })).not.toBeInTheDocument()
+    expect(screen.getByRole('dialog', { name: 'Новая задача' })).toBeInTheDocument()
+    await user.keyboard('{Escape}')
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  })
+
+  it('Esc в открытом MultiCombobox закрывает список, а не окно', async () => {
+    const user = userEvent.setup()
+    render(<InModal />)
+    await user.click(screen.getByRole('combobox'))
+    expect(screen.getAllByRole('option').length).toBeGreaterThan(0)
+    await user.keyboard('{Escape}')
+    expect(screen.queryByRole('option')).not.toBeInTheDocument()
+    expect(screen.getByRole('dialog', { name: 'Новая задача' })).toBeInTheDocument()
   })
 })

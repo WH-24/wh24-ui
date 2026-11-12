@@ -36,6 +36,7 @@ export function FilterBar<T>({
 }: FilterBarProps<T>) {
   const [open, setOpen] = useState(false)
   const barRef = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
 
   // Явно выбранный пресет (по id) — чтобы при одинаковом state подсвечивался
   // именно кликнутый, а не все совпадающие. Сбрасывается при ручном изменении.
@@ -105,19 +106,14 @@ export function FilterBar<T>({
     pushSettings(globalPresets, id)
   }
 
-  // Закрытие по клику вне и по Escape.
+  // Закрытие по клику вне. Esc — onKeyDown корня (ниже).
   useEffect(() => {
     if (!open) return
     const onDown = (e: MouseEvent) => {
       if (barRef.current && !barRef.current.contains(e.target as Node)) setOpen(false)
     }
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setOpen(false)
     document.addEventListener('mousedown', onDown)
-    document.addEventListener('keydown', onKey)
-    return () => {
-      document.removeEventListener('mousedown', onDown)
-      document.removeEventListener('keydown', onKey)
-    }
+    return () => document.removeEventListener('mousedown', onDown)
   }, [open])
 
   const count = activeCount(state)
@@ -161,7 +157,21 @@ export function FilterBar<T>({
   }
 
   return (
-    <div className={styles.filterBar} ref={barRef}>
+    <div
+      className={styles.filterBar}
+      ref={barRef}
+      // Esc закрывает панель фильтра — и только её: React-обработчик
+      // срабатывает раньше ловушки фокуса окна вокруг (та слушает
+      // document), а вложенный список или переименование пресета сами
+      // гасят Esc через stopPropagation. Фокус — обратно в поле поиска.
+      onKeyDown={(e) => {
+        if (e.key !== 'Escape' || !open || e.defaultPrevented) return
+        e.preventDefault()
+        e.stopPropagation()
+        setOpen(false)
+        inputRef.current?.focus()
+      }}
+    >
       {/* Единый контрол «Фильтр и поиск» (Bitrix24): название активного пресета +
           поле ввода + лупа + сброс (справа). Клик по полю раскрывает модуль поиска. */}
       <div
@@ -209,6 +219,7 @@ export function FilterBar<T>({
         )}
 
         <input
+          ref={inputRef}
           className={styles.filterSearchInput}
           placeholder={config.search?.placeholder ?? 'Фильтр и поиск'}
           value={typeof state.q === 'string' ? state.q : ''}

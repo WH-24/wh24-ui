@@ -343,6 +343,8 @@ function KanbanCard({
               role="menu"
               onKeyDown={(e) => {
                 if (e.key === 'Escape') {
+                  e.preventDefault()
+                  e.stopPropagation()
                   setMenu(false)
                   btnRef.current?.focus()
                 }
