@@ -12,7 +12,8 @@ import {
 import { Icon, type IconName } from "./Icon.js";
 import { FilterBar } from "./filter/FilterBar.js";
 import { useFilterState } from "./filter/useFilterState.js";
-import { matchItem } from "./filter/matchItem.js";
+import { activeCount, matchItem } from "./filter/matchItem.js";
+import { useFocusTrap } from "../overlay/useFocusTrap.js";
 import type { FilterBarConfig, FilterSettingsProvider } from "./filter/types.js";
 import styles from "./ListPage.module.css";
 
@@ -301,8 +302,20 @@ export interface ListPageProps<T> {
   defaultView?: ListView;
 
   // Пустое состояние.
+  /** Заголовок, когда строк нет вовсе (не из-за фильтра). Если фильтр или
+   *  поиск всё скрыл — всегда «Ничего не найдено» с кнопкой сброса. */
   emptyTitle?: string;
   emptyIcon?: IconName;
+  /** Подсказка под заголовком пустого списка: что здесь будет и как начать. */
+  emptyDescription?: ReactNode;
+  /** Действие пустого списка («Создать задачу»). */
+  emptyAction?: ReactNode;
+  /** Данные ещё грузятся: вместо «пусто» — скелет строк. */
+  loading?: boolean;
+  /** Загрузка не удалась: текст ошибки вместо «пусто» (+ «Повторить», если
+   *  дан `onRetry`). */
+  error?: ReactNode;
+  onRetry?: () => void;
 
   // Слоты тулбара.
   /** Кнопки слева от фильтра (Добавить, Экспорт…). Получает отфильтрованные строки. */
@@ -351,6 +364,11 @@ export function ListPage<T>({
   defaultView = "list",
   emptyTitle = "Ничего не найдено",
   emptyIcon = "search",
+  emptyDescription,
+  emptyAction,
+  loading = false,
+  error,
+  onRetry,
   toolbarStart,
   toolbarEnd,
   selectionActions,
@@ -508,12 +526,10 @@ export function ListPage<T>({
 
   // Ширина области таблицы — чтобы понять, помещаются ли колонки.
   const wrapRef = useRef<HTMLDivElement>(null);
-  // Липкая горизонтальная полоса: настоящая полоса .tableWrap стоит под
-  // таблицей, то есть в КОНЦЕ СТРАНИЦЫ. На списке в двести строк до неё надо
-  // долистать донизу, а потом вернуться к нужной строке — поэтому рядом живёт
-  // вторая, прижатая к нижнему краю экрана, и обе двигают друг друга.
-  const hScrollRef = useRef<HTMLDivElement>(null);
-  const [hOverflow, setHOverflow] = useState(false);
+  // Таблица — своя область прокрутки до нижнего края окна: шапка колонок
+  // липнет к её верху, а горизонтальная полоса стоит внизу экрана сама по
+  // себе (раньше страница прокручивалась целиком, шапка уезжала вместе со
+  // строками, а полосу приходилось подменять второй, липкой).
   const [wrapWidth, setWrapWidth] = useState(0);
   useEffect(() => {
     const el = wrapRef.current;
@@ -527,38 +543,7 @@ export function ListPage<T>({
     return () => ro.disconnect();
   }, [viewMode]);
 
-  // Полоса нужна, только когда таблица шире контейнера; прокрутки синхронны в
-  // обе стороны. Флаг lock — от петли «скролл → скролл».
-  useEffect(() => {
-    const wrap = wrapRef.current;
-    const bar = hScrollRef.current;
-    if (!wrap || !bar) return;
-    const measure = () => setHOverflow(wrap.scrollWidth - wrap.clientWidth > 1);
-    measure();
-    let lock = false;
-    const fromWrap = () => {
-      if (lock) return;
-      lock = true;
-      bar.scrollLeft = wrap.scrollLeft;
-      lock = false;
-      measure();
-    };
-    const fromBar = () => {
-      if (lock) return;
-      lock = true;
-      wrap.scrollLeft = bar.scrollLeft;
-      lock = false;
-    };
-    wrap.addEventListener("scroll", fromWrap, { passive: true });
-    bar.addEventListener("scroll", fromBar, { passive: true });
-    const ro = typeof ResizeObserver !== "undefined" ? new ResizeObserver(measure) : null;
-    ro?.observe(wrap);
-    return () => {
-      wrap.removeEventListener("scroll", fromWrap);
-      bar.removeEventListener("scroll", fromBar);
-      ro?.disconnect();
-    };
-  }, [tableMinWidth, viewMode]);
+
 
   // Проценты в width рассчитаны на несколько колонок и в сумме дают сильно
   // больше 100% — при table-layout:fixed они съедают всю ширину, а колонки без
@@ -620,6 +605,16 @@ export function ListPage<T>({
     setColsOpen(true);
   };
   const closeCols = () => setColsOpen(false);
+  // Окно колонок — модальное и по поведению: Tab не выходит наружу, Esc —
+  // отмена, после закрытия фокус снова на шестерёнке.
+  const colsRef = useRef<HTMLDivElement>(null);
+  useFocusTrap({ open: colsOpen, containerRef: colsRef, onEscape: closeCols });
+  // Safari не фокусирует кнопку по клику — возвращаем фокус явно.
+  const wasColsOpen = useRef(false);
+  useEffect(() => {
+    if (wasColsOpen.current && !colsOpen) gearRef.current?.focus();
+    wasColsOpen.current = colsOpen;
+  }, [colsOpen]);
 
   // Поиск по названию поля — при полусотне колонок листать глазами уже тяжело.
   const shownCols = useMemo(() => {
@@ -901,6 +896,31 @@ export function ListPage<T>({
         {...dragProps(row)}
         data-selected={selectable ? String(selected.has(id)) : undefined}
         onClick={onRowClick ? () => onRowClick(row) : undefined}
+        // Строка открывается и с клавиатуры: Tab до строки, Enter/пробел —
+        // открыть, ↑/↓ — соседняя строка. Кнопки и поля внутри строки свои
+        // клавиши обрабатывают сами (e.target ≠ строка).
+        tabIndex={onRowClick ? 0 : undefined}
+        data-clickable={onRowClick ? "" : undefined}
+        onKeyDown={
+          onRowClick
+            ? (e) => {
+                if (e.target !== e.currentTarget) return;
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  onRowClick(row);
+                } else if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+                  const sib =
+                    e.key === "ArrowDown"
+                      ? e.currentTarget.nextElementSibling
+                      : e.currentTarget.previousElementSibling;
+                  if (sib instanceof HTMLElement && sib.tabIndex === 0) {
+                    e.preventDefault();
+                    sib.focus();
+                  }
+                }
+              }
+            : undefined
+        }
       >
         {columnSettings && <td className={styles.colGear} />}
         {visibleColumns.map((c, i) => {
@@ -949,18 +969,74 @@ export function ListPage<T>({
     [filtered, selected, getId],
   );
 
-  // +1 — служебная колонка с шестерёнкой в конце шапки.
-  const colSpan = visibleColumns.length + (columnSettings ? 1 : 0) + (selectable ? 1 : 0);
+  // +1 — служебная колонка с шестерёнкой. Отдельной колонки чекбоксов нет:
+  // чекбокс выбора живёт в первой ячейке.
+  const colSpan = visibleColumns.length + (columnSettings ? 1 : 0);
 
-  const empty = (
+  // Пусто бывает трёх видов, и у каждого свой следующий шаг: данных ещё нет
+  // (что здесь будет и как начать), всё скрыл фильтр (сбросить), загрузка
+  // упала (повторить). Раньше всегда было «Попробуйте изменить фильтры» —
+  // даже на пустом списке без единого фильтра.
+  const filterActive =
+    activeCount(filter) > 0 ||
+    (typeof filter.q === "string" && filter.q.trim() !== "") ||
+    Boolean(externalSearch?.trim());
+  const empty = error ? (
+    <div className={styles.empty} role="alert">
+      <div className={styles.emptyIcon} data-tone="error">
+        <Icon name="alert" size={20} />
+      </div>
+      <div className={styles.emptyTitle}>Не удалось загрузить</div>
+      <div className={styles.emptyDesc}>{error}</div>
+      {onRetry && (
+        <button type="button" className={`${styles.btn} ${styles.btnGhost} ${styles.emptyBtn}`} onClick={onRetry}>
+          <Icon name="refresh" size={14} />
+          Повторить
+        </button>
+      )}
+    </div>
+  ) : data.length > 0 ? (
+    <div className={styles.empty}>
+      <div className={styles.emptyIcon}>
+        <Icon name="search" size={20} />
+      </div>
+      <div className={styles.emptyTitle}>Ничего не найдено</div>
+      <div className={styles.emptyDesc}>
+        {filterActive ? "Под фильтр и поиск не подошла ни одна строка." : "Попробуйте изменить фильтры."}
+      </div>
+      {filterActive && !externalSearch?.trim() && (
+        <button
+          type="button"
+          className={`${styles.btn} ${styles.btnGhost} ${styles.emptyBtn}`}
+          onClick={() => setFilter({})}
+        >
+          Показать все строки
+        </button>
+      )}
+    </div>
+  ) : (
     <div className={styles.empty}>
       <div className={styles.emptyIcon}>
         <Icon name={emptyIcon} size={20} />
       </div>
       <div className={styles.emptyTitle}>{emptyTitle}</div>
-      <div className={styles.emptyDesc}>Попробуйте изменить фильтры.</div>
+      {emptyDescription && <div className={styles.emptyDesc}>{emptyDescription}</div>}
+      {emptyAction && <div className={styles.emptyAction}>{emptyAction}</div>}
     </div>
   );
+  // Скелет: столько же колонок, сколько в таблице, — место не прыгает, когда
+  // строки придут.
+  const showSkeleton = loading && data.length === 0 && !error;
+  const skeletonRows = Array.from({ length: 6 }, (_, r) => (
+    <tr key={`sk-${r}`} className={styles.skeletonRow} aria-hidden="true">
+      {columnSettings && <td className={styles.colGear} />}
+      {visibleColumns.map((c, i) => (
+        <td key={c.key}>
+          <span className={styles.skeletonBar} style={{ width: `${i === 0 ? 70 - r * 5 : 40 + ((r + i) % 3) * 15}%` }} />
+        </td>
+      ))}
+    </tr>
+  ));
 
   const folderEmpty = (
     <div className={styles.empty}>
@@ -1111,12 +1187,24 @@ export function ListPage<T>({
                     ) : null;
                     // С действиями в заголовке подпись и кнопки — две цели в одной ячейке:
                     // подпись режется многоточием, кнопки не двигаются и не запускают сортировку.
+                    // Сортировка — с кнопкой внутри: до неё доходит Tab, Enter и
+                    // пробел её нажимают, а состояние читает читалка (aria-sort
+                    // у th). Своего onClick у кнопки нет: клик всплывает к th —
+                    // так сортирует и щелчок по полю ячейки вокруг подписи.
+                    const label = c.sortValue ? (
+                      <button type="button" className={styles.thSortBtn}>
+                        {c.label}
+                        {arrow}
+                      </button>
+                    ) : (
+                      <>
+                        {c.label}
+                        {arrow}
+                      </>
+                    );
                     const content = c.headerActions ? (
                       <span className={styles.thRow}>
-                        <span className={styles.thLabel}>
-                          {c.label}
-                          {arrow}
-                        </span>
+                        <span className={styles.thLabel}>{label}</span>
                         <span
                           className={styles.thActions}
                           data-testid={`th-actions-${c.key}`}
@@ -1127,10 +1215,7 @@ export function ListPage<T>({
                         </span>
                       </span>
                     ) : (
-                      <>
-                        {c.label}
-                        {arrow}
-                      </>
+                      label
                     );
                     return c.sortValue ? (
                       <th
@@ -1138,6 +1223,9 @@ export function ListPage<T>({
                         className={hostCls}
                         data-sortable=""
                         data-sort={sort.key === c.key ? sort.dir : undefined}
+                        aria-sort={
+                          sort.key === c.key ? (sort.dir === "asc" ? "ascending" : "descending") : "none"
+                        }
                         onClick={() => toggleSort(c.key)}
                       >
                         {content}
@@ -1164,8 +1252,10 @@ export function ListPage<T>({
                   )}
                 </tbody>
               ) : (
-                <tbody>
-                  {visible.length === 0 ? (
+                <tbody aria-busy={showSkeleton || undefined}>
+                  {showSkeleton ? (
+                    skeletonRows
+                  ) : visible.length === 0 ? (
                     <tr>
                       <td colSpan={colSpan}>{empty}</td>
                     </tr>
@@ -1175,25 +1265,19 @@ export function ListPage<T>({
                 </tbody>
               )}
             </table>
+            {/* Сентинел — внутри области прокрутки таблицы: виден, когда её
+                долистали донизу, и догружаем следующую порцию строк. */}
+            {!level && hasMore && (
+              <div ref={sentinelRef} className={styles.cardsSentinel} aria-hidden="true" />
+            )}
           </div>
-          <div
-            className={styles.hScroll}
-            ref={hScrollRef}
-            data-testid="list-hscroll"
-            data-visible={hOverflow ? "true" : undefined}
-            aria-hidden="true"
-          >
-            <div style={{ width: tableMinWidth }} />
-          </div>
-          {/* Сентинел: как только виден — догружаем следующую порцию строк. */}
-          {!level && hasMore && <div ref={sentinelRef} className={styles.cardsSentinel} />}
         </>
       )}
 
       {colsOpen && (
         <>
           <div className={styles.colsBackdrop} onClick={closeCols} />
-          <div className={styles.colsModal} role="dialog" aria-modal="true" aria-label={colsTitle}>
+          <div ref={colsRef} className={styles.colsModal} role="dialog" aria-modal="true" aria-label={colsTitle}>
             <div className={styles.colsModalHead}>
               <div className={styles.colsModalTitle}>{colsTitle}</div>
               <button

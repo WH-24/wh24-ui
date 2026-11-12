@@ -21,6 +21,8 @@
   --accent-700: #b8501f;
   /* Терракота текстом: ≥ 4.9:1 и на белом, и на --accent-50. */
   --accent-text: var(--terra-text, #a8481b);
+  /* Рамка поля ≥ 3:1 к поверхности, как у Input (--field-bd). */
+  --flt-field-bd: var(--field-bd, rgba(0, 0, 0, 0.44));
   --bg-surface: #ffffff;
   --bg-subtle: #f7f5f0;
   --bg-muted: #efece4;
@@ -45,6 +47,7 @@
   --fg-muted: #94968c;
   --accent-50: rgba(221, 103, 49, 0.2);
   --accent-text: var(--terra-text, #e57a48);
+  --flt-field-bd: var(--field-bd, rgba(255, 255, 255, 0.34));
   --bg-surface: #161816;
   --bg-subtle: #1c1f1c;
   --bg-muted: #272b27;
@@ -63,7 +66,7 @@
   width: 100%;
   height: 36px;
   padding: 0 10px;
-  border: 1px solid var(--border-default);
+  border: 1px solid var(--flt-field-bd);
   border-radius: var(--radius-md);
   background: var(--bg-surface);
   color: var(--fg-primary);
@@ -101,7 +104,7 @@
   width: 100%;
   min-height: 36px;
   padding: 4px 6px 4px 11px;
-  border: 1px solid var(--border-default);
+  border: 1px solid var(--flt-field-bd);
   border-radius: var(--radius-md);
   background: var(--bg-surface);
   cursor: text;
@@ -185,13 +188,28 @@
 
 /* chip-x (крестик внутри чипа активного пресета). */
 .chipX {
+  position: relative;
   display: grid;
   place-items: center;
-  width: 14px;
-  height: 14px;
+  flex: none;
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  border: none;
   border-radius: 50%;
+  background: transparent;
   color: var(--fg-muted);
   cursor: pointer;
+}
+/* Видимый крестик 16px, а цель — 24px (WCAG 2.5.8): поле вокруг. */
+.chipX::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+}
+.chipX:focus-visible {
+  outline: 2px solid var(--accent-500);
+  outline-offset: 1px;
 }
 .chipX:hover {
   color: var(--fg-primary);
@@ -290,16 +308,23 @@
   gap: 2px;
   flex: none;
 }
-.filterPresetActions [role="button"] {
+.filterPresetActions button {
   display: grid;
   place-items: center;
-  width: 22px;
-  height: 22px;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: none;
+  background: transparent;
   border-radius: var(--radius-sm);
   color: var(--fg-muted);
   cursor: pointer;
 }
-.filterPresetActions [role="button"]:hover {
+.filterPresetActions button:focus-visible {
+  outline: 2px solid var(--accent-500);
+  outline-offset: -2px;
+}
+.filterPresetActions button:hover {
   color: var(--fg-primary);
   background: var(--bg-active);
 }
@@ -747,4 +772,13 @@
 .btnGhost:hover {
   background: var(--bg-hover);
   color: var(--fg-primary);
+}
+
+/* Телефон: фильтр во всю ширину строки — на 50% от 343px плейсхолдер
+   обрезался, а условия не помещались. */
+@media (max-width: 560px) {
+  .filterBar {
+    flex: 1 1 100%;
+    max-width: 100%;
+  }
 }

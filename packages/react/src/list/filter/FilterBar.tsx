@@ -183,9 +183,9 @@ export function FilterBar<T>({
         {activePreset ? (
           <span className={[styles.filterApplied, styles.filterAppliedPreset].join(' ')}>
             <span className={styles.filterAppliedLabel}>{activePreset.name}</span>
-            <span
+            <button
               className={styles.chipX}
-              role="button"
+              type="button"
               aria-label={`Сбросить фильтр «${activePreset.name}»`}
               onMouseDown={(e) => e.stopPropagation()}
               onClick={(e) => {
@@ -196,15 +196,15 @@ export function FilterBar<T>({
               }}
             >
               <Icon name="close" size={12} />
-            </span>
+            </button>
           </span>
         ) : (
           conditionChips.map((chip) => (
             <span key={chip.key} className={styles.filterApplied}>
               <span className={styles.filterAppliedLabel}>{chip.text}</span>
-              <span
+              <button
                 className={styles.chipX}
-                role="button"
+                type="button"
                 aria-label={`Сбросить условие «${chip.text}»`}
                 onMouseDown={(e) => e.stopPropagation()}
                 onClick={(e) => {
@@ -213,7 +213,7 @@ export function FilterBar<T>({
                 }}
               >
                 <Icon name="close" size={12} />
-              </span>
+              </button>
             </span>
           ))
         )}
@@ -221,6 +221,9 @@ export function FilterBar<T>({
         <input
           ref={inputRef}
           className={styles.filterSearchInput}
+          aria-label={config.search?.placeholder ?? 'Фильтр и поиск'}
+          aria-expanded={open}
+          aria-haspopup="dialog"
           placeholder={config.search?.placeholder ?? 'Фильтр и поиск'}
           value={typeof state.q === 'string' ? state.q : ''}
           spellCheck={false}

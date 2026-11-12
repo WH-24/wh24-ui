@@ -367,6 +367,7 @@ export function SearchModule<T>({
                 <button
                   type="button"
                   className={styles.filterPresetName}
+                  aria-pressed={isActivePreset(p)}
                   onClick={() => applyPreset(p)}
                 >
                   {p.name}
@@ -386,25 +387,30 @@ export function SearchModule<T>({
                 <span className={styles.filterPresetActions}>
                   {editable && (
                     <>
-                      <span role="button" aria-label="Переименовать" onClick={() => startRename(p)}>
+                      <button
+                        type="button"
+                        aria-label={`Переименовать «${p.name}»`}
+                        onClick={() => startRename(p)}
+                      >
                         <Icon name="pen" size={13} />
-                      </span>
-                      <span
-                        role="button"
-                        aria-label="Удалить пресет"
+                      </button>
+                      <button
+                        type="button"
+                        aria-label={`Удалить фильтр «${p.name}»`}
                         onClick={() => deletePreset(p)}
                       >
                         <Icon name="close" size={13} />
-                      </span>
+                      </button>
                     </>
                   )}
                   {/* pin — сделать пресет фильтром по умолчанию (любой пресет,
                       только админ). Как и «Для всех», требует хранилища: без него
                       выбор дефолта не переживёт перезагрузку страницы. */}
                   {canEditFields && !!onSetDefaultPreset && (
-                    <span
-                      role="button"
+                    <button
+                      type="button"
                       className={styles.filterPresetPin}
+                      aria-pressed={defaultPresetId === p.id}
                       data-pinned={String(defaultPresetId === p.id)}
                       aria-label={
                         defaultPresetId === p.id ? 'Убрать по умолчанию' : 'Сделать по умолчанию'
@@ -415,7 +421,7 @@ export function SearchModule<T>({
                       onClick={() => onSetDefaultPreset?.(defaultPresetId === p.id ? '' : p.id)}
                     >
                       <Icon name="pin" size={13} />
-                    </span>
+                    </button>
                   )}
                 </span>
               )}
@@ -546,6 +552,7 @@ export function SearchModule<T>({
                   key={f.key}
                   type="button"
                   className={styles.filterAddgridItem}
+                  aria-pressed={on}
                   onClick={() => toggleField(f.key)}
                   // На узком окне колонка сжимается и длинное название режется
                   // многоточием — подсказка возвращает его целиком.
