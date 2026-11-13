@@ -33,8 +33,11 @@ export interface FieldRowProps {
  * к введённому значению.
  *
  * Подсказка и ошибка связаны с контролом через `aria-describedby` (если
- * ребёнок — один элемент): читалка читает их вместе с полем. Ошибка —
- * `role="alert"`, её зачитают сразу, как она появилась.
+ * ребёнок — один элемент и своей связи у него нет): читалка читает их
+ * вместе с полем. Текстовая ошибка — `role="alert"`, её зачитают сразу.
+ * Потребитель, который связывает сам (свой `aria-describedby`, ошибка —
+ * узлом со своим `role="alert"`), так и остаётся: второй связи и второго
+ * alert не добавляем.
  */
 export function FieldRow({
   label,
@@ -52,9 +55,9 @@ export function FieldRow({
   let control = children
   if (described && isValidElement(children)) {
     const el = children as ReactElement<{ 'aria-describedby'?: string }>
-    const own = el.props['aria-describedby']
-    control = cloneElement(el, { 'aria-describedby': own ? `${own} ${descId}` : descId })
+    if (!el.props['aria-describedby']) control = cloneElement(el, { 'aria-describedby': descId })
   }
+  const alertRole = typeof error === 'string' ? 'alert' : undefined
   return (
     <div
       className={[styles.row, className].filter(Boolean).join(' ')}
@@ -73,7 +76,7 @@ export function FieldRow({
       )}
       {control}
       {error ? (
-        <div id={descId} className={styles.error} role="alert">
+        <div id={descId} className={styles.error} role={alertRole}>
           {error}
         </div>
       ) : hint ? (
