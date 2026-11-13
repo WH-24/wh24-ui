@@ -18,3 +18,8 @@
 .av:hover {
   background: var(--surf-2);
 }
+
+.av:focus-visible {
+  outline: var(--focus-ring-w, 2px) solid var(--focus, var(--terra));
+  outline-offset: var(--focus-ring-offset, 2px);
+}

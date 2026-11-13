@@ -35,7 +35,15 @@ export function EmptyState({
       <div className={big ? `${styles.emptyIcon} ${styles.emptyIconLg}` : styles.emptyIcon} aria-hidden="true">
         {typeof icon === 'string' ? <Icon name={icon as IconName} size={big ? 28 : 20} /> : icon}
       </div>
-      <div className={big ? `${styles.emptyTitle} ${styles.emptyTitleLg}` : styles.emptyTitle}>{title}</div>
+      {/* Заголовок пустого состояния — заголовок и для читалки (переход по
+          заголовкам находит его), но без чужих стилей h2/h3 потребителя. */}
+      <div
+        className={big ? `${styles.emptyTitle} ${styles.emptyTitleLg}` : styles.emptyTitle}
+        role="heading"
+        aria-level={big ? 2 : 3}
+      >
+        {title}
+      </div>
       {description && (
         <div className={big ? `${styles.emptyDesc} ${styles.emptyDescLg}` : styles.emptyDesc}>{description}</div>
       )}

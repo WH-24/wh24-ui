@@ -87,7 +87,7 @@ function ConfirmHarness({ onResult }: { onResult: (v: unknown) => void }) {
 }
 
 describe('ConfirmProvider', () => {
-  it('согласие — true; фокус на кнопке согласия', async () => {
+  it('согласие — true; у разрушительного вопроса фокус на «Отмена»', async () => {
     const onResult = vi.fn()
     render(
       <ConfirmProvider>
@@ -97,8 +97,8 @@ describe('ConfirmProvider', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Удалить' }))
     const dialog = screen.getByRole('alertdialog', { name: 'Подтверждение' })
     expect(dialog).toHaveTextContent('Удалить тег «Сталь»?')
+    expect(screen.getByRole('button', { name: 'Отмена' })).toHaveFocus()
     const ok = screen.getAllByRole('button', { name: 'Удалить' }).at(-1)!
-    expect(ok).toHaveFocus()
     await userEvent.click(ok)
     expect(onResult).toHaveBeenCalledWith(true)
   })
@@ -157,6 +157,143 @@ describe('ToastProvider', () => {
       vi.advanceTimersByTime(3100)
     })
     expect(screen.queryByText('Тег сохранён')).not.toBeInTheDocument()
+    vi.useRealTimers()
+  })
+})
+
+describe('Esc, прокрутка и скрытые элементы', () => {
+  function NestedHarness() {
+    const [open, setOpen] = useState(true)
+    return (
+      <Modal open={open} title="Форма" onClose={() => setOpen(false)}>
+        <input
+          aria-label="Поле со списком"
+          onKeyDown={(e) => {
+            // Как открытый список: Esc съеден вложенным слоем.
+            if (e.key === 'Escape') e.preventDefault()
+          }}
+        />
+        <button style={{ display: 'none' }}>Скрытая</button>
+      </Modal>
+    )
+  }
+
+  it('Esc, уже обработанный внутри (открытый список), окно не закрывает', async () => {
+    render(<NestedHarness />)
+    await userEvent.click(screen.getByRole('textbox', { name: 'Поле со списком' }))
+    await userEvent.keyboard('{Escape}')
+    expect(screen.getByRole('dialog', { name: 'Форма' })).toBeInTheDocument()
+  })
+
+  it('страница под окном не прокручивается, блокировка снимается с последним окном', () => {
+    const { rerender } = render(
+      <>
+        <Modal open title="Первое">
+          …
+        </Modal>
+        <Modal open title="Второе">
+          …
+        </Modal>
+      </>,
+    )
+    expect(document.body.style.overflow).toBe('hidden')
+    rerender(
+      <>
+        <Modal open title="Первое">
+          …
+        </Modal>
+        <Modal open={false} title="Второе">
+          …
+        </Modal>
+      </>,
+    )
+    expect(document.body.style.overflow).toBe('hidden')
+    rerender(
+      <>
+        <Modal open={false} title="Первое">
+          …
+        </Modal>
+        <Modal open={false} title="Второе">
+          …
+        </Modal>
+      </>,
+    )
+    expect(document.body.style.overflow).toBe('')
+  })
+
+  it('скрытая кнопка не ломает круг Tab', async () => {
+    render(<NestedHarness />)
+    const dialog = screen.getByRole('dialog')
+    for (let i = 0; i < 4; i++) {
+      await userEvent.tab()
+      expect(dialog.contains(document.activeElement)).toBe(true)
+      expect(document.activeElement).not.toHaveTextContent('Скрытая')
+    }
+  })
+})
+
+describe('Очередь подтверждений', () => {
+  function TwoConfirms({ onResult }: { onResult: (v: unknown) => void }) {
+    const confirm = useConfirm()
+    return (
+      <button
+        onClick={() => {
+          void confirm({ message: 'Первый?', tone: 'primary', confirmLabel: 'Да' }).then((v) => onResult(['A', v]))
+          void confirm({ message: 'Второй?', tone: 'primary', confirmLabel: 'Да' }).then((v) => onResult(['B', v]))
+        }}
+      >
+        Спросить
+      </button>
+    )
+  }
+
+  it('два вопроса подряд — оба получают ответ', async () => {
+    const onResult = vi.fn()
+    render(
+      <ConfirmProvider>
+        <TwoConfirms onResult={onResult} />
+      </ConfirmProvider>,
+    )
+    await userEvent.click(screen.getByRole('button', { name: 'Спросить' }))
+    expect(screen.getByRole('alertdialog')).toHaveTextContent('Первый?')
+    await userEvent.click(screen.getByRole('button', { name: 'Да' }))
+    expect(await screen.findByText('Второй?')).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Отмена' }))
+    await vi.waitFor(() => expect(onResult).toHaveBeenCalledTimes(2))
+    expect(onResult).toHaveBeenCalledWith(['A', true])
+    expect(onResult).toHaveBeenCalledWith(['B', false])
+  })
+})
+
+describe('Тосты: закрытие и время', () => {
+  it('«✕» закрывает; ошибка живёт 8 с; под курсором отсчёт стоит', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+    render(
+      <ToastProvider>
+        <ToastHarness />
+      </ToastProvider>,
+    )
+    await userEvent.click(screen.getByRole('button', { name: 'ok' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Закрыть уведомление' }))
+    expect(screen.queryByText('Тег сохранён')).not.toBeInTheDocument()
+
+    await userEvent.click(screen.getByRole('button', { name: 'err' }))
+    act(() => {
+      vi.advanceTimersByTime(4000)
+    })
+    expect(screen.getByRole('alert')).toHaveTextContent('Не сохранилось')
+
+    await userEvent.hover(screen.getByRole('alert'))
+    act(() => {
+      vi.advanceTimersByTime(10000)
+    })
+    expect(screen.getByRole('alert')).toBeInTheDocument()
+
+    await userEvent.unhover(screen.getByRole('alert'))
+    act(() => {
+      vi.advanceTimersByTime(5000)
+    })
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
     vi.useRealTimers()
   })
 })

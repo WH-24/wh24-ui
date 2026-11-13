@@ -1,8 +1,9 @@
-import { useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
+import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { createPortal } from 'react-dom'
 
 import { Icon } from '../list/Icon.js'
 import { OptionMarker, hasOptionMarker, type ComboboxOption } from '../list/Combobox.js'
+import { placePopover, revealOption } from '../list/popover.js'
 
 import styles from './form.module.css'
 
@@ -29,6 +30,7 @@ interface MenuRect {
   left: number
   width: number
   maxWidth: number
+  maxHeight: number
 }
 
 /**
@@ -41,7 +43,13 @@ interface MenuRect {
  * этот — массив, и контрол у него растёт по высоте под чипы.
  *
  * Меню рендерится порталом в <body> с `position: fixed` — иначе его режет
- * `overflow` модалки/дроуэра. Координаты пересчитываются на scroll/resize.
+ * `overflow` модалки/дроуэра. Координаты пересчитываются на scroll/resize;
+ * у нижнего края окна меню открывается вверх.
+ *
+ * Клавиатура (как у Combobox): ↓/↑ подсвечивают вариант (и открывают
+ * список), Home/End — первый/последний, Enter переключает подсвеченный,
+ * Esc закрывает только список. Фокус остаётся в поле, читалка слышит
+ * подсвеченный вариант через `aria-activedescendant`.
  */
 export function MultiCombobox({
   options,
@@ -61,6 +69,9 @@ export function MultiCombobox({
   const controlRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const [rect, setRect] = useState<MenuRect | null>(null)
+  const [active, setActive] = useState(-1)
+  const baseId = useId()
+  const menuRef = useRef<HTMLDivElement>(null)
 
   const selectedSet = useMemo(() => new Set(values), [values])
   const byValue = useMemo(() => new Map(options.map((o) => [o.value, o])), [options])
@@ -80,23 +91,38 @@ export function MultiCombobox({
     )
   }, [options, query])
 
+  // Подсветка: при открытии и смене отбора — на первый вариант запроса,
+  // без запроса — нигде (Enter не должен ничего переключать сам).
+  useEffect(() => {
+    setActive(open && query.trim() !== '' && filtered.length > 0 ? 0 : -1)
+  }, [open, query, filtered.length])
+  useEffect(() => {
+    if (open && active >= 0) revealOption(`${baseId}-opt-${active}`)
+  }, [open, active, baseId])
+
+  const placeRef = useRef<() => void>(() => {})
+  placeRef.current = () => {
+    const el = controlRef.current
+    if (!el) return
+    const r = el.getBoundingClientRect()
+    const m = menuRef.current
+    const maxWidth = Math.max(r.width, Math.min(520, window.innerWidth - 16))
+    const width = Math.min(maxWidth, Math.max(r.width, m?.offsetWidth ?? r.width))
+    const height = Math.min(240, m?.scrollHeight ?? 240)
+    const p = placePopover(r, { width, height })
+    setRect({ top: p.top, left: p.left, width: r.width, maxWidth, maxHeight: Math.min(240, p.maxHeight) })
+  }
+  const menuShown = open && rect !== null
+  useLayoutEffect(() => {
+    if (menuShown) placeRef.current()
+  }, [menuShown, filtered.length, values.length])
+
   useLayoutEffect(() => {
     if (!open) {
       setRect(null)
       return
     }
-    const place = () => {
-      const el = controlRef.current
-      if (!el) return
-      const r = el.getBoundingClientRect()
-      const margin = 8
-      setRect({
-        top: r.bottom + 4,
-        left: r.left,
-        width: r.width,
-        maxWidth: Math.max(r.width, Math.min(520, window.innerWidth - r.left - margin)),
-      })
-    }
+    const place = () => placeRef.current()
     place()
     window.addEventListener('scroll', place, true)
     window.addEventListener('resize', place)
@@ -134,6 +160,8 @@ export function MultiCombobox({
     open && rect
       ? createPortal(
           <div
+            ref={menuRef}
+            id={`${baseId}-list`}
             className={styles.menu}
             role="listbox"
             aria-multiselectable
@@ -143,20 +171,24 @@ export function MultiCombobox({
               left: rect.left,
               minWidth: rect.width,
               maxWidth: rect.maxWidth,
+              maxHeight: rect.maxHeight,
             }}
           >
             {filtered.length === 0 ? (
               <div className={styles.empty}>{emptyText}</div>
             ) : (
-              filtered.map((o) => {
+              filtered.map((o, i) => {
                 const on = selectedSet.has(o.value)
                 return (
                   <button
                     key={o.value}
+                    id={`${baseId}-opt-${i}`}
                     type="button"
-                    className={styles.option}
+                    tabIndex={-1}
+                    className={[styles.option, i === active ? styles.optionActive : ''].filter(Boolean).join(' ')}
                     role="option"
                     aria-selected={on}
+                    onMouseEnter={() => setActive(i)}
                     onMouseDown={(e) => e.preventDefault()}
                     onClick={() => toggle(o)}
                   >
@@ -231,6 +263,8 @@ export function MultiCombobox({
           role="combobox"
           aria-expanded={open}
           aria-autocomplete="list"
+          aria-controls={open ? `${baseId}-list` : undefined}
+          aria-activedescendant={open && active >= 0 ? `${baseId}-opt-${active}` : undefined}
           disabled={disabled}
           value={query}
           placeholder={chips.length === 0 ? placeholder : ''}
@@ -240,16 +274,38 @@ export function MultiCombobox({
             setOpen(true)
           }}
           onKeyDown={(e) => {
-            if (e.key === 'Escape') {
+            if (e.key === 'Escape' && open) {
+              // Открытый список съедает Esc: окно вокруг не закрывается.
+              e.preventDefault()
+              e.stopPropagation()
               setOpen(false)
               setQuery('')
             }
             if (e.key === 'Backspace' && query === '' && values.length) {
               onChange(values.slice(0, -1))
             }
-            if (e.key === 'Enter' && filtered.length === 1) {
+            if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
               e.preventDefault()
-              toggle(filtered[0]!)
+              if (!open) {
+                setOpen(true)
+                return
+              }
+              const n = filtered.length
+              if (n === 0) return
+              setActive((i) =>
+                e.key === 'ArrowDown' ? (i + 1 + n) % n : i <= 0 ? n - 1 : i - 1,
+              )
+            }
+            if (open && (e.key === 'Home' || e.key === 'End') && query === '' && filtered.length) {
+              e.preventDefault()
+              setActive(e.key === 'Home' ? 0 : filtered.length - 1)
+            }
+            if (e.key === 'Enter') {
+              const opt = active >= 0 ? filtered[active] : filtered.length === 1 ? filtered[0] : undefined
+              if (open && opt) {
+                e.preventDefault()
+                toggle(opt)
+              }
             }
           }}
         />

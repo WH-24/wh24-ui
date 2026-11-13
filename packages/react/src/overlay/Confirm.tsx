@@ -2,7 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useRef, useState, ty
 import { createPortal } from 'react-dom'
 
 import { Icon } from '../list/Icon.js'
-import { useFocusTrap } from './useFocusTrap.js'
+import { useFocusTrap, useScrollLock } from './useFocusTrap.js'
 
 import styles from './overlay.module.css'
 
@@ -18,8 +18,13 @@ import styles from './overlay.module.css'
  *   await notify('Не удалось удалить изображение')
  *
  * Поверх любых окон (`--z-confirm`); Esc — отмена через общий стек ловушек,
- * так что подтверждение над модалкой не закрывает обе. Фокус — на кнопке
- * согласия: Enter подтверждает, как и в портале.
+ * так что подтверждение над модалкой не закрывает обе.
+ *
+ * Фокус: у разрушительного вопроса (`tone: 'danger'`, по умолчанию) — на
+ * «Отмена», чтобы случайный Enter (тот же, что открыл вопрос с кнопки
+ * строки) ничего не удалял; у обычного согласия и сообщения — на основной
+ * кнопке. Вопросы, заданные подряд, встают в очередь: каждый получает
+ * свой ответ, ни одно `await` не зависает.
  */
 export interface ConfirmOptions {
   title?: string
@@ -33,6 +38,7 @@ export interface ConfirmOptions {
 export type ConfirmFn = (opts: ConfirmOptions) => Promise<boolean>
 
 interface Pending extends ConfirmOptions {
+  key: number
   /** Сообщение с одной кнопкой вместо вопроса. */
   alert?: boolean
   resolve: (ok: boolean) => void
@@ -46,24 +52,33 @@ interface ConfirmApi {
 const ConfirmContext = createContext<ConfirmApi | null>(null)
 
 export function ConfirmProvider({ children }: { children: ReactNode }) {
-  const [pending, setPending] = useState<Pending | null>(null)
+  const [queue, setQueue] = useState<Pending[]>([])
+  const queueRef = useRef(queue)
+  queueRef.current = queue
+  const seq = useRef(0)
+  const pending = queue[0] ?? null
 
+  const enqueue = useCallback((p: Omit<Pending, 'key'>) => {
+    setQueue((q) => [...q, { ...p, key: ++seq.current }])
+  }, [])
   const confirm = useCallback<ConfirmFn>(
-    (opts) => new Promise<boolean>((resolve) => setPending({ ...opts, resolve })),
-    [],
+    (opts) => new Promise<boolean>((resolve) => enqueue({ ...opts, resolve })),
+    [enqueue],
   )
   const alert = useCallback(
     (message: ReactNode, title?: string) =>
       new Promise<void>((resolve) =>
-        setPending({ message, title, alert: true, tone: 'primary', resolve: () => resolve() }),
+        enqueue({ message, title, alert: true, tone: 'primary', resolve: () => resolve() }),
       ),
-    [],
+    [enqueue],
   )
+  // Ответ — снаружи updater'а: StrictMode вызывает updater дважды.
   const close = useCallback((ok: boolean) => {
-    setPending((p) => {
-      p?.resolve(ok)
-      return null
-    })
+    const head = queueRef.current[0]
+    if (!head) return
+    head.resolve(ok)
+    queueRef.current = queueRef.current.slice(1)
+    setQueue((q) => (q[0] === head ? q.slice(1) : q))
   }, [])
 
   const [api] = useState<ConfirmApi>(() => ({ confirm, alert }))
@@ -71,7 +86,7 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
   return (
     <ConfirmContext.Provider value={api}>
       {children}
-      {pending && createPortal(<ConfirmCard pending={pending} close={close} />, document.body)}
+      {pending && createPortal(<ConfirmCard key={pending.key} pending={pending} close={close} />, document.body)}
     </ConfirmContext.Provider>
   )
 }
@@ -79,11 +94,13 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
 function ConfirmCard({ pending, close }: { pending: Pending; close: (ok: boolean) => void }) {
   const ref = useRef<HTMLDivElement>(null)
   const okRef = useRef<HTMLButtonElement>(null)
+  const cancelRef = useRef<HTMLButtonElement>(null)
   useFocusTrap({ open: true, containerRef: ref, onEscape: () => close(false) })
-  useEffect(() => {
-    okRef.current?.focus()
-  }, [])
+  useScrollLock(true)
   const danger = !pending.alert && pending.tone !== 'primary'
+  useEffect(() => {
+    ;(danger ? cancelRef : okRef).current?.focus()
+  }, [danger])
   return (
     <div
       className={`${styles.backdrop} ${styles.confirmBackdrop}`}
@@ -112,7 +129,7 @@ function ConfirmCard({ pending, close }: { pending: Pending; close: (ok: boolean
         </div>
         <div className={styles.footer}>
           {!pending.alert && (
-            <button type="button" className="btn btn-secondary btn-sm" onClick={() => close(false)}>
+            <button ref={cancelRef} type="button" className="btn btn-secondary btn-sm" onClick={() => close(false)}>
               {pending.cancelLabel ?? 'Отмена'}
             </button>
           )}

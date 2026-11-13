@@ -1,4 +1,4 @@
-import type { CSSProperties, ReactNode } from 'react'
+import type { CSSProperties, KeyboardEvent, ReactNode } from 'react'
 
 import { BestPracticeBadge } from '../BestPracticeBadge/BestPracticeBadge.js'
 
@@ -54,8 +54,25 @@ export function Card({
     .filter(Boolean)
     .join(' ')
 
+  // Карточка с onClick — кнопка и для клавиатуры: Tab до неё, Enter или
+  // пробел открывают. Клавиши вложенных ссылок и кнопок не перехватываем.
+  const onKeyDown = onClick
+    ? (e: KeyboardEvent<HTMLElement>) => {
+        if (e.target !== e.currentTarget) return
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault()
+          onClick()
+        }
+      }
+    : undefined
+
   return (
-    <article className={className} onClick={onClick}>
+    <article
+      className={className}
+      onClick={onClick}
+      onKeyDown={onKeyDown}
+      tabIndex={onClick ? 0 : undefined}
+    >
       {variant === 'cover' && cover ? (
         <div className={styles.cover} style={coverStyle}>
           {cover}

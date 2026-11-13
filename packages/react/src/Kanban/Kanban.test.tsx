@@ -1,5 +1,6 @@
 import { createEvent, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 
 import { Kanban, type KanbanColumn } from './Kanban'
@@ -117,13 +118,13 @@ describe('Kanban', () => {
       setup({ items: three, onReorder })
       await userEvent.click(screen.getByRole('button', { name: 'Переместить «Вторая»' }))
       const menu = screen.getByRole('menu')
-      await userEvent.click(within(menu).getByRole('menuitem', { name: '↑ Выше' }))
+      await userEvent.click(within(menu).getByRole('menuitem', { name: 'Выше' }))
       expect(onReorder).toHaveBeenCalledWith(three[1], 'a')
       await userEvent.click(screen.getByRole('button', { name: 'Переместить «Вторая»' }))
-      await userEvent.click(within(screen.getByRole('menu')).getByRole('menuitem', { name: '↓ Ниже' }))
+      await userEvent.click(within(screen.getByRole('menu')).getByRole('menuitem', { name: 'Ниже' }))
       expect(onReorder).toHaveBeenLastCalledWith(three[1], null)
       await userEvent.click(screen.getByRole('button', { name: 'Переместить «Первая»' }))
-      expect(within(screen.getByRole('menu')).queryByRole('menuitem', { name: '↑ Выше' })).toBeNull()
+      expect(within(screen.getByRole('menu')).queryByRole('menuitem', { name: 'Выше' })).toBeNull()
     })
 
     it('мышью: бросок на верхнюю половину карточки — перед ней', () => {
@@ -144,7 +145,49 @@ describe('Kanban', () => {
     it('без onReorder пунктов порядка нет', async () => {
       setup({ items: three })
       await userEvent.click(screen.getByRole('button', { name: 'Переместить «Вторая»' }))
-      expect(within(screen.getByRole('menu')).queryByRole('menuitem', { name: '↑ Выше' })).toBeNull()
+      expect(within(screen.getByRole('menu')).queryByRole('menuitem', { name: 'Выше' })).toBeNull()
     })
+  })
+})
+
+describe('Kanban: после переноса из меню (аудит 12.11)', () => {
+  function Live() {
+    const [list, setList] = useState(items)
+    return (
+      <Kanban<Item>
+        columns={columns}
+        items={list}
+        getId={(i) => i.id}
+        getColumn={(i) => i.col}
+        getLabel={(i) => i.title}
+        renderCard={(i) => (
+          <span>
+            {i.title} · Иванов
+          </span>
+        )}
+        onMove={async (it, col) => setList((l) => l.map((x) => (x.id === it.id ? { ...x, col } : x)))}
+      />
+    )
+  }
+
+  it('фокус остаётся на карточке в новой колонке, читалка слышит, куда она переехала', async () => {
+    render(<Live />)
+    await userEvent.click(screen.getByRole('button', { name: 'Переместить «Смета»' }))
+    await userEvent.click(within(screen.getByRole('menu')).getByRole('menuitem', { name: 'Завершена' }))
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Переместить «Смета»' })).toHaveFocus())
+    expect(within(screen.getByRole('listitem', { name: 'Завершена: 1' })).getByText(/Смета/)).toBeTruthy()
+    expect(screen.getByRole('status')).toHaveTextContent('«Смета» — в колонке «Завершена»')
+  })
+
+  it('меню: Home/End, а Tab наружу закрывает меню', async () => {
+    render(<Live />)
+    await userEvent.click(screen.getByRole('button', { name: 'Переместить «Смета»' }))
+    const items = within(screen.getByRole('menu')).getAllByRole('menuitem')
+    await userEvent.keyboard('{End}')
+    expect(items.at(-1)).toHaveFocus()
+    await userEvent.keyboard('{Home}')
+    expect(items[0]).toHaveFocus()
+    await userEvent.tab()
+    expect(screen.queryByRole('menu')).toBeNull()
   })
 })

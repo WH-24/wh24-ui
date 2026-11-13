@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type CSSProperties, type DragEvent, type ReactNode } from 'react'
+import { useEffect, useId, useRef, useState, type CSSProperties, type DragEvent, type ReactNode } from 'react'
 
 import { Icon } from '../list/Icon.js'
 
@@ -80,6 +80,22 @@ export function Kanban<T>({
   // ('' — в конец колонки, null — не над своей колонкой).
   const [insertBefore, setInsertBefore] = useState<string | null>(null)
   const [busy, setBusy] = useState<Record<string, boolean>>({})
+  // После переноса из меню карточка переезжает в другую колонку (другой
+  // <section>) и фокус падал на <body>. Возвращаем его на «⋯» этой же
+  // карточки и говорим вслух, что случилось.
+  const boardRef = useRef<HTMLDivElement>(null)
+  const refocus = useRef<string | null>(null)
+  const [announce, setAnnounce] = useState('')
+  useEffect(() => {
+    const id = refocus.current
+    if (!id || busy[id]) return
+    const li = boardRef.current?.querySelector<HTMLElement>(`[data-kanban-card="${CSS.escape(id)}"]`)
+    const btn = li?.querySelector<HTMLButtonElement>('[aria-haspopup="menu"]') ?? li?.querySelector('button')
+    if (btn) {
+      refocus.current = null
+      btn.focus()
+    }
+  })
   const byId = new Map(items.map((it) => [getId(it), it]))
   const dragged = dragId ? byId.get(dragId) : undefined
   const allowed = (item: T, col: string) => getColumn(item) !== col && (canMove ? canMove(item, col) : true)
@@ -93,129 +109,157 @@ export function Kanban<T>({
       setBusy(({ [id]: _, ...rest }) => rest)
     }
   }
-  const reorder = (item: T, beforeId: string | null) => {
+  const reorder = (item: T, beforeId: string | null, say?: string) => {
     if (!onReorder || beforeId === getId(item)) return
-    void run(item, () => onReorder(item, beforeId))
+    void run(item, async () => {
+      await onReorder(item, beforeId)
+      if (say) setAnnounce(say)
+    })
   }
 
-  const move = async (item: T, col: string) => {
+  const move = async (item: T, col: string, fromMenu = false) => {
     if (!onMove || !allowed(item, col)) return
     const id = getId(item)
+    if (fromMenu) refocus.current = id
     setBusy((b) => ({ ...b, [id]: true }))
     try {
       await onMove(item, col)
+      const title = columns.find((c) => c.id === col)?.title ?? col
+      setAnnounce(`«${getLabel(item)}» — в колонке «${title}»`)
     } finally {
       setBusy(({ [id]: _, ...rest }) => rest)
     }
   }
 
   return (
-    <div className={styles.board} role="list" aria-label={ariaLabel}>
-      {columns.map((col) => {
-        const cards = items.filter((it) => getColumn(it) === col.id)
-        const droppable = !!dragged && allowed(dragged, col.id)
-        // Своя колонка — перестановка (если потребитель её поддерживает).
-        const sorting = !!dragged && !!onReorder && getColumn(dragged) === col.id
-        const dropProps =
-          onMove || onReorder
-            ? {
-                onDragOver: (e: DragEvent) => {
-                  if (!droppable && !sorting) return
-                  e.preventDefault()
-                  e.dataTransfer.dropEffect = 'move'
-                  if (droppable && overCol !== col.id) setOverCol(col.id)
-                  // Пустое место колонки под карточками — в конец.
-                  if (sorting && e.target === e.currentTarget) setInsertBefore('')
-                },
-                onDragLeave: (e: DragEvent) => {
-                  if (!e.currentTarget.contains(e.relatedTarget as Node)) {
-                    setOverCol('')
-                    setInsertBefore(null)
-                  }
-                },
-                onDrop: (e: DragEvent) => {
-                  e.preventDefault()
-                  setOverCol('')
-                  if (dragged && droppable) void move(dragged, col.id)
-                  else if (dragged && sorting && insertBefore !== null) reorder(dragged, insertBefore || null)
-                  setInsertBefore(null)
-                  setDragId('')
-                },
-              }
-            : {}
-        const cls = [
-          styles.col,
-          dragged && !droppable && getColumn(dragged) !== col.id ? styles.colBlocked : '',
-          overCol === col.id ? styles.colOver : '',
-        ]
-          .filter(Boolean)
-          .join(' ')
-        return (
-          <section
-            key={col.id}
-            className={cls}
-            role="listitem"
-            aria-label={`${col.title}: ${col.count ?? cards.length}`}
-            style={{ '--kanban-tone': toneVar[col.tone ?? 'neutral'] } as CSSProperties}
-            {...dropProps}
-          >
-            <header className={styles.head}>
-              <span className={styles.title}>{col.title}</span>
-              <span className={styles.count}>{col.count ?? cards.length}</span>
-            </header>
-            <ul className={styles.cards}>
-              {cards.length === 0 && <li className={styles.empty}>{emptyText}</li>}
-              {cards.map((it, i) => {
-                const id = getId(it)
-                const targets = onMove ? columns.filter((c) => allowed(it, c.id)) : []
-                const prev = cards[i - 1]
-                const next = cards[i + 1]
-                const after = cards[i + 2]
-                return (
-                  <KanbanCard
-                    key={id}
-                    label={getLabel(it)}
-                    busy={!!busy[id]}
-                    dragging={dragId === id}
-                    draggable={(targets.length > 0 || (!!onReorder && cards.length > 1)) && !busy[id]}
-                    insertMark={sorting && insertBefore === id && dragId !== id}
-                    onDragStart={() => setDragId(id)}
-                    onDragEnd={() => {
-                      setDragId('')
+    <>
+      {/* Вне role="list": внутри списка допустимы только его элементы. */}
+      <div className={styles.srOnly} aria-live="polite" role="status">
+        {announce}
+      </div>
+      <div ref={boardRef} className={styles.board} role="list" aria-label={ariaLabel}>
+        {columns.map((col) => {
+          const cards = items.filter((it) => getColumn(it) === col.id)
+          const droppable = !!dragged && allowed(dragged, col.id)
+          // Своя колонка — перестановка (если потребитель её поддерживает).
+          const sorting = !!dragged && !!onReorder && getColumn(dragged) === col.id
+          const dropProps =
+            onMove || onReorder
+              ? {
+                  onDragOver: (e: DragEvent) => {
+                    if (!droppable && !sorting) return
+                    e.preventDefault()
+                    e.dataTransfer.dropEffect = 'move'
+                    if (droppable && overCol !== col.id) setOverCol(col.id)
+                    // Пустое место колонки под карточками — в конец.
+                    if (sorting && e.target === e.currentTarget) setInsertBefore('')
+                  },
+                  onDragLeave: (e: DragEvent) => {
+                    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
                       setOverCol('')
                       setInsertBefore(null)
-                    }}
-                    onDragOverCard={
-                      sorting
-                        ? (e) => {
-                            // Верхняя половина карточки — встаём перед ней, нижняя — после.
-                            const r = e.currentTarget.getBoundingClientRect()
-                            const before = e.clientY < r.top + r.height / 2
-                            setInsertBefore(before ? id : next ? getId(next) : '')
-                          }
-                        : undefined
                     }
-                    onOpen={onOpen ? () => onOpen(it) : undefined}
-                    targets={targets}
-                    onMove={(colId) => void move(it, colId)}
-                    onUp={onReorder && prev ? () => reorder(it, getId(prev)) : undefined}
-                    onDown={onReorder && next ? () => reorder(it, after ? getId(after) : null) : undefined}
-                  >
-                    {renderCard(it)}
-                  </KanbanCard>
-                )
-              })}
-              {sorting && insertBefore === '' && <li className={styles.insertMark} aria-hidden="true" />}
-            </ul>
-            {col.footer && <div className={styles.footer}>{col.footer}</div>}
-          </section>
-        )
-      })}
-    </div>
+                  },
+                  onDrop: (e: DragEvent) => {
+                    e.preventDefault()
+                    setOverCol('')
+                    if (dragged && droppable) void move(dragged, col.id)
+                    else if (dragged && sorting && insertBefore !== null) reorder(dragged, insertBefore || null)
+                    setInsertBefore(null)
+                    setDragId('')
+                  },
+                }
+              : {}
+          const cls = [
+            styles.col,
+            dragged && !droppable && getColumn(dragged) !== col.id ? styles.colBlocked : '',
+            overCol === col.id ? styles.colOver : '',
+          ]
+            .filter(Boolean)
+            .join(' ')
+          return (
+            <section
+              key={col.id}
+              className={cls}
+              role="listitem"
+              aria-label={`${col.title}: ${col.count ?? cards.length}`}
+              style={{ '--kanban-tone': toneVar[col.tone ?? 'neutral'] } as CSSProperties}
+              {...dropProps}
+            >
+              <header className={styles.head}>
+                <span className={styles.title}>{col.title}</span>
+                <span className={styles.count}>{col.count ?? cards.length}</span>
+              </header>
+              <ul className={styles.cards}>
+                {cards.length === 0 && <li className={styles.empty}>{emptyText}</li>}
+                {cards.map((it, i) => {
+                  const id = getId(it)
+                  const targets = onMove ? columns.filter((c) => allowed(it, c.id)) : []
+                  const prev = cards[i - 1]
+                  const next = cards[i + 1]
+                  const after = cards[i + 2]
+                  return (
+                    <KanbanCard
+                      key={id}
+                      cardId={id}
+                      label={getLabel(it)}
+                      busy={!!busy[id]}
+                      dragging={dragId === id}
+                      draggable={(targets.length > 0 || (!!onReorder && cards.length > 1)) && !busy[id]}
+                      insertMark={sorting && insertBefore === id && dragId !== id}
+                      onDragStart={() => setDragId(id)}
+                      onDragEnd={() => {
+                        setDragId('')
+                        setOverCol('')
+                        setInsertBefore(null)
+                      }}
+                      onDragOverCard={
+                        sorting
+                          ? (e) => {
+                              // Верхняя половина карточки — встаём перед ней, нижняя — после.
+                              const r = e.currentTarget.getBoundingClientRect()
+                              const before = e.clientY < r.top + r.height / 2
+                              setInsertBefore(before ? id : next ? getId(next) : '')
+                            }
+                          : undefined
+                      }
+                      onOpen={onOpen ? () => onOpen(it) : undefined}
+                      targets={targets}
+                      onMove={(colId) => void move(it, colId, true)}
+                      onUp={
+                        onReorder && prev
+                          ? () => {
+                              refocus.current = id
+                              reorder(it, getId(prev), `«${getLabel(it)}» — выше`)
+                            }
+                          : undefined
+                      }
+                      onDown={
+                        onReorder && next
+                          ? () => {
+                              refocus.current = id
+                              reorder(it, after ? getId(after) : null, `«${getLabel(it)}» — ниже`)
+                            }
+                          : undefined
+                      }
+                    >
+                      {renderCard(it)}
+                    </KanbanCard>
+                  )
+                })}
+                {sorting && insertBefore === '' && <li className={styles.insertMark} aria-hidden="true" />}
+              </ul>
+              {col.footer && <div className={styles.footer}>{col.footer}</div>}
+            </section>
+          )
+        })}
+      </div>
+    </>
   )
 }
 
 interface CardProps {
+  cardId: string
   label: string
   busy: boolean
   dragging: boolean
@@ -234,6 +278,7 @@ interface CardProps {
 }
 
 function KanbanCard({
+  cardId,
   label,
   busy,
   dragging,
@@ -250,6 +295,7 @@ function KanbanCard({
   children,
 }: CardProps) {
   const [menu, setMenu] = useState(false)
+  const menuId = useId()
   // Меню — position: fixed от кнопки: колонка прокручивается сама, и
   // абсолютное меню у нижней карточки обрезалось бы её краем.
   const [pos, setPos] = useState<CSSProperties>({})
@@ -303,6 +349,7 @@ function KanbanCard({
   return (
     <li
       className={cls}
+      data-kanban-card={cardId}
       aria-busy={busy || undefined}
       draggable={draggable}
       onDragStart={(e) => {
@@ -314,8 +361,18 @@ function KanbanCard({
       onDragOver={onDragOverCard}
     >
       {onOpen ? (
-        <button type="button" className={styles.cardBody} onClick={onOpen} aria-label={label}>
-          {children}
+        // Имя — подпись карточки, описание — всё её содержимое (номер,
+        // исполнитель, срок): один aria-label прятал остальное от читалки.
+        <button
+          type="button"
+          className={styles.cardBody}
+          onClick={onOpen}
+          aria-label={label}
+          aria-describedby={`${menuId}-body`}
+        >
+          <span id={`${menuId}-body`} className={styles.bodyText}>
+            {children}
+          </span>
         </button>
       ) : (
         <div className={styles.cardBody}>{children}</div>
@@ -341,68 +398,95 @@ function KanbanCard({
               className={styles.menu}
               style={pos}
               role="menu"
+              aria-label={`Действия: ${label}`}
+              // Tab из меню уводит фокус — меню закрываем, а не оставляем висеть.
+              onBlur={(e) => {
+                const to = e.relatedTarget as Node | null
+                if (to && (menuRef.current?.contains(to) || btnRef.current?.contains(to))) return
+                setMenu(false)
+              }}
               onKeyDown={(e) => {
                 if (e.key === 'Escape') {
+                  e.preventDefault()
+                  e.stopPropagation()
                   setMenu(false)
                   btnRef.current?.focus()
                 }
-                if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+                if (['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(e.key)) {
                   e.preventDefault()
                   const btns = Array.from(menuRef.current?.querySelectorAll('button') ?? [])
                   const i = btns.indexOf(document.activeElement as HTMLButtonElement)
-                  const next = btns[(i + (e.key === 'ArrowDown' ? 1 : btns.length - 1)) % btns.length]
+                  const next =
+                    e.key === 'Home'
+                      ? btns[0]
+                      : e.key === 'End'
+                        ? btns[btns.length - 1]
+                        : btns[(i + (e.key === 'ArrowDown' ? 1 : btns.length - 1)) % btns.length]
                   next?.focus()
                 }
               }}
             >
               {(onUp || onDown) && (
-                <>
-                  <div className={styles.menuTitle}>Порядок</div>
+                <div role="group" aria-labelledby={`${menuId}-order`}>
+                  <div id={`${menuId}-order`} className={styles.menuTitle} role="presentation">
+                    Порядок
+                  </div>
                   {onUp && (
                     <button
                       type="button"
                       role="menuitem"
+                      tabIndex={-1}
                       className={styles.menuItem}
                       onClick={() => {
                         setMenu(false)
                         onUp()
                       }}
                     >
-                      ↑ Выше
+                      <Icon name="arrowup" size={14} />
+                      Выше
                     </button>
                   )}
                   {onDown && (
                     <button
                       type="button"
                       role="menuitem"
+                      tabIndex={-1}
                       className={styles.menuItem}
                       onClick={() => {
                         setMenu(false)
                         onDown()
                       }}
                     >
-                      ↓ Ниже
+                      <Icon name="arrowdown" size={14} />
+                      Ниже
                     </button>
                   )}
-                </>
+                </div>
               )}
-              {targets.length > 0 && <div className={styles.menuTitle}>Переместить в</div>}
-              {targets.map((t) => (
-                <button
-                  key={t.id}
-                  type="button"
-                  role="menuitem"
-                  className={styles.menuItem}
-                  style={{ '--kanban-tone': toneVar[t.tone ?? 'neutral'] } as CSSProperties}
-                  onClick={() => {
-                    setMenu(false)
-                    onMove(t.id)
-                  }}
-                >
-                  <span className={styles.dot} aria-hidden="true" />
-                  {t.title}
-                </button>
-              ))}
+              {targets.length > 0 && (
+                <div role="group" aria-labelledby={`${menuId}-move`}>
+                  <div id={`${menuId}-move`} className={styles.menuTitle} role="presentation">
+                    Переместить в
+                  </div>
+                  {targets.map((t) => (
+                    <button
+                      key={t.id}
+                      type="button"
+                      role="menuitem"
+                      tabIndex={-1}
+                      className={styles.menuItem}
+                      style={{ '--kanban-tone': toneVar[t.tone ?? 'neutral'] } as CSSProperties}
+                      onClick={() => {
+                        setMenu(false)
+                        onMove(t.id)
+                      }}
+                    >
+                      <span className={styles.dot} aria-hidden="true" />
+                      {t.title}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </div>

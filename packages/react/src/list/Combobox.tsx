@@ -12,6 +12,7 @@ import {
 import { createPortal } from "react-dom";
 
 import { Icon } from "./Icon.js";
+import { placePopover, revealOption } from "./popover.js";
 import styles from "./Combobox.module.css";
 
 /** Стили модуля Combobox — реэкспорт, чтобы MultiSelect (FieldEditor) мог
@@ -85,6 +86,7 @@ interface MenuRect {
   left: number;
   width: number;
   maxWidth: number;
+  maxHeight: number;
 }
 
 /** Инициалы из ФИО для аватара-заглушки: первые буквы 1–2 слов. */
@@ -194,24 +196,27 @@ export function Combobox({
     setActive(sel >= 0 ? sel : filtered.length > 0 && query.trim() !== "" ? 0 : -1);
   }, [open, filtered, value, query]);
 
-  // Позиционируем портальное меню под контролом и держим в пределах вьюпорта.
+  // Позиционируем портальное меню у контрола и держим в пределах вьюпорта:
+  // внизу не хватает места — открываем вверх (placePopover).
+  const menuRef = useRef<HTMLDivElement>(null);
+  const placeRef = useRef<() => void>(() => {});
+  placeRef.current = () => {
+    const el = controlRef.current;
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    const m = menuRef.current;
+    const maxWidth = Math.max(r.width, Math.min(520, window.innerWidth - 16));
+    const width = Math.min(maxWidth, Math.max(r.width, m?.offsetWidth ?? r.width));
+    const height = Math.min(240, m?.scrollHeight ?? 240);
+    const p = placePopover(r, { width, height });
+    setRect({ top: p.top, left: p.left, width: r.width, maxWidth, maxHeight: Math.min(240, p.maxHeight) });
+  };
   useLayoutEffect(() => {
     if (!open) {
       setRect(null);
       return;
     }
-    const place = () => {
-      const el = controlRef.current;
-      if (!el) return;
-      const r = el.getBoundingClientRect();
-      const margin = 8;
-      setRect({
-        top: r.bottom + 4,
-        left: r.left,
-        width: r.width,
-        maxWidth: Math.max(r.width, Math.min(520, window.innerWidth - r.left - margin)),
-      });
-    };
+    const place = () => placeRef.current();
     place();
     // capture=true ловит скролл любого контейнера-предка (modal-body и т.п.).
     window.addEventListener("scroll", place, true);
@@ -221,6 +226,18 @@ export function Combobox({
       window.removeEventListener("resize", place);
     };
   }, [open]);
+
+  // Меню отрисовалось (или сменился отбор) — уточняем место по его настоящему
+  // размеру: оценка «240px» до первой отрисовки могла открыть не в ту сторону.
+  const menuShown = open && rect !== null;
+  useLayoutEffect(() => {
+    if (menuShown) placeRef.current();
+  }, [menuShown, filtered.length]);
+
+  // Подсвеченный стрелками вариант — в поле зрения списка.
+  useEffect(() => {
+    if (open && active >= 0) revealOption(`${baseId}-opt-${active}`);
+  }, [open, active, baseId]);
 
   // Клик мимо/уход фокуса — закрыть и вернуть текст к выбранному значению.
   const closeAndReset = () => {
@@ -243,6 +260,8 @@ export function Combobox({
     open && rect
       ? createPortal(
           <div
+            ref={menuRef}
+            id={`${baseId}-list`}
             className={[styles.menu, menuClassName].filter(Boolean).join(" ")}
             role="listbox"
             style={{
@@ -251,6 +270,7 @@ export function Combobox({
               left: rect.left,
               minWidth: rect.width,
               maxWidth: rect.maxWidth,
+              maxHeight: rect.maxHeight,
               zIndex: 1000,
             }}
           >
@@ -284,6 +304,7 @@ export function Combobox({
                       .filter(Boolean)
                       .join(" ")}
                     role="option"
+                    tabIndex={-1}
                     aria-selected={o.value === value}
                     onMouseEnter={() => setActive(i)}
                     onMouseDown={(e) => e.preventDefault()}
@@ -334,6 +355,7 @@ export function Combobox({
           aria-label={inputAriaLabel}
           aria-expanded={open}
           aria-activedescendant={open && active >= 0 ? `${baseId}-opt-${active}` : undefined}
+          aria-controls={open ? `${baseId}-list` : undefined}
           aria-autocomplete={searchable ? "list" : "none"}
           aria-invalid={invalid || undefined}
           disabled={disabled}

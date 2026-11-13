@@ -47,13 +47,10 @@
   height: 22px;
   border-radius: 6px;
   background: var(--accent-50);
-  color: var(--accent-700);
+  color: var(--accent-text, var(--accent-700));
   display: grid;
   place-items: center;
   flex-shrink: 0;
-}
-:global(html[data-theme='dark']) .titleIcon {
-  color: var(--accent-400);
 }
 
 .nav {
@@ -82,11 +79,8 @@
 }
 .link[data-active='true'] {
   background: var(--accent-50);
-  color: var(--accent-700);
+  color: var(--accent-text, var(--accent-700));
   font-weight: 500;
-}
-:global(html[data-theme='dark']) .link[data-active='true'] {
-  color: var(--accent-400);
 }
 .link:focus-visible {
   outline: 2px solid var(--accent-500);
@@ -188,6 +182,15 @@
   .layout:not([data-narrow='false']) .nav {
     overflow-x: auto;
     padding: 6px 8px;
+    /* Края полосы гаснут — видно, что вкладки листаются дальше. */
+    mask-image: linear-gradient(to right, transparent 0, #000 12px, #000 calc(100% - 24px), transparent 100%);
+    scrollbar-width: none;
+  }
+  /* Подписи групп на полосе скрыты — границу групп держит черта. */
+  .layout:not([data-narrow='false']) .group + .group {
+    padding-left: 8px;
+    margin-left: 4px;
+    border-left: 1px solid var(--border-default);
   }
   .layout:not([data-narrow='false']) .link {
     flex: 0 0 auto;

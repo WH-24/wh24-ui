@@ -8,13 +8,17 @@
 .page:where(.page) {
   --fg-primary: #1a1a1a;
   --fg-secondary: #3d3d3d;
-  --fg-tertiary: #7a7a7a;
-  --fg-muted: #b4b2a9;
+  /* Как в ui-tokens/bridge.css: текст ≥ 4.5:1 (прежние #7a7a7a/#b4b2a9 —
+     4.29 и 2.1:1). */
+  --fg-tertiary: #5c5c5c;
+  --fg-muted: #696969;
   --accent-50: #fbeee5;
   --accent-400: #dd6731;
   --accent-500: #dd6731;
   --accent-600: #b8501f;
   --accent-700: #b8501f;
+  /* Терракота текстом: ≥ 4.9:1 и на белом, и на --accent-50. */
+  --accent-text: var(--terra-text, #a8481b);
   --bg-surface: #ffffff;
   --bg-subtle: #f7f5f0;
   --bg-muted: #efece4;
@@ -35,8 +39,9 @@
   --fg-primary: #f2f2ef;
   --fg-secondary: #d8d8d1;
   --fg-tertiary: #a9aa9f;
-  --fg-muted: #7b7d74;
+  --fg-muted: #94968c;
   --accent-50: rgba(221, 103, 49, 0.2);
+  --accent-text: var(--terra-text, #e57a48);
   --bg-surface: #161816;
   --bg-subtle: #1c1f1c;
   --bg-muted: #272b27;
@@ -114,6 +119,8 @@
   padding: 2px;
 }
 .viewSwitch button {
+  min-width: 32px;
+  min-height: 28px;
   padding: 5px 8px;
   border-radius: 6px;
   border: none;
@@ -134,42 +141,25 @@
   background: var(--bg-surface);
   border: 1px solid var(--border-default);
   border-radius: var(--radius-lg);
-  overflow: hidden;
-  /* Набор колонок настраивается пользователем (доп-поля модулей), поэтому
-     таблица может стать шире контейнера. При table-layout:fixed и процентных
-     ширинах штатных колонок лишние иначе обрезаются намертво — доскроллить до
-     них нельзя. overflow-y остаётся hidden ради скругления углов. */
-  overflow-x: auto;
+  /* Таблица — своя область прокрутки до нижнего края окна (правило
+     владельца «лист до края окна»). Шапка колонок липнет к её верху, а не
+     уезжает со строками; горизонтальная полоса — у нижнего края экрана.
+     Набор колонок настраивается (доп-поля модулей), поэтому таблица может
+     быть шире контейнера — прокрутка в обе стороны. */
+  overflow: auto;
+  overscroll-behavior: contain;
   box-shadow: var(--shadow-sm);
-  /* Своя полоса прокрутки скрыта: её заменяет липкая .hScroll ниже — иначе
-     под короткой таблицей стояли две полосы подряд. Колесо, тачпад и Shift+колесо
-     двигают таблицу как прежде. */
-  scrollbar-width: none;
-  flex-grow: 1;
+  /* Растёт до низа окна и сжимается, если строк больше, чем места (тогда
+     прокручивается сама). В контейнере без высоты — высота по строкам,
+     как прежде. */
+  flex: 1 1 auto;
+  min-height: 0;
   border-bottom: none;
   border-bottom-left-radius: 0;
   border-bottom-right-radius: 0;
 }
-.tableWrap::-webkit-scrollbar {
-  display: none;
-}
-/* Липкая горизонтальная полоса прокрутки таблицы.
-   Настоящая полоса .tableWrap стоит под таблицей — то есть в конце страницы;
-   эта прижата к нижнему краю ЭКРАНА, пока таблица на виду. Высота 0, когда
-   колонки помещаются: пустая полоса под таблицей выглядела бы поломкой. */
-.hScroll {
-  position: sticky;
-  bottom: 0;
-  z-index: 2;
-  overflow-x: auto;
-  overflow-y: hidden;
-  height: 0;
-}
-.hScroll[data-visible] {
-  height: 14px;
-}
-.hScroll > div {
-  height: 1px;
+.page > .tableWrap {
+  flex-shrink: 1;
 }
 
 table.tbl {
@@ -189,6 +179,10 @@ table.tbl {
   background: var(--bg-subtle);
   position: sticky;
   top: 0;
+  /* Шапка липнет к верху области таблицы — строки уезжают ПОД неё. Ячейки
+     с позиционированием (аватар, чекбокс выбора, метки) иначе рисуются
+     поверх шапки. */
+  z-index: 3;
   user-select: none;
 }
 .tbl thead th[data-sortable] {
@@ -251,7 +245,7 @@ table.tbl {
   background: var(--accent-50);
 }
 :where([data-theme="dark"]) .tbl tbody tr[data-selected="true"] {
-  background: rgba(59, 130, 246, 0.12);
+  background: var(--accent-50);
 }
 .tbl tbody tr:last-child td {
   border-bottom: none;
@@ -275,6 +269,64 @@ table.tbl {
 .tbl tbody tr:focus-within .cellSelectBox,
 .tbl tbody tr[data-selected="true"] .cellSelectBox {
   opacity: 1;
+}
+/* На сенсорном экране наведения нет — чекбокс выбора виден всегда. */
+@media (hover: none) {
+  .tbl .cellSelectBox {
+    opacity: 1;
+  }
+}
+/* Строка открывается с клавиатуры: видимое кольцо внутри строки. */
+.tbl tbody tr[data-clickable] {
+  cursor: pointer;
+}
+.tbl tbody tr[data-clickable]:focus-visible {
+  outline: 2px solid var(--accent-500);
+  outline-offset: -2px;
+}
+/* Сортировка — кнопкой во всю подпись: Tab, Enter, пробел. */
+.thSortBtn {
+  all: unset;
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  cursor: pointer;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+}
+.thSortBtn:focus-visible {
+  outline: 2px solid var(--accent-500);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+.tbl thead th:focus-within .sortArrow {
+  opacity: 0.6;
+}
+
+/* ===== Загрузка: скелет строк ===== */
+.skeletonRow td {
+  padding-top: 14px;
+  padding-bottom: 14px;
+}
+.skeletonBar {
+  display: block;
+  height: 10px;
+  border-radius: 999px;
+  background: var(--bg-muted);
+  animation: skeleton-pulse 1.4s ease-in-out infinite;
+}
+@keyframes skeleton-pulse {
+  50% {
+    opacity: 0.5;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .skeletonBar {
+    animation: none;
+  }
 }
 
 /* ===== Пустое состояние ===== */
@@ -306,6 +358,18 @@ table.tbl {
 .emptyDesc {
   font-size: 12.5px;
   max-width: 320px;
+}
+.emptyIcon[data-tone="error"] {
+  color: var(--danger-fg, #a32d2d);
+}
+.emptyBtn,
+.emptyAction {
+  margin-top: 12px;
+}
+.emptyBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 
 /* ===== Карточный вид ===== */
@@ -774,4 +838,19 @@ table.tbl {
   border-style: solid;
   border-color: var(--accent-500);
   background: var(--accent-50);
+}
+
+/* Телефон: поля страницы 16px вместо 28 (на 375px это 15% ширины). */
+@media (max-width: 560px) {
+  .page {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+}
+/* Палец: переключатель вида — цель не меньше 36px. */
+@media (pointer: coarse) {
+  .viewSwitch button {
+    min-width: var(--tap-min-compact, 36px);
+    min-height: var(--tap-min-compact, 36px);
+  }
 }

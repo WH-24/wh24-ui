@@ -2,7 +2,8 @@ import { useId, useRef, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 
 import { Icon } from '../list/Icon.js'
-import { useFocusTrap } from './useFocusTrap.js'
+import { usePresence, useExitAnimation } from './presence.js'
+import { useFocusTrap, useScrollLock } from './useFocusTrap.js'
 
 import styles from './overlay.module.css'
 
@@ -10,7 +11,9 @@ import styles from './overlay.module.css'
  * Боковая панель справа (карточка записи, журнал, настройки) — как
  * `.drawer` портала: подложка, выезд справа, шапка с названием и
  * действиями, прокручиваемое тело. Модальна: ловушка фокуса, Esc и клик по
- * подложке закрывают (это отмена, см. `Modal`).
+ * подложке закрывают (это отмена, см. `Modal`). Выезд 240 мс по кривой
+ * `--ease-drawer`, уезжает обратно за 180 мс; подложка проявляется вместе с
+ * панелью, а не вспыхивает. Страница под панелью не прокручивается.
  */
 export interface DrawerProps {
   open: boolean
@@ -26,19 +29,43 @@ export interface DrawerProps {
 }
 
 export function Drawer(props: DrawerProps) {
-  if (!props.open) return null
-  return createPortal(<DrawerPanel {...props} />, document.body)
+  const { mounted, exiting, finish } = usePresence(props.open)
+  if (!mounted) return null
+  return createPortal(<DrawerPanel {...props} exiting={exiting} onExited={finish} />, document.body)
 }
 
-function DrawerPanel({ onClose, title, children, actions, footer, width = 560 }: DrawerProps) {
+interface PanelProps extends DrawerProps {
+  exiting: boolean
+  onExited: () => void
+}
+
+function DrawerPanel({ onClose, title, children, actions, footer, width = 560, exiting, onExited }: PanelProps) {
   const titleId = useId()
   const ref = useRef<HTMLDivElement>(null)
-  useFocusTrap({ open: true, containerRef: ref, onEscape: onClose })
+  const backdropRef = useRef<HTMLDivElement>(null)
+  useFocusTrap({ open: !exiting, containerRef: ref, onEscape: onClose })
+  useScrollLock(!exiting)
+  useExitAnimation(
+    exiting,
+    [
+      { ref: backdropRef, frames: [{ opacity: 1 }, { opacity: 0 }], duration: 180 },
+      { ref, frames: [{ transform: 'translateX(0)' }, { transform: 'translateX(100%)' }], duration: 180 },
+    ],
+    onExited,
+  )
   return (
     <>
-      <div className={styles.drawerBackdrop} onMouseDown={() => onClose?.()} aria-hidden="true" />
+      <div
+        ref={backdropRef}
+        className={styles.drawerBackdrop}
+        data-state={exiting ? 'closed' : 'open'}
+        onMouseDown={() => onClose?.()}
+        aria-hidden="true"
+        data-aria-hidden-own="true"
+      />
       <div
         ref={ref}
+        data-state={exiting ? 'closed' : 'open'}
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}

@@ -10,6 +10,7 @@ import { FileDrop } from './FileDrop'
 import { Input } from './Input'
 import { MultiCombobox } from './MultiCombobox'
 import { Textarea } from './Textarea'
+import { Modal } from '../overlay/Modal'
 
 describe('FieldRow / FieldGrid', () => {
   it('ошибка вытесняет подсказку, а не добавляется к ней', () => {
@@ -178,7 +179,7 @@ describe('DateField', () => {
     render(<DateHarness initial="2026-03-10" />)
     await user.click(screen.getByRole('button', { name: 'Открыть календарь' }))
     expect(screen.getByText('Март 2026')).toBeInTheDocument()
-    await user.click(screen.getByRole('button', { name: '20' }))
+    await user.click(screen.getByRole('button', { name: /^20 / }))
     expect(screen.getByTestId('out').textContent).toBe('2026-03-20')
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })
@@ -204,6 +205,8 @@ describe('FileDrop', () => {
     fireEvent.change(input, { target: { files: [mkFile('b.txt'), mkFile('c.txt')] } })
     expect(onAdd).toHaveBeenCalledTimes(1)
     expect(onAdd.mock.calls[0]![0].map((f: File) => f.name)).toEqual(['b.txt'])
+    // Лишний файл не пропадает молча — об этом сказано.
+    expect(screen.getByRole('status')).toHaveTextContent('Один файл не добавлен')
 
     rerender(
       <FileDrop
@@ -305,5 +308,110 @@ describe('Combobox (общий из list/)', () => {
   it('invalid ставит aria-invalid на поле', () => {
     render(<Combobox options={grouped} value="" onChange={() => {}} invalid />)
     expect(screen.getByRole('combobox')).toHaveAttribute('aria-invalid', 'true')
+  })
+})
+
+describe('Esc внутри окна', () => {
+  function InModal() {
+    const [open, setOpen] = useState(true)
+    const [d, setD] = useState('')
+    const [m, setM] = useState<string[]>([])
+    return (
+      <Modal open={open} title="Новая задача" onClose={() => setOpen(false)}>
+        <DateField value={d} onChange={setD} ariaLabel="Срок" />
+        <MultiCombobox options={opts} values={m} onChange={setM} placeholder="Соисполнители" />
+      </Modal>
+    )
+  }
+
+  it('Esc в открытом календаре закрывает календарь, а не окно', async () => {
+    const user = userEvent.setup()
+    render(<InModal />)
+    await user.click(screen.getByRole('button', { name: 'Открыть календарь' }))
+    expect(screen.getByRole('button', { name: 'Сегодня' })).toBeInTheDocument()
+    await user.keyboard('{Escape}')
+    expect(screen.queryByRole('button', { name: 'Сегодня' })).not.toBeInTheDocument()
+    expect(screen.getByRole('dialog', { name: 'Новая задача' })).toBeInTheDocument()
+    await user.keyboard('{Escape}')
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  })
+
+  it('Esc в открытом MultiCombobox закрывает список, а не окно', async () => {
+    const user = userEvent.setup()
+    render(<InModal />)
+    await user.click(screen.getByRole('combobox'))
+    expect(screen.getAllByRole('option').length).toBeGreaterThan(0)
+    await user.keyboard('{Escape}')
+    expect(screen.queryByRole('option')).not.toBeInTheDocument()
+    expect(screen.getByRole('dialog', { name: 'Новая задача' })).toBeInTheDocument()
+  })
+})
+
+describe('Клавиатура выбора (аудит 12.11)', () => {
+  it('MultiCombobox: ↓ подсвечивает вариант, Enter переключает, список не закрывается', async () => {
+    const user = userEvent.setup()
+    render(<MultiHarness />)
+    const input = screen.getByRole('combobox')
+    await user.click(input)
+    await user.keyboard('{ArrowDown}')
+    const first = screen.getAllByRole('option')[0]!
+    expect(input).toHaveAttribute('aria-activedescendant', first.id)
+    await user.keyboard('{Enter}')
+    expect(screen.getByTestId('out').textContent).toBe('a')
+    await user.keyboard('{ArrowDown}{Enter}')
+    expect(screen.getByTestId('out').textContent).toBe('a,b')
+    expect(screen.getAllByRole('option').length).toBe(3)
+  })
+
+  it('MultiCombobox: Enter без подсветки ничего не выбирает', async () => {
+    const user = userEvent.setup()
+    render(<MultiHarness />)
+    await user.click(screen.getByRole('combobox'))
+    await user.keyboard('{Enter}')
+    expect(screen.getByTestId('out').textContent).toBe('')
+  })
+
+  it('календарь: фокус на выбранном дне, стрелки и PageDown, Enter выбирает, фокус — на кнопку', async () => {
+    const user = userEvent.setup()
+    render(<DateHarness initial="2026-03-15" />)
+    const icon = screen.getByRole('button', { name: 'Открыть календарь' })
+    await user.click(icon)
+    expect(screen.getByRole('button', { name: '15 марта 2026' })).toHaveFocus()
+    await user.keyboard('{ArrowRight}{ArrowDown}')
+    expect(screen.getByRole('button', { name: '23 марта 2026' })).toHaveFocus()
+    await user.keyboard('{PageDown}')
+    expect(screen.getByRole('button', { name: '23 апреля 2026' })).toHaveFocus()
+    await user.keyboard('{Enter}')
+    expect(screen.getByTestId('out').textContent).toBe('2026-04-23')
+    expect(icon).toHaveFocus()
+  })
+
+  it('календарь: Esc закрывает и возвращает фокус на кнопку календаря', async () => {
+    const user = userEvent.setup()
+    render(<DateHarness initial="2026-03-15" />)
+    const icon = screen.getByRole('button', { name: 'Открыть календарь' })
+    await user.click(icon)
+    await user.keyboard('{Escape}')
+    expect(screen.queryByRole('dialog', { name: 'Календарь' })).not.toBeInTheDocument()
+    expect(icon).toHaveFocus()
+  })
+})
+
+describe('FieldRow: связь с подсказкой и ошибкой', () => {
+  it('подсказка и ошибка — в aria-describedby поля, ошибка — alert', () => {
+    const { rerender } = render(
+      <FieldRow label="Название" htmlFor="n" hint="До 80 символов">
+        <Input id="n" />
+      </FieldRow>,
+    )
+    const input = screen.getByLabelText('Название')
+    expect(input).toHaveAccessibleDescription('До 80 символов')
+    rerender(
+      <FieldRow label="Название" htmlFor="n" error="Заполните название">
+        <Input id="n" />
+      </FieldRow>,
+    )
+    expect(screen.getByLabelText('Название')).toHaveAccessibleDescription('Заполните название')
+    expect(screen.getByRole('alert')).toHaveTextContent('Заполните название')
   })
 })

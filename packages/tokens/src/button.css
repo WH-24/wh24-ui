@@ -2,7 +2,8 @@
  * @wowhaus-24/ui-tokens — button.css
  *
  * Канонический набор кнопок для ВСЕХ сервисов Wowhaus.
- * Primary — брендовый терракот (--terra), hover — --terra-d.
+ * Primary — брендовый терракот: заливка --terra-solid (белый на ней 4.99:1;
+ * на светлом --terra было 3.47:1), hover — --terra-solid-hover.
  * Тёмная тема работает автоматически: все цвета — токены,
  * терракот в dark намеренно не меняется (см. tokens.css).
  *
@@ -29,7 +30,21 @@
   white-space: nowrap;
   cursor: pointer;
   text-decoration: none;
-  transition: background 0.1s, border-color 0.1s, color 0.1s;
+  transition:
+    background 0.1s,
+    border-color 0.1s,
+    color 0.1s,
+    transform var(--dur-fast, 120ms) var(--ease-out, ease-out);
+}
+/* Отклик на нажатие (Emil Kowalski): кнопка чуть «проседает» — интерфейс
+   слышит палец. 0.97, не меньше: заметно, но не прыгает. */
+.btn:active:not(:disabled):not([aria-disabled='true']) {
+  transform: scale(0.97);
+}
+@media (prefers-reduced-motion: reduce) {
+  .btn:active:not(:disabled) {
+    transform: none;
+  }
 }
 .btn:focus-visible {
   outline: var(--focus-ring-w) solid var(--focus);
@@ -44,10 +59,10 @@
 
 /* Primary — главное действие экрана/блока. Одно на экран. */
 .btn-primary {
-  background: var(--terra);
+  background: var(--terra-solid, var(--terra-d));
   color: #fff;
 }
-.btn-primary:hover { background: var(--terra-d); }
+.btn-primary:hover { background: var(--terra-solid-hover, var(--terra-d)); }
 
 /* Secondary — обычное действие на поверхности. */
 .btn-secondary {

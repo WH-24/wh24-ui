@@ -5,8 +5,11 @@ import {
   useState,
   type ChangeEvent,
   type CSSProperties,
+  type KeyboardEvent as ReactKeyboardEvent,
 } from 'react'
 import { createPortal } from 'react-dom'
+
+import { placePopover } from '../list/popover.js'
 
 import styles from './form.module.css'
 
@@ -27,6 +30,20 @@ export interface DateFieldProps {
 }
 
 const WEEKDAYS = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс']
+const MONTHS_GEN = [
+  'января',
+  'февраля',
+  'марта',
+  'апреля',
+  'мая',
+  'июня',
+  'июля',
+  'августа',
+  'сентября',
+  'октября',
+  'ноября',
+  'декабря',
+]
 const MONTHS = [
   'Январь',
   'Февраль',
@@ -90,6 +107,19 @@ function todayISO(): string {
   return toISO(t.getFullYear(), t.getMonth(), t.getDate())
 }
 
+/** Сдвиг даты на n дней (через Date — переходы месяцев и годов сами). */
+function addDays(iso: string, n: number): string {
+  const p = parseISO(iso)!
+  const d = new Date(p.y, p.m, p.d + n)
+  return toISO(d.getFullYear(), d.getMonth(), d.getDate())
+}
+/** Сдвиг на n месяцев с прижатием дня (31 января + 1 мес. = 28/29 февраля). */
+function addMonths(iso: string, n: number): string {
+  const p = parseISO(iso)!
+  const last = new Date(p.y, p.m + n + 1, 0)
+  return toISO(last.getFullYear(), last.getMonth(), Math.min(p.d, last.getDate()))
+}
+
 /** Понедельник-первый: JS getDay() 0=Вс..6=Сб → 0=Пн..6=Вс. */
 const mondayFirst = (jsDay: number) => (jsDay + 6) % 7
 
@@ -106,7 +136,14 @@ interface PopRect {
  *
  * Значение in/out — ISO yyyy-mm-dd, ввод с клавиатуры — маска дд.мм.гггг.
  * Поповер рендерится порталом в <body> (`position: fixed`), чтобы его не
- * резал `overflow` модалки или дроуэра.
+ * резал `overflow` модалки или дроуэра; у нижнего края окна он открывается
+ * вверх.
+ *
+ * Календарь с клавиатуры: при открытии фокус встаёт на выбранный день (или
+ * сегодня); ←/→ — день, ↑/↓ — неделя, PageUp/PageDown — месяц (с Shift —
+ * год), Home/End — начало/конец недели, Enter — выбрать, Tab ходит внутри
+ * календаря, Esc закрывает и возвращает фокус на кнопку календаря. Дни
+ * читаются полностью: «12 ноября 2026, сегодня».
  */
 export function DateField({
   value,
@@ -126,6 +163,9 @@ export function DateField({
   const [text, setText] = useState(() => formatRu(value))
   const controlRef = useRef<HTMLDivElement>(null)
   const popRef = useRef<HTMLDivElement>(null)
+  const iconRef = useRef<HTMLButtonElement>(null)
+  // День под «клавиатурным» фокусом в сетке (роуминг tabindex).
+  const [focusDay, setFocusDay] = useState('')
 
   // Показанный месяц: от выбранной даты, иначе текущий.
   const [view, setView] = useState(() => {
@@ -141,17 +181,27 @@ export function DateField({
     if (p) setView({ y: p.y, m: p.m })
   }, [value])
 
+  const placeRef = useRef<() => void>(() => {})
+  placeRef.current = () => {
+    const el = controlRef.current
+    if (!el) return
+    const r = el.getBoundingClientRect()
+    const pop = popRef.current
+    const p = placePopover(r, { width: pop?.offsetWidth ?? 268, height: pop?.offsetHeight ?? 320 })
+    setRect({ top: p.top, left: p.left })
+  }
+  // Календарь отрисовался — уточняем место по настоящему размеру.
+  const popShown = open && rect !== null
+  useLayoutEffect(() => {
+    if (popShown) placeRef.current()
+  }, [popShown])
+
   useLayoutEffect(() => {
     if (!open) {
       setRect(null)
       return
     }
-    const place = () => {
-      const el = controlRef.current
-      if (!el) return
-      const r = el.getBoundingClientRect()
-      setRect({ top: r.bottom + 4, left: r.left })
-    }
+    const place = () => placeRef.current()
     place()
     window.addEventListener('scroll', place, true)
     window.addEventListener('resize', place)
@@ -170,7 +220,13 @@ export function DateField({
       setOpen(false)
     }
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setOpen(false)
+      if (e.key !== 'Escape') return
+      // Esc закрывает только календарь: окно вокруг (модалка, панель)
+      // видит defaultPrevented и остаётся открытым — форма не теряется.
+      e.preventDefault()
+      const inside = popRef.current?.contains(document.activeElement)
+      setOpen(false)
+      if (inside) iconRef.current?.focus()
     }
     window.addEventListener('mousedown', onDown, true)
     window.addEventListener('keydown', onKey, true)
@@ -184,8 +240,75 @@ export function DateField({
 
   const pick = (iso: string) => {
     if (outOfRange(iso)) return
+    const inside = popRef.current?.contains(document.activeElement)
     onChange(iso)
     setOpen(false)
+    if (inside) iconRef.current?.focus()
+  }
+
+  // День в пределах min/max: на выключенный день фокус не встанет.
+  const clamp = (iso: string) => (min && iso < min ? min : max && iso > max ? max : iso)
+
+  // Открыли — клавиатурный фокус на выбранный день (или сегодня), месяц —
+  // его. Фокус переносим в сетку, когда календарь уже стоит на месте, и
+  // только при открытии и по стрелкам: «‹ ›» мышью фокус не уводят.
+  const wantGridFocus = useRef(false)
+  useEffect(() => {
+    if (!open) return
+    const start = clamp(parseISO(value) ? value : todayISO())
+    setFocusDay(start)
+    const p = parseISO(start)!
+    setView({ y: p.y, m: p.m })
+    wantGridFocus.current = true
+  }, [open, value])
+  useEffect(() => {
+    if (!popShown || !focusDay || !wantGridFocus.current) return
+    const btn = popRef.current?.querySelector<HTMLButtonElement>(`[data-iso="${focusDay}"]`)
+    if (!btn) return
+    wantGridFocus.current = false
+    if (document.activeElement !== btn) btn.focus({ preventScroll: true })
+  }, [popShown, focusDay, view])
+
+  const moveFocus = (raw: string) => {
+    const iso = clamp(raw)
+    wantGridFocus.current = true
+    setFocusDay(iso)
+    const p = parseISO(iso)!
+    setView((v) => (v.y === p.y && v.m === p.m ? v : { y: p.y, m: p.m }))
+  }
+
+  const onGridKey = (e: ReactKeyboardEvent) => {
+    if (!focusDay) return
+    const p = parseISO(focusDay)!
+    const dow = mondayFirst(new Date(p.y, p.m, p.d).getDay())
+    const step: Record<string, () => string> = {
+      ArrowLeft: () => addDays(focusDay, -1),
+      ArrowRight: () => addDays(focusDay, 1),
+      ArrowUp: () => addDays(focusDay, -7),
+      ArrowDown: () => addDays(focusDay, 7),
+      Home: () => addDays(focusDay, -dow),
+      End: () => addDays(focusDay, 6 - dow),
+      PageUp: () => addMonths(focusDay, e.shiftKey ? -12 : -1),
+      PageDown: () => addMonths(focusDay, e.shiftKey ? 12 : 1),
+    }
+    const fn = step[e.key]
+    if (!fn) return
+    e.preventDefault()
+    moveFocus(fn())
+  }
+
+  // Tab ходит по кругу внутри календаря: он в портале у конца <body>, и без
+  // этого Tab уводил фокус на страницу (или ловушка окна — в начало формы).
+  const onPopKey = (e: ReactKeyboardEvent) => {
+    if (e.key !== 'Tab') return
+    const items = Array.from(
+      popRef.current?.querySelectorAll<HTMLButtonElement>('button:not([disabled]):not([tabindex="-1"])') ?? [],
+    )
+    if (items.length === 0) return
+    const i = items.indexOf(document.activeElement as HTMLButtonElement)
+    const next = e.shiftKey ? (i <= 0 ? items.length - 1 : i - 1) : (i + 1) % items.length
+    e.preventDefault()
+    items[next]!.focus()
   }
 
   // Ручной ввод: маскируем и коммитим, как только собрана валидная дата в
@@ -231,24 +354,31 @@ export function DateField({
             role="dialog"
             aria-label="Календарь"
             style={{ position: 'fixed', top: rect.top, left: rect.left }}
+            onKeyDown={onPopKey}
           >
             <div className={styles.dpHead}>
               <button
                 type="button"
                 className={styles.dpNav}
                 aria-label="Предыдущий месяц"
-                onClick={() => shiftMonth(-1)}
+                onClick={() => {
+                  shiftMonth(-1)
+                  if (focusDay) setFocusDay(addMonths(focusDay, -1))
+                }}
               >
                 ‹
               </button>
-              <span className={styles.dpTitle}>
+              <span className={styles.dpTitle} aria-live="polite">
                 {MONTHS[view.m]} {view.y}
               </span>
               <button
                 type="button"
                 className={styles.dpNav}
                 aria-label="Следующий месяц"
-                onClick={() => shiftMonth(1)}
+                onClick={() => {
+                  shiftMonth(1)
+                  if (focusDay) setFocusDay(addMonths(focusDay, 1))
+                }}
               >
                 ›
               </button>
@@ -260,7 +390,7 @@ export function DateField({
                 </span>
               ))}
             </div>
-            <div className={styles.dpGrid}>
+            <div className={styles.dpGrid} onKeyDown={onGridKey}>
               {cells.map((d, i) => {
                 if (d === null) return <span key={`e${i}`} className={styles.dpEmpty} />
                 const iso = toISO(view.y, view.m, d)
@@ -279,7 +409,11 @@ export function DateField({
                     type="button"
                     className={cls}
                     disabled={off}
+                    data-iso={iso}
+                    tabIndex={iso === focusDay ? 0 : -1}
                     aria-pressed={iso === value}
+                    aria-current={iso === today ? 'date' : undefined}
+                    aria-label={`${d} ${MONTHS_GEN[view.m]} ${view.y}${iso === today ? ', сегодня' : ''}`}
                     onClick={() => pick(iso)}
                   >
                     {d}
@@ -337,6 +471,7 @@ export function DateField({
           onBlur={handleBlur}
         />
         <button
+          ref={iconRef}
           type="button"
           className={styles.dpIcon}
           disabled={disabled}

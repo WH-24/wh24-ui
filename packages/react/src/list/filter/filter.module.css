@@ -10,13 +10,19 @@
 .msMenu {
   --fg-primary: #1a1a1a;
   --fg-secondary: #3d3d3d;
-  --fg-tertiary: #7a7a7a;
-  --fg-muted: #b4b2a9;
+  /* Как в ui-tokens/bridge.css: текст ≥ 4.5:1 (прежние #7a7a7a/#b4b2a9 —
+     4.29 и 2.1:1). */
+  --fg-tertiary: #5c5c5c;
+  --fg-muted: #696969;
   --accent-50: #fbeee5;
   --accent-400: #dd6731;
   --accent-500: #dd6731;
   --accent-600: #b8501f;
   --accent-700: #b8501f;
+  /* Терракота текстом: ≥ 4.9:1 и на белом, и на --accent-50. */
+  --accent-text: var(--terra-text, #a8481b);
+  /* Рамка поля ≥ 3:1 к поверхности, как у Input (--field-bd). */
+  --flt-field-bd: var(--field-bd, rgba(0, 0, 0, 0.44));
   --bg-surface: #ffffff;
   --bg-subtle: #f7f5f0;
   --bg-muted: #efece4;
@@ -38,8 +44,10 @@
   --fg-primary: #f2f2ef;
   --fg-secondary: #d8d8d1;
   --fg-tertiary: #a9aa9f;
-  --fg-muted: #7b7d74;
+  --fg-muted: #94968c;
   --accent-50: rgba(221, 103, 49, 0.2);
+  --accent-text: var(--terra-text, #e57a48);
+  --flt-field-bd: var(--field-bd, rgba(255, 255, 255, 0.34));
   --bg-surface: #161816;
   --bg-subtle: #1c1f1c;
   --bg-muted: #272b27;
@@ -58,7 +66,7 @@
   width: 100%;
   height: 36px;
   padding: 0 10px;
-  border: 1px solid var(--border-default);
+  border: 1px solid var(--flt-field-bd);
   border-radius: var(--radius-md);
   background: var(--bg-surface);
   color: var(--fg-primary);
@@ -71,7 +79,7 @@
 }
 .formInput:focus {
   border-color: var(--accent-500);
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+  box-shadow: 0 0 0 3px var(--accent-50);
 }
 
 .filterBar {
@@ -96,7 +104,7 @@
   width: 100%;
   min-height: 36px;
   padding: 4px 6px 4px 11px;
-  border: 1px solid var(--border-default);
+  border: 1px solid var(--flt-field-bd);
   border-radius: var(--radius-md);
   background: var(--bg-surface);
   cursor: text;
@@ -109,7 +117,7 @@
   box-shadow: 0 0 0 3px var(--accent-50);
 }
 :where([data-theme="dark"]) .filterSearch[data-active="true"] {
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.14);
+  box-shadow: 0 0 0 3px var(--accent-50);
 }
 .filterSearchIcon {
   display: flex;
@@ -162,12 +170,12 @@
   font-size: 12px;
   border-radius: 999px;
   background: var(--accent-50);
-  color: var(--accent-700);
+  color: var(--accent-text);
   max-width: 220px;
 }
 :where([data-theme="dark"]) .filterApplied {
-  background: rgba(59, 130, 246, 0.14);
-  color: var(--accent-400);
+  background: var(--accent-50);
+  color: var(--accent-text);
 }
 .filterAppliedPreset {
   font-weight: 500;
@@ -180,13 +188,28 @@
 
 /* chip-x (крестик внутри чипа активного пресета). */
 .chipX {
+  position: relative;
   display: grid;
   place-items: center;
-  width: 14px;
-  height: 14px;
+  flex: none;
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  border: none;
   border-radius: 50%;
+  background: transparent;
   color: var(--fg-muted);
   cursor: pointer;
+}
+/* Видимый крестик 16px, а цель — 24px (WCAG 2.5.8): поле вокруг. */
+.chipX::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+}
+.chipX:focus-visible {
+  outline: 2px solid var(--accent-500);
+  outline-offset: 1px;
 }
 .chipX:hover {
   color: var(--fg-primary);
@@ -258,11 +281,11 @@
   color: var(--fg-primary);
 }
 .filterPreset[data-active="true"] {
-  color: var(--accent-700);
+  color: var(--accent-text);
   font-weight: 500;
 }
 :where([data-theme="dark"]) .filterPreset[data-active="true"] {
-  color: var(--accent-400);
+  color: var(--accent-text);
 }
 .filterPresetName {
   flex: 1;
@@ -285,16 +308,23 @@
   gap: 2px;
   flex: none;
 }
-.filterPresetActions [role="button"] {
+.filterPresetActions button {
   display: grid;
   place-items: center;
-  width: 22px;
-  height: 22px;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: none;
+  background: transparent;
   border-radius: var(--radius-sm);
   color: var(--fg-muted);
   cursor: pointer;
 }
-.filterPresetActions [role="button"]:hover {
+.filterPresetActions button:focus-visible {
+  outline: 2px solid var(--accent-500);
+  outline-offset: -2px;
+}
+.filterPresetActions button:hover {
   color: var(--fg-primary);
   background: var(--bg-active);
 }
@@ -310,7 +340,7 @@
   color: var(--accent-600);
 }
 .filterPresetPin[data-pinned="true"]:hover {
-  color: var(--accent-700);
+  color: var(--accent-text);
 }
 .filterPresetRename {
   flex: 1;
@@ -479,6 +509,12 @@
     color 0.1s,
     background 0.1s;
 }
+/* На сенсорном экране наведения нет — крестик поля виден всегда. */
+@media (hover: none) {
+  .filterFieldRemove {
+    opacity: 1;
+  }
+}
 .filterField:hover .filterFieldRemove,
 .filterFieldRemove:focus-visible {
   opacity: 1;
@@ -637,7 +673,7 @@
   cursor: pointer;
 }
 .filterAddfield:hover {
-  color: var(--accent-700);
+  color: var(--accent-text);
   text-decoration: underline;
 }
 
@@ -742,4 +778,13 @@
 .btnGhost:hover {
   background: var(--bg-hover);
   color: var(--fg-primary);
+}
+
+/* Телефон: фильтр во всю ширину строки — на 50% от 343px плейсхолдер
+   обрезался, а условия не помещались. */
+@media (max-width: 560px) {
+  .filterBar {
+    flex: 1 1 100%;
+    max-width: 100%;
+  }
 }

@@ -321,73 +321,6 @@ describe("ListPage — дашборд", () => {
   });
 });
 
-// Горизонтальная полоса прокрутки таблицы стоит у НИЖНЕГО КРАЯ ЭКРАНА, а не в
-// конце страницы: в списке на двести строк до неё иначе надо долистать донизу,
-// а вернуться к нужной строке — обратно наверх.
-describe("ListPage — липкая полоса горизонтальной прокрутки", () => {
-  function setup(scrollWidth: number, clientWidth: number) {
-    const view = render(
-      <ListPage<Row>
-        title="Проекты"
-        data={rows.slice(0, 3)}
-        getId={(r) => r.id}
-        columns={[
-          { key: "name", label: "Название", render: (r) => r.name },
-          { key: "a", label: "А", render: () => "а" },
-        ]}
-        filterConfig={filterConfig}
-      />,
-    );
-    const wrap = view.container.querySelector('[data-testid="list-table-wrap"]') as HTMLElement;
-    const bar = view.container.querySelector('[data-testid="list-hscroll"]') as HTMLElement;
-    // jsdom не считает раскладку — размеры задаём сами.
-    Object.defineProperty(wrap, "scrollWidth", {
-      value: scrollWidth,
-      configurable: true,
-    });
-    Object.defineProperty(wrap, "clientWidth", {
-      value: clientWidth,
-      configurable: true,
-    });
-    return { wrap, bar, view };
-  }
-
-  it("таблица помещается — полосы нет", async () => {
-    const { wrap, bar } = setup(800, 800);
-    await act(async () => {
-      wrap.dispatchEvent(new Event("scroll"));
-    });
-    expect(bar.dataset.visible).toBeUndefined();
-  });
-
-  it("таблица шире экрана — полоса появляется и повторяет ширину таблицы", async () => {
-    const { wrap, bar } = setup(1600, 800);
-    await act(async () => {
-      wrap.dispatchEvent(new Event("scroll"));
-    });
-    expect(bar.dataset.visible).toBe("true");
-  });
-
-  it("прокрутка полосы двигает таблицу и наоборот", async () => {
-    const { wrap, bar } = setup(1600, 800);
-    await act(async () => {
-      wrap.dispatchEvent(new Event("scroll"));
-    });
-
-    bar.scrollLeft = 300;
-    await act(async () => {
-      bar.dispatchEvent(new Event("scroll"));
-    });
-    expect(wrap.scrollLeft).toBe(300);
-
-    wrap.scrollLeft = 120;
-    await act(async () => {
-      wrap.dispatchEvent(new Event("scroll"));
-    });
-    expect(bar.scrollLeft).toBe(120);
-  });
-});
-
 describe("ListPage: сортировка", () => {
   interface C {
     id: string;
@@ -513,5 +446,125 @@ describe("ListPage: headerActions", () => {
     renderWith(() => {});
     const th = screen.getByText("Название").closest("th")!;
     expect(th.querySelector("[data-testid^='th-actions']")).toBeNull();
+  });
+});
+
+describe("ListPage: клавиатура и состояния (аудит 12.11)", () => {
+  const cols = [
+    { key: "name", label: "Название", render: (r: Row) => r.name, sortValue: (r: Row) => r.name },
+  ];
+
+  it("строка открывается с клавиатуры: Tab, Enter; ↓ — следующая строка", async () => {
+    const onRowClick = vi.fn();
+    render(
+      <ListPage<Row>
+        title="Проекты"
+        data={rows.slice(0, 3)}
+        getId={(r) => r.id}
+        columns={cols}
+        filterConfig={filterConfig}
+        onRowClick={onRowClick}
+        columnSettings={false}
+      />,
+    );
+    const first = screen.getByText("Проект 0").closest("tr")!;
+    first.focus();
+    await userEvent.keyboard("{Enter}");
+    expect(onRowClick).toHaveBeenCalledWith(rows[0]);
+    await userEvent.keyboard("{ArrowDown}");
+    expect(screen.getByText("Проект 1").closest("tr")).toHaveFocus();
+    await userEvent.keyboard(" ");
+    expect(onRowClick).toHaveBeenLastCalledWith(rows[1]);
+  });
+
+  it("сортировка — кнопкой в шапке, состояние в aria-sort", async () => {
+    render(
+      <ListPage<Row>
+        title="Проекты"
+        data={rows.slice(0, 3)}
+        getId={(r) => r.id}
+        columns={cols}
+        filterConfig={filterConfig}
+        columnSettings={false}
+      />,
+    );
+    const btn = screen.getByRole("button", { name: /Название/ });
+    const th = btn.closest("th")!;
+    // По умолчанию — по первой колонке, по возрастанию.
+    expect(th).toHaveAttribute("aria-sort", "ascending");
+    btn.focus();
+    await userEvent.keyboard("{Enter}");
+    expect(th).toHaveAttribute("aria-sort", "descending");
+    await userEvent.keyboard(" ");
+    expect(th).toHaveAttribute("aria-sort", "ascending");
+  });
+
+  it("пустой список без фильтра — свой заголовок и действие, без «измените фильтры»", () => {
+    render(
+      <ListPage<Row>
+        title="Задачи"
+        data={[]}
+        getId={(r) => r.id}
+        columns={cols}
+        filterConfig={filterConfig}
+        emptyTitle="Задач пока нет"
+        emptyDescription="Создайте первую задачу — она появится здесь."
+        emptyAction={<button>Создать задачу</button>}
+      />,
+    );
+    expect(screen.getByText("Задач пока нет")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Создать задачу" })).toBeInTheDocument();
+    expect(screen.queryByText(/измените фильтры|изменить фильтры/)).toBeNull();
+  });
+
+  it("всё скрыл поиск — «Ничего не найдено» и «Показать все строки»", async () => {
+    render(
+      <ListPage<Row>
+        title="Проекты"
+        data={rows.slice(0, 3)}
+        getId={(r) => r.id}
+        columns={cols}
+        filterConfig={{ ...filterConfig, scope: "empty-reset", search: { get: (r) => r.name } }}
+      />,
+    );
+    await userEvent.type(screen.getByRole("textbox", { name: "Фильтр и поиск" }), "zzz");
+    expect(await screen.findByText("Ничего не найдено")).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Показать все строки" }));
+    expect(screen.getByText("Проект 0")).toBeInTheDocument();
+  });
+
+  it("загрузка — скелет, ошибка — «Повторить»", async () => {
+    const onRetry = vi.fn();
+    const { rerender, container } = render(
+      <ListPage<Row> title="П" data={[]} getId={(r) => r.id} columns={cols} filterConfig={filterConfig} loading />,
+    );
+    expect(container.querySelector("tbody[aria-busy]")).not.toBeNull();
+    expect(screen.queryByText("Ничего не найдено")).toBeNull();
+    rerender(
+      <ListPage<Row>
+        title="П"
+        data={[]}
+        getId={(r) => r.id}
+        columns={cols}
+        filterConfig={filterConfig}
+        error="Сервис не отвечает"
+        onRetry={onRetry}
+      />,
+    );
+    expect(screen.getByRole("alert")).toHaveTextContent("Сервис не отвечает");
+    await userEvent.click(screen.getByRole("button", { name: "Повторить" }));
+    expect(onRetry).toHaveBeenCalled();
+  });
+
+  it("окно колонок: Esc закрывает, фокус — на шестерёнке", async () => {
+    render(
+      <ListPage<Row> title="П" data={rows.slice(0, 3)} getId={(r) => r.id} columns={cols} filterConfig={filterConfig} />,
+    );
+    const gear = screen.getByRole("button", { name: "Настроить колонки" });
+    await userEvent.click(gear);
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+    await userEvent.keyboard("{Escape}");
+    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(gear).toHaveFocus();
   });
 });

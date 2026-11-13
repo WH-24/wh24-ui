@@ -6,6 +6,13 @@
   min-width: 0;
   padding: 8px 28px 40px;
 }
+/* Узкий экран: поля 16px вместо 28 (на 375px это 15% ширины). */
+@media (max-width: 720px) {
+  .page {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+}
 /* Таблица во всю высоту: последний блок тянется, снизу без отступа. */
 .fill {
   display: flex;

@@ -27,6 +27,9 @@
   --accent-700: var(--terra-d);
   --accent-800: var(--terra-d);
   --accent-fg: #ffffff;
+  /* Терракота текстом (активный пункт, ссылки, счётчики): ≥ 4.7:1 и на
+     поверхностях, и на --accent-50 — в обеих темах (см. --terra-text). */
+  --accent-text: var(--terra-text);
   --accent-hover-fg: var(--terra-d);
 
   /* Статусы */
