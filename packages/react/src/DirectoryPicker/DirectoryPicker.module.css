@@ -88,7 +88,9 @@
   display: flex;
   /* Фиксированная ширина — дропдаун не «прыгает» при смене вкладки/фильтра. */
   width: 440px;
-  max-width: 92vw;
+  /* Потребитель может ограничить панель (узкое окно на телефоне):
+     --dp-panel-max-width: 100% — не шире самого поля поиска. */
+  max-width: var(--dp-panel-max-width, 92vw);
   background: var(--surf);
   border: 0.5px solid var(--bd-soft);
   border-radius: var(--r-lg);
@@ -125,7 +127,8 @@
   border: none;
   border-radius: var(--r-pill);
   background: transparent;
-  color: var(--ink-3);
+  /* Неактивная вкладка на --surf-2: --ink-3 давал 3.94:1. */
+  color: color-mix(in srgb, var(--ink-3) 60%, var(--ink));
   font-family: inherit;
   font-size: 11px;
   font-weight: 600;
@@ -143,7 +146,8 @@
 }
 .tabActive,
 .tabActive:hover {
-  background: var(--terra);
+  /* --terra-d: белый текст на нём ≥ 4.5:1 (на --terra было 3.47). */
+  background: var(--terra-d);
   color: #fff;
 }
 .tabIcon {
@@ -195,7 +199,7 @@
   height: 32px;
   border-radius: var(--r-pill);
   background: var(--surf-3);
-  color: var(--ink-3);
+  color: var(--ink-2);
   font-size: 12px;
   font-weight: 600;
 }
@@ -224,7 +228,8 @@
 }
 .subtitle {
   font-size: 12px;
-  color: var(--ink-3);
+  /* Чуть темнее --ink-3: тот давал 4.29:1 на белом, ниже AA. */
+  color: color-mix(in srgb, var(--ink-3) 75%, var(--ink));
   line-height: 1.2;
   overflow: hidden;
   text-overflow: ellipsis;

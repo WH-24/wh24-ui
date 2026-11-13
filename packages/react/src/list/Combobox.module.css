@@ -149,8 +149,13 @@
   font-size: 13px;
 }
 .option:hover,
-.option[aria-selected='true'] {
+.option[aria-selected='true'],
+.optionActive {
   background: var(--bg-hover);
+}
+/* Подсвеченный стрелками вариант — заметнее выбранного: видно, что выберет Enter. */
+.optionActive {
+  box-shadow: inset 0 0 0 1px var(--border-strong, var(--bd-strong));
 }
 /* Подпись прижата к началу строки: с меткой варианта перед ней
    space-between уводил её к правому краю. Код (.optionCode) — справа. */
@@ -172,7 +177,8 @@
   white-space: normal;
   overflow-wrap: break-word;
   line-height: 1.35;
-  color: var(--fg-tertiary);
+  /* Контраст ≥ 4.5:1 на белом и в тёмной теме: --fg-tertiary давал 4.29. */
+  color: color-mix(in srgb, var(--fg-tertiary) 75%, var(--fg-primary));
   font-family: var(--font-mono);
   font-size: 11px;
 }
