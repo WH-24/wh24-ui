@@ -43,8 +43,6 @@ export function AnchorPopover({ open, onClose, anchor, label, children, align = 
 
   useEffect(() => {
     if (!open) return
-    const first = ref.current ? getFocusableElements(ref.current)[0] : undefined
-    ;(first ?? ref.current)?.focus()
     const onDown = (e: MouseEvent) => {
       const t = e.target as Element
       if (ref.current?.contains(t) || anchorRef.current()?.contains(t)) return
@@ -56,6 +54,15 @@ export function AnchorPopover({ open, onClose, anchor, label, children, align = 
     document.addEventListener('mousedown', onDown)
     return () => document.removeEventListener('mousedown', onDown)
   }, [open])
+
+  // Фокус — в первое поле, когда панель встала на место (до этого она
+  // скрыта, и поле фокус не принимает).
+  const placed = place !== null
+  useEffect(() => {
+    if (!open || !placed) return
+    const first = ref.current ? getFocusableElements(ref.current)[0] : undefined
+    ;(first ?? ref.current)?.focus()
+  }, [open, placed])
 
   if (!pop.mounted) return null
 

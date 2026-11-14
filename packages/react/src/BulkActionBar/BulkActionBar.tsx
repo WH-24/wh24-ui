@@ -1,4 +1,4 @@
-import { useRef, useState, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 
 import { Icon, type IconName } from '../list/Icon.js'
@@ -80,6 +80,13 @@ export function BulkActionBar({
     instant.current = keyboardInitiated()
   }
 
+  // Спрятанная панель не ловит фокус и щелчки. `inert` ставим сами: в типах
+  // и в обработке атрибутов React 18 его ещё нет.
+  const barRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    barRef.current?.toggleAttribute('inert', !open)
+  }, [open])
+
   const run = (a: BulkAction, choice?: string) => {
     if (busy) return
     const done = () => {
@@ -100,8 +107,7 @@ export function BulkActionBar({
       aria-label={ariaLabel}
       aria-hidden={open ? undefined : true}
       aria-busy={busy || undefined}
-      // `inert` есть в DOM, в типах React 18 его ещё нет.
-      {...({ inert: open ? undefined : '' } as object)}
+      ref={barRef}
       className={cx(styles.bar, className)}
       data-open={open ? '' : undefined}
       data-instant={instant.current || undefined}
