@@ -95,8 +95,8 @@
   font-size: 13px;
   outline: none;
   transition:
-    border-color 0.1s,
-    box-shadow 0.1s;
+    border-color var(--dur-fast) ease,
+    box-shadow var(--dur-fast) ease;
 }
 .control::placeholder {
   color: var(--ink-3);
@@ -213,8 +213,8 @@
   color: var(--ink-3);
   cursor: pointer;
   transition:
-    background 0.12s,
-    color 0.12s;
+    background var(--dur-fast) ease,
+    color var(--dur-fast) ease;
 }
 .mcChipRm:hover {
   background: var(--bad-bg);
@@ -526,8 +526,8 @@
   cursor: pointer;
   text-align: center;
   transition:
-    border-color 0.12s,
-    background 0.12s;
+    border-color var(--dur-fast) ease,
+    background var(--dur-fast) ease;
 }
 .fdZone:hover,
 .fdZone:focus-visible {
@@ -610,6 +610,41 @@
 .fdRm:hover {
   background: var(--bad-bg);
   color: var(--bad);
+}
+
+/* ── Движение: список выбора и календарь ──
+   Вход — прозрачность и масштаб от стороны контрола (--dur-base, ease-out);
+   выход доигрывает компонент (--dur-base-exit). Открыто с клавиатуры
+   (data-instant) — без анимации. */
+.menu,
+.dpPop {
+  transform-origin: top left;
+  animation: form-pop-in var(--dur-base) var(--ease-out);
+}
+.menu[data-flipped],
+.dpPop[data-flipped] {
+  transform-origin: bottom left;
+}
+.menu[data-instant],
+.dpPop[data-instant] {
+  animation: none;
+}
+@keyframes form-pop-in {
+  from {
+    opacity: 0;
+    transform: scale(var(--pop-scale));
+  }
+}
+@keyframes form-pop-fade {
+  from {
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .menu,
+  .dpPop {
+    animation-name: form-pop-fade;
+  }
 }
 
 /* ── FileDrop: состояние загрузки файла (макет `.file .bar`) ─────────────── */

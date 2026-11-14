@@ -74,8 +74,8 @@
   font-size: 13px;
   outline: none;
   transition:
-    border-color 0.1s,
-    box-shadow 0.1s;
+    border-color var(--dur-fast) ease,
+    box-shadow var(--dur-fast) ease;
 }
 .formInput:focus {
   border-color: var(--accent-500);
@@ -109,8 +109,8 @@
   background: var(--bg-surface);
   cursor: text;
   transition:
-    border-color 0.1s,
-    box-shadow 0.1s;
+    border-color var(--dur-fast) ease,
+    box-shadow var(--dur-fast) ease;
 }
 .filterSearch[data-active="true"] {
   border-color: var(--accent-500);
@@ -153,8 +153,8 @@
   border-radius: var(--radius-sm);
   color: var(--fg-muted);
   transition:
-    color 0.1s,
-    background 0.1s;
+    color var(--dur-fast) ease,
+    background var(--dur-fast) ease;
 }
 .filterSearchClear:hover {
   color: var(--fg-primary);
@@ -271,7 +271,7 @@
   border-bottom: 1px solid var(--border-subtle);
   border-radius: 0;
   color: var(--fg-secondary);
-  transition: background 0.08s;
+  /* Пункты списков в панели — без перехода: подсветка под курсором мгновенная. */
 }
 .filterPresets > .filterPreset:last-child {
   border-bottom: none;
@@ -369,8 +369,8 @@
   color: var(--fg-muted);
   cursor: pointer;
   transition:
-    color 0.1s,
-    background 0.1s;
+    color var(--dur-fast) ease,
+    background var(--dur-fast) ease;
 }
 .filterGear:hover,
 .filterGear[data-active="true"] {
@@ -457,7 +457,6 @@
   border-radius: var(--radius-sm);
   color: var(--fg-secondary);
   cursor: pointer;
-  transition: background 0.08s;
 }
 .filterAddgridItem:hover {
   background: var(--bg-hover);
@@ -505,9 +504,9 @@
   opacity: 0;
   cursor: pointer;
   transition:
-    opacity 0.1s,
-    color 0.1s,
-    background 0.1s;
+    opacity var(--dur-fast) ease,
+    color var(--dur-fast) ease,
+    background var(--dur-fast) ease;
 }
 /* На сенсорном экране наведения нет — крестик поля виден всегда. */
 @media (hover: none) {
@@ -746,10 +745,20 @@
   cursor: pointer;
   text-decoration: none;
   transition:
-    background 0.15s,
-    color 0.15s,
-    border-color 0.15s,
-    box-shadow 0.15s;
+    background var(--dur-fast) ease,
+    color var(--dur-fast) ease,
+    border-color var(--dur-fast) ease,
+    box-shadow var(--dur-fast) ease,
+    transform var(--dur-fast) var(--ease-out);
+}
+/* Отклик на нажатие — как у канонической .btn (ui-tokens/button.css). */
+.btn:active:not(:disabled) {
+  transform: scale(var(--press-scale));
+}
+@media (prefers-reduced-motion: reduce) {
+  .btn:active:not(:disabled) {
+    transform: none;
+  }
 }
 .btn:disabled {
   opacity: 0.5;
@@ -788,5 +797,33 @@
   .filterBar {
     flex: 1 1 100%;
     max-width: 100%;
+  }
+}
+
+/* ── Движение: панель фильтра ──
+   Вход — прозрачность и масштаб от стороны контрола (--dur-base, ease-out);
+   выход доигрывает компонент (--dur-base-exit). Открыто с клавиатуры
+   (data-instant) — без анимации. */
+.filterPop {
+  transform-origin: top left;
+  animation: filter-pop-in var(--dur-base) var(--ease-out);
+}
+.filterPop[data-instant] {
+  animation: none;
+}
+@keyframes filter-pop-in {
+  from {
+    opacity: 0;
+    transform: scale(var(--pop-scale));
+  }
+}
+@keyframes filter-pop-fade {
+  from {
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .filterPop {
+    animation-name: filter-pop-fade;
   }
 }

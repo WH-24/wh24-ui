@@ -191,8 +191,8 @@
   text-align: left;
   cursor: pointer;
   transition:
-    border-color 0.1s,
-    color 0.1s;
+    border-color var(--dur-fast) ease,
+    color var(--dur-fast) ease;
 }
 .preset:hover {
   border-color: var(--terra-bd);

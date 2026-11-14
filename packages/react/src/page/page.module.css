@@ -166,7 +166,7 @@
   border: 3px solid var(--bg-muted);
   border-top-color: var(--accent-500);
   border-radius: 50%;
-  animation: spin 0.6s linear infinite;
+  animation: spin var(--dur-spin) linear infinite;
 }
 .loaderLabel {
   font-size: 13px;
@@ -179,6 +179,6 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .spinner {
-    animation-duration: 1.6s;
+    animation-duration: var(--dur-spin-reduced);
   }
 }

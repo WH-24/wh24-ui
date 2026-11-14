@@ -217,7 +217,7 @@
 }
 .chev {
   display: inline-block;
-  transition: transform 0.12s;
+  transition: transform var(--dur-fast) var(--ease-out);
 }
 .chev[data-open] {
   transform: rotate(90deg);

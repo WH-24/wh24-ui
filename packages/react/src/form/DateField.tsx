@@ -10,6 +10,7 @@ import {
 import { createPortal } from 'react-dom'
 
 import { placePopover } from '../list/popover.js'
+import { usePopPresence } from '../overlay/presence.js'
 
 import styles from './form.module.css'
 
@@ -126,6 +127,8 @@ const mondayFirst = (jsDay: number) => (jsDay + 6) % 7
 interface PopRect {
   top: number
   left: number
+  /** Открыто вверх — календарь растёт от нижнего края. */
+  flipped: boolean
 }
 
 /**
@@ -188,7 +191,7 @@ export function DateField({
     const r = el.getBoundingClientRect()
     const pop = popRef.current
     const p = placePopover(r, { width: pop?.offsetWidth ?? 268, height: pop?.offsetHeight ?? 320 })
-    setRect({ top: p.top, left: p.left })
+    setRect({ top: p.top, left: p.left, flipped: p.flipped })
   }
   // Календарь отрисовался — уточняем место по настоящему размеру.
   const popShown = open && rect !== null
@@ -345,15 +348,23 @@ export function DateField({
   ]
   const today = todayISO()
 
+  // Выход доигрывается на последнем месте: `rect` при закрытии сбрасывается.
+  const pop = usePopPresence(open, popRef)
+  const lastRect = useRef<PopRect | null>(null)
+  if (rect) lastRect.current = rect
+  const shownRect = rect ?? (pop.exiting ? lastRect.current : null)
+
   const popover =
-    open && rect
+    pop.mounted && shownRect
       ? createPortal(
           <div
             ref={popRef}
             className={styles.dpPop}
             role="dialog"
             aria-label="Календарь"
-            style={{ position: 'fixed', top: rect.top, left: rect.left }}
+            data-flipped={shownRect.flipped || undefined}
+            data-instant={pop.instant || undefined}
+            style={{ position: 'fixed', top: shownRect.top, left: shownRect.left }}
             onKeyDown={onPopKey}
           >
             <div className={styles.dpHead}>

@@ -24,7 +24,7 @@
   font-family: var(--font-sans);
   color: var(--ink);
   min-width: 0;
-  transition: border-color 0.12s;
+  transition: border-color var(--dur-fast) ease;
 }
 .card:hover {
   border-color: var(--terra-bd);

@@ -10,8 +10,8 @@
   cursor: text;
   font-family: var(--font-sans);
   transition:
-    border-color 0.15s,
-    box-shadow 0.15s;
+    border-color var(--dur-fast) ease,
+    box-shadow var(--dur-fast) ease;
 }
 .composer:focus-within {
   border-color: var(--terra);

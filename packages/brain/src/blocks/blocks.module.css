@@ -34,7 +34,7 @@
   border-right: 1.5px solid currentColor;
   border-bottom: 1.5px solid currentColor;
   transform: rotate(-45deg);
-  transition: transform 0.12s;
+  transition: transform var(--dur-fast) var(--ease-out);
 }
 .explain[open] > .summary::before {
   transform: rotate(45deg);
@@ -178,5 +178,12 @@
   .summary,
   .download {
     min-height: var(--tap-min-compact);
+  }
+}
+
+/* «Уменьшить движение»: стрелка поворачивается сразу. */
+@media (prefers-reduced-motion: reduce) {
+  .summary::before {
+    transition: none;
   }
 }

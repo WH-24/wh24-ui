@@ -12,6 +12,7 @@ import {
 import { createPortal } from "react-dom";
 
 import { Icon } from "./Icon.js";
+import { usePopPresence } from "../overlay/presence.js";
 import { placePopover, revealOption } from "./popover.js";
 import styles from "./Combobox.module.css";
 
@@ -87,6 +88,8 @@ interface MenuRect {
   width: number;
   maxWidth: number;
   maxHeight: number;
+  /** Открыто вверх — всплывающее растёт от нижнего края. */
+  flipped: boolean;
 }
 
 /** Инициалы из ФИО для аватара-заглушки: первые буквы 1–2 слов. */
@@ -209,7 +212,14 @@ export function Combobox({
     const width = Math.min(maxWidth, Math.max(r.width, m?.offsetWidth ?? r.width));
     const height = Math.min(240, m?.scrollHeight ?? 240);
     const p = placePopover(r, { width, height });
-    setRect({ top: p.top, left: p.left, width: r.width, maxWidth, maxHeight: Math.min(240, p.maxHeight) });
+    setRect({
+      top: p.top,
+      left: p.left,
+      width: r.width,
+      maxWidth,
+      maxHeight: Math.min(240, p.maxHeight),
+      flipped: p.flipped,
+    });
   };
   useLayoutEffect(() => {
     if (!open) {
@@ -253,24 +263,32 @@ export function Combobox({
     setOpen(false);
   };
 
+  // Выход доигрывается на последнем месте: `rect` при закрытии сбрасывается.
+  const pop = usePopPresence(open, menuRef);
+  const lastRect = useRef<MenuRect | null>(null);
+  if (rect) lastRect.current = rect;
+  const shownRect = rect ?? (pop.exiting ? lastRect.current : null);
+
   const withAvatar = selected?.avatar !== undefined;
   const withMarker = !withAvatar && selected !== null && hasOptionMarker(selected);
 
   const menu =
-    open && rect
+    pop.mounted && shownRect
       ? createPortal(
           <div
             ref={menuRef}
             id={`${baseId}-list`}
             className={[styles.menu, menuClassName].filter(Boolean).join(" ")}
             role="listbox"
+            data-flipped={shownRect.flipped || undefined}
+            data-instant={pop.instant || undefined}
             style={{
               position: "fixed",
-              top: rect.top,
-              left: rect.left,
-              minWidth: rect.width,
-              maxWidth: rect.maxWidth,
-              maxHeight: rect.maxHeight,
+              top: shownRect.top,
+              left: shownRect.left,
+              minWidth: shownRect.width,
+              maxWidth: shownRect.maxWidth,
+              maxHeight: shownRect.maxHeight,
               zIndex: 1000,
             }}
           >

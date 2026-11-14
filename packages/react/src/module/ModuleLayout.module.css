@@ -71,7 +71,7 @@
   line-height: 1.3;
   text-decoration: none;
   cursor: pointer;
-  transition: background 0.1s;
+  transition: background var(--dur-fast) ease;
 }
 .link:hover {
   background: var(--bg-hover);
@@ -199,8 +199,3 @@
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .link {
-    transition: none;
-  }
-}

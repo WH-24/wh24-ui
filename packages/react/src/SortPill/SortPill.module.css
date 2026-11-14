@@ -10,7 +10,18 @@
   font-size: 11px;
   color: var(--ink-2);
   cursor: pointer;
-  transition: background 0.15s;
+  transition:
+    background var(--dur-fast) ease,
+    transform var(--dur-fast) var(--ease-out);
+}
+/* Отклик на нажатие: элемент чуть «проседает» (--press-scale). */
+.pill:active {
+  transform: scale(var(--press-scale));
+}
+@media (prefers-reduced-motion: reduce) {
+  .pill:active {
+    transform: none;
+  }
 }
 
 .pill:hover {

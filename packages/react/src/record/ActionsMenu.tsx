@@ -1,6 +1,7 @@
 import { useEffect, useId, useRef, useState, type KeyboardEvent, type ReactNode } from 'react'
 
 import { Icon } from '../list/Icon.js'
+import { usePopPresence } from '../overlay/presence.js'
 import { cleanSeps, type MenuEntry } from './menuItems.js'
 import s from './record.module.css'
 
@@ -30,6 +31,7 @@ export function ActionsMenu({
   const btn = useRef<HTMLButtonElement>(null)
   const menu = useRef<HTMLDivElement>(null)
   const menuId = useId()
+  const pop = usePopPresence(open, menu)
   const actions = items.filter((i): i is Exclude<MenuEntry, 'sep'> => i !== 'sep')
 
   const focusItem = (i: number) => {
@@ -88,10 +90,11 @@ export function ActionsMenu({
       >
         {icon ?? <Icon name="more" size={16} />}
       </button>
-      {open && (
+      {pop.mounted && (
         <div
           ref={menu}
           id={menuId}
+          data-instant={pop.instant || undefined}
           role="menu"
           aria-label={label}
           className={s.menu}

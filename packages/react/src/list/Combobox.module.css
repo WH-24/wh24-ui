@@ -74,8 +74,8 @@
   font-size: 13px;
   outline: none;
   transition:
-    border-color 0.1s,
-    box-shadow 0.1s;
+    border-color var(--dur-fast) ease,
+    box-shadow var(--dur-fast) ease;
 }
 /* Ореол фокуса — терракотовый, как у Input (был синим вне палитры). */
 .formInput:focus {
@@ -288,4 +288,35 @@
 }
 .inputMarker {
   padding-left: 32px;
+}
+
+/* ── Движение: список выбора ──
+   Вход — прозрачность и масштаб от стороны контрола (--dur-base, ease-out);
+   выход доигрывает компонент (--dur-base-exit). Открыто с клавиатуры
+   (data-instant) — без анимации. */
+.menu {
+  transform-origin: top left;
+  animation: combo-pop-in var(--dur-base) var(--ease-out);
+}
+.menu[data-flipped] {
+  transform-origin: bottom left;
+}
+.menu[data-instant] {
+  animation: none;
+}
+@keyframes combo-pop-in {
+  from {
+    opacity: 0;
+    transform: scale(var(--pop-scale));
+  }
+}
+@keyframes combo-pop-fade {
+  from {
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .menu {
+    animation-name: combo-pop-fade;
+  }
 }

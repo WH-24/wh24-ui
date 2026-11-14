@@ -258,7 +258,7 @@ export function ModelSettingsDialog({ api, open, onClose, onChanged, pollMs = 50
                   <span className={styles.coverageModel}>{switching ? emb.target_model : emb.active_model}</span>
                 </div>
                 <div className={styles.bar} role="progressbar" aria-label="Покрытие индекса векторами" aria-valuemin={0} aria-valuemax={100} aria-valuenow={pct}>
-                  <span className={styles.barFill} style={{ width: `${pct}%` }} data-complete={pct >= 99 || undefined} />
+                  <span className={styles.barFill} style={{ transform: `translateX(${pct - 100}%)` }} data-complete={pct >= 99 || undefined} />
                 </div>
                 {shown && <p className={styles.hint}>Фрагментов: {formatCount(shown.embedded)} из {formatCount(shown.total)}.</p>}
               </div>

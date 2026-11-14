@@ -195,7 +195,7 @@ table.tbl {
   opacity: 0;
   margin-left: 4px;
   display: inline-block;
-  transition: opacity 0.1s;
+  /* Сортировка таблицы — без движения: стрелка появляется сразу. */
 }
 .tbl thead th[data-sort] .sortArrow {
   opacity: 1;
@@ -235,7 +235,7 @@ table.tbl {
   white-space: nowrap;
 }
 .tbl tbody tr {
-  transition: background 0.08s;
+  /* Подсветка строки под курсором — мгновенная: по таблице водят постоянно. */
   cursor: pointer;
 }
 .tbl tbody tr:hover {
@@ -263,7 +263,7 @@ table.tbl {
   transform: translateY(-50%);
   display: inline-flex;
   opacity: 0;
-  transition: opacity 0.1s;
+  transition: opacity var(--dur-fast) ease;
 }
 .tbl tbody tr:hover .cellSelectBox,
 .tbl tbody tr:focus-within .cellSelectBox,
@@ -316,7 +316,7 @@ table.tbl {
   height: 10px;
   border-radius: 999px;
   background: var(--bg-muted);
-  animation: skeleton-pulse 1.4s ease-in-out infinite;
+  animation: skeleton-pulse var(--dur-pulse) ease-in-out infinite;
 }
 @keyframes skeleton-pulse {
   50% {
@@ -326,6 +326,60 @@ table.tbl {
 @media (prefers-reduced-motion: reduce) {
   .skeletonBar {
     animation: none;
+  }
+}
+
+/* ===== Первая загрузка: скелет → содержимое =====
+   Только один раз (data-reveal ставит компонент и сам снимает): строки
+   таблицы проявляются, карточки и плитки встают каскадом — не больше шести
+   шагов, дальше общая задержка. При сортировке и фильтре — ничего. */
+.tbl tbody[data-reveal] > tr {
+  animation: list-fade var(--dur-base) var(--ease-out);
+}
+.listCardsGrid[data-reveal] > *,
+.folderGrid[data-reveal] > * {
+  animation: list-rise var(--dur-slow) var(--ease-out) backwards;
+  animation-delay: calc(var(--stagger) * 6);
+}
+.listCardsGrid[data-reveal] > *:nth-child(1),
+.folderGrid[data-reveal] > *:nth-child(1) {
+  animation-delay: 0ms;
+}
+.listCardsGrid[data-reveal] > *:nth-child(2),
+.folderGrid[data-reveal] > *:nth-child(2) {
+  animation-delay: var(--stagger);
+}
+.listCardsGrid[data-reveal] > *:nth-child(3),
+.folderGrid[data-reveal] > *:nth-child(3) {
+  animation-delay: calc(var(--stagger) * 2);
+}
+.listCardsGrid[data-reveal] > *:nth-child(4),
+.folderGrid[data-reveal] > *:nth-child(4) {
+  animation-delay: calc(var(--stagger) * 3);
+}
+.listCardsGrid[data-reveal] > *:nth-child(5),
+.folderGrid[data-reveal] > *:nth-child(5) {
+  animation-delay: calc(var(--stagger) * 4);
+}
+.listCardsGrid[data-reveal] > *:nth-child(6),
+.folderGrid[data-reveal] > *:nth-child(6) {
+  animation-delay: calc(var(--stagger) * 5);
+}
+@keyframes list-fade {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes list-rise {
+  from {
+    opacity: 0;
+    transform: translateY(var(--enter-shift));
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .listCardsGrid[data-reveal] > *,
+  .folderGrid[data-reveal] > * {
+    animation-name: list-fade;
   }
 }
 
@@ -422,10 +476,20 @@ table.tbl {
   cursor: pointer;
   text-decoration: none;
   transition:
-    background 0.15s,
-    color 0.15s,
-    border-color 0.15s,
-    box-shadow 0.15s;
+    background var(--dur-fast) ease,
+    color var(--dur-fast) ease,
+    border-color var(--dur-fast) ease,
+    box-shadow var(--dur-fast) ease,
+    transform var(--dur-fast) var(--ease-out);
+}
+/* Отклик на нажатие — как у канонической .btn (ui-tokens/button.css). */
+.btn:active:not(:disabled) {
+  transform: scale(var(--press-scale));
+}
+@media (prefers-reduced-motion: reduce) {
+  .btn:active:not(:disabled) {
+    transform: none;
+  }
 }
 .btn:disabled {
   opacity: 0.5;
@@ -468,8 +532,8 @@ table.tbl {
   color: var(--fg-tertiary);
   cursor: pointer;
   transition:
-    background 0.12s,
-    color 0.12s;
+    background var(--dur-fast) ease,
+    color var(--dur-fast) ease;
 }
 .gearBtn:hover,
 .gearBtn[aria-expanded="true"] {
@@ -481,6 +545,25 @@ table.tbl {
   inset: 0;
   z-index: 900;
   background: rgba(0, 0, 0, 0.35);
+  animation: list-fade var(--dur-slow) var(--ease-out);
+}
+/* Закрывающееся окно доигрывает выход и не ловит клики. */
+.colsBackdrop[data-state="closed"],
+.colsModal[data-state="closed"] {
+  pointer-events: none;
+}
+/* Окно колонок входит как Modal. Центрирование — тоже transform, поэтому
+   сдвиг повторён в кадре. */
+@keyframes cols-modal-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(var(--modal-scale));
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .colsModal.colsModal {
+    animation-name: list-fade;
+  }
 }
 
 /* Окно настройки колонок: список полей сущности бывает в несколько десятков,
@@ -491,6 +574,7 @@ table.tbl {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
+  animation: cols-modal-in var(--dur-slow) var(--ease-out);
   width: min(1100px, calc(100vw - 32px));
   max-height: min(760px, calc(100vh - 48px));
   display: flex;
@@ -695,7 +779,7 @@ table.tbl {
   align-items: center;
   gap: 4px;
   opacity: 0;
-  transition: opacity 0.1s;
+  transition: opacity var(--dur-fast) ease;
 }
 .folderRow:hover .folderActions,
 .folderTile:hover .folderActions,
@@ -735,8 +819,18 @@ table.tbl {
   background: var(--bg-surface, #fff);
   cursor: pointer;
   transition:
-    background 0.08s,
-    border-color 0.08s;
+    background var(--dur-fast) ease,
+    border-color var(--dur-fast) ease,
+    transform var(--dur-fast) var(--ease-out);
+}
+/* Нажатие на плитку — но не на кнопку действий внутри неё. */
+.folderTile:active:not(:has(button:active)) {
+  transform: scale(var(--press-scale));
+}
+@media (prefers-reduced-motion: reduce) {
+  .folderTile:active:not(:has(button:active)) {
+    transform: none;
+  }
 }
 .folderTile:hover {
   background: var(--bg-hover);

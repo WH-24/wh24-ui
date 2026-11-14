@@ -10,8 +10,18 @@
   color: inherit;
   cursor: pointer;
   transition:
-    background 0.15s,
-    border-color 0.15s;
+    background var(--dur-fast) ease,
+    border-color var(--dur-fast) ease,
+    transform var(--dur-fast) var(--ease-out);
+}
+/* Отклик на нажатие: элемент чуть «проседает» (--press-scale). */
+.tile:active {
+  transform: scale(var(--press-scale));
+}
+@media (prefers-reduced-motion: reduce) {
+  .tile:active {
+    transform: none;
+  }
 }
 
 .tile:hover {
@@ -56,7 +66,7 @@
 .arr {
   color: var(--terra-text);
   font-size: 16px;
-  transition: transform 0.15s;
+  transition: transform var(--dur-fast) var(--ease-out);
   flex-shrink: 0;
 }
 

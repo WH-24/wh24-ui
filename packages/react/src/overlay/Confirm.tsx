@@ -2,6 +2,8 @@ import { createContext, useCallback, useContext, useEffect, useRef, useState, ty
 import { createPortal } from 'react-dom'
 
 import { Icon } from '../list/Icon.js'
+import { modalExitLayers } from './Modal.js'
+import { useExitAnimation } from './presence.js'
 import { useFocusTrap, useScrollLock } from './useFocusTrap.js'
 
 import styles from './overlay.module.css'
@@ -25,6 +27,9 @@ import styles from './overlay.module.css'
  * строки) ничего не удалял; у обычного согласия и сообщения — на основной
  * кнопке. Вопросы, заданные подряд, встают в очередь: каждый получает
  * свой ответ, ни одно `await` не зависает.
+ *
+ * Ответ приходит сразу по нажатию; окно после этого доигрывает выход, как
+ * `Modal` (`--dur-slow-exit`), и только потом показывается следующий вопрос.
  */
 export interface ConfirmOptions {
   title?: string
@@ -57,6 +62,8 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
   queueRef.current = queue
   const seq = useRef(0)
   const pending = queue[0] ?? null
+  // Вопрос, на который уже ответили: остаётся в DOM, пока доигрывает выход.
+  const [leaving, setLeaving] = useState<Pending | null>(null)
 
   const enqueue = useCallback((p: Omit<Pending, 'key'>) => {
     setQueue((q) => [...q, { ...p, key: ++seq.current }])
@@ -78,32 +85,57 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
     if (!head) return
     head.resolve(ok)
     queueRef.current = queueRef.current.slice(1)
+    setLeaving(head)
     setQueue((q) => (q[0] === head ? q.slice(1) : q))
   }, [])
+  const exited = useCallback(() => setLeaving(null), [])
 
   const [api] = useState<ConfirmApi>(() => ({ confirm, alert }))
 
   return (
     <ConfirmContext.Provider value={api}>
       {children}
-      {pending && createPortal(<ConfirmCard key={pending.key} pending={pending} close={close} />, document.body)}
+      {leaving
+        ? createPortal(
+            <ConfirmCard key={leaving.key} pending={leaving} close={close} exiting onExited={exited} />,
+            document.body,
+          )
+        : pending &&
+          createPortal(
+            <ConfirmCard key={pending.key} pending={pending} close={close} exiting={false} onExited={exited} />,
+            document.body,
+          )}
     </ConfirmContext.Provider>
   )
 }
 
-function ConfirmCard({ pending, close }: { pending: Pending; close: (ok: boolean) => void }) {
+function ConfirmCard({
+  pending,
+  close,
+  exiting,
+  onExited,
+}: {
+  pending: Pending
+  close: (ok: boolean) => void
+  exiting: boolean
+  onExited: () => void
+}) {
   const ref = useRef<HTMLDivElement>(null)
+  const backdropRef = useRef<HTMLDivElement>(null)
   const okRef = useRef<HTMLButtonElement>(null)
   const cancelRef = useRef<HTMLButtonElement>(null)
-  useFocusTrap({ open: true, containerRef: ref, onEscape: () => close(false) })
-  useScrollLock(true)
+  useFocusTrap({ open: !exiting, containerRef: ref, onEscape: () => close(false) })
+  useScrollLock(!exiting)
+  useExitAnimation(exiting, exiting ? modalExitLayers(backdropRef, ref) : [], onExited)
   const danger = !pending.alert && pending.tone !== 'primary'
   useEffect(() => {
     ;(danger ? cancelRef : okRef).current?.focus()
   }, [danger])
   return (
     <div
+      ref={backdropRef}
       className={`${styles.backdrop} ${styles.confirmBackdrop}`}
+      data-state={exiting ? 'closed' : 'open'}
       onMouseDown={(e) => {
         if (e.target === e.currentTarget) close(false)
       }}

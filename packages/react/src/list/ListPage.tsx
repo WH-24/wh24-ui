@@ -13,9 +13,14 @@ import { Icon, type IconName } from "./Icon.js";
 import { FilterBar } from "./filter/FilterBar.js";
 import { useFilterState } from "./filter/useFilterState.js";
 import { activeCount, matchItem } from "./filter/matchItem.js";
+import { motionMs, motionScale } from "../overlay/motion.js";
+import { useExitAnimation, usePresence } from "../overlay/presence.js";
 import { useFocusTrap } from "../overlay/useFocusTrap.js";
 import type { FilterBarConfig, FilterSettingsProvider } from "./filter/types.js";
 import styles from "./ListPage.module.css";
+
+/** Каскад первой загрузки: задержка растёт до этого шага, дальше — общая. */
+const REVEAL_MAX_STEPS = 6;
 
 /** Описание колонки списка: что в заголовке, как рендерить ячейку, как сортировать. */
 export interface ListColumn<T> {
@@ -609,6 +614,31 @@ export function ListPage<T>({
   // отмена, после закрытия фокус снова на шестерёнке.
   const colsRef = useRef<HTMLDivElement>(null);
   useFocusTrap({ open: colsOpen, containerRef: colsRef, onEscape: closeCols });
+  // Окно колонок уходит как Modal: подложка гаснет, карточка сжимается.
+  const colsBackdropRef = useRef<HTMLDivElement>(null);
+  const colsPresence = usePresence(colsOpen);
+  useExitAnimation(
+    colsPresence.exiting,
+    colsPresence.exiting
+      ? [
+          {
+            ref: colsBackdropRef,
+            frames: [{ opacity: 1 }, { opacity: 0 }],
+            duration: motionMs("--dur-slow-exit"),
+          },
+          {
+            ref: colsRef,
+            // Центрирование окна — тоже transform: сдвиг сохраняем в каждом кадре.
+            frames: [
+              { opacity: 1, transform: "translate(-50%, -50%) scale(1)" },
+              { opacity: 0, transform: `translate(-50%, -50%) scale(${motionScale("--modal-scale")})` },
+            ],
+            duration: motionMs("--dur-slow-exit"),
+          },
+        ]
+      : [],
+    colsPresence.finish,
+  );
   // Safari не фокусирует кнопку по клику — возвращаем фокус явно.
   const wasColsOpen = useRef(false);
   useEffect(() => {
@@ -1027,6 +1057,22 @@ export function ListPage<T>({
   // Скелет: столько же колонок, сколько в таблице, — место не прыгает, когда
   // строки придут.
   const showSkeleton = loading && data.length === 0 && !error;
+  // Первая загрузка: скелет сменился содержимым — строки проявляются, карточки
+  // встают каскадом. Один раз: после этого признак снимается, и сортировка,
+  // фильтр и догрузка ничего не анимируют.
+  const [reveal, setReveal] = useState<"wait" | "play" | "done">("wait");
+  const skeletonSeen = useRef(false);
+  if (showSkeleton) skeletonSeen.current = true;
+  else if (skeletonSeen.current && reveal === "wait") setReveal("play");
+  useEffect(() => {
+    if (reveal !== "play") return;
+    const t = window.setTimeout(
+      () => setReveal("done"),
+      motionMs("--dur-slow") + motionMs("--stagger") * REVEAL_MAX_STEPS + 100,
+    );
+    return () => window.clearTimeout(t);
+  }, [reveal]);
+  const revealAttr = reveal === "play" ? "" : undefined;
   const skeletonRows = Array.from({ length: 6 }, (_, r) => (
     <tr key={`sk-${r}`} className={styles.skeletonRow} aria-hidden="true">
       {columnSettings && <td className={styles.colGear} />}
@@ -1252,7 +1298,7 @@ export function ListPage<T>({
                   )}
                 </tbody>
               ) : (
-                <tbody aria-busy={showSkeleton || undefined}>
+                <tbody aria-busy={showSkeleton || undefined} data-reveal={revealAttr}>
                   {showSkeleton ? (
                     skeletonRows
                   ) : visible.length === 0 ? (
@@ -1274,10 +1320,22 @@ export function ListPage<T>({
         </>
       )}
 
-      {colsOpen && (
+      {colsPresence.mounted && (
         <>
-          <div className={styles.colsBackdrop} onClick={closeCols} />
-          <div ref={colsRef} className={styles.colsModal} role="dialog" aria-modal="true" aria-label={colsTitle}>
+          <div
+            ref={colsBackdropRef}
+            className={styles.colsBackdrop}
+            data-state={colsPresence.exiting ? "closed" : "open"}
+            onClick={closeCols}
+          />
+          <div
+            ref={colsRef}
+            className={styles.colsModal}
+            data-state={colsPresence.exiting ? "closed" : "open"}
+            role="dialog"
+            aria-modal="true"
+            aria-label={colsTitle}
+          >
             <div className={styles.colsModalHead}>
               <div className={styles.colsModalTitle}>{colsTitle}</div>
               <button
@@ -1383,12 +1441,12 @@ export function ListPage<T>({
         (levelEmpty ?? (
           <>
             {level.folders.length > 0 && (
-              <div className={styles.folderGrid}>
+              <div className={styles.folderGrid} data-reveal={revealAttr}>
                 {level.folders.map(({ group: g, rows }) => folderTile(g, rows))}
               </div>
             )}
             {level.rows.length > 0 && (
-              <div className={styles.listCardsGrid}>
+              <div className={styles.listCardsGrid} data-reveal={revealAttr}>
                 {level.rows.map((row) => (
                   <div key={getId(row)} {...dragProps(row)}>
                     {renderCard(row)}
@@ -1406,7 +1464,7 @@ export function ListPage<T>({
           empty
         ) : (
           <>
-            <div className={styles.listCardsGrid}>
+            <div className={styles.listCardsGrid} data-reveal={revealAttr}>
               {visible.map((row) => (
                 <Fragment key={getId(row)}>{renderCard(row)}</Fragment>
               ))}

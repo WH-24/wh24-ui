@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import { createPortal } from 'react-dom'
 
 import { Icon } from '../list/Icon.js'
+import { motionEase, motionMs } from './motion.js'
 import { canAnimate, prefersReducedMotion } from './presence.js'
 
 import styles from './overlay.module.css'
@@ -87,7 +88,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
               { opacity: 1, transform: 'translateY(0)' },
               { opacity: 0, transform: 'translateY(4px)' },
             ],
-        { duration: 140, easing: 'cubic-bezier(0.23, 1, 0.32, 1)', fill: 'forwards' },
+        { duration: motionMs('--dur-base-exit'), easing: motionEase('--ease-out'), fill: 'forwards' },
       )
       anim.finished.then(
         () => remove(id),
