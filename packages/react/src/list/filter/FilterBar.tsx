@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 
 import { usePopPresence } from '../../overlay/presence.js'
 import { Icon } from '../Icon.js'
+import { FilterChips, type FilterChipsLabels } from './FilterChips.js'
 import { SearchModule } from './SearchModule.js'
 import { activeCount, isEmptyValue } from './matchItem.js'
 import type {
@@ -25,9 +26,34 @@ export interface FilterBarProps<T> {
   canEditFields?: boolean
   /** Источник глобальных настроек (бэкенд модуля). Без него — только локальные пресеты. */
   settings?: FilterSettingsProvider
+  /**
+   * Вид фильтра. `panel` (по умолчанию) — поле «Фильтр и поиск» с панелью
+   * полей и пресетов. `chips` — условия плашками «Поле: значение ▾» и кнопка
+   * «Фильтр» (принятый макет); состояние то же, пресеты заменяют виды списка.
+   */
+  variant?: 'panel' | 'chips'
+  /** Режим `chips`: содержимое после кнопки «Фильтр» («Сохранить вид»). */
+  trailing?: ReactNode
+  /** Режим `chips`: свои подписи. */
+  chipLabels?: Partial<FilterChipsLabels>
 }
 
-export function FilterBar<T>({
+export function FilterBar<T>(props: FilterBarProps<T>) {
+  if (props.variant === 'chips') {
+    return (
+      <FilterChips
+        config={props.config}
+        state={props.state}
+        setState={props.setState}
+        trailing={props.trailing}
+        labels={props.chipLabels}
+      />
+    )
+  }
+  return <FilterPanelBar {...props} />
+}
+
+function FilterPanelBar<T>({
   config,
   state,
   setState,

@@ -11,8 +11,6 @@ import {
   Icon,
   IconButton,
   Input,
-  Kanban,
-  ListPage,
   Menu,
   MenuItem,
   MenuLabel,
@@ -31,7 +29,10 @@ import {
   type FilterBarConfig,
   type KanbanColumn,
   type ListColumn,
+  type SaveState,
 } from '@wowhaus-24/ui-react'
+
+import { BottomNavDemo, GhostPanel, LeadsBoard, LeadsList, type Lead } from './ListsDemo'
 
 /**
  * Сборные экраны: список с фильтром, канбан, карточка записи, окна и поля —
@@ -43,16 +44,6 @@ import {
 
 type Mode = 'demo' | 'worst'
 
-interface Lead {
-  id: string
-  name: string
-  company: string
-  email: string
-  owner: string
-  stage: string
-  sum: number
-  tags: string[]
-}
 
 const STAGES: KanbanColumn[] = [
   { id: 'new', title: 'Новые', tone: 'info' },
@@ -300,6 +291,15 @@ export function Examples({ section }: { section: (title: string, desc: string, b
   const [seg, setSeg] = useState('mine')
   const [stage, setStage] = useState('talk')
   const [menuWatch, setMenuWatch] = useState(true)
+  // Отметка сохранения карточки: «Сохраняем» → «Сохранено».
+  const [saveState, setSaveState] = useState<SaveState>('saved')
+  const autosave = () => {
+    setSaveState('saving')
+    window.setTimeout(() => setSaveState('saved'), 700)
+  }
+  const setRows = (next: Lead[] | ((rows: Lead[]) => Lead[])) =>
+    setItems((s) => ({ ...s, [mode]: typeof next === 'function' ? next(s[mode]) : next }))
+  const demoProps = { worst, mode, rows: items[mode], setRows, stages }
 
   const columns: ListColumn<Lead>[] = [
     {
@@ -371,31 +371,6 @@ export function Examples({ section }: { section: (title: string, desc: string, b
       ]
 
   const lead = leads[0]!
-  const board = (
-    <Kanban
-      columns={stages}
-      items={items[mode]}
-      getId={(l) => l.id}
-      getColumn={(l) => l.stage}
-      getLabel={(l) => l.name}
-      onMove={(l, to) => setItems((s) => ({ ...s, [mode]: s[mode].map((x) => (x.id === l.id ? { ...x, stage: to } : x)) }))}
-      onOpen={() => {}}
-      renderCard={(l) => (
-        <span style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-          <b style={{ fontWeight: 600 }}>{l.name}</b>
-          <small style={{ color: 'var(--ink-3)' }}>{l.email || 'почта не указана'}</small>
-          <span style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
-            {l.tags.map((t) => (
-              <Chip key={t} variant="tag">
-                {t}
-              </Chip>
-            ))}
-          </span>
-        </span>
-      )}
-    />
-  )
-
   return (
     <ConfirmProvider>
       <ToastProvider>
@@ -437,35 +412,26 @@ export function Examples({ section }: { section: (title: string, desc: string, b
         )}
 
         {section(
-          'Список с фильтром',
-          'ListPage: таблица, фильтр, настройка колонок, карточки и доска. В «худших» данных — 63 строки, длинные названия, пустые ячейки.',
-          <div style={{ height: 680, display: 'flex', border: '1px solid var(--bd)', borderRadius: 'var(--r-lg)', overflow: 'hidden', background: 'var(--bg)' }}>
-            <ListPage
-              key={mode}
-              title="Лиды"
-              subtitle={worst ? 'Все обращения за всё время' : undefined}
-              data={leads}
-              getId={(r) => r.id}
-              columns={columns}
-              filterConfig={filterConfig}
-              selectable
-              onRowClick={() => {}}
-              renderCard={(r) => (
-                <div style={{ padding: 12, border: '1px solid var(--bd)', borderRadius: 'var(--r-lg)', background: 'var(--surf)', minWidth: 0, overflowWrap: 'anywhere' }}>
-                  <b style={{ fontWeight: 600 }}>{r.name}</b>
-                  <div style={{ color: 'var(--ink-3)', fontSize: 'var(--fs-meta)' }}>{r.company || '—'}</div>
-                </div>
-              )}
-              renderBoard={() => board}
-            />
-          </div>,
+          'Список: виды, фильтр плашками, правка в ячейке, массовые действия',
+          'ListPage по принятому макету: вкладки видов со счётчиками и «Сохранить вид», условия плашками (или прежняя панель — переключатель сверху), щелчок по заказчику, стадии и ответственному правит их на месте, выбранные строки поднимают панель действий, оставшиеся строки плавно доезжают. «Сервер отвечает ошибкой» — откат значения. В «худших» данных — 63 строки, длинные названия, пустые ячейки.',
+          <LeadsList
+            key={mode}
+            {...demoProps}
+            columns={columns}
+            filterConfig={filterConfig}
+            board={<LeadsBoard {...demoProps} full={false} />}
+          />,
         )}
 
-        {section('Канбан', 'Kanban: точка цвета перед названием колонки, счётчик, меню «Переместить в…».', board)}
+        {section(
+          'Канбан',
+          'Kanban: сумма под названием колонки, сворачивание в полосу, «Добавить» внизу колонки, пунктир на месте вставки при переносе, карточки плавно доезжают; меню «Переместить в…» и «Выше/Ниже» — с клавиатуры.',
+          <LeadsBoard {...demoProps} full />,
+        )}
 
         {section(
           'Карточка записи',
-          'RecordCard: шапка, показатели, меню «⋯», полоса стадий, вкладки и поля.',
+          'RecordCard: шапка, показатели, меню «⋯», полоса стадий, вкладки и поля. Отметка «Сохранено» в шапке (saveState) — смените стадию или поле на вкладке «Правка на месте» (поля-призраки).',
           <div style={{ border: '1px solid var(--bd)', borderRadius: 'var(--r-lg)', overflow: 'hidden' }}>
             <RecordCard
               crumbs={[{ label: 'Лиды', onClick: () => {} }, { label: worst ? lead.company : 'Аквилон' }]}
@@ -496,7 +462,11 @@ export function Examples({ section }: { section: (title: string, desc: string, b
                 group: s.id === 'won' ? ('success' as const) : s.id === 'lost' ? ('fail' as const) : ('work' as const),
               }))}
               stage={stage}
-              onStage={setStage}
+              onStage={(v) => {
+                setStage(v)
+                autosave()
+              }}
+              saveState={saveState}
               left={{
                 label: 'Лента',
                 tabs: [
@@ -513,11 +483,16 @@ export function Examples({ section }: { section: (title: string, desc: string, b
                 label: 'Поля',
                 tabs: [
                   { id: 'main', label: 'Основное' },
+                  { id: 'ghost', label: 'Правка на месте' },
                   { id: 'extra', label: worst ? 'Дополнительные сведения о заказчике' : 'Дополнительно' },
                 ],
-                render: () => (
+                render: (t) => (
                   <div style={{ padding: 16 }}>
-                    <FormFields worst={worst} idPrefix="rec" />
+                    {t === 'ghost' ? (
+                      <GhostPanel key={mode} worst={worst} lead={lead} onSave={autosave} />
+                    ) : (
+                      <FormFields worst={worst} idPrefix="rec" />
+                    )}
                   </div>
                 ),
               }}
@@ -592,15 +567,21 @@ export function Examples({ section }: { section: (title: string, desc: string, b
           </div>,
         )}
 
+        {section(
+          'Нижняя навигация на телефоне',
+          'ModuleLayout mobileNav="bottom": до 640px панель модуля — закреплённая нижняя полоса со значком и короткой подписью; тосты и панель массовых действий встают над ней.',
+          <BottomNavDemo worst={worst} />,
+        )}
+
         {/* Служебный переключатель набора данных — не часть библиотеки. */}
         <div
           role="group"
           aria-label="Набор данных"
           style={{
             position: 'fixed',
-            left: '50%',
+            // Слева: по центру снизу выезжает панель массовых действий.
+            left: 12,
             bottom: 12,
-            transform: 'translateX(-50%)',
             zIndex: 'var(--z-toast)',
             display: 'flex',
             gap: 2,

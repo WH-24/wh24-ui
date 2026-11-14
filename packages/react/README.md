@@ -19,6 +19,28 @@ StatBar, etc.) will land here as we migrate them out of `wiki-web`.
 модулях не заводим. Живые примеры —
 `npm run dev -w @wowhaus-24/ui-styleguide`.
 
+### Списки и карточки по принятому макету
+
+Всё ниже включается пропсами; без них `ListPage`, `FilterBar`, `Kanban` и
+`RecordCard` ведут себя как раньше.
+
+| Что | Как включить |
+|---|---|
+| Виды-вкладки со счётчиками и «Сохранить вид» | `ListPage`: `views` (`ListSavedView[]`), `onSaveView(name, state)`, по желанию `viewId` / `onViewChange`, `viewLabels`. Виды хранит хост |
+| Фильтр плашками «Поле: значение ▾» | `ListPage filterVariant="chips"` или `FilterBar variant="chips"` (+ `trailing`, `chipLabels`). Состояние — тот же `FilterState` |
+| Панель массовых действий | `ListPage selectable bulkActions={[{ label, icon, tone, choices, onRun(ids, choice) }]}` (+ `bulkLabels`, `onBulkError`); отдельно — `BulkActionBar`. `onRun` вернул `false` — выбор остаётся |
+| Правка в ячейке | `ListColumn.edit = { type: 'text' \| 'select', options, getValue, onCommit(row, value), canEdit }`, ошибка — `ListPage onEditError` |
+| Строки доезжают до места после удаления и фильтра | `ListPage animateChanges`; свой список — хук `useFlip(ref, trigger)` и `data-flip-id` на детях |
+| Отметка сохранения | `SaveIndicator state="idle \| saving \| saved \| error"`; в шапке карточки — `RecordCard saveState` |
+| Поле без рамки до наведения и фокуса | `variant="ghost"` у `Input`, `Combobox`, `DateField` |
+| Канбан: сумма, сворачивание, быстрое добавление, место вставки, переезд | `Kanban`: `columnSummary`, `collapsible` (+ `collapsed` / `onCollapsedChange`), `onQuickAdd`, `dropPlaceholder`, `animateChanges`, `labels` |
+| Нижняя навигация модуля на телефоне | `ModuleLayout mobileNav="bottom"`, `shortLabel` у `ModuleNavLink` / пунктов `ModuleNavList` |
+
+Без пропсов (для всех сразу): уведомления встают стопкой — новое впереди,
+раскрываются под курсором, смахиваются вправо; до 640px `Modal`,
+подтверждение и `Drawer` открываются листом снизу и закрываются смахиванием
+вниз за шапку.
+
 ## Install
 
 ```bash

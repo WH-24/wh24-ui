@@ -62,13 +62,19 @@
 }
 /* Колонкой — чтобы таблица могла дотянуться до низа окна; блоки при этом не
    сжимаются, страница прокручивается целиком, как раньше. */
-.page > * {
+.page > *,
+.viewPanel > * {
   flex-shrink: 0;
+}
+/* Панель выбранного вида — обёртка для читалки, раскладку не меняет. */
+.viewPanel {
+  display: contents;
 }
 /* Таблица — во всю высоту (владелец, 01.11.2026): без отступа снизу, лист
    доходит до края окна и при коротком списке. Низ листа — край окна, поэтому
    нижние углы прямые и без рамки. Карточкам и доске отступ остаётся. */
-.page:has(> .tableWrap) {
+.page:has(> .tableWrap),
+.page:has(> .viewPanel > .tableWrap) {
   padding-bottom: 0;
 }
 /* ===== Тулбар ===== */
@@ -130,7 +136,8 @@
   border-bottom-left-radius: 0;
   border-bottom-right-radius: 0;
 }
-.page > .tableWrap {
+.page > .tableWrap,
+.page > .viewPanel > .tableWrap {
   flex-shrink: 1;
 }
 
@@ -707,5 +714,114 @@ table.tbl {
 @media (pointer: coarse) {
   .colsGridItem {
     min-height: var(--tap-min-compact, 36px);
+  }
+}
+
+/* ── Виды списка (вкладки над тулбаром) ── */
+.viewTabs {
+  margin-top: 4px;
+}
+/* Длинное название вида не раздвигает полосу вкладок. */
+.viewTabLabel {
+  display: inline-block;
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: bottom;
+}
+.saveView {
+  display: flex;
+  gap: 6px;
+  width: 280px;
+  max-width: 100%;
+}
+.saveView > button {
+  flex: none;
+}
+
+/* ── Правка в ячейке (`.ed`, `.cellin` принятого макета) ── */
+.tbl tbody td.cellEditable {
+  cursor: pointer;
+}
+.cellEdit {
+  /* Скрытая подпись для читалки стоит абсолютно — держим её внутри кнопки,
+     иначе она расширяла бы страницу на ширину таблицы. */
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  max-width: calc(100% + 12px);
+  min-width: 32px;
+  min-height: 24px;
+  margin: -3px -6px;
+  padding: 3px 6px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  vertical-align: middle;
+}
+.cellEdit:hover:not(:disabled),
+.cellEdit[aria-expanded='true'] {
+  background: var(--bg-muted);
+}
+.cellEdit:focus-visible {
+  outline: var(--focus-ring-w) solid var(--focus);
+  outline-offset: -1px;
+  border-radius: var(--radius-sm);
+}
+/* Идёт сохранение: новое значение показано приглушённо. */
+.cellEdit[data-busy] {
+  opacity: 0.55;
+  cursor: progress;
+  transition: opacity var(--dur-fast) ease;
+}
+.cellEditText {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.cellEditHint {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.cellInput {
+  box-sizing: border-box;
+  width: calc(100% + 12px);
+  min-width: 120px;
+  height: var(--control-h-sm, 28px);
+  margin: -4px -6px;
+  padding: 0 6px;
+  border: var(--bd-w, 1px) solid var(--focus);
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface);
+  color: var(--fg-primary);
+  font: inherit;
+  font-size: var(--fs-ui);
+  outline: none;
+  box-shadow: var(--field-ring);
+}
+.cellInput:focus-visible {
+  outline: none;
+  border-radius: var(--radius-sm);
+}
+/* Обёртка карточки для плавного переезда (`animateChanges`). */
+.flipCard {
+  min-width: 0;
+}
+@media (pointer: coarse) {
+  .cellEdit {
+    min-height: var(--tap-min-compact, 36px);
+  }
+  .cellInput {
+    height: var(--tap-min-compact, 36px);
   }
 }

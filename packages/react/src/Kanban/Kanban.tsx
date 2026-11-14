@@ -1,8 +1,10 @@
-import { useEffect, useId, useMemo, useRef, useState, type CSSProperties, type DragEvent, type ReactNode } from 'react'
+import { Fragment, useEffect, useId, useMemo, useRef, useState, type CSSProperties, type DragEvent, type ReactNode } from 'react'
 
 import { Icon } from '../list/Icon.js'
 import { IconButton } from '../IconButton/IconButton.js'
 import { Menu, MenuItem, MenuLabel } from '../Menu/Menu.js'
+import { useFlip } from '../motion/useFlip.js'
+import { keyboardInitiated } from '../overlay/motion.js'
 
 import styles from './Kanban.module.css'
 
@@ -45,7 +47,51 @@ export interface KanbanProps<T> {
   onOpen?: (item: T) => void
   emptyText?: string
   ariaLabel?: string
+  /** Строка под названием колонки — сумма, срок, что угодно по её карточкам. */
+  columnSummary?: (column: KanbanColumn, items: T[]) => ReactNode
+  /**
+   * Колонки сворачиваются в узкую полосу (название вертикально и счётчик);
+   * свёрнутая колонка по-прежнему принимает карточки.
+   */
+  collapsible?: boolean
+  /** Свёрнутые колонки (управляемо); без него доска ведёт их сама. */
+  collapsed?: ReadonlyArray<string>
+  defaultCollapsed?: ReadonlyArray<string>
+  onCollapsedChange?: (columnIds: string[]) => void
+  /**
+   * Быстрое добавление: «+ Добавить» внизу колонки превращается в поле;
+   * Enter добавляет, Esc отменяет. Вернули Promise — поле занято, пока идёт.
+   */
+  onQuickAdd?: (columnId: string, title: string) => void | Promise<void>
+  /**
+   * При переносе показывать место, куда встанет карточка, — пунктирной
+   * заготовкой её высоты (вместо тонкой черты). В чужой колонке место — в
+   * конце: порядок там задаёт потребитель.
+   */
+  dropPlaceholder?: boolean
+  /** Перенесённые, удалённые карточки и их соседи плавно доезжают до места. */
+  animateChanges?: boolean
+  labels?: Partial<KanbanLabels>
 }
+
+/** Подписи доски; любую можно заменить через `labels`. */
+export interface KanbanLabels {
+  collapse: (columnTitle: string) => string
+  expand: (columnTitle: string) => string
+  quickAdd: string
+  quickAddPlaceholder: string
+  quickAddField: (columnTitle: string) => string
+}
+
+const LABELS: KanbanLabels = {
+  collapse: (t) => `Свернуть колонку «${t}»`,
+  expand: (t) => `Развернуть колонку «${t}»`,
+  quickAdd: 'Добавить',
+  quickAddPlaceholder: 'Название',
+  quickAddField: (t) => `Новая карточка в колонке «${t}»`,
+}
+
+const NO_COLLAPSED: ReadonlyArray<string> = []
 
 const toneVar: Record<KanbanTone, string> = {
   neutral: 'var(--ink-4)',
@@ -78,7 +124,29 @@ export function Kanban<T>({
   onOpen,
   emptyText = 'Пусто',
   ariaLabel = 'Канбан',
+  columnSummary,
+  collapsible = false,
+  collapsed: collapsedProp,
+  defaultCollapsed = NO_COLLAPSED,
+  onCollapsedChange,
+  onQuickAdd,
+  dropPlaceholder = false,
+  animateChanges = false,
+  labels,
 }: KanbanProps<T>) {
+  const l = { ...LABELS, ...labels }
+  const [ownCollapsed, setOwnCollapsed] = useState<ReadonlyArray<string>>(defaultCollapsed)
+  const collapsedList = collapsible ? (collapsedProp ?? ownCollapsed) : NO_COLLAPSED
+  // Свернули или развернули колонку — её кнопка сменилась другой: фокус на новую.
+  const focusCol = useRef<string | null>(null)
+  const toggleCollapsed = (id: string) => {
+    const next = collapsedList.includes(id) ? collapsedList.filter((c) => c !== id) : [...collapsedList, id]
+    if (collapsedProp === undefined) setOwnCollapsed(next)
+    onCollapsedChange?.(next)
+    focusCol.current = id
+  }
+  // Высота переносимой карточки — для заготовки места.
+  const [dragHeight, setDragHeight] = useState(0)
   const [dragId, setDragId] = useState('')
   const [overCol, setOverCol] = useState('')
   // Куда встанет карточку при переносе внутри колонки: перед этой карточкой
@@ -101,6 +169,18 @@ export function Kanban<T>({
       btn.focus()
     }
   })
+  useEffect(() => {
+    const id = focusCol.current
+    if (id === null) return
+    focusCol.current = null
+    boardRef.current?.querySelector<HTMLElement>(`[data-kanban-col="${CSS.escape(id)}"] [data-kanban-toggle]`)?.focus()
+  })
+  // Переезд карточек и колонок: повод — сменился порядок карточек по
+  // колонкам или набор свёрнутых. Пока карточку тащат — без движения.
+  const flipTrigger = animateChanges
+    ? `${items.map((it) => `${getId(it)}@${getColumn(it)}`).join('|')}#${collapsedList.join(',')}`
+    : ''
+  useFlip(boardRef, flipTrigger, { disabled: !animateChanges || dragId !== '' })
   // Карточки по колонкам — одним проходом, а не `items.filter` на каждую
   // колонку при каждом рендере (перенос мышью рендерит доску на каждый dragover).
   const byColumn = useMemo(() => {
@@ -157,9 +237,13 @@ export function Kanban<T>({
       <div ref={boardRef} className={styles.board} role="list" aria-label={ariaLabel}>
         {columns.map((col) => {
           const cards = byColumn.get(col.id) ?? NO_CARDS
+          const mini = collapsedList.includes(col.id)
           const droppable = !!dragged && allowed(dragged, col.id)
           // Своя колонка — перестановка (если потребитель её поддерживает).
-          const sorting = !!dragged && !!onReorder && getColumn(dragged) === col.id
+          const sorting = !mini && !!dragged && !!onReorder && getColumn(dragged) === col.id
+          const placeholder = (key: string) => (
+            <li key={key} className={styles.placeholder} style={{ height: dragHeight || undefined }} aria-hidden="true" />
+          )
           const dropProps =
             onMove || onReorder
               ? {
@@ -194,6 +278,35 @@ export function Kanban<T>({
           ]
             .filter(Boolean)
             .join(' ')
+          const summary = columnSummary && !mini ? columnSummary(col, cards) : null
+          if (mini) {
+            return (
+              <section
+                key={col.id}
+                className={`${cls} ${styles.colMini}`}
+                role="listitem"
+                aria-label={`${col.title}: ${col.count ?? cards.length}`}
+                style={{ '--kanban-tone': toneVar[col.tone ?? 'neutral'] } as CSSProperties}
+                data-kanban-col={col.id}
+                data-flip-id={animateChanges ? `col:${col.id}` : undefined}
+                {...dropProps}
+              >
+                <button
+                  type="button"
+                  className={styles.miniBtn}
+                  data-kanban-toggle=""
+                  aria-expanded={false}
+                  aria-label={l.expand(col.title)}
+                  title={l.expand(col.title)}
+                  onClick={() => toggleCollapsed(col.id)}
+                >
+                  <span className={styles.dot} aria-hidden="true" />
+                  <span className={styles.count}>{col.count ?? cards.length}</span>
+                  <span className={styles.miniTitle}>{col.title}</span>
+                </button>
+              </section>
+            )
+          }
           return (
             <section
               key={col.id}
@@ -201,6 +314,8 @@ export function Kanban<T>({
               role="listitem"
               aria-label={`${col.title}: ${col.count ?? cards.length}`}
               style={{ '--kanban-tone': toneVar[col.tone ?? 'neutral'] } as CSSProperties}
+              data-kanban-col={collapsible ? col.id : undefined}
+              data-flip-id={animateChanges ? `col:${col.id}` : undefined}
               {...dropProps}
             >
               <header className={styles.head}>
@@ -209,9 +324,25 @@ export function Kanban<T>({
                   {col.title}
                 </span>
                 <span className={styles.count}>{col.count ?? cards.length}</span>
+                {collapsible && (
+                  <IconButton
+                    size={24}
+                    className={styles.collapseBtn}
+                    ariaLabel={l.collapse(col.title)}
+                    title={l.collapse(col.title)}
+                    ariaExpanded
+                    data-kanban-toggle=""
+                    onClick={() => toggleCollapsed(col.id)}
+                  >
+                    <Icon name="chevleft" size={14} />
+                  </IconButton>
+                )}
               </header>
+              {summary != null && summary !== false && <div className={styles.summary}>{summary}</div>}
               <ul className={styles.cards}>
-                {cards.length === 0 && <li className={styles.empty}>{emptyText}</li>}
+                {cards.length === 0 && !(dropPlaceholder && overCol === col.id) && (
+                  <li className={styles.empty}>{emptyText}</li>
+                )}
                 {cards.map((it, i) => {
                   const id = getId(it)
                   const targets = onMove ? columns.filter((c) => allowed(it, c.id)) : []
@@ -219,15 +350,20 @@ export function Kanban<T>({
                   const next = cards[i + 1]
                   const after = cards[i + 2]
                   return (
+                    <Fragment key={id}>
+                    {dropPlaceholder && sorting && insertBefore === id && dragId !== id && placeholder(`ph:${id}`)}
                     <KanbanCard
-                      key={id}
                       cardId={id}
+                      flipId={animateChanges ? `card:${id}` : undefined}
                       label={getLabel(it)}
                       busy={!!busy[id]}
                       dragging={dragId === id}
                       draggable={(targets.length > 0 || (!!onReorder && cards.length > 1)) && !busy[id]}
-                      insertMark={sorting && insertBefore === id && dragId !== id}
-                      onDragStart={() => setDragId(id)}
+                      insertMark={!dropPlaceholder && sorting && insertBefore === id && dragId !== id}
+                      onDragStart={(height) => {
+                        setDragHeight(height)
+                        setDragId(id)
+                      }}
                       onDragEnd={() => {
                         setDragId('')
                         setOverCol('')
@@ -265,10 +401,21 @@ export function Kanban<T>({
                     >
                       {renderCard(it)}
                     </KanbanCard>
+                    </Fragment>
                   )
                 })}
-                {sorting && insertBefore === '' && <li className={styles.insertMark} aria-hidden="true" />}
+                {sorting && insertBefore === '' &&
+                  (dropPlaceholder ? placeholder('ph:end') : <li className={styles.insertMark} aria-hidden="true" />)}
+                {dropPlaceholder && !sorting && droppable && overCol === col.id && placeholder('ph:move')}
               </ul>
+              {onQuickAdd && (
+                <QuickAdd
+                  label={l.quickAdd}
+                  placeholder={l.quickAddPlaceholder}
+                  fieldLabel={l.quickAddField(col.title)}
+                  onAdd={(title) => onQuickAdd(col.id, title)}
+                />
+              )}
               {col.footer && <div className={styles.footer}>{col.footer}</div>}
             </section>
           )
@@ -278,15 +425,110 @@ export function Kanban<T>({
   )
 }
 
+/** «+ Добавить» внизу колонки: кнопка превращается в поле названия. */
+function QuickAdd({
+  label,
+  placeholder,
+  fieldLabel,
+  onAdd,
+}: {
+  label: string
+  placeholder: string
+  fieldLabel: string
+  onAdd: (title: string) => void | Promise<void>
+}) {
+  const [open, setOpen] = useState(false)
+  const [value, setValue] = useState('')
+  const [busy, setBusy] = useState(false)
+  const btnRef = useRef<HTMLButtonElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
+  const done = useRef(false)
+  const refocus = useRef(false)
+  useEffect(() => {
+    if (!open && refocus.current) {
+      refocus.current = false
+      btnRef.current?.focus()
+    }
+  }, [open])
+  const finish = async (save: boolean) => {
+    // Enter закрывает поле, следом приходит blur — добавляем один раз.
+    if (done.current) return
+    done.current = true
+    const title = value.trim()
+    const byKeyboard = keyboardInitiated()
+    if (save && title) {
+      setBusy(true)
+      try {
+        await onAdd(title)
+      } catch {
+        // Не добавилось (об ошибке скажет хост): поле с текстом остаётся,
+        // пока в нём стоят, — можно повторить.
+        setBusy(false)
+        if (document.activeElement === inputRef.current) {
+          done.current = false
+          return
+        }
+      }
+      setBusy(false)
+    }
+    refocus.current = byKeyboard
+    setOpen(false)
+    setValue('')
+  }
+  if (!open) {
+    return (
+      <button
+        ref={btnRef}
+        type="button"
+        className={styles.quickAdd}
+        onClick={() => {
+          done.current = false
+          setOpen(true)
+        }}
+      >
+        <Icon name="plus" size={14} />
+        {label}
+      </button>
+    )
+  }
+  return (
+    <input
+      ref={inputRef}
+      className={styles.quickAddInput}
+      autoFocus
+      aria-label={fieldLabel}
+      aria-busy={busy || undefined}
+      placeholder={placeholder}
+      value={value}
+      readOnly={busy}
+      maxLength={200}
+      onChange={(e) => setValue(e.target.value)}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault()
+          void finish(true)
+        } else if (e.key === 'Escape') {
+          e.preventDefault()
+          e.stopPropagation()
+          void finish(false)
+        }
+      }}
+      onBlur={() => void finish(true)}
+    />
+  )
+}
+
 interface CardProps {
   cardId: string
+  /** Ключ плавного переезда (`animateChanges`). */
+  flipId?: string
   label: string
   busy: boolean
   dragging: boolean
   draggable: boolean
   /** Перед карточкой встанет переносимая — показываем черту. */
   insertMark: boolean
-  onDragStart: () => void
+  onDragStart: (height: number) => void
   onDragEnd: () => void
   onDragOverCard?: (e: DragEvent<HTMLLIElement>) => void
   onOpen?: () => void
@@ -299,6 +541,7 @@ interface CardProps {
 
 function KanbanCard({
   cardId,
+  flipId,
   label,
   busy,
   dragging,
@@ -329,12 +572,13 @@ function KanbanCard({
     <li
       className={cls}
       data-kanban-card={cardId}
+      data-flip-id={flipId}
       aria-busy={busy || undefined}
       draggable={draggable}
       onDragStart={(e) => {
         e.dataTransfer.effectAllowed = 'move'
         e.dataTransfer.setData('text/plain', label)
-        onDragStart()
+        onDragStart(e.currentTarget.offsetHeight)
       }}
       onDragEnd={onDragEnd}
       onDragOver={onDragOverCard}

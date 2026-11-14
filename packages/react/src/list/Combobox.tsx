@@ -81,6 +81,8 @@ export interface ComboboxProps {
   searchable?: boolean;
   /** Текст пустого меню. */
   emptyText?: string;
+  /** `ghost` — без рамки до наведения и фокуса (правка на месте). */
+  variant?: "default" | "ghost";
 }
 
 interface MenuRect {
@@ -151,6 +153,7 @@ export function Combobox({
   clearable = true,
   searchable = true,
   emptyText = "Ничего не найдено",
+  variant,
 }: ComboboxProps) {
   const selected = options.find((o) => o.value === value) ?? null;
   const [open, setOpen] = useState(false);
@@ -347,6 +350,7 @@ export function Combobox({
   return (
     <div
       className={[styles.combo, className].filter(Boolean).join(" ")}
+      data-variant={variant === "ghost" ? "ghost" : undefined}
       style={style}
       onBlur={disabled ? undefined : closeAndReset}
     >

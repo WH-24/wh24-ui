@@ -228,3 +228,130 @@ button.cardBody {
   }
 }
 
+
+/* ── По принятому макету: сумма, сворачивание, быстрое добавление, место вставки ── */
+.summary {
+  /* Под названием, на одной вертикали с ним (точка + зазор). */
+  padding: 0 var(--sp-4) var(--sp-3) calc(var(--sp-4) + 8px + var(--sp-2));
+  margin-top: calc(var(--sp-2) * -1);
+  font-size: var(--fs-meta);
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.collapseBtn {
+  flex: none;
+  margin: -2px -4px -2px 0;
+}
+/* Свёрнутая колонка — узкая полоса: точка, счётчик, название вертикально. */
+.colMini {
+  flex: 0 0 44px;
+  align-self: stretch;
+}
+.miniBtn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-2);
+  width: 100%;
+  min-height: 160px;
+  padding: var(--sp-4) 0;
+  border: 0;
+  border-radius: inherit;
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  cursor: pointer;
+  transition: background var(--dur-fast, 120ms) ease;
+}
+.miniBtn:hover {
+  background: var(--surf-3);
+}
+.miniBtn:focus-visible {
+  outline: var(--focus-ring-w) solid var(--focus);
+  outline-offset: var(--focus-ring-inset);
+}
+.miniTitle {
+  writing-mode: vertical-rl;
+  font-size: var(--fs-ui);
+  font-weight: var(--fw-semibold);
+  white-space: nowrap;
+  /* Длинное название не растягивает доску в высоту. */
+  max-height: 260px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.quickAdd {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 var(--sp-2) var(--sp-2);
+  padding: 7px 8px;
+  border: 0;
+  border-radius: var(--r-md);
+  background: none;
+  color: var(--ink-3);
+  font: inherit;
+  font-size: var(--fs-ui);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background var(--dur-fast, 120ms) ease,
+    color var(--dur-fast, 120ms) ease;
+}
+.quickAdd:hover {
+  background: var(--surf-3);
+  color: var(--ink);
+}
+.quickAdd:focus-visible {
+  outline: var(--focus-ring-w) solid var(--focus);
+  outline-offset: var(--focus-ring-inset);
+}
+.quickAddInput {
+  box-sizing: border-box;
+  margin: 0 var(--sp-2) var(--sp-2);
+  width: calc(100% - 2 * var(--sp-2));
+  height: var(--control-h, 36px);
+  padding: 0 var(--field-px, 10px);
+  border: var(--bd-w, 1px) solid var(--focus);
+  border-radius: var(--control-r, var(--r-md));
+  background: var(--surf);
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--fs-ui);
+  outline: none;
+  box-shadow: var(--field-ring);
+}
+.quickAddInput:focus-visible {
+  outline: none;
+  border-radius: var(--control-r, var(--r-md));
+}
+.quickAddInput[aria-busy='true'] {
+  opacity: 0.6;
+}
+/* Место, куда встанет карточка: пунктир её высоты. */
+.placeholder {
+  list-style: none;
+  flex: none;
+  min-height: 40px;
+  border: 1.5px dashed var(--terra-bd);
+  border-radius: var(--r-md);
+  background: var(--terra-bg);
+  animation: kanban-ph-in var(--dur-fast, 120ms) ease;
+}
+@keyframes kanban-ph-in {
+  from {
+    opacity: 0;
+  }
+}
+@media (pointer: coarse) {
+  .quickAdd {
+    min-height: var(--tap-min-compact);
+  }
+  .miniBtn {
+    min-width: var(--tap-min);
+  }
+}

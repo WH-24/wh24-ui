@@ -3,9 +3,10 @@ import { createPortal } from 'react-dom'
 
 import { cx } from '../popup/popup.js'
 import { DialogBody, DialogFooter, DialogHeader } from './Dialog.js'
-import { motionMs, motionScale } from './motion.js'
+import { motionEase, motionMs, motionScale } from './motion.js'
 import { usePresence, useExitAnimation, type ExitLayer } from './presence.js'
 import { useFocusTrap, useScrollLock } from './useFocusTrap.js'
+import { isSheet, useSheetSwipe } from './useSheetSwipe.js'
 
 import styles from './overlay.module.css'
 
@@ -16,6 +17,8 @@ import styles from './overlay.module.css'
  * окно), возврат фокуса на кнопку-инициатор, страница под окном не
  * прокручивается. Появление — `--dur-slow` (подложка проявляется, карточка из
  * `--modal-scale`), выход — `--dur-slow-exit`; при «уменьшить движение» — только затухание.
+ * На телефоне (до 640px) окно — лист снизу: выезжает по `--ease-drawer`, закрывается ещё и
+ * смахиванием вниз за шапку (когда есть `onClose`), учитывает «чёлку» снизу.
  *
  * ⚠️ `onClose` — это отмена: Esc, «Закрыть» и клик мимо карточки. Не
  * подключайте сюда разрушительные действия. Без `onClose` окно этими
@@ -60,6 +63,9 @@ export function modalExitLayers(
   backdropRef: RefObject<HTMLElement | null>,
   cardRef: RefObject<HTMLElement | null>,
 ): ExitLayer[] {
+  // Телефон: окно — лист снизу, уходит вниз по кривой листа. Один конечный
+  // кадр: старт — где лист сейчас (его могли смахнуть наполовину).
+  if (isSheet()) return sheetExitLayers(backdropRef, cardRef)
   const duration = motionMs('--dur-slow-exit')
   return [
     { ref: backdropRef, frames: [{ opacity: 1 }, { opacity: 0 }], duration },
@@ -71,6 +77,19 @@ export function modalExitLayers(
       ],
       duration,
     },
+  ]
+}
+
+/** Выход листа снизу (телефон): `Modal`, подтверждение и `Drawer`. */
+export function sheetExitLayers(
+  backdropRef: RefObject<HTMLElement | null>,
+  cardRef: RefObject<HTMLElement | null>,
+): ExitLayer[] {
+  const duration = motionMs('--dur-panel-exit')
+  const easing = motionEase('--ease-drawer')
+  return [
+    { ref: backdropRef, frames: [{ opacity: 1 }, { opacity: 0 }], duration, easing },
+    { ref: cardRef, frames: [{ transform: 'translateY(100%)' }], duration, easing },
   ]
 }
 
@@ -102,6 +121,7 @@ function ModalCard({
   const cancel = busy ? undefined : onClose
   useFocusTrap({ open: !exiting, containerRef: ref, onEscape: cancel })
   useScrollLock(!exiting)
+  useSheetSwipe(ref, cancel, !exiting)
   useExitAnimation(exiting, exiting ? modalExitLayers(backdropRef, ref) : [], onExited)
   return (
     <div

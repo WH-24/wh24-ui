@@ -6,6 +6,7 @@
 //   • тело 50 на 50: слева лента, справа поля; без горизонтальной прокрутки —
 //     на узком экране панели встают друг под другом, на телефоне — вкладки.
 // Стили — на именах ui-tokens/bridge.css: модулю нужен этот файл.
+import { SaveIndicator, type SaveIndicatorProps, type SaveState } from '../SaveIndicator/SaveIndicator.js'
 import {
   Fragment,
   useEffect,
@@ -99,6 +100,12 @@ export type RecordCardProps = {
    * «Открыть панель» — у портала из WH24 Brain). Пусто — кнопки нет.
    */
   aiMenu?: MenuEntry[]
+  /**
+   * Отметка сохранения в шапке — для карточек, где поля сохраняются сами,
+   * без кнопки «Сохранить». Не задано — отметки нет.
+   */
+  saveState?: SaveState
+  saveLabels?: SaveIndicatorProps['labels']
   /** Значок кнопки «Спросить ИИ»; по умолчанию — Icon «sparkles». */
   aiIcon?: ReactNode
   /**
@@ -290,6 +297,7 @@ export function RecordCard(props: RecordCardProps) {
             )}
           </div>
           <div className={s.headActions}>
+            {props.saveState && <SaveIndicator state={props.saveState} labels={props.saveLabels} />}
             {pyrusUrl && (
               <a className="btn btn-secondary" href={pyrusUrl} target="_blank" rel="noopener noreferrer">
                 {props.icons?.external ?? <Icon name="external" size={14} />}

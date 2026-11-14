@@ -31,14 +31,36 @@ export interface ModuleLayoutProps {
   children: ReactNode
   /** Принудительно узкий/широкий режим; не задан — медиазапрос 900px. */
   narrow?: boolean
+  /**
+   * Навигация модуля на телефоне (до 640px). `top` (по умолчанию) — полоса
+   * вкладок над содержимым, как на планшете. `bottom` — закреплённая нижняя
+   * панель: значок и короткая подпись (`shortLabel` пункта).
+   */
+  mobileNav?: 'top' | 'bottom'
   className?: string
 }
 
-export function ModuleLayout({ title, icon, nav, children, narrow, className }: ModuleLayoutProps) {
+/** Высота нижней навигации — её читают тосты и панель массовых действий. */
+const BOTTOM_NAV_VAR = '--wh24-bottom-nav-h'
+const BOTTOM_NAV_HEIGHT = '56px'
+
+export function ModuleLayout({ title, icon, nav, children, narrow, mobileNav = 'top', className }: ModuleLayoutProps) {
+  const bottom = mobileNav === 'bottom' && narrow !== false
+  // Тосты и панель массовых действий живут в `body`: о нижней навигации им
+  // говорит переменная на корне (CSS читает её только на телефоне).
+  useEffect(() => {
+    if (!bottom) return
+    const root = document.documentElement
+    root.style.setProperty(BOTTOM_NAV_VAR, BOTTOM_NAV_HEIGHT)
+    return () => {
+      root.style.removeProperty(BOTTOM_NAV_VAR)
+    }
+  }, [bottom])
   return (
     <div
       className={className ? `${styles.layout} ${className}` : styles.layout}
       data-narrow={narrow === undefined ? undefined : String(narrow)}
+      data-mobile-nav={bottom ? 'bottom' : undefined}
     >
       <aside className={styles.panel} aria-label={title}>
         <div className={styles.panelInner}>
@@ -79,9 +101,14 @@ export interface ModuleNavLinkProps {
   onClick?: () => void
   /** Счётчик справа (очередь, черновики). 0 и пусто не показываются. */
   count?: number | string
+  /**
+   * Короткая подпись для нижней навигации на телефоне (`mobileNav="bottom"`):
+   * одно слово под значком. Не задана — там показывается `label`.
+   */
+  shortLabel?: string
 }
 
-export function ModuleNavLink({ label, icon, active = false, href, onClick, count }: ModuleNavLinkProps) {
+export function ModuleNavLink({ label, icon, active = false, href, onClick, count, shortLabel }: ModuleNavLinkProps) {
   const showCount = count !== undefined && count !== '' && count !== 0
   const ref = useRef<HTMLAnchorElement>(null)
   // На узком экране панель — полоса вкладок с прокруткой: текущий пункт не
@@ -120,7 +147,14 @@ export function ModuleNavLink({ label, icon, active = false, href, onClick, coun
       }
     >
       <span className={styles.linkIcon}>{renderIcon(icon, 14)}</span>
-      <span className={styles.linkLabel}>{label}</span>
+      <span className={styles.linkLabel} data-has-short={shortLabel ? '' : undefined}>
+        {label}
+      </span>
+      {shortLabel && (
+        <span className={styles.linkShort} aria-hidden="true">
+          {shortLabel}
+        </span>
+      )}
       {showCount && <span className={styles.count}>{count}</span>}
     </a>
   )
@@ -132,6 +166,7 @@ export interface ModuleNavItem<K extends string = string> {
   icon: IconName | ReactNode
   href?: string
   count?: number | string
+  shortLabel?: string
 }
 
 export interface ModuleNavListProps<K extends string> {
@@ -151,6 +186,7 @@ export function ModuleNavList<K extends string>({ items, activeId, onSelect }: M
           icon={it.icon}
           label={it.label}
           count={it.count}
+          shortLabel={it.shortLabel}
           onClick={onSelect ? () => onSelect(it.id) : undefined}
         />
       ))}

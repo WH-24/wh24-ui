@@ -314,3 +314,23 @@
     min-height: var(--tap-min-compact, 36px);
   }
 }
+
+/* ── Поле-призрак: без рамки до наведения и фокуса (правка на месте) ── */
+.combo[data-variant='ghost'] .formInput:not(:focus):not([aria-invalid='true']) {
+  border-color: transparent;
+  background: transparent;
+}
+.combo[data-variant='ghost']:hover .formInput:not(:focus):not([aria-invalid='true']) {
+  background: var(--surf-2, var(--bg-subtle));
+}
+.combo[data-variant='ghost']:not(:hover):not(:focus-within) .toggle {
+  opacity: 0;
+}
+@media (hover: none) {
+  .combo[data-variant='ghost'] .formInput:not(:focus):not([aria-invalid='true']) {
+    background: var(--surf-2, var(--bg-subtle));
+  }
+  .combo[data-variant='ghost'] .toggle {
+    opacity: 1;
+  }
+}

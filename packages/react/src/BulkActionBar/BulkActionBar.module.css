@@ -1,0 +1,116 @@
+/* Панель массовых действий — `.bulk` принятого макета. Цвета — как у тоста:
+   тёмная плашка на светлой теме и светлая на тёмной. */
+.bar {
+  position: fixed;
+  left: 50%;
+  bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+  /* Над страницей и боковой панелью, под окнами и всплывающими. */
+  z-index: calc(var(--z-drawer, 50) + 5);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  box-sizing: border-box;
+  max-width: calc(100vw - 16px);
+  padding: 6px 6px 6px 14px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  white-space: nowrap;
+  background: var(--ink);
+  color: var(--surf);
+  border-radius: var(--r-xl);
+  box-shadow: var(--shadow-lg);
+  font-size: var(--fs-ui);
+  /* Переход, а не keyframes: выбор меняется быстро, выезд перебивается уходом. */
+  transform: translate(-50%, calc(100% + 40px));
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    transform var(--dur-slow-exit, 180ms) var(--ease-out, cubic-bezier(0.23, 1, 0.32, 1)),
+    opacity var(--dur-slow-exit, 180ms) ease;
+}
+.bar[data-open] {
+  transform: translate(-50%, 0);
+  opacity: 1;
+  pointer-events: auto;
+  transition-duration: var(--dur-slow, 240ms);
+}
+/* Выбор с клавиатуры — без движения. */
+.bar[data-instant] {
+  transition: none;
+}
+.count {
+  flex: none;
+  margin-right: 6px;
+  font-weight: var(--fw-semibold, 600);
+  font-variant-numeric: tabular-nums;
+}
+/* Кнопки на плашке: цвет от текста панели, а не от темы страницы. */
+.action.action {
+  flex: none;
+  max-width: 260px;
+  background: transparent;
+  color: inherit;
+  border-color: color-mix(in srgb, currentColor 30%, transparent);
+}
+.action.action:hover:not(:disabled),
+.action.action[aria-expanded='true'],
+.clear:hover:not(:disabled) {
+  background: color-mix(in srgb, currentColor 14%, transparent);
+  color: inherit;
+}
+.actionLabel {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* Светлая тема — панель тёмная: красный высветлен. Тёмная — панель светлая:
+   насыщенный красный, как на белом. */
+.action.danger {
+  color: color-mix(in srgb, var(--bad) 45%, var(--surf));
+}
+:global(html[data-theme='dark']) .action.danger {
+  color: var(--bad-strong);
+}
+.action.action:focus-visible,
+.clear:focus-visible {
+  outline: var(--focus-ring-w) solid currentColor;
+  outline-offset: var(--focus-ring-offset);
+}
+.clear {
+  flex: none;
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: var(--r-md);
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  transition: background var(--dur-fast) ease;
+}
+.clear:disabled {
+  opacity: var(--disabled-opacity);
+  cursor: not-allowed;
+}
+@media (pointer: coarse) {
+  .action.action,
+  .clear {
+    min-height: var(--tap-min-compact);
+    min-width: var(--tap-min-compact);
+  }
+}
+/* Телефон: над нижней навигацией модуля (`ModuleLayout mobileNav="bottom"`
+   задаёт её высоту) и «чёлкой». */
+@media (max-width: 640px) {
+  .bar {
+    bottom: calc(12px + var(--wh24-bottom-nav-h, 0px) + env(safe-area-inset-bottom, 0px));
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bar,
+  .bar[data-open] {
+    transform: translate(-50%, 0);
+    transition: opacity var(--dur-base-exit, 135ms) ease;
+  }
+}
