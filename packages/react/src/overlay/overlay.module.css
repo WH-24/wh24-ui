@@ -4,7 +4,7 @@
 .backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(15, 23, 42, 0.45);
+  background: var(--scrim, rgba(26, 26, 26, 0.45));
   z-index: var(--z-modal, 200);
   /* Окно поверх модального Radix-диалога (тот ставит body
      pointer-events: none) обязано оставаться кликабельным. */
@@ -125,7 +125,7 @@
 .drawerBackdrop {
   position: fixed;
   inset: 0;
-  background: rgba(15, 23, 42, 0.32);
+  background: var(--scrim-soft, rgba(26, 26, 26, 0.32));
   z-index: var(--z-backdrop, 40);
   pointer-events: auto;
   animation: overlay-fade-in 200ms var(--ease-out, ease-out);

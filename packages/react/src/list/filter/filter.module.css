@@ -79,7 +79,7 @@
 }
 .formInput:focus {
   border-color: var(--accent-500);
-  box-shadow: 0 0 0 3px var(--accent-50);
+  box-shadow: var(--field-ring, 0 0 0 3px var(--accent-50));
 }
 
 .filterBar {
@@ -114,10 +114,10 @@
 }
 .filterSearch[data-active="true"] {
   border-color: var(--accent-500);
-  box-shadow: 0 0 0 3px var(--accent-50);
+  box-shadow: var(--field-ring, 0 0 0 3px var(--accent-50));
 }
 :where([data-theme="dark"]) .filterSearch[data-active="true"] {
-  box-shadow: 0 0 0 3px var(--accent-50);
+  box-shadow: var(--field-ring, 0 0 0 3px var(--accent-50));
 }
 .filterSearchIcon {
   display: flex;
@@ -761,14 +761,16 @@
   padding: 0 10px;
   font-size: 0.8125rem;
 }
+/* Белый текст на --accent-500 (#dd6731) — 3.47:1; как у глобальной
+   .btn-primary — тёмный терракот (4.99:1). */
 .btnPrimary {
-  background: var(--accent-500);
+  background: var(--terra-solid, var(--accent-600));
   color: #fff;
-  border-color: var(--accent-500);
+  border-color: var(--terra-solid, var(--accent-600));
 }
 .btnPrimary:hover {
-  background: var(--accent-600);
-  border-color: var(--accent-600);
+  background: var(--terra-solid-hover, var(--accent-700));
+  border-color: var(--terra-solid-hover, var(--accent-700));
 }
 .btnGhost {
   background: transparent;
