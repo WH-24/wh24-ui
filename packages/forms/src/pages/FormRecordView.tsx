@@ -21,7 +21,7 @@ import type {
   RecordRoute,
   SchemaDocument,
 } from "../types.js";
-import { routeStages } from "../chat/logic.js";
+import { routeAllowsEdit, routeStages } from "../chat/logic.js";
 import { FormRenderer } from "../render/FormRenderer.js";
 import { withSystemValues } from "../render/system.js";
 import { formatDateTime, type FormatContext } from "../render/format.js";
@@ -66,7 +66,9 @@ export interface FormRecordViewProps {
    * Маршрут согласования записи (хост получает его из ленты — `RecordChat`
    * `onRoute`). У формы с «Отображать статусы согласования» карточка записи
    * показывает по нему полосу стадий, как у лида: «Инициализация», дальше
-   * названия этапов. Нет маршрута или этапов — полосы нет.
+   * названия этапов. Нет маршрута или этапов — полосы нет. По нему же
+   * решается, видна ли «Редактировать»: у формы с маршрутом — только пока
+   * запись на «Инициализации».
    */
   route?: RecordRoute | null;
 }
@@ -144,6 +146,10 @@ export function FormRecordView({
     const created = `${who(record.created_by)}, ${formatDateTime(record.created_at)}`;
     // Полоса стадий — только показ: стадию двигает согласование в ленте.
     const strip = form.route_stages ? routeStages(route) : null;
+    // Правка — только на «Инициализации»: после отправки на согласование
+    // запись задним числом не меняют (владелец 14.11.2026). Сервер проверяет
+    // то же; пока маршрут не пришёл из ленты, кнопки нет.
+    const editable = routeAllowsEdit(route);
     return (
       <RecordCard
         crumbs={[
@@ -188,7 +194,7 @@ export function FormRecordView({
           label: "Поля",
           tabs: [{ id: "fields", label: "Поля" }],
           headAside: () =>
-            onEdit && form.status === "published" ? (
+            onEdit && editable && form.status === "published" ? (
               <button
                 type="button"
                 className={["btn", "btn-primary", "btn-sm", styles.cardEdit].join(" ")}

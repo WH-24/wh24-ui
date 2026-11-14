@@ -734,7 +734,15 @@ export interface Meeting {
 
 /** Что сделано сообщением кроме текста и файлов. */
 export interface CommentActions {
-  approval?: { step_id: string; step_name: string; choice: ApprovalChoice; approver: string }
+  approval?: {
+    step_id: string
+    step_name: string
+    choice: ApprovalChoice
+    approver: string
+    /** «Против» с возвратом: этап, на который запись вернули (нулевой id — «Инициализация»). */
+    return_to?: string
+    return_to_name?: string
+  }
   responsible?: ValueChange
   due?: ValueChange
   spent_minutes?: number
@@ -815,7 +823,8 @@ export interface NewComment {
   body?: string
   reply_to?: string
   mentions?: string[]
-  approval?: { step_id: string; choice: ApprovalChoice }
+  /** return_to — при «Против»: вернуть запись на этот этап (нулевой id — «Инициализация»). */
+  approval?: { step_id: string; choice: ApprovalChoice; return_to?: string }
   /** id сотрудника; '' — снять ответственного. */
   responsible?: string
   /** ГГГГ-ММ-ДД; '' — снять срок. */

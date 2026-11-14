@@ -253,6 +253,7 @@ export function commentForm(c: NewComment): FormData {
   if (c.approval) {
     fd.append('approval', c.approval.choice)
     fd.append('step_id', c.approval.step_id)
+    if (c.approval.return_to) fd.append('return_to', c.approval.return_to)
   }
   if (c.responsible !== undefined) fd.append('responsible', c.responsible)
   if (c.due !== undefined) fd.append('due', c.due)
