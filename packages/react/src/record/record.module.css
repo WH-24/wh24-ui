@@ -1,0 +1,476 @@
+/* Единый стандарт карточки записи (макет 14.10.2026): шапка, полоса стадий,
+   слева лента, справа поля 50 на 50. Перенесён из портала 14.11.2026
+   (apps/hr/src/components/record/record.module.css), стили — на именах
+   ui-tokens/bridge.css: тёмная тема работает сама. Горизонтальной прокрутки
+   нет нигде: всё переносится. */
+.card {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  background: var(--bg-app);
+  color: var(--fg-primary);
+}
+
+/* ── Шапка ── */
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px 24px 0;
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border-subtle);
+}
+.crumbs {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--fg-secondary);
+}
+.crumbLink {
+  border: none;
+  background: none;
+  padding: 0;
+  font: inherit;
+  color: var(--primary, var(--accent-500));
+  cursor: pointer;
+}
+.crumbLink:hover {
+  text-decoration: underline;
+}
+.devMark {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.headRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.headMain {
+  flex: 1 1 320px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.titleRow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.title {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  overflow-wrap: anywhere;
+}
+.idChip {
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--bg-subtle);
+  color: var(--fg-secondary);
+  white-space: nowrap;
+}
+.kpis {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 24px;
+  font-size: 13px;
+  color: var(--fg-secondary);
+}
+.kpis b {
+  color: var(--fg-primary);
+  font-weight: 600;
+}
+.headActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.btn {
+  min-height: 36px;
+  padding: 0 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-default);
+  background: var(--bg-surface);
+  color: var(--fg-primary);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.btn:hover {
+  background: var(--bg-hover);
+}
+.btn:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+.iconBtn {
+  width: 36px;
+  padding: 0;
+  justify-content: center;
+}
+.btn:focus-visible,
+.iconBtn:focus-visible,
+.tab:focus-visible,
+.stage:focus-visible,
+.menuItem:focus-visible {
+  outline: 2px solid var(--primary, var(--accent-500));
+  outline-offset: 2px;
+}
+
+/* ── Меню «⋯» ── */
+.menuWrap {
+  position: relative;
+}
+.menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  z-index: var(--z-context-menu, 100);
+  width: min(300px, calc(100vw - 32px));
+  padding: 6px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-surface);
+  box-shadow: var(--shadow-lg);
+}
+.menuItem {
+  width: 100%;
+  min-height: 36px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 10px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  font: inherit;
+  font-size: 14px;
+  color: var(--fg-primary);
+  cursor: pointer;
+  text-align: left;
+}
+.menuItem:hover,
+.menuItem:focus-visible {
+  background: var(--bg-hover);
+}
+.menuDanger {
+  color: var(--danger-fg);
+}
+.menuHint {
+  margin-left: auto;
+  font-size: 12px;
+  color: var(--fg-tertiary);
+}
+.menuSep {
+  height: 1px;
+  margin: 6px 4px;
+  background: var(--border-subtle);
+}
+
+/* ── Полоса стадий ── */
+/* Стадий бывает 15+: полоса в один ряд с прокруткой вбок, текст стадии — в
+   строку целиком (владелец 28.10.2026). Пока стадий мало, они растягиваются. */
+.stages {
+  position: relative;
+  /* Сегменты одной ширины (владелец 28.10.2026): колонки сетки поровну, но не
+     уже своего текста — длинные стадии не обрезаются, лишнее уходит в прокрутку. */
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(max-content, 1fr);
+  gap: 4px;
+  margin-bottom: 14px;
+  padding-bottom: 6px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x proximity;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong, var(--border-default)) transparent;
+}
+.stage {
+  min-height: 34px;
+  padding: 0 14px;
+  scroll-snap-align: start;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: var(--bg-subtle);
+  color: var(--fg-secondary);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  /* Длинная стадия («КП отправлено/Менеджер ОС») — целиком, в одну строку, а не
+     «КП отправлен…»: при нехватке места полоса прокручивается. */
+  padding-block: 4px;
+  line-height: 1.2;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.stage:disabled {
+  cursor: default;
+}
+.stageDone {
+  background: var(--accent-50);
+  color: var(--primary-strong, var(--accent-600));
+}
+.stageActive {
+  background: var(--primary, var(--accent-500));
+  color: var(--accent-fg);
+  font-weight: 700;
+}
+/* Категории стадий лида (как в Битрикс24 и «Воронке лидов»): входящие — синие,
+   успех — зелёный, отказ — отдельный красный сегмент в конце полосы. */
+.stageDone[data-group="incoming"] {
+  background: color-mix(in srgb, #2a78d6 14%, var(--bg-surface));
+  color: #1f5fae;
+}
+/* Текущая стадия «Входящих» и «Успеха» — светлой заливкой без рамки
+   (владелец 31.10.2026): плотнее пройденных, с тёмным жирным текстом — видна,
+   но не перетягивает внимание сплошным цветом. */
+.stageActive[data-group="incoming"] {
+  background: color-mix(in srgb, #2a78d6 26%, var(--bg-surface));
+  color: #164a8a;
+}
+.stageDone[data-group="success"] {
+  background: color-mix(in srgb, #199e70 14%, var(--bg-surface));
+  color: #12754f;
+}
+.stageActive[data-group="success"] {
+  background: color-mix(in srgb, #199e70 26%, var(--bg-surface));
+  color: #0d5538;
+}
+/* Тёмная тема: тёмный текст на тёмной подложке не читается — светлые тона. */
+:global(html[data-theme="dark"]) .stageActive[data-group="incoming"] {
+  color: #a9cdf5;
+}
+:global(html[data-theme="dark"]) .stageActive[data-group="success"] {
+  color: #8fe0bd;
+}
+/* Цвет статуса, заданный на доске лидов (палитра колонок, --lead-col из
+   [data-lead-color], владелец 31.10.2026), — главнее цвета категории: текущая
+   стадия — плотная заливка этого цвета, пройденные — бледная. Текст — основной:
+   читается на любом цвете палитры. */
+.stageDone[data-lead-color] {
+  background: color-mix(in srgb, var(--lead-col) 16%, var(--bg-surface));
+  color: var(--fg-primary);
+}
+.stageActive[data-lead-color],
+.stageFail.stageActive[data-lead-color] {
+  background: color-mix(in srgb, var(--lead-col) 34%, var(--bg-surface));
+  color: var(--fg-primary);
+}
+:global(html[data-theme="dark"]) .stageDone[data-lead-color] {
+  background: color-mix(in srgb, var(--lead-col) 26%, var(--bg-surface));
+}
+:global(html[data-theme="dark"]) .stageActive[data-lead-color],
+:global(html[data-theme="dark"]) .stageFail.stageActive[data-lead-color] {
+  background: color-mix(in srgb, var(--lead-col) 48%, var(--bg-surface));
+}
+/* «Отказ ▾» сидит в обёртке меню (span) — кнопка во всю ширину её ячейки. */
+.stages > span > .stage {
+  flex: 1 0 auto;
+}
+.stageFail {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  /* Стрелка — у правого края (владелец 28.10.2026), текст по центру, как у
+     остальных сегментов: поля слева и справа равны, стрелка в правом. */
+  padding-inline: 30px;
+  color: var(--danger-fg);
+  background: var(--danger-bg);
+}
+/* Текущий отказ — светлее тёмно-красного --danger-fg (владелец 28.10.2026). */
+.stageFail > svg {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  margin-top: -6px;
+}
+.stageFail.stageActive {
+  background: color-mix(in srgb, var(--danger-fg) 80%, #fff);
+  color: #fff;
+}
+
+/* ── Тело: 50 на 50 ── */
+.body {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  padding: 20px 24px 24px;
+  align-items: flex-start;
+}
+.pane {
+  flex: 1 1 420px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+}
+.paneHead {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  padding: 6px 12px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+/* Колонка с плитками полей: под плитками — фон страницы, а не белый (владелец
+   02.11.2026), белые только сами плитки. Хост помечает тело вкладки
+   атрибутом data-record-fields. Шапка колонки остаётся белой. */
+.pane:has([data-record-fields]) {
+  background: var(--bg-app);
+}
+.pane:has([data-record-fields]) > .paneHead {
+  background: var(--bg-surface);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+}
+/* Широкий экран: тело фиксированной высоты, каждая колонка прокручивается сама. */
+.bodyFixed {
+  flex-wrap: nowrap;
+  align-items: stretch;
+  padding-bottom: 8px;
+}
+.bodyFixed > .pane {
+  min-height: 0;
+  overflow: hidden;
+}
+.bodyFixed .paneScroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.bodyFixed .paneFill {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.paneFill > * {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+/* Колонка фиксированной высоты: лента карточки тянется на всю колонку. */
+.bodyFixed .paneFill [role="log"] {
+  max-height: none;
+}
+.tablist {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.tab {
+  min-height: 40px;
+  padding: 0 12px;
+  border: none;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--fg-secondary);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.tab[aria-selected="true"] {
+  color: var(--fg-primary);
+  font-weight: 700;
+  border-bottom-color: var(--primary, var(--accent-500));
+}
+.tabCount {
+  font-size: 11px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: var(--bg-subtle);
+  color: var(--fg-secondary);
+}
+.mobileTabs {
+  display: none;
+}
+
+/* Маленькая кнопка «⋯» (ActionsMenu small). */
+.smallBtn {
+  min-height: 28px;
+  padding: 0 8px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-surface);
+  color: var(--fg-secondary);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  text-decoration: none;
+}
+.smallBtn:hover {
+  background: var(--bg-hover);
+}
+
+/* Телефон: чат и поля — вкладками, кнопки не меньше 44px. */
+@media (max-width: 640px) {
+  .header {
+    padding: 12px 16px 0;
+  }
+  .title {
+    font-size: 20px;
+  }
+  .body {
+    padding: 12px 16px 16px;
+  }
+  .pane {
+    flex-basis: 100%;
+  }
+  .mobileTabs {
+    display: flex;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: var(--bg-surface);
+    border-bottom: 1px solid var(--border-subtle);
+    padding: 0 16px;
+  }
+  .mobileTabs .tab {
+    flex: 1 1 0;
+    justify-content: center;
+    min-height: 44px;
+  }
+  .paneHidden {
+    display: none;
+  }
+  .btn,
+  .iconBtn,
+  .tab,
+  .stage,
+  .menuItem,
+  .smallBtn {
+    min-height: 44px;
+  }
+  .iconBtn {
+    width: 44px;
+  }
+}

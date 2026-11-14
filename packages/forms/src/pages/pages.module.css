@@ -17,30 +17,23 @@
 .record {
   max-width: 1400px;
 }
-/* Карточка с лентой — как карточка лида (WH_Portale components/record):
-   две колонки по 50 %, каждой нужна ширина, поэтому без потолка 1400px. */
-.recordWide {
-  max-width: none;
-}
-.recBody {
+/* Запись в карточке записи RecordCard (есть лента): тело вкладки колонки и
+   лента во всю высоту колонки. Сама карточка — из ui-react. */
+.cardTab {
   display: flex;
-  flex-wrap: wrap;
-  gap: 20px;
-  align-items: flex-start;
-}
-.recPane {
-  flex: 1 1 420px;
+  flex-direction: column;
+  gap: 14px;
   min-width: 0;
+  padding: 14px 16px;
 }
-/* Слева — обсуждение; поля справа. На узком экране (панели друг под другом)
-   поля идут первыми: запись читают раньше, чем переписку. */
-.recDiscussion {
-  order: 0;
+.cardFeed {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
 }
-@media (max-width: 900px) {
-  .recDiscussion {
-    order: 1;
-  }
+.cardEdit {
+  margin-left: auto;
 }
 .recFields {
   display: flex;

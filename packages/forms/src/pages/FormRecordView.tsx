@@ -3,11 +3,15 @@
  * автор и даты · действия), тело через FormRenderer(view), «История» —
  * раскрывающаяся панель с диффом.
  *
+ * С лентой (`discussion`) запись открывается в общей карточке записи
+ * `RecordCard` из ui-react — той же, что у лида, проекта и ФМ: слева лента,
+ * справа вкладки «Поля» и «История».
+ *
  * Один и тот же компонент для полной страницы и для drawer быстрого
  * просмотра из списка: контейнер решает хост.
  */
-import { useState, type ReactNode } from "react";
-import { Icon } from "@wowhaus-24/ui-react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
+import { Icon, RecordCard, type MenuEntry } from "@wowhaus-24/ui-react";
 
 import type {
   Form,
@@ -48,12 +52,67 @@ export interface FormRecordViewProps {
   /** Запись старше текущей версии формы — подсказать, что при правке попросят новые поля. */
   currentVersion?: number;
   /**
-   * Лента записи (RecordChat). Есть — карточка раскладывается как карточка
-   * лида: шапка во всю ширину, ниже слева обсуждение, справа поля, 50 на 50;
-   * на узком экране панели встают друг под другом. Одна вёрстка у форм всех
-   * модулей (владелец 14.11.2026).
+   * Лента записи (RecordChat). Есть — запись открывается в карточке записи
+   * `RecordCard` (стандарт лида): шапка, слева лента, справа поля. Своей
+   * вёрстки «как у лида» здесь нет (владелец 14.11.2026).
    */
   discussion?: ReactNode;
+  /** Ссылка на задачу Pyrus, с которой сверяется запись: «Открыть в Pyrus». */
+  pyrusUrl?: string;
+}
+
+/** Вкладка «История» карточки: грузится при первом открытии. */
+function HistoryTab({
+  load,
+  schema,
+  ctx,
+  actorName,
+}: {
+  load: () => Promise<RecordHistoryEntry[]>;
+  schema: SchemaDocument;
+  ctx: RenderContext;
+  actorName?: (id: string) => string;
+}) {
+  const [state, setState] = useState<
+    | { kind: "loading" }
+    | { kind: "open"; entries: RecordHistoryEntry[] }
+    | { kind: "error" }
+  >({ kind: "loading" });
+  // Хост передаёт новую функцию на каждый рендер — грузим один раз.
+  const loadRef = useRef(load);
+  loadRef.current = load;
+  useEffect(() => {
+    let cancelled = false;
+    loadRef.current().then(
+      (entries) => {
+        if (!cancelled) setState({ kind: "open", entries });
+      },
+      () => {
+        if (!cancelled) setState({ kind: "error" });
+      },
+    );
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+  return (
+    <div className={styles.cardTab}>
+      {state.kind === "loading" && (
+        <div className={styles.muted}>Загружаем историю…</div>
+      )}
+      {state.kind === "error" && (
+        <Banner tone="bad">Не удалось загрузить историю.</Banner>
+      )}
+      {state.kind === "open" && (
+        <RecordHistory
+          entries={state.entries}
+          schema={schema}
+          ctx={ctx}
+          actorName={actorName}
+        />
+      )}
+    </div>
+  );
 }
 
 export function FormRecordView({
@@ -71,6 +130,7 @@ export function FormRecordView({
   loadHistory,
   currentVersion,
   discussion,
+  pyrusUrl,
 }: FormRecordViewProps) {
   const [history, setHistory] = useState<
     | { kind: "closed" }
@@ -99,6 +159,103 @@ export function FormRecordView({
   const outdated =
     currentVersion != null && record.form_version < currentVersion;
 
+  const body = (
+    <FormRenderer
+      doc={schema}
+      values={withSystemValues(schema, record.data, {
+        record,
+        formName: form.name,
+        staff: ctx.staff,
+      })}
+      mode="view"
+      ctx={{ ...ctx, lookups: record.lookups }}
+    />
+  );
+
+  const outdatedBanner = outdated && (
+    <Banner>
+      Запись сохранена под версией формы v{record.form_version}, текущая — v
+      {currentVersion}. При редактировании попросят заполнить новые
+      обязательные поля.
+    </Banner>
+  );
+
+  if (discussion) {
+    const menu: MenuEntry[] = onDelete
+      ? [{ id: "delete", label: "Удалить", danger: true, onSelect: onDelete }]
+      : [];
+    const created = `${who(record.created_by)}, ${formatDateTime(record.created_at)}`;
+    return (
+      <RecordCard
+        crumbs={[
+          { label: backLabel ?? form.nav_label ?? form.name, onClick: onBack },
+          { label: "Запись" },
+        ]}
+        title={record.title || "Без названия"}
+        idLabel={`№${record.number}`}
+        kpis={[
+          { label: "Статус", value: s.label },
+          { label: "Создал", value: created },
+          ...(record.updated_at !== record.created_at
+            ? [
+                {
+                  label: "Изменено",
+                  value: `${formatDateTime(record.updated_at)}${
+                    record.updated_by ? `, ${who(record.updated_by)}` : ""
+                  }`,
+                },
+              ]
+            : []),
+          { label: "Версия формы", value: `v${record.form_version}` },
+        ]}
+        pyrusUrl={pyrusUrl}
+        headerAside={actions}
+        menu={menu}
+        notice={outdatedBanner || undefined}
+        left={{
+          label: "Обсуждение",
+          bare: true,
+          tabs: [{ id: "feed", label: "Обсуждение" }],
+          selfScroll: ["feed"],
+          render: () => (
+            <div className={styles.cardFeed} data-record-feed="">
+              {discussion}
+            </div>
+          ),
+        }}
+        right={{
+          label: "Поля",
+          tabs: [
+            { id: "fields", label: "Поля" },
+            ...(loadHistory ? [{ id: "history", label: "История" }] : []),
+          ],
+          keepMounted: ["fields"],
+          headAside: (tab) =>
+            tab === "fields" && onEdit && form.status === "published" ? (
+              <button
+                type="button"
+                className={["btn", "btn-primary", "btn-sm", styles.cardEdit].join(" ")}
+                onClick={onEdit}
+              >
+                <Icon name="edit" size={14} /> Редактировать
+              </button>
+            ) : null,
+          render: (tab) =>
+            tab === "history" && loadHistory ? (
+              <HistoryTab
+                load={loadHistory}
+                schema={schema}
+                ctx={ctx}
+                actorName={actorName}
+              />
+            ) : (
+              <div className={styles.cardTab}>{body}</div>
+            ),
+        }}
+      />
+    );
+  }
+
   const fields = (
     <div className={styles.recFields}>
       {history.kind === "loading" && (
@@ -115,29 +272,13 @@ export function FormRecordView({
           actorName={actorName}
         />
       )}
-
-      <FormRenderer
-        doc={schema}
-        values={withSystemValues(schema, record.data, {
-          record,
-          formName: form.name,
-          staff: ctx.staff,
-        })}
-        mode="view"
-        ctx={{ ...ctx, lookups: record.lookups }}
-      />
+      {body}
     </div>
   );
 
   return (
     <div
-      className={[
-        styles.page,
-        styles.record,
-        discussion ? styles.recordWide : "",
-      ]
-        .filter(Boolean)
-        .join(" ")}
+      className={[styles.page, styles.record].join(" ")}
     >
       {onBack && (
         <div>
@@ -183,6 +324,16 @@ export function FormRecordView({
         </div>
         <div className={styles.actions}>
           {actions}
+          {pyrusUrl && (
+            <a
+              className="btn btn-ghost btn-sm"
+              href={pyrusUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Icon name="external" size={14} /> Открыть в Pyrus
+            </a>
+          )}
           {loadHistory && (
             <button
               type="button"
@@ -214,29 +365,9 @@ export function FormRecordView({
         </div>
       </div>
 
-      {outdated && (
-        <Banner>
-          Запись сохранена под версией формы v{record.form_version}, текущая — v
-          {currentVersion}. При редактировании попросят заполнить новые
-          обязательные поля.
-        </Banner>
-      )}
+      {outdatedBanner}
 
-      {discussion ? (
-        <div className={styles.recBody}>
-          <section
-            className={[styles.recPane, styles.recDiscussion].join(" ")}
-            aria-label="Обсуждение"
-          >
-            {discussion}
-          </section>
-          <section className={styles.recPane} aria-label="Поля">
-            {fields}
-          </section>
-        </div>
-      ) : (
-        fields
-      )}
+      {fields}
     </div>
   );
 }

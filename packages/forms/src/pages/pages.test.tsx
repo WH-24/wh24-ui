@@ -384,8 +384,8 @@ describe("FormRecordView", () => {
   });
 });
 
-describe("FormRecordView — с лентой (вёрстка карточки лида, 14.11.2026)", () => {
-  it("есть лента — две панели: «Обсуждение» и «Поля»; нет — одна колонка полей", () => {
+describe("FormRecordView — с лентой: общая карточка записи RecordCard (14.11.2026)", () => {
+  it("есть лента — карточка записи: «Обсуждение» слева, «Поля» справа; нет — одна колонка полей", () => {
     const { rerender } = render(
       <FormRecordView
         form={form}
@@ -398,8 +398,10 @@ describe("FormRecordView — с лентой (вёрстка карточки л
     const talk = screen.getByRole("region", { name: "Обсуждение" });
     const fields = screen.getByRole("region", { name: "Поля" });
     expect(talk).toHaveTextContent("Лента записи");
-    // Шапка записи — над панелями, а не внутри полей.
+    // Шапка записи — над панелями, а не внутри полей; номер — чипом.
     expect(within(fields).queryByRole("heading", { level: 1 })).toBeNull();
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Запись 1");
+    expect(screen.getByText("№1")).toBeInTheDocument();
     rerender(
       <FormRecordView form={form} schema={schema} record={rec(1)} ctx={ctx} />,
     );
@@ -408,6 +410,41 @@ describe("FormRecordView — с лентой (вёрстка карточки л
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(
       "Запись 1",
     );
+  });
+
+  it("действия карточки: «Редактировать» у вкладки «Поля», «Удалить» в меню «⋯», «История» — вкладкой, Pyrus — ссылкой", async () => {
+    const user = userEvent.setup();
+    const onEdit = vi.fn();
+    const onDelete = vi.fn();
+    const loadHistory = vi.fn().mockResolvedValue([]);
+    render(
+      <FormRecordView
+        form={form}
+        schema={schema}
+        record={rec(1)}
+        ctx={ctx}
+        discussion={<div>Лента записи</div>}
+        onEdit={onEdit}
+        onDelete={onDelete}
+        loadHistory={loadHistory}
+        pyrusUrl="https://pyrus.com/t#id1"
+      />,
+    );
+    await user.click(screen.getByRole("button", { name: /Редактировать/ }));
+    expect(onEdit).toHaveBeenCalledTimes(1);
+    expect(screen.getByRole("link", { name: /Открыть в Pyrus/ })).toHaveAttribute(
+      "href",
+      "https://pyrus.com/t#id1",
+    );
+    await user.click(screen.getByRole("button", { name: "Ещё действия" }));
+    await user.click(screen.getByRole("menuitem", { name: "Удалить" }));
+    expect(onDelete).toHaveBeenCalledTimes(1);
+    // История не грузится, пока вкладку не открыли.
+    expect(loadHistory).not.toHaveBeenCalled();
+    await user.click(screen.getByRole("tab", { name: "История" }));
+    await waitFor(() => expect(loadHistory).toHaveBeenCalledTimes(1));
+    // «Редактировать» — действие вкладки «Поля».
+    expect(screen.queryByRole("button", { name: /Редактировать/ })).toBeNull();
   });
 });
 

@@ -22,7 +22,7 @@
 09.11.2026, стили на именах `ui-tokens/bridge.css`): `ModuleLayout`/`ModuleNavGroup`/`ModuleNavLink`/
 `ModuleNavList` (`src/module/`), `Page`/`PageHeader`/`EmptyState`/`ErrorState`/`Loader` (`src/page/`),
 `Tabs`/`TabPanel`/`SegmentedControl` (`src/tabs/`), `Modal`/`Drawer`/`ConfirmProvider`+`useConfirm`/`useAlert`/
-`ToastProvider`+`useToast`/`useFocusTrap` (`src/overlay/`). Портал пока рисует то же своими копиями
+`ToastProvider`+`useToast`/`useFocusTrap` (`src/overlay/`). Карточка записи — стандарт лида/проекта/ФМ и записей форм (перенесена из портала 14.11.2026): `RecordCard` (+ `RecordTabs`/`RecordTabPanel`, `ActionsMenu`, `cleanSeps`; `src/record/`); «Спросить ИИ» и меню причин отказа подставляет хост (`aiMenu`, `failMenu`). `FormRecordView` с `discussion` рисует запись в ней — свою вёрстку «как у лида» не делать. Портал пока рисует то же своими копиями
 (`apps/hr/src/components/*`, классы `.section-*/.page-*/.modal-*` в `styles.css`). Пакет форм — `packages/forms` (ниже).
 
 Тема: `html[data-theme="dark"]`. Persistence — `localStorage['wh-ui-theme']`, cross-tab sync. Терракот не меняется между темами.

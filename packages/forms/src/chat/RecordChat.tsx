@@ -204,7 +204,7 @@ export function RecordChat({
         </div>
       )}
 
-      <div className={styles.list} ref={listRef} aria-label="Сообщения">
+      <div className={styles.list} ref={listRef} role="log" aria-label="Сообщения">
         {feed.comments.length === 0 && <div className={styles.muted}>Сообщений пока нет</div>}
         {feed.comments.map((c) => (
           <Message
