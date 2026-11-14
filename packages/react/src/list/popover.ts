@@ -38,3 +38,21 @@ export function revealOption(id: string | undefined): void {
   const el = document.getElementById(id)
   if (el && typeof el.scrollIntoView === 'function') el.scrollIntoView({ block: 'nearest' })
 }
+
+/**
+ * Сколько вариантов список выбора рисует за раз. Справочник на 5000
+ * сотрудников иначе давал 5000 кнопок на каждое нажатие клавиши; остальное
+ * находится поиском — под списком строка «уточните запрос».
+ */
+export const OPTION_LIMIT = 200
+
+/** Обрезать список до предела; `rest` — сколько вариантов не показано. */
+export function limitOptions<T>(all: readonly T[], limit = OPTION_LIMIT): { shown: T[]; rest: number } {
+  if (all.length <= limit) return { shown: all as T[], rest: 0 }
+  return { shown: all.slice(0, limit), rest: all.length - limit }
+}
+
+/** Текст строки под обрезанным списком. */
+export function moreOptionsText(shown: number, rest: number): string {
+  return `Показаны первые ${shown} из ${shown + rest} — уточните запрос`
+}

@@ -81,7 +81,10 @@ export const Avatar = forwardRef<HTMLElement, AvatarProps>(function Avatar(
   // Новая ссылка — новая попытка: прежняя ошибка к ней не относится.
   useEffect(() => setFailed(false), [src])
 
-  const letters = initials ?? initialsOf(name)
+  // Готовые инициалы режем до двух символов (по символам, а не половинкам
+  // эмодзи): слово целиком вылезало из круга, пустая строка давала пустой круг.
+  const letters =
+    initials !== undefined ? Array.from(initials.trim()).slice(0, 2).join('') || '?' : initialsOf(name)
   const tinted = tint ?? Boolean(name)
   const cls = [
     styles.av,

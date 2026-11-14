@@ -27,3 +27,20 @@ describe('Avatar', () => {
     expect(onClick).toHaveBeenCalledTimes(1)
   })
 })
+
+describe('Avatar: худшие данные', () => {
+  it('готовые инициалы длиннее двух символов обрезаются', () => {
+    render(<Avatar initials="Wiśniewska" />)
+    expect(screen.getByRole('button')).toHaveTextContent(/^Wi$/)
+  })
+
+  it('пустые инициалы — «?», а не пустой круг', () => {
+    render(<Avatar initials="  " />)
+    expect(screen.getByRole('button', { name: 'Профиль ?' })).toHaveTextContent('?')
+  })
+
+  it('эмодзи не режется пополам', () => {
+    render(<Avatar initials="🦊Лиса" />)
+    expect(screen.getByRole('button')).toHaveTextContent(/^🦊Л$/)
+  })
+})

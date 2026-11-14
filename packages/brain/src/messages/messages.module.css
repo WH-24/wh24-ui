@@ -64,7 +64,7 @@
   border: 1px solid var(--bad-bd);
   background: var(--bad-bg);
   color: var(--bad);
-  font-size: 13px;
+  font-size: var(--fs-ui);
 }
 
 /* Строка действий — как в ChatGPT: тихие иконки под ответом, подсказка при
@@ -82,8 +82,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 5px;
-  height: 30px;
+  gap: var(--sp-2);
+  height: var(--control-h-sm);
   border: 0;
   border-radius: var(--r-md);
   background: transparent;
@@ -95,7 +95,7 @@
     color var(--dur-fast) ease;
 }
 .iconAct {
-  width: 30px;
+  width: var(--control-h-sm);
   padding: 0;
 }
 .act {
@@ -110,8 +110,8 @@
 }
 .iconAct:focus-visible,
 .act:focus-visible {
-  outline: var(--focus-ring-w, 2px) solid var(--terra);
-  outline-offset: 1px;
+  outline: var(--focus-ring-w) solid var(--focus);
+  outline-offset: var(--focus-ring-offset);
 }
 .iconAct[aria-pressed='true'],
 .iconAct[data-state='copied'] {
@@ -149,12 +149,12 @@
   gap: 6px;
 }
 .followup {
-  padding: 5px 11px;
+  padding: var(--sp-2) var(--sp-4);
   border: 1px solid var(--bd);
   border-radius: var(--r-pill);
   background: var(--surf);
   color: var(--ink-2);
-  font-size: 13px;
+  font-size: var(--fs-ui);
   text-align: left;
   cursor: pointer;
   transition:
@@ -203,17 +203,17 @@
   max-width: 220px;
   max-height: 160px;
   border-radius: var(--r-md);
-  border: var(--bd-hairline) solid var(--bd);
+  border: var(--bd-w) solid var(--bd);
   object-fit: cover;
 }
 .userFile {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: var(--sp-2);
   max-width: 220px;
   padding: 3px 8px;
   border-radius: var(--r-md);
-  border: var(--bd-hairline) solid var(--bd-strong);
+  border: var(--bd-w) solid var(--bd-strong);
   background: var(--surf);
   font-size: var(--fs-meta);
   color: var(--ink-2);

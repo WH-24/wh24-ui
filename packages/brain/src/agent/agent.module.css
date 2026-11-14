@@ -11,7 +11,7 @@
   padding: 2px 8px;
   border-radius: var(--r-pill);
   background: var(--surf-2);
-  border: var(--bd-hairline) solid var(--bd);
+  border: var(--bd-w) solid var(--bd);
   color: var(--ink-3);
 }
 .step[data-bad] {
@@ -22,8 +22,8 @@
 
 .action {
   padding: 14px 16px;
-  border: var(--bd-hairline) solid var(--bd-strong);
-  border-radius: var(--r-xl);
+  border: var(--bd-w) solid var(--bd-strong);
+  border-radius: var(--r-lg);
   background: var(--surf);
   max-width: 560px;
   font-family: var(--font-sans);
@@ -36,7 +36,7 @@
 }
 .action:focus-visible {
   outline: var(--focus-ring-w) solid var(--focus);
-  outline-offset: 2px;
+  outline-offset: var(--focus-ring-offset);
 }
 
 .head {
@@ -72,7 +72,7 @@
   display: grid;
   grid-template-columns: minmax(0, 38%) minmax(0, 1fr);
   gap: 12px;
-  font-size: 13px;
+  font-size: var(--fs-ui);
   line-height: 1.5;
 }
 .row dt {
@@ -89,9 +89,9 @@
   padding: 8px 10px;
   border-radius: var(--r-md);
   background: var(--warn-bg);
-  border: var(--bd-hairline) solid var(--warn-bd);
+  border: var(--bd-w) solid var(--warn-bd);
   color: var(--warn);
-  font-size: 13px;
+  font-size: var(--fs-ui);
 }
 .warn ul {
   margin: 4px 0 0;
@@ -100,7 +100,7 @@
 
 .result {
   margin: 10px 0 0;
-  font-size: 13px;
+  font-size: var(--fs-ui);
   color: var(--ink-2);
 }
 .action[data-status='failed'] .result,
@@ -109,7 +109,7 @@
 }
 .error {
   margin: 10px 0 0;
-  font-size: 13px;
+  font-size: var(--fs-ui);
 }
 
 .buttons {

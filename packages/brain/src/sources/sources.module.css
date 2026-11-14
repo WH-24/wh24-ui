@@ -55,7 +55,7 @@
 
 .empty {
   margin: 0;
-  font-size: 13px;
+  font-size: var(--fs-ui);
   color: var(--ink-3);
 }
 
@@ -73,7 +73,7 @@
   flex-direction: column;
   gap: 4px;
   padding: 10px 12px;
-  border: var(--bd-hairline) solid var(--bd-strong);
+  border: var(--bd-w) solid var(--bd-strong);
   border-radius: var(--r-lg);
   background: var(--surf);
   transition:
@@ -92,7 +92,7 @@
 }
 .card:focus-visible {
   outline: var(--focus-ring-w) solid var(--focus);
-  outline-offset: 2px;
+  outline-offset: var(--focus-ring-offset);
 }
 
 .head {
@@ -110,7 +110,7 @@
   justify-content: center;
   min-width: 18px;
   height: 18px;
-  padding: 0 5px;
+  padding: 0 var(--sp-2);
   border-radius: var(--r-pill);
   background: var(--terra-bg);
   border: 1px solid var(--terra-bd);
@@ -123,7 +123,7 @@
 .mod {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: var(--sp-2);
   min-width: 0;
   white-space: nowrap;
   overflow: hidden;
@@ -154,7 +154,7 @@
 
 .snippet {
   margin: 0;
-  font-size: 13px;
+  font-size: var(--fs-ui);
   line-height: 1.45;
   color: var(--ink-2);
   overflow-wrap: anywhere;

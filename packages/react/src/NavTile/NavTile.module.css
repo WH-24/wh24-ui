@@ -1,6 +1,6 @@
 .tile {
   background: var(--surf-2);
-  border: 0.5px solid var(--bd-soft);
+  border: var(--bd-w) solid var(--bd-soft);
   border-radius: var(--r-lg);
   padding: 16px 20px;
   display: flex;
@@ -34,7 +34,7 @@
   height: 40px;
   border-radius: var(--r-md);
   background: var(--surf);
-  border: 0.5px solid var(--bd);
+  border: var(--bd-w) solid var(--bd);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -50,7 +50,7 @@
 
 .name {
   display: block;
-  font-size: 14px;
+  font-size: var(--fs-ui-lg);
   font-weight: var(--fw-medium);
   color: var(--ink);
   line-height: 1.2;
@@ -58,7 +58,7 @@
 
 .sub {
   display: block;
-  font-size: 12px;
+  font-size: var(--fs-meta);
   color: var(--ink-3);
   margin-top: 3px;
 }

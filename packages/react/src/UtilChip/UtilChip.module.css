@@ -4,10 +4,10 @@
   gap: 8px;
   padding: 6px 12px;
   background: transparent;
-  border: 0.5px solid var(--bd-strong);
+  border: var(--bd-w) solid var(--bd-strong);
   border-radius: var(--r-pill);
   font-family: inherit;
-  font-size: 12px;
+  font-size: var(--fs-meta);
   color: var(--ink-2);
   text-decoration: none;
   cursor: pointer;
@@ -55,16 +55,16 @@
 }
 
 .icon {
-  font-size: 12px;
+  font-size: var(--fs-meta);
   opacity: 0.85;
   display: inline-flex;
   align-items: center;
 }
 
 .badge {
-  font-size: 10px;
-  padding: 1px 7px;
-  border-radius: 3px;
+  font-size: var(--fs-meta-sm);
+  padding: 1px var(--sp-3);
+  border-radius: var(--r-xs);
   background: var(--surf-3);
   color: var(--ink-3);
   letter-spacing: 0.04em;

@@ -44,7 +44,7 @@
 }
 .emptyText {
   max-width: 360px;
-  font-size: 13px;
+  font-size: var(--fs-ui);
   line-height: 1.45;
   color: var(--ink-2);
 }
@@ -60,11 +60,11 @@
 .suggestion {
   min-height: 36px;
   padding: 8px 12px;
-  border: var(--bd-hairline) solid var(--bd-strong);
+  border: var(--bd-w) solid var(--bd-strong);
   border-radius: var(--r-lg);
   background: var(--surf);
   color: var(--ink-2);
-  font-size: 13px;
+  font-size: var(--fs-ui);
   line-height: 1.4;
   text-align: left;
   cursor: pointer;
@@ -75,11 +75,11 @@
 }
 .suggestion:disabled {
   opacity: var(--disabled-opacity);
-  cursor: default;
+  cursor: not-allowed;
 }
 .suggestion:focus-visible {
   outline: var(--focus-ring-w) solid var(--focus);
-  outline-offset: 2px;
+  outline-offset: var(--focus-ring-offset);
 }
 
 .changes,
@@ -90,7 +90,7 @@
   gap: 6px;
   padding: 10px 12px;
   border-radius: var(--r-md);
-  border: var(--bd-hairline) solid var(--terra-bd);
+  border: var(--bd-w) solid var(--terra-bd);
   background: var(--terra-bg);
 }
 .changes[data-undone] {
@@ -109,14 +109,14 @@
 .notes .changesTitle {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: var(--sp-2);
 }
 .notes .changesTitle svg {
   color: var(--warn);
 }
 .changesTitle {
   margin: 0;
-  font-size: 11px;
+  font-size: var(--fs-meta-sm);
   font-weight: var(--fw-medium);
   letter-spacing: 0.05em;
   text-transform: uppercase;
@@ -124,7 +124,7 @@
 .changesList {
   margin: 0;
   padding-left: 18px;
-  font-size: 13px;
+  font-size: var(--fs-ui);
   line-height: 1.5;
   overflow-wrap: anywhere;
 }
@@ -133,8 +133,8 @@
   margin: 0;
   padding: 8px 10px;
   border-radius: var(--r-md);
-  border: var(--bd-hairline) solid var(--bad-bd);
+  border: var(--bd-w) solid var(--bad-bd);
   background: var(--bad-bg);
   color: var(--bad);
-  font-size: 13px;
+  font-size: var(--fs-ui);
 }

@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState, type CSSProperties, type DragEvent, type ReactNode } from 'react'
+import { useEffect, useId, useMemo, useRef, useState, type CSSProperties, type DragEvent, type ReactNode } from 'react'
 
 import { Icon } from '../list/Icon.js'
 import { usePopPresence } from '../overlay/presence.js'
@@ -61,6 +61,9 @@ const toneVar: Record<KanbanTone, string> = {
  * статус: куда можно перенести, решает потребитель (`canMove`), а сам перенос
  * — `onMove` (обычно запрос в API; пока он идёт, карточка помечена занятой).
  */
+/** Пустая колонка — один и тот же массив, без нового на каждый рендер. */
+const NO_CARDS: never[] = []
+
 export function Kanban<T>({
   columns,
   items,
@@ -97,6 +100,18 @@ export function Kanban<T>({
       btn.focus()
     }
   })
+  // Карточки по колонкам — одним проходом, а не `items.filter` на каждую
+  // колонку при каждом рендере (перенос мышью рендерит доску на каждый dragover).
+  const byColumn = useMemo(() => {
+    const map = new Map<string, T[]>()
+    for (const it of items) {
+      const col = getColumn(it)
+      const list = map.get(col)
+      if (list) list.push(it)
+      else map.set(col, [it])
+    }
+    return map
+  }, [items, getColumn])
   const byId = new Map(items.map((it) => [getId(it), it]))
   const dragged = dragId ? byId.get(dragId) : undefined
   const allowed = (item: T, col: string) => getColumn(item) !== col && (canMove ? canMove(item, col) : true)
@@ -140,7 +155,7 @@ export function Kanban<T>({
       </div>
       <div ref={boardRef} className={styles.board} role="list" aria-label={ariaLabel}>
         {columns.map((col) => {
-          const cards = items.filter((it) => getColumn(it) === col.id)
+          const cards = byColumn.get(col.id) ?? NO_CARDS
           const droppable = !!dragged && allowed(dragged, col.id)
           // Своя колонка — перестановка (если потребитель её поддерживает).
           const sorting = !!dragged && !!onReorder && getColumn(dragged) === col.id
@@ -188,7 +203,10 @@ export function Kanban<T>({
               {...dropProps}
             >
               <header className={styles.head}>
-                <span className={styles.title}>{col.title}</span>
+                <span className={styles.dot} aria-hidden="true" />
+                <span className={styles.title} title={col.title}>
+                  {col.title}
+                </span>
                 <span className={styles.count}>{col.count ?? cards.length}</span>
               </header>
               <ul className={styles.cards}>

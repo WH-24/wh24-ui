@@ -11,7 +11,7 @@
   align-items: center;
   justify-content: center;
   font-family: inherit;
-  font-size: 12px;
+  font-size: var(--fs-meta);
   font-weight: var(--fw-medium);
   line-height: 1;
   color: var(--ink-2);
@@ -31,8 +31,8 @@
 }
 
 .btn:focus-visible {
-  outline: var(--focus-ring-w, 2px) solid var(--focus, var(--terra));
-  outline-offset: var(--focus-ring-offset, 2px);
+  outline: var(--focus-ring-w) solid var(--focus);
+  outline-offset: var(--focus-ring-offset);
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -45,22 +45,22 @@
 .s20 {
   width: 20px;
   height: 20px;
-  font-size: 9px;
+  font-size: var(--fs-meta-sm);
 }
 .s24 {
   width: 24px;
   height: 24px;
-  font-size: 10px;
+  font-size: var(--fs-meta-sm);
 }
 .s44 {
   width: 44px;
   height: 44px;
-  font-size: 15px;
+  font-size: var(--fs-title);
 }
 .s56 {
   width: 56px;
   height: 56px;
-  font-size: 18px;
+  font-size: var(--fs-h3);
 }
 
 /* Мягкий цвет по имени — пять тонов макета. */

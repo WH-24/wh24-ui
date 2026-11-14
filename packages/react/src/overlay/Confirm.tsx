@@ -171,7 +171,7 @@ function ConfirmCard({
             className={`btn btn-sm ${danger ? 'btn-danger' : 'btn-primary'}`}
             onClick={() => close(true)}
           >
-            {pending.confirmLabel ?? (pending.alert ? 'Понятно' : 'Удалить')}
+            {pending.confirmLabel ?? (pending.alert ? 'Понятно' : danger ? 'Удалить' : 'Подтвердить')}
           </button>
         </div>
       </div>

@@ -9,6 +9,7 @@ import {
 } from 'react'
 import { createPortal } from 'react-dom'
 
+import { Icon } from '../list/Icon.js'
 import { placePopover } from '../list/popover.js'
 import { usePopPresence } from '../overlay/presence.js'
 
@@ -149,7 +150,7 @@ interface PopRect {
  * читаются полностью: «12 ноября 2026, сегодня».
  */
 export function DateField({
-  value,
+  value: valueProp,
   onChange,
   min,
   max,
@@ -160,6 +161,9 @@ export function DateField({
   style,
   invalid = false,
 }: DateFieldProps) {
+  // Значение со временем (`2026-11-14T00:00:00Z` — так дату отдаёт часть API)
+  // раньше молча показывалось пустым: берём календарную часть.
+  const value = /^\d{4}-\d{2}-\d{2}[T ]/.test(valueProp ?? '') ? valueProp.slice(0, 10) : valueProp
   const [open, setOpen] = useState(false)
   const [rect, setRect] = useState<PopRect | null>(null)
   // Текст поля для ручного ввода (маскированный дд.мм.гггг).
@@ -377,7 +381,7 @@ export function DateField({
                   if (focusDay) setFocusDay(addMonths(focusDay, -1))
                 }}
               >
-                ‹
+                <Icon name="chevleft" size={16} />
               </button>
               <span className={styles.dpTitle} aria-live="polite">
                 {MONTHS[view.m]} {view.y}
@@ -391,7 +395,7 @@ export function DateField({
                   if (focusDay) setFocusDay(addMonths(focusDay, 1))
                 }}
               >
-                ›
+                <Icon name="chevright" size={16} />
               </button>
             </div>
             <div className={[styles.dpGrid, styles.dpGridWd].join(' ')}>

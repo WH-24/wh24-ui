@@ -1,7 +1,7 @@
 .btn {
   width: 32px;
   height: 32px;
-  border-radius: var(--r-sm, 6px);
+  border-radius: var(--control-r);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -30,13 +30,13 @@
 }
 
 .btn:focus-visible {
-  outline: 2px solid var(--focus, var(--terra));
-  outline-offset: 1px;
+  outline: var(--focus-ring-w) solid var(--focus);
+  outline-offset: var(--focus-ring-offset);
 }
 
 .btn:disabled {
-  opacity: var(--disabled-opacity, 0.45);
-  cursor: default;
+  opacity: var(--disabled-opacity);
+  cursor: not-allowed;
 }
 
 .btn[aria-pressed='true'] {
@@ -49,4 +49,11 @@
   height: 16px;
   align-items: center;
   justify-content: center;
+}
+/* Палец: цель не меньше 44px (значок остаётся 16px). */
+@media (pointer: coarse) {
+  .btn {
+    min-width: var(--tap-min);
+    min-height: var(--tap-min);
+  }
 }

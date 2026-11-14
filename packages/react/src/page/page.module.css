@@ -7,7 +7,7 @@
   padding: 8px 28px 40px;
 }
 /* Узкий экран: поля 16px вместо 28 (на 375px это 15% ширины). */
-@media (max-width: 720px) {
+@media (max-width: 768px) {
   .page {
     padding-left: 16px;
     padding-right: 16px;
@@ -30,15 +30,19 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 24px;
+  /* Перенос — всегда: на 800–1000px пять кнопок справа сжимали заголовок до
+     столбика по слову. */
+  flex-wrap: wrap;
+  gap: 12px 24px;
   margin-bottom: 16px;
 }
 .headText {
+  flex: 1 1 240px;
   min-width: 0;
 }
 .title {
   margin: 0;
-  font-size: 22px;
+  font-size: var(--fs-h2);
   font-weight: 600;
   line-height: 1.25;
   color: var(--fg-primary);
@@ -46,33 +50,33 @@
   display: flex;
   align-items: center;
   gap: 10px;
+  overflow-wrap: anywhere;
 }
 .titleCount {
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--fg-tertiary);
-  padding: 2px 8px;
+  /* Счётчик — один вид на библиотеку: вкладки, заголовок страницы, запись,
+     канбан, панель модуля. */
+  font-size: var(--fs-meta-sm);
+  font-weight: var(--fw-medium);
+  line-height: 1.45;
+  padding: 1px 6px;
+  border-radius: var(--r-pill);
   background: var(--bg-muted);
-  border-radius: 999px;
+  color: var(--fg-secondary);
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  flex-shrink: 0;
   letter-spacing: 0;
 }
 .subtitle {
   margin: 4px 0 0;
-  font-size: 13px;
+  font-size: var(--fs-ui);
   color: var(--fg-tertiary);
 }
 .actions {
   display: flex;
   gap: 8px;
   align-items: center;
-  flex-shrink: 0;
-}
-@media (max-width: 720px) {
-  .header,
-  .actions {
-    flex-wrap: wrap;
-  }
+  flex-wrap: wrap;
 }
 
 /* ── Пусто ── */
@@ -88,7 +92,7 @@
 .emptyIcon {
   width: 48px;
   height: 48px;
-  border-radius: 12px;
+  border-radius: var(--r-lg);
   background: var(--bg-muted);
   color: var(--fg-tertiary);
   display: grid;
@@ -96,15 +100,17 @@
   margin-bottom: 14px;
 }
 .emptyTitle {
-  font-size: 14px;
+  font-size: var(--fs-ui-lg);
   color: var(--fg-primary);
   font-weight: 500;
   margin-bottom: 4px;
 }
 .emptyDesc {
-  font-size: 13px;
+  font-size: var(--fs-ui);
   max-width: 360px;
   line-height: 1.45;
+  /* Адрес или трассировка без пробелов в тексте ошибки — переносится. */
+  overflow-wrap: anywhere;
 }
 .emptyActions {
   display: flex;
@@ -126,12 +132,12 @@
   margin-bottom: 20px;
 }
 .emptyTitleLg {
-  font-size: 18px;
+  font-size: var(--fs-h3);
   font-weight: 600;
   margin-bottom: 8px;
 }
 .emptyDescLg {
-  font-size: 14px;
+  font-size: var(--fs-ui-lg);
   line-height: 1.5;
   max-width: 440px;
 }
@@ -169,7 +175,7 @@
   animation: spin var(--dur-spin) linear infinite;
 }
 .loaderLabel {
-  font-size: 13px;
+  font-size: var(--fs-ui);
   color: var(--fg-muted);
 }
 @keyframes spin {

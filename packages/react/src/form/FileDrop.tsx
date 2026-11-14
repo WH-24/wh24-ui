@@ -66,6 +66,7 @@ export interface FileDropProps {
 }
 
 function formatSize(n: number): string {
+  if (n >= 1024 ** 3) return `${(n / 1024 ** 3).toFixed(1)} ГБ`
   if (n >= 1024 * 1024) return `${(n / 1024 / 1024).toFixed(1)} МБ`
   if (n >= 1024) return `${Math.round(n / 1024)} КБ`
   return `${n} Б`

@@ -51,7 +51,7 @@
 .aiLabel {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: var(--sp-2);
   font-size: var(--fs-meta);
   font-weight: var(--fw-medium);
   color: var(--terra-d);
@@ -71,7 +71,7 @@
   border: 1px solid var(--info-bd);
   background: var(--info-bg);
   color: var(--info);
-  font-size: 13px;
+  font-size: var(--fs-ui);
   line-height: 1.45;
   font-family: var(--font-sans);
 }

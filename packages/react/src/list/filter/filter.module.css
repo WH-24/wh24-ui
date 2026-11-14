@@ -1,84 +1,82 @@
 /* ======================================================================
-   Универсальный фильтр (Bitrix24-style), CSS-модуль. Самодостаточный: токены
-   определяются прямо на корнях (.filterBar / .filterPop) и на портальном меню
-   мультивыбора (.msMenu — рендерится в <body>, вне scope страницы). Значения —
-   из WH_Portale design-system (light); dark — через [data-theme="dark"].
+   Универсальный фильтр (Bitrix24-style), CSS-модуль. Имена переменных — как в
+   ui-tokens/bridge.css, заданы на корнях (.filterBar / .filterPop) и на
+   портальном меню мультивыбора (.msMenu — рендерится в <body>, вне scope
+   страницы) и берут значения из tokens.css.
    ====================================================================== */
 
 .filterBar,
 .filterPop,
 .msMenu {
-  --fg-primary: #1a1a1a;
-  --fg-secondary: #3d3d3d;
-  /* Как в ui-tokens/bridge.css: текст ≥ 4.5:1 (прежние #7a7a7a/#b4b2a9 —
-     4.29 и 2.1:1). */
+  /* Имена bridge.css, значения — из tokens.css: своей копии палитры здесь
+     больше нет, смена темы и бренда приходит сама. Запасное значение после
+     запятой — на случай страницы без tokens.css. */
+  --fg-primary: var(--ink, #1a1a1a);
+  --fg-secondary: var(--ink-2, #3d3d3d);
+  /* Как в ui-tokens/bridge.css: текст ≥ 4.5:1. */
   --fg-tertiary: #5c5c5c;
   --fg-muted: #696969;
-  --accent-50: #fbeee5;
-  --accent-400: #dd6731;
-  --accent-500: #dd6731;
-  --accent-600: #b8501f;
-  --accent-700: #b8501f;
-  /* Терракота текстом: ≥ 4.9:1 и на белом, и на --accent-50. */
-  --accent-text: var(--terra-text, #a8481b);
   /* Рамка поля ≥ 3:1 к поверхности, как у Input (--field-bd). */
   --flt-field-bd: var(--field-bd, rgba(0, 0, 0, 0.44));
-  --bg-surface: #ffffff;
-  --bg-subtle: #f7f5f0;
-  --bg-muted: #efece4;
-  --bg-hover: #f7f5f0;
-  --bg-active: #efece4;
-  --border-subtle: rgba(0, 0, 0, 0.05);
-  --border-default: rgba(0, 0, 0, 0.08);
-  --border-strong: rgba(0, 0, 0, 0.12);
-  --radius-sm: 5px;
-  --radius-md: 7px;
-  --radius-lg: 10px;
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.06);
-  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.1), 0 2px 6px rgba(0, 0, 0, 0.04);
+  --accent-50: var(--terra-bg, #fbeee5);
+  --accent-400: var(--terra, #dd6731);
+  --accent-500: var(--terra, #dd6731);
+  --accent-600: var(--terra-d, #b8501f);
+  --accent-700: var(--terra-d, #b8501f);
+  /* Терракота текстом: ≥ 4.9:1 и на белом, и на --accent-50. */
+  --accent-text: var(--terra-text, #a8481b);
+  --bg-surface: var(--surf, #ffffff);
+  --bg-subtle: var(--surf-2, #f7f5f0);
+  --bg-muted: var(--surf-3, #efece4);
+  --bg-hover: var(--surf-2, #f7f5f0);
+  --bg-active: var(--surf-3, #efece4);
+  --border-subtle: var(--bd-soft, rgba(0, 0, 0, 0.05));
+  --border-default: var(--bd, rgba(0, 0, 0, 0.08));
+  --border-strong: var(--bd-strong, rgba(0, 0, 0, 0.12));
+  --radius-sm: var(--r-sm, 5px);
+  --radius-md: var(--r-md, 7px);
+  --radius-lg: var(--r-lg, 10px);
 }
 
 :where([data-theme="dark"]) .filterBar,
 :where([data-theme="dark"]) .filterPop,
 :where([data-theme="dark"]) .msMenu {
-  --fg-primary: #f2f2ef;
-  --fg-secondary: #d8d8d1;
+  --fg-primary: var(--ink, #f2f2ef);
+  --fg-secondary: var(--ink-2, #d8d8d1);
   --fg-tertiary: #a9aa9f;
   --fg-muted: #94968c;
-  --accent-50: rgba(221, 103, 49, 0.2);
-  --accent-text: var(--terra-text, #e57a48);
   --flt-field-bd: var(--field-bd, rgba(255, 255, 255, 0.34));
-  --bg-surface: #161816;
-  --bg-subtle: #1c1f1c;
-  --bg-muted: #272b27;
-  --bg-hover: #1c1f1c;
-  --bg-active: #272b27;
-  --border-subtle: rgba(255, 255, 255, 0.07);
-  --border-default: rgba(255, 255, 255, 0.1);
-  --border-strong: rgba(255, 255, 255, 0.16);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.45), 0 1px 2px rgba(0, 0, 0, 0.35);
-  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.55), 0 2px 6px rgba(0, 0, 0, 0.35);
+  --accent-50: var(--terra-bg, rgba(221, 103, 49, 0.2));
+  --accent-text: var(--terra-text, #e57a48);
+  --bg-surface: var(--surf, #161816);
+  --bg-subtle: var(--surf-2, #1c1f1c);
+  --bg-muted: var(--surf-3, #272b27);
+  --bg-hover: var(--surf-2, #1c1f1c);
+  --bg-active: var(--surf-3, #272b27);
+  --border-subtle: var(--bd-soft, rgba(255, 255, 255, 0.07));
+  --border-default: var(--bd, rgba(255, 255, 255, 0.1));
+  --border-strong: var(--bd-strong, rgba(255, 255, 255, 0.16));
 }
 
 /* Базовый input (.form-input) — нужен для дейтрейнджа и переименования пресета. */
 .formInput {
   appearance: none;
   width: 100%;
-  height: 36px;
-  padding: 0 10px;
-  border: 1px solid var(--flt-field-bd);
+  height: var(--control-h, 36px);
+  padding: 0 var(--field-px, 10px);
+  border: var(--bd-w, 1px) solid var(--flt-field-bd);
   border-radius: var(--radius-md);
   background: var(--bg-surface);
   color: var(--fg-primary);
   font: inherit;
-  font-size: 13px;
+  font-size: var(--fs-ui);
   outline: none;
   transition:
     border-color var(--dur-fast) ease,
     box-shadow var(--dur-fast) ease;
 }
 .formInput:focus {
-  border-color: var(--accent-500);
+  border-color: var(--focus, var(--accent-500));
   box-shadow: var(--field-ring, 0 0 0 3px var(--accent-50));
 }
 
@@ -102,8 +100,8 @@
   flex: 1 1 auto;
   min-width: 0;
   width: 100%;
-  min-height: 36px;
-  padding: 4px 6px 4px 11px;
+  min-height: var(--control-h, 36px);
+  padding: 4px 6px 4px var(--sp-4);
   border: 1px solid var(--flt-field-bd);
   border-radius: var(--radius-md);
   background: var(--bg-surface);
@@ -113,7 +111,7 @@
     box-shadow var(--dur-fast) ease;
 }
 .filterSearch[data-active="true"] {
-  border-color: var(--accent-500);
+  border-color: var(--focus, var(--accent-500));
   box-shadow: var(--field-ring, 0 0 0 3px var(--accent-50));
 }
 :where([data-theme="dark"]) .filterSearch[data-active="true"] {
@@ -130,7 +128,7 @@
   height: 26px;
   border: none;
   background: transparent;
-  font-size: 13.5px;
+  font-size: var(--fs-ui);
   color: var(--fg-primary);
   outline: none;
   padding: 0;
@@ -146,8 +144,8 @@
   display: grid;
   place-items: center;
   flex: none;
-  width: 26px;
-  height: 26px;
+  width: 24px;
+  height: 24px;
   border: none;
   background: transparent;
   border-radius: var(--radius-sm);
@@ -167,8 +165,8 @@
   align-items: center;
   gap: 4px;
   padding: 2px 4px 2px 8px;
-  font-size: 12px;
-  border-radius: 999px;
+  font-size: var(--fs-meta);
+  border-radius: var(--r-pill);
   background: var(--accent-50);
   color: var(--accent-text);
   max-width: 220px;
@@ -208,8 +206,8 @@
   inset: -4px;
 }
 .chipX:focus-visible {
-  outline: 2px solid var(--accent-500);
-  outline-offset: 1px;
+  outline: var(--focus-ring-w) solid var(--focus);
+  outline-offset: var(--focus-ring-offset);
 }
 .chipX:hover {
   color: var(--fg-primary);
@@ -221,9 +219,9 @@
   position: absolute;
   top: calc(100% + 6px);
   left: 0;
-  z-index: 200;
+  z-index: var(--z-popover, 300);
   display: grid;
-  grid-template-columns: 250px 1fr;
+  grid-template-columns: 250px minmax(0, 1fr);
   width: 760px;
   max-width: calc(100vw - 32px);
   background: var(--bg-surface);
@@ -251,7 +249,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 6px;
-  font-size: 11px;
+  font-size: var(--fs-meta-sm);
   font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -263,8 +261,8 @@
   align-items: center;
   gap: 6px;
   width: 100%;
-  padding: 11px 10px;
-  font-size: 14.5px;
+  padding: var(--sp-4) 10px;
+  font-size: var(--fs-ui-lg);
   text-align: left;
   background: transparent;
   border: none;
@@ -321,8 +319,8 @@
   cursor: pointer;
 }
 .filterPresetActions button:focus-visible {
-  outline: 2px solid var(--accent-500);
-  outline-offset: -2px;
+  outline: var(--focus-ring-w) solid var(--focus);
+  outline-offset: var(--focus-ring-inset);
 }
 .filterPresetActions button:hover {
   color: var(--fg-primary);
@@ -365,7 +363,7 @@
   height: 32px;
   border: none;
   background: transparent;
-  border-radius: var(--radius-sm);
+  border-radius: var(--control-r, 7px);
   color: var(--fg-muted);
   cursor: pointer;
   transition:
@@ -400,7 +398,7 @@
   margin-top: 4px;
 }
 .filterResetfields {
-  font-size: 13px;
+  font-size: var(--fs-ui);
   color: var(--fg-tertiary);
   background: transparent;
   border: none;
@@ -411,7 +409,7 @@
   text-decoration: underline;
 }
 .filterFieldsEmpty {
-  font-size: 13px;
+  font-size: var(--fs-ui);
   color: var(--fg-muted);
   padding: 8px 2px;
 }
@@ -432,7 +430,7 @@
   padding: 12px;
   background: var(--bg-surface);
   border: 1px solid var(--border-default);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-lg);
   box-shadow: var(--shadow-lg);
   /* Панель спозиционирована absolute (bottom:110px) и растёт вверх. Её высоту
      ограничиваем размером контейнера (.filterBody), а не константой: при большом
@@ -449,8 +447,8 @@
   gap: 8px;
   /* Та же причина: флекс-элемент тоже не сжимается ниже содержимого. */
   min-width: 0;
-  padding: 7px 6px;
-  font-size: 13px;
+  padding: var(--sp-3) 6px;
+  font-size: var(--fs-ui);
   text-align: left;
   background: transparent;
   border: none;
@@ -474,14 +472,14 @@
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
   column-gap: 10px;
-  row-gap: 5px;
+  row-gap: var(--sp-2);
 }
 .filterField[data-dragging="true"] {
   opacity: 0.5;
 }
 .filterFieldLabel {
   grid-column: 1 / -1;
-  font-size: 12px;
+  font-size: var(--fs-meta);
   color: var(--fg-secondary);
   display: flex;
   align-items: center;
@@ -495,8 +493,8 @@
 .filterFieldRemove {
   display: grid;
   place-items: center;
-  width: 22px;
-  height: 22px;
+  width: 24px;
+  height: 24px;
   border-radius: var(--radius-sm);
   border: none;
   background: transparent;
@@ -582,23 +580,23 @@
 
 /* Портальное меню мультивыбора. */
 .msMenu {
-  z-index: 1000;
+  z-index: var(--z-popover, 300);
   padding: 4px;
   background: var(--bg-surface);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-lg);
+  border: var(--bd-w, 1px) solid var(--border-default);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg, 0 12px 32px rgba(0, 0, 0, 0.1), 0 2px 6px rgba(0, 0, 0, 0.04));
   overflow: auto;
   max-height: 240px;
 }
 .filterMsOption {
   width: 100%;
-  min-height: 34px;
+  min-height: var(--item-h, 34px);
   display: flex;
   align-items: center;
   justify-content: flex-start;
   gap: 8px;
-  padding: 7px 8px;
+  padding: var(--sp-3) 8px;
   text-align: left;
   color: var(--fg-primary);
   border: 0;
@@ -606,7 +604,7 @@
   background: transparent;
   cursor: pointer;
   font: inherit;
-  font-size: 13px;
+  font-size: var(--fs-ui);
 }
 .filterMsOption:hover,
 .filterMsOption[aria-selected="true"] {
@@ -638,24 +636,25 @@
   height: 100%;
   display: inline-grid;
   place-items: center;
-  font-size: 9px;
+  font-size: var(--fs-meta-sm);
   font-weight: 600;
   background: var(--bg-muted);
   color: var(--fg-tertiary);
 }
+/* Флажок — тот же вид, что в мультивыборе формы и в «Формах». */
 .filterMsCheck {
   display: grid;
   place-items: center;
   width: 16px;
   height: 16px;
-  border: 1px solid var(--border-strong);
-  border-radius: 4px;
+  border: 1.5px solid var(--flt-field-bd);
+  border-radius: var(--r-xs, 3px);
   color: #fff;
   flex: none;
 }
 .filterMsCheck[data-on="true"] {
-  background: var(--accent-500);
-  border-color: var(--accent-500);
+  background: var(--terra-solid, var(--accent-600));
+  border-color: var(--terra-solid, var(--accent-600));
 }
 
 /* «Добавить поле». */
@@ -665,7 +664,7 @@
   gap: 6px;
   align-self: flex-start;
   padding: 6px 4px;
-  font-size: 13px;
+  font-size: var(--fs-ui);
   color: var(--accent-600);
   background: transparent;
   border: none;
@@ -679,6 +678,7 @@
 /* Футер действий — прижат к низу модуля. Кнопки по центру. */
 .filterFoot {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: center;
   gap: 8px;
@@ -697,15 +697,23 @@
 .filterPresetNameInput {
   flex: 1;
   min-width: 0;
-  height: 32px;
-  padding: 0 10px;
+  height: var(--control-h-sm, 32px);
+  padding: 0 var(--field-px, 10px);
   font: inherit;
-  font-size: 14px;
+  font-size: var(--fs-ui);
   color: var(--fg-primary);
   background: var(--bg-surface);
-  border: 1px solid var(--accent-400);
-  border-radius: var(--radius-sm);
+  border: 1px solid var(--flt-field-bd);
+  border-radius: var(--control-r, 7px);
   outline: none;
+}
+/* Поле: рамка и ореол, как у Input. */
+.filterPresetNameInput:focus,
+.filterPresetNameInput:focus-visible {
+  outline: none;
+  border-color: var(--focus, var(--accent-500));
+  box-shadow: var(--field-ring, 0 0 0 3px var(--accent-50));
+  border-radius: var(--control-r, 7px);
 }
 .filterPresetNameInput::placeholder {
   color: var(--fg-muted);
@@ -717,7 +725,7 @@
   align-items: center;
   gap: 6px;
   margin-right: auto;
-  font-size: 13px;
+  font-size: var(--fs-ui);
   color: var(--fg-secondary);
   cursor: pointer;
   user-select: none;
@@ -732,15 +740,16 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  height: 36px;
-  padding: 0 14px;
+  gap: var(--sp-2, 6px);
+  /* Метрики — один в один с канонической .btn (ui-tokens/button.css). */
+  min-height: var(--btn-h, 36px);
+  padding: var(--sp-3, 8px) var(--sp-6, 14px);
   border: 1px solid transparent;
-  border-radius: var(--radius-sm);
+  border-radius: var(--btn-r, 7px);
   font: inherit;
-  font-size: 0.875rem;
-  font-weight: 500;
-  line-height: 1;
+  font-size: var(--btn-fs, 13px);
+  font-weight: var(--fw-medium, 500);
+  line-height: var(--lh-snug, 1.3);
   white-space: nowrap;
   cursor: pointer;
   text-decoration: none;
@@ -752,7 +761,7 @@
     transform var(--dur-fast) var(--ease-out);
 }
 /* Отклик на нажатие — как у канонической .btn (ui-tokens/button.css). */
-.btn:active:not(:disabled) {
+.btn:active:not(:disabled):not([aria-disabled='true']) {
   transform: scale(var(--press-scale));
 }
 @media (prefers-reduced-motion: reduce) {
@@ -760,26 +769,28 @@
     transform: none;
   }
 }
-.btn:disabled {
-  opacity: 0.5;
+.btn:focus-visible {
+  outline: var(--focus-ring-w) solid var(--focus);
+  outline-offset: var(--focus-ring-offset);
+}
+.btn:disabled,
+.btn[aria-disabled='true'] {
+  opacity: var(--disabled-opacity);
   cursor: not-allowed;
   pointer-events: none;
 }
 .btnSm {
-  height: 30px;
-  padding: 0 10px;
-  font-size: 0.8125rem;
+  min-height: var(--btn-h-sm, 32px);
+  padding: var(--sp-2, 6px) var(--sp-5, 12px);
 }
 /* Белый текст на --accent-500 (#dd6731) — 3.47:1; как у глобальной
    .btn-primary — тёмный терракот (4.99:1). */
 .btnPrimary {
   background: var(--terra-solid, var(--accent-600));
   color: #fff;
-  border-color: var(--terra-solid, var(--accent-600));
 }
 .btnPrimary:hover {
   background: var(--terra-solid-hover, var(--accent-700));
-  border-color: var(--terra-solid-hover, var(--accent-700));
 }
 .btnGhost {
   background: transparent;
@@ -793,7 +804,7 @@
 
 /* Телефон: фильтр во всю ширину строки — на 50% от 343px плейсхолдер
    обрезался, а условия не помещались. */
-@media (max-width: 560px) {
+@media (max-width: 640px) {
   .filterBar {
     flex: 1 1 100%;
     max-width: 100%;
@@ -825,5 +836,39 @@
 @media (prefers-reduced-motion: reduce) {
   .filterPop {
     animation-name: filter-pop-fade;
+  }
+}
+/* Узкий экран: пресеты — над полями, а не колонкой 250px рядом (на 360px
+   полям оставалось 78px). */
+@media (max-width: 640px) {
+  .filterPop {
+    grid-template-columns: minmax(0, 1fr);
+    /* По ширине строки фильтра (она на телефоне во всю ширину), а не 760px. */
+    right: 0;
+    width: auto;
+    max-width: none;
+    max-height: calc(100vh - 120px);
+    overflow-y: auto;
+  }
+  .filterPresets {
+    min-height: 0;
+    max-height: 180px;
+    overflow-y: auto;
+    border-right: 0;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+  .filterBody {
+    min-height: 320px;
+  }
+}
+@media (pointer: coarse) {
+  .filterGear {
+    min-width: var(--tap-min, 44px);
+    min-height: var(--tap-min, 44px);
+  }
+  .filterMsOption,
+  .filterAddgridItem,
+  .filterPreset {
+    min-height: var(--tap-min-compact, 36px);
   }
 }

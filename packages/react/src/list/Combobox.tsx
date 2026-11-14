@@ -13,7 +13,7 @@ import { createPortal } from "react-dom";
 
 import { Icon } from "./Icon.js";
 import { usePopPresence } from "../overlay/presence.js";
-import { placePopover, revealOption } from "./popover.js";
+import { limitOptions, moreOptionsText, placePopover, revealOption } from "./popover.js";
 import styles from "./Combobox.module.css";
 
 /** Стили модуля Combobox — реэкспорт, чтобы MultiSelect (FieldEditor) мог
@@ -100,7 +100,10 @@ function optionInitials(label: string): string {
     .split(/\s+/)
     .filter(Boolean);
   if (!w.length) return "?";
-  return (w[0]![0]! + (w[1]?.[0] ?? "")).toUpperCase();
+  // Array.from — по символам, а не по половинкам суррогатной пары: имя с
+  // эмодзи в начале иначе давало «�».
+  const first = (s: string | undefined) => (s ? (Array.from(s)[0] ?? "") : "");
+  return (first(w[0]) + first(w[1])).toUpperCase();
 }
 
 /** Есть ли у варианта метка (иконка или цвет). */
@@ -122,10 +125,13 @@ export function OptionMarker({ icon, color }: Pick<ComboboxOption, "icon" | "col
 }
 
 function OptionAvatar({ opt }: { opt: ComboboxOption }) {
+  // Битая ссылка на фото — инициалы, а не значок сломанной картинки.
+  const [broken, setBroken] = useState(false);
+  useEffect(() => setBroken(false), [opt.avatar]);
   return (
     <span className={styles.avatar} aria-hidden>
-      {opt.avatar ? (
-        <img src={opt.avatar} alt="" loading="lazy" />
+      {opt.avatar && !broken ? (
+        <img src={opt.avatar} alt="" loading="lazy" onError={() => setBroken(true)} />
       ) : (
         opt.initials ?? optionInitials(opt.label)
       )}
@@ -161,7 +167,11 @@ export function Combobox({
 }: ComboboxProps) {
   const selected = options.find((o) => o.value === value) ?? null;
   const [open, setOpen] = useState(false);
-  const [query, setQuery] = useState(selected?.label ?? "");
+  // Значение, которого нет в options (справочник почистили или он ещё
+  // грузится), показываем как есть — иначе поле выглядело пустым, а значение
+  // в записи было. MultiCombobox в той же ситуации тоже показывает id.
+  const shownLabel = selected?.label ?? value;
+  const [query, setQuery] = useState(shownLabel);
   const controlRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const [rect, setRect] = useState<MenuRect | null>(null);
@@ -173,20 +183,22 @@ export function Combobox({
 
   // Внешняя смена value (сброс формы, выбор отдела и т.п.) синхронизирует поле.
   useEffect(() => {
-    setQuery(selected?.label ?? "");
-  }, [selected?.value, selected?.label]);
+    setQuery(shownLabel);
+  }, [shownLabel]);
 
-  const filtered = useMemo(() => {
+  const { shown: filtered, rest: hiddenCount } = useMemo(() => {
     // Без поиска — всегда весь список (поле только для чтения).
-    if (!searchable) return options;
+    if (!searchable) return limitOptions(options);
     const q = query.trim().toLowerCase();
     // Пока в поле — выбранное значение (пользователь ещё не начал печатать
     // новое), показываем весь список: можно просто открыть и выбрать.
-    if (!q || q === (selected?.label ?? "").toLowerCase()) return options;
-    return options.filter(
-      (o) => o.label.toLowerCase().includes(q) || (o.hint ?? "").toLowerCase().includes(q),
+    if (!q || q === shownLabel.toLowerCase()) return limitOptions(options);
+    return limitOptions(
+      options.filter(
+        (o) => o.label.toLowerCase().includes(q) || (o.hint ?? "").toLowerCase().includes(q),
+      ),
     );
-  }, [options, query, selected?.label, searchable]);
+  }, [options, query, shownLabel, searchable]);
 
   // При открытии и смене отбора подсветка встаёт на выбранное значение (если оно
   // в списке), иначе — на первый вариант набранного запроса.
@@ -253,7 +265,7 @@ export function Combobox({
   const closeAndReset = () => {
     window.setTimeout(() => {
       setOpen(false);
-      setQuery(selected?.label ?? "");
+      setQuery(shownLabel);
     }, 120);
   };
 
@@ -289,7 +301,6 @@ export function Combobox({
               minWidth: shownRect.width,
               maxWidth: shownRect.maxWidth,
               maxHeight: shownRect.maxHeight,
-              zIndex: 1000,
             }}
           >
             {/* Сброс показываем, только когда есть что сбрасывать: при пустом
@@ -335,6 +346,11 @@ export function Combobox({
                   </button>
                 </Fragment>
               ))
+            )}
+            {hiddenCount > 0 && (
+              <div className={styles.more} role="presentation">
+                {moreOptionsText(filtered.length, hiddenCount)}
+              </div>
             )}
           </div>,
           document.body,

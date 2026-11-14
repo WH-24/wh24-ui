@@ -27,7 +27,11 @@ export function Chip({
   const className = variant === 'tag' ? `${styles.chip} ${styles.tag}` : styles.chip
   return (
     <span className={className}>
-      {children}
+      {/* Подпись отдельным элементом: длинный тег обрезается многоточием,
+          полный текст — в подсказке. */}
+      <span className={styles.label} title={typeof children === 'string' ? children : undefined}>
+        {children}
+      </span>
       {onRemove ? (
         <button
           type="button"

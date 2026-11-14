@@ -1,5 +1,5 @@
 /* Канбан: колонки фиксированной ширины с горизонтальной прокруткой доски.
-   Цвет колонки — только полоска шапки и точка в меню; статус всегда назван
+   Цвет колонки — только точка перед названием и в меню; статус всегда назван
    текстом (WCAG «не только цветом»). */
 
 .board {
@@ -13,6 +13,8 @@
 
 .col {
   flex: 0 0 272px;
+  /* Неразрывное содержимое карточки (тег, почта) не расширяет колонку. */
+  min-width: 0;
   display: flex;
   flex-direction: column;
   max-height: 100%;
@@ -29,22 +31,20 @@
 
 /* Во время переноса колонки, куда нельзя, гаснут — видно, куда можно. */
 .colBlocked {
-  opacity: 0.5;
+  opacity: var(--disabled-opacity);
 }
 
 .head {
   display: flex;
   align-items: center;
   gap: var(--sp-2);
-  padding: var(--sp-3) var(--sp-3) var(--sp-2);
-  border-top: 3px solid var(--kanban-tone);
-  border-radius: var(--r-lg) var(--r-lg) 0 0;
+  padding: var(--sp-4) var(--sp-4) var(--sp-3);
 }
 
 .title {
   flex: 1;
   min-width: 0;
-  font-size: var(--fs-body);
+  font-size: var(--fs-ui);
   font-weight: var(--fw-semibold);
   color: var(--ink);
   white-space: nowrap;
@@ -53,15 +53,17 @@
 }
 
 .count {
-  min-width: 22px;
-  padding: 0 var(--sp-2);
+  /* Счётчик — один вид на библиотеку: вкладки, заголовок страницы, запись,
+     канбан, панель модуля. */
+  font-size: var(--fs-meta-sm);
+  font-weight: var(--fw-medium);
+  line-height: 1.45;
+  padding: 1px 6px;
   border-radius: var(--r-pill);
-  background: var(--surf);
-  border: 1px solid var(--bd-soft);
-  font-size: var(--fs-meta);
-  color: var(--ink-3);
-  text-align: center;
+  background: var(--surf-3);
+  color: var(--ink-2);
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
 .cards {
@@ -143,10 +145,13 @@
   display: block;
   width: 100%;
   padding: var(--sp-3);
-  padding-right: calc(var(--sp-3) + 28px);
+  padding-right: calc(var(--sp-3) + 24px);
   background: none;
   border: 0;
   border-radius: inherit;
+  /* Почта или номер договора без пробелов не шире колонки. */
+  min-width: 0;
+  overflow-wrap: anywhere;
   text-align: left;
   font: inherit;
   color: inherit;
@@ -159,8 +164,8 @@ button.cardBody {
 .cardBody:focus-visible,
 .moveBtn:focus-visible,
 .menuItem:focus-visible {
-  outline: var(--focus-ring-w, 2px) solid var(--focus);
-  outline-offset: var(--focus-ring-offset, 2px);
+  outline: var(--focus-ring-w) solid var(--focus);
+  outline-offset: var(--focus-ring-offset);
 }
 
 .moveWrap {
@@ -173,8 +178,9 @@ button.cardBody {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
+  width: 24px;
+  height: 24px;
+  padding: 0;
   border: 0;
   border-radius: var(--r-sm);
   background: transparent;
@@ -183,7 +189,7 @@ button.cardBody {
 }
 
 .moveBtn:hover {
-  background: var(--surf-3);
+  background: var(--surf-2);
   color: var(--ink);
 }
 
@@ -196,23 +202,30 @@ button.cardBody {
   .cardBody {
     padding-right: calc(var(--sp-3) + var(--tap-min, 44px));
   }
+  .menuItem {
+    min-height: var(--tap-min-compact);
+  }
 }
 
 /* Координаты (top/bottom, right) ставит компонент от кнопки «⋯». */
 .menu {
   position: fixed;
-  z-index: 1000;
+  z-index: var(--z-popover);
   min-width: 200px;
+  /* 20 колонок в «Переместить в…» и длинное имя колонки — в пределах экрана. */
+  max-width: min(320px, calc(100vw - 16px));
+  max-height: min(360px, calc(100vh - 16px));
+  overflow-y: auto;
   padding: var(--sp-1);
   background: var(--surf);
-  border: 1px solid var(--bd);
-  border-radius: var(--r-md);
-  box-shadow: var(--shadow-md);
+  border: var(--bd-w) solid var(--bd);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-lg);
 }
 
 .menuTitle {
   padding: var(--sp-1) var(--sp-2);
-  font-size: var(--fs-meta-sm, 11px);
+  font-size: var(--fs-meta-sm);
   color: var(--ink-3);
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -223,13 +236,15 @@ button.cardBody {
   align-items: center;
   gap: var(--sp-2);
   width: 100%;
-  min-height: 32px;
-  padding: var(--sp-1) var(--sp-2);
+  min-height: var(--item-h);
+  padding: var(--sp-2) var(--sp-3);
+  line-height: var(--lh-snug);
   border: 0;
   border-radius: var(--r-sm);
   background: none;
   font: inherit;
-  font-size: var(--fs-body);
+  font-size: var(--fs-ui);
+  overflow-wrap: anywhere;
   color: var(--ink);
   text-align: left;
   cursor: pointer;
@@ -275,7 +290,7 @@ button.cardBody {
 
 /* Телефон: колонки «защёлкиваются» по одной — доску листают как страницы,
    а не доводят пальцем до края колонки. */
-@media (max-width: 560px) {
+@media (max-width: 640px) {
   .board {
     scroll-snap-type: x mandatory;
     scroll-padding-inline: var(--sp-3);

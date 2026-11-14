@@ -102,8 +102,12 @@ export interface FieldGridProps {
  */
 export function FieldGrid({ className, style, children }: FieldGridProps) {
   return (
-    <div className={[styles.grid, className].filter(Boolean).join(' ')} style={style}>
-      {children}
+    // Обёртка — контейнер для запроса по ширине: сетка схлопывается по месту,
+    // где стоит (окно, боковая панель, колонка карточки), а не по ширине окна.
+    <div className={styles.gridBox}>
+      <div className={[styles.grid, className].filter(Boolean).join(' ')} style={style}>
+        {children}
+      </div>
     </div>
   )
 }

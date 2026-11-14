@@ -13,7 +13,7 @@
   background: var(--surf);
   box-shadow: var(--shadow-lg);
   color: var(--ink);
-  font-size: var(--fs-ui, 13px);
+  font-size: var(--fs-ui);
   overflow-wrap: anywhere;
   /* Растёт от элемента, у которого открылась: левый верхний угол. */
   transform-origin: left top;

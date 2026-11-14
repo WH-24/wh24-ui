@@ -25,7 +25,7 @@
   align-items: center;
   flex-wrap: wrap;
   gap: 8px;
-  font-size: 13px;
+  font-size: var(--fs-ui);
   color: var(--fg-secondary);
 }
 .crumbLink {
@@ -67,15 +67,16 @@
 }
 .title {
   margin: 0;
-  font-size: 24px;
-  font-weight: 700;
+  font-size: var(--fs-h2);
+  font-weight: 600;
+  line-height: 1.25;
   letter-spacing: -0.01em;
   overflow-wrap: anywhere;
 }
 .idChip {
-  font-size: 12px;
+  font-size: var(--fs-meta);
   padding: 2px 8px;
-  border-radius: 999px;
+  border-radius: var(--r-pill);
   background: var(--bg-subtle);
   color: var(--fg-secondary);
   white-space: nowrap;
@@ -84,7 +85,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 4px 24px;
-  font-size: 13px;
+  font-size: var(--fs-ui);
   color: var(--fg-secondary);
 }
 .kpis b {
@@ -96,16 +97,24 @@
   align-items: center;
   gap: 8px;
 }
+/* Вид — как у канонической .btn-secondary (ui-tokens/button.css): высота,
+   скругление, кегль, наведение, нажатие, недоступность. */
 .btn {
-  min-height: 36px;
-  padding: 0 14px;
-  border-radius: var(--radius-md);
+  min-height: var(--btn-h);
+  padding: 0 var(--sp-6);
+  border-radius: var(--btn-r);
   border: 1px solid var(--border-default);
   background: var(--bg-surface);
   color: var(--fg-primary);
   font: inherit;
-  font-size: 13px;
-  font-weight: 500;
+  font-size: var(--btn-fs);
+  font-weight: var(--fw-medium);
+  line-height: var(--lh-snug);
+  transition:
+    background var(--dur-fast) ease,
+    border-color var(--dur-fast) ease,
+    color var(--dur-fast) ease,
+    transform var(--dur-fast) var(--ease-out);
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -115,13 +124,23 @@
 }
 .btn:hover {
   background: var(--bg-hover);
+  border-color: var(--border-strong);
+}
+.btn:active:not(:disabled) {
+  transform: scale(var(--press-scale));
+}
+@media (prefers-reduced-motion: reduce) {
+  .btn:active:not(:disabled) {
+    transform: none;
+  }
 }
 .btn:disabled {
-  opacity: 0.55;
-  cursor: default;
+  opacity: var(--disabled-opacity);
+  cursor: not-allowed;
+  pointer-events: none;
 }
 .iconBtn {
-  width: 36px;
+  width: var(--btn-h);
   padding: 0;
   justify-content: center;
 }
@@ -130,8 +149,8 @@
 .tab:focus-visible,
 .stage:focus-visible,
 .menuItem:focus-visible {
-  outline: 2px solid var(--primary, var(--accent-500));
-  outline-offset: 2px;
+  outline: var(--focus-ring-w) solid var(--focus);
+  outline-offset: var(--focus-ring-offset);
 }
 
 /* ── Меню «⋯» ── */
@@ -142,29 +161,35 @@
   position: absolute;
   right: 0;
   top: calc(100% + 6px);
-  z-index: var(--z-context-menu, 100);
+  z-index: var(--z-popover);
   width: min(300px, calc(100vw - 32px));
-  padding: 6px;
+  /* 25 пунктов не уходят за экран — меню прокручивается. */
+  max-height: min(360px, calc(100vh - 16px));
+  overflow-y: auto;
+  padding: 4px;
   border-radius: var(--radius-lg);
-  border: 1px solid var(--border-subtle);
+  border: 1px solid var(--border-default);
   background: var(--bg-surface);
   box-shadow: var(--shadow-lg);
 }
 .menuItem {
   width: 100%;
-  min-height: 36px;
+  min-height: var(--item-h);
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 0 10px;
+  /* Вертикальные поля — для пункта в две строки. */
+  padding: var(--sp-2) var(--sp-3);
+  line-height: var(--lh-snug);
   border: none;
   border-radius: var(--radius-sm);
   background: transparent;
   font: inherit;
-  font-size: 14px;
+  font-size: var(--fs-ui);
   color: var(--fg-primary);
   cursor: pointer;
   text-align: left;
+  overflow-wrap: anywhere;
 }
 .menuItem:hover,
 .menuItem:focus-visible {
@@ -175,12 +200,12 @@
 }
 .menuHint {
   margin-left: auto;
-  font-size: 12px;
+  font-size: var(--fs-meta);
   color: var(--fg-tertiary);
 }
 .menuSep {
   height: 1px;
-  margin: 6px 4px;
+  margin: 4px;
   background: var(--border-subtle);
 }
 
@@ -208,11 +233,11 @@
   padding: 0 14px;
   scroll-snap-align: start;
   border: none;
-  border-radius: var(--radius-sm);
+  border-radius: var(--control-r);
   background: var(--bg-subtle);
   color: var(--fg-secondary);
   font: inherit;
-  font-size: 13px;
+  font-size: var(--fs-ui);
   font-weight: 500;
   /* Длинная стадия («КП отправлено/Менеджер ОС») — целиком, в одну строку, а не
      «КП отправлен…»: при нехватке места полоса прокручивается. */
@@ -221,6 +246,7 @@
   white-space: nowrap;
   cursor: pointer;
 }
+/* Полоса только для чтения — не «запрещено», а просто не кнопка. */
 .stage:disabled {
   cursor: default;
 }
@@ -398,32 +424,46 @@
   flex: 1 1 auto;
   min-width: 0;
 }
+/* Вид — как у вкладок страницы (tabs.module.css): кегль, цвет, жирность
+   выбранной, цвет черты. */
 .tab {
-  min-height: 40px;
-  padding: 0 12px;
+  min-height: var(--tab-h);
+  padding: 0 var(--sp-5);
   border: none;
   border-bottom: 2px solid transparent;
   background: transparent;
   font: inherit;
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--fg-secondary);
+  font-size: var(--fs-ui);
+  color: var(--fg-tertiary);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   gap: 6px;
 }
+.tab:hover {
+  color: var(--fg-primary);
+}
 .tab[aria-selected="true"] {
   color: var(--fg-primary);
-  font-weight: 700;
-  border-bottom-color: var(--primary, var(--accent-500));
+  font-weight: 500;
+  border-bottom-color: var(--accent-600);
 }
 .tabCount {
-  font-size: 11px;
+  /* Счётчик — один вид на библиотеку: вкладки, заголовок страницы, запись,
+     канбан, панель модуля. */
+  font-size: var(--fs-meta-sm);
+  font-weight: var(--fw-medium);
+  line-height: 1.45;
   padding: 1px 6px;
-  border-radius: 999px;
-  background: var(--bg-subtle);
+  border-radius: var(--r-pill);
+  background: var(--bg-muted);
   color: var(--fg-secondary);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.tab[aria-selected="true"] .tabCount {
+  background: var(--accent-50);
+  color: var(--accent-text);
 }
 .mobileTabs {
   display: none;
@@ -431,14 +471,14 @@
 
 /* Маленькая кнопка «⋯» (ActionsMenu small). */
 .smallBtn {
-  min-height: 28px;
+  min-height: var(--control-h-xs);
   padding: 0 8px;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--border-subtle);
+  border-radius: var(--control-r);
+  border: 1px solid var(--border-default);
   background: var(--bg-surface);
   color: var(--fg-secondary);
   font: inherit;
-  font-size: 12px;
+  font-size: var(--fs-meta);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
@@ -453,9 +493,6 @@
 @media (max-width: 640px) {
   .header {
     padding: 12px 16px 0;
-  }
-  .title {
-    font-size: 20px;
   }
   .body {
     padding: 12px 16px 16px;
@@ -475,21 +512,27 @@
   .mobileTabs .tab {
     flex: 1 1 0;
     justify-content: center;
-    min-height: 44px;
+    min-height: var(--tap-min);
   }
   .paneHidden {
     display: none;
   }
+}
+/* Палец (в том числе iPad, а не только узкий экран): цели не меньше 44px,
+   пункты меню — 36px. */
+@media (pointer: coarse) {
   .btn,
   .iconBtn,
   .tab,
   .stage,
-  .menuItem,
   .smallBtn {
-    min-height: 44px;
+    min-height: var(--tap-min);
   }
   .iconBtn {
-    width: 44px;
+    width: var(--tap-min);
+  }
+  .menuItem {
+    min-height: var(--tap-min-compact);
   }
 }
 

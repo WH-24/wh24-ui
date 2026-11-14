@@ -27,9 +27,6 @@
   flex-shrink: 0;
 }
 
-.card.bp .cover {
-  border-bottom: 3px solid var(--terra);
-}
 
 .body {
   padding: 10px 12px;
@@ -40,14 +37,11 @@
 
 .body.noCover {
   padding: 14px;
-  gap: 7px;
+  gap: var(--sp-3);
   min-height: 108px;
   border-top: 0;
 }
 
-.card.bp .body.noCover {
-  border-top: 3px solid var(--terra);
-}
 
 .markerSlot {
   position: absolute;
@@ -64,6 +58,6 @@
 }
 
 .card[tabindex='0']:focus-visible {
-  outline: var(--focus-ring-w, 2px) solid var(--focus, var(--terra));
-  outline-offset: var(--focus-ring-offset, 2px);
+  outline: var(--focus-ring-w) solid var(--focus);
+  outline-offset: var(--focus-ring-offset);
 }

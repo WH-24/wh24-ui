@@ -18,8 +18,8 @@
   flex-direction: column;
   gap: 10px;
   padding: 14px 16px;
-  border: var(--bd-hairline) solid var(--bd-strong);
-  border-radius: var(--r-xl);
+  border: var(--bd-w) solid var(--bd-strong);
+  border-radius: var(--r-lg);
   background: var(--surf);
   font-family: var(--font-sans);
   color: var(--ink);
@@ -72,14 +72,14 @@
   content: '';
   position: absolute;
   inset: 0;
-  border-radius: var(--r-xl);
+  border-radius: var(--r-lg);
 }
 .titleBtn:focus-visible {
   outline: none;
 }
 .titleBtn:focus-visible::after {
   outline: var(--focus-ring-w) solid var(--focus);
-  outline-offset: 2px;
+  outline-offset: var(--focus-ring-offset);
 }
 
 .badges {
@@ -94,7 +94,7 @@
   gap: 4px;
   padding: 1px 8px 1px 6px;
   border-radius: var(--r-pill);
-  border: var(--bd-hairline) solid var(--bd-strong);
+  border: var(--bd-w) solid var(--bd-strong);
   background: var(--surf-2);
   color: var(--ink-2);
   font-size: var(--fs-meta);
@@ -123,7 +123,7 @@
 
 .desc {
   margin: 0;
-  font-size: 13px;
+  font-size: var(--fs-ui);
   line-height: 1.45;
   color: var(--ink-2);
   display: -webkit-box;
@@ -142,7 +142,7 @@
 .facts > div {
   display: flex;
   gap: 8px;
-  font-size: 12.5px;
+  font-size: var(--fs-meta);
   line-height: 1.4;
 }
 .facts dt {
@@ -203,7 +203,7 @@
 }
 .menuBtn:focus-visible {
   outline: var(--focus-ring-w) solid var(--focus);
-  outline-offset: 1px;
+  outline-offset: var(--focus-ring-offset);
 }
 .menu {
   position: absolute;
@@ -211,21 +211,23 @@
   right: 0;
   min-width: 170px;
   padding: 4px;
-  border: var(--bd-hairline) solid var(--bd-strong);
-  border-radius: var(--r-md);
+  border: var(--bd-w) solid var(--bd);
+  border-radius: var(--r-lg);
   background: var(--surf);
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow-lg);
+  max-height: min(360px, calc(100vh - 16px));
+  overflow-y: auto;
 }
 .menuItem {
   display: block;
   width: 100%;
-  min-height: 32px;
+  min-height: var(--item-h);
   padding: 0 10px;
   border: 0;
   border-radius: var(--r-sm);
   background: none;
   color: var(--ink);
-  font-size: 13px;
+  font-size: var(--fs-ui);
   text-align: left;
   cursor: pointer;
 }

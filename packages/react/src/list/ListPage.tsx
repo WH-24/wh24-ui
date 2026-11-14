@@ -6,6 +6,7 @@ import {
   useRef,
   useState,
   type DragEvent,
+  type MouseEvent,
   type ReactNode,
 } from "react";
 
@@ -338,8 +339,8 @@ export interface ListPageProps<T> {
   columnSettings?: boolean;
 
   /**
-   * Папки (см. ListGroups): строки-папки и вход в папку, как в Диске. С ними
-   * текущий уровень показывается целиком, без постраничности.
+   * Папки (см. ListGroups): строки-папки и вход в папку, как в Диске. Строки
+   * открытой папки догружаются по прокрутке теми же порциями (`pageSize`).
    */
   groups?: ListGroups<T>;
 }
@@ -736,10 +737,20 @@ export function ListPage<T>({
   // Срез от начала до shown — и для карточек, и для таблицы. Меняется состав (фильтр/сортировка/
   // сами данные) — начинаем показ заново с первой порции.
   const visible = filtered.slice(0, shown);
-  const hasMore = shown < filtered.length;
+  const searching = filtered.length < data.length;
+  const level = useMemo(
+    () => (groups ? folderView(filtered, groups, openGroup?.key ?? null, searching) : null),
+    [groups, filtered, openGroup, searching],
+  );
+  // Внутри открытой папки строки рисуются теми же порциями: 3000 строк разом
+  // в DOM подвешивали страницу.
+  const levelRows = useMemo(() => (level ? level.rows.slice(0, shown) : []), [level, shown]);
+  const totalRows = level ? level.rows.length : filtered.length;
+  const hasMore = shown < totalRows;
+  const openGroupKey = openGroup?.key ?? null;
   useEffect(() => {
     setShown(pageSize);
-  }, [filtered, pageSize]);
+  }, [filtered, pageSize, openGroupKey]);
   // Догрузка по появлению сентинела в зоне видимости. IntersectionObserver
   // подхватывает и «низ уже виден» (мало карточек), и обычный скролл.
   //
@@ -756,20 +767,15 @@ export function ListPage<T>({
     const io = new IntersectionObserver(
       (entries) => {
         if (entries.some((e) => e.isIntersecting)) {
-          setShown((n) => Math.min(n + pageSize, filtered.length));
+          setShown((n) => Math.min(n + pageSize, totalRows));
         }
       },
       { rootMargin: "400px" },
     );
     io.observe(el);
     return () => io.disconnect();
-  }, [viewMode, hasMore, pageSize, filtered.length, shown]);
+  }, [viewMode, hasMore, pageSize, totalRows, shown]);
 
-  const searching = filtered.length < data.length;
-  const level = useMemo(
-    () => (groups ? folderView(filtered, groups, openGroup?.key ?? null, searching) : null),
-    [groups, filtered, openGroup, searching],
-  );
   const canDrag = Boolean(groups?.onMove);
   const rowById = useMemo(() => new Map(data.map((r) => [getId(r), r])), [data, getId]);
 
@@ -961,6 +967,7 @@ export function ListPage<T>({
             <td
               key={c.key}
               className={[c.className, host ? styles.colSelectHost : ""].filter(Boolean).join(" ")}
+              onMouseEnter={showFullOnHover}
             >
               {host && (
                 <span className={styles.cellSelectBox} onClick={(e) => e.stopPropagation()}>
@@ -978,6 +985,16 @@ export function ListPage<T>({
         })}
       </tr>
     );
+  };
+
+  // Ячейка обрезана многоточием — полный текст в подсказке. Проверяем по
+  // факту (содержимое шире ячейки), а не ставим title всем подряд.
+  const showFullOnHover = (e: MouseEvent<HTMLTableCellElement>) => {
+    const td = e.currentTarget;
+    const cut = td.scrollWidth > td.clientWidth;
+    const text = cut ? (td.textContent ?? "").trim() : "";
+    if (text) td.title = text;
+    else td.removeAttribute("title");
   };
 
   const toggleSort = (k: string) => {
@@ -1293,7 +1310,7 @@ export function ListPage<T>({
                   ) : (
                     <>
                       {level.folders.map(({ group: g, rows }) => folderRow(g, rows))}
-                      {level.rows.map(renderRow)}
+                      {levelRows.map(renderRow)}
                     </>
                   )}
                 </tbody>
@@ -1313,7 +1330,7 @@ export function ListPage<T>({
             </table>
             {/* Сентинел — внутри области прокрутки таблицы: виден, когда её
                 долистали донизу, и догружаем следующую порцию строк. */}
-            {!level && hasMore && (
+            {hasMore && (
               <div ref={sentinelRef} className={styles.cardsSentinel} aria-hidden="true" />
             )}
           </div>
@@ -1354,6 +1371,7 @@ export function ListPage<T>({
                 value={colsQuery}
                 onChange={(e) => setColsQuery(e.target.value)}
                 placeholder="Поиск по полям"
+                aria-label="Поиск по полям"
                 autoFocus
               />
             </div>
@@ -1447,13 +1465,14 @@ export function ListPage<T>({
             )}
             {level.rows.length > 0 && (
               <div className={styles.listCardsGrid} data-reveal={revealAttr}>
-                {level.rows.map((row) => (
+                {levelRows.map((row) => (
                   <div key={getId(row)} {...dragProps(row)}>
                     {renderCard(row)}
                   </div>
                 ))}
               </div>
             )}
+            {hasMore && <div ref={sentinelRef} className={styles.cardsSentinel} />}
           </>
         ))}
 

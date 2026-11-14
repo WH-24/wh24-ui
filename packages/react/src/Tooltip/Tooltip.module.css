@@ -10,7 +10,7 @@
   border-radius: var(--r-sm, 5px);
   background: var(--ink);
   color: var(--surf);
-  font-size: var(--fs-meta, 12px);
+  font-size: var(--fs-meta);
   line-height: 1.35;
   pointer-events: none;
   animation: tipIn var(--dur-fast, 120ms) var(--ease-out, ease-out);
@@ -29,7 +29,7 @@
 .kbd {
   flex: none;
   margin-left: var(--sp-2, 6px);
-  padding: 1px 5px;
+  padding: 1px var(--sp-2);
   border: var(--bd-w, 1px) solid color-mix(in srgb, currentColor 35%, transparent);
   border-radius: var(--r-xs, 3px);
   background: none;
