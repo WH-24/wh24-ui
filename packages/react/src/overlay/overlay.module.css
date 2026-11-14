@@ -73,25 +73,23 @@
   line-height: 1.35;
   color: var(--fg-primary);
 }
-.close {
-  width: 32px;
-  height: 32px;
-  border-radius: var(--control-r);
-  display: grid;
-  place-items: center;
-  color: var(--fg-tertiary);
-  background: transparent;
-  border: none;
-  cursor: pointer;
+/* Справа в шапке: действия и «Закрыть» (общий IconButton). */
+.headActions {
+  margin-left: auto;
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
-.close:hover {
-  background: var(--bg-hover);
-  color: var(--fg-primary);
-}
-.close:focus-visible {
-  outline: var(--focus-ring-w) solid var(--focus);
-  outline-offset: var(--focus-ring-offset);
+/* Пояснение под заголовком окна. */
+.desc {
+  margin: 0;
+  padding: 12px 20px 0;
+  flex-shrink: 0;
+  font-size: var(--fs-ui);
+  line-height: 1.45;
+  color: var(--fg-secondary);
+  overflow-wrap: anywhere;
 }
 .body {
   padding: 20px;
@@ -163,26 +161,16 @@
     transform: translateX(100%);
   }
 }
+/* Шапка панели — общий DialogHeader с ровными полями. */
 .drawerHead {
-  display: flex;
-  align-items: center;
-  gap: 12px;
   padding: 16px 20px;
-  border-bottom: 1px solid var(--border-subtle);
 }
-.drawerActions {
-  margin-left: auto;
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
+/* Тело панели — общий DialogBody; текст панели наследует вид страницы. */
 .drawerBody {
-  flex: 1;
   overflow: auto;
-  overscroll-behavior: contain;
-  padding: 20px;
   min-height: 0;
+  font-size: inherit;
+  color: inherit;
 }
 
 /* ── Тосты ── */
@@ -319,10 +307,6 @@
   }
 }
 @media (pointer: coarse) {
-  .close {
-    min-width: var(--tap-min);
-    min-height: var(--tap-min);
-  }
   .toastClose {
     min-width: var(--tap-min-compact);
     min-height: var(--tap-min-compact);

@@ -1,5 +1,5 @@
 import { useEffect, useId, useMemo, useRef, useState, type ReactNode } from 'react'
-import { Combobox, FieldGrid, FieldRow, Icon, Input, Textarea, type ComboboxOption } from '@wowhaus-24/ui-react'
+import { Combobox, FieldGrid, FieldRow, Icon, Input, Spinner, Textarea, type ComboboxOption } from '@wowhaus-24/ui-react'
 
 import { BrainApiError } from '../api.js'
 import { BrainSwitch } from '../agents/Switch.js'
@@ -478,7 +478,7 @@ export function AiFieldDialog({
                     <span className={styles.previewTitle}>{r.title || r.entity_id}</span>
                     {!r.done ? (
                       <span className={styles.previewBusy}>
-                        <span className={styles.spinner} aria-hidden="true" />
+                        <Spinner size={12} />
                         Считаю…
                       </span>
                     ) : r.error ? (

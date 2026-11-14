@@ -90,112 +90,19 @@
   min-height: var(--tap-min);
 }
 
-.spinner,
-.spinnerLg {
-  flex: none;
-  display: inline-block;
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  border: 2px solid var(--bd-strong);
-  border-top-color: var(--terra);
-  animation: aiSpin var(--dur-spin) linear infinite;
-}
-.spinnerLg {
-  width: 22px;
-  height: 22px;
-  border-width: 3px;
-}
-@keyframes aiSpin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  /* Кольцо не замирает (застывшее выглядит поломкой), а крутится медленнее. */
-  .spinner,
-  .spinnerLg {
-    animation-duration: var(--dur-spin-reduced);
-  }
-}
-
 /* ─── Меню колонки ─────────────────────────────────────────────────── */
 
-.colBtn {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
-  padding: 0;
-  border: 0;
-  border-radius: var(--r-sm);
-  background: none;
+/* Кнопка — общий IconButton 24px, здесь только цвет «поля ИИ»; меню — общий Menu. */
+.colBtn.colBtn {
   color: var(--terra-d);
-  cursor: pointer;
 }
-/* Зона касания 44×44 — шире видимой кнопки, шапка таблицы при этом остаётся плотной. */
-.colBtn::before {
-  content: '';
-  position: absolute;
-  inset: -8px;
-}
-.colBtn:hover,
-.colBtn[aria-expanded='true'] {
+.colBtn.colBtn:hover,
+.colBtn.colBtn[aria-expanded='true'] {
   background: var(--terra-bg);
+  color: var(--terra-d);
 }
-.colBtn:focus-visible {
-  outline: var(--focus-ring-w) solid var(--focus);
-  outline-offset: var(--focus-ring-offset);
-}
-
-.colMenu {
-  position: fixed;
-  z-index: var(--brain-dialog-z, 85);
-  box-sizing: border-box;
-  padding: 4px;
-  border: var(--bd-w) solid var(--bd);
-  border-radius: var(--r-lg);
-  background: var(--surf);
-  box-shadow: var(--shadow-lg);
-  font-family: var(--font-sans);
-  color: var(--ink);
-}
-.colItem {
-  display: flex;
-  align-items: center;
-  width: 100%;
-  min-height: var(--tap-min-compact);
-  padding: 6px 10px;
-  border: 0;
-  border-radius: var(--r-sm);
-  background: none;
-  color: var(--ink);
-  font: inherit;
-  font-size: var(--fs-ui);
-  text-align: left;
-  cursor: pointer;
-}
-.colItem:hover:not(:disabled),
-.colItem:focus-visible {
-  background: var(--surf-2);
-  outline: none;
-}
-.colItem:focus-visible {
-  box-shadow: inset 0 0 0 var(--focus-ring-w) var(--focus);
-}
-.colItem:disabled {
-  opacity: var(--disabled-opacity);
-  cursor: not-allowed;
-}
-.colItem[data-danger] {
-  color: var(--bad);
-}
-.colSep {
-  height: 1px;
-  margin: 4px 6px;
-  background: var(--bd);
+.colMenu.colMenu {
+  width: 248px;
 }
 .colLimit {
   padding: 6px 10px 4px;

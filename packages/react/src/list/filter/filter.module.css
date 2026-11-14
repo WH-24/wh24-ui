@@ -160,58 +160,14 @@
 }
 
 /* Применённые условия — компактными чипами ВНУТРИ поля. */
-.filterApplied {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 2px 4px 2px 8px;
-  font-size: var(--fs-meta);
-  border-radius: var(--r-pill);
-  background: var(--accent-50);
-  color: var(--accent-text);
+/* Вид — общий Chip (вариант tag); здесь предел ширины внутри поля. */
+.filterApplied.filterApplied {
   max-width: 220px;
-}
-:where([data-theme="dark"]) .filterApplied {
-  background: var(--accent-50);
-  color: var(--accent-text);
+  padding-top: 2px;
+  padding-bottom: 2px;
 }
 .filterAppliedPreset {
   font-weight: 500;
-}
-.filterAppliedLabel {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-/* chip-x (крестик внутри чипа активного пресета). */
-.chipX {
-  position: relative;
-  display: grid;
-  place-items: center;
-  flex: none;
-  width: 16px;
-  height: 16px;
-  padding: 0;
-  border: none;
-  border-radius: 50%;
-  background: transparent;
-  color: var(--fg-muted);
-  cursor: pointer;
-}
-/* Видимый крестик 16px, а цель — 24px (WCAG 2.5.8): поле вокруг. */
-.chipX::after {
-  content: '';
-  position: absolute;
-  inset: -4px;
-}
-.chipX:focus-visible {
-  outline: var(--focus-ring-w) solid var(--focus);
-  outline-offset: var(--focus-ring-offset);
-}
-.chipX:hover {
-  color: var(--fg-primary);
-  background: var(--bg-active);
 }
 
 /* ===== Поповер (две колонки: пресеты | поля) ===== */
@@ -527,134 +483,20 @@
   align-items: center;
   gap: 6px;
 }
-.filterDaterange input {
-  flex: 1;
+/* Два общих DateField; в узкой колонке (телефон) встают друг под другом,
+   чтобы «дд.мм.гггг» не обрезалось. */
+.filterDaterange {
+  flex-wrap: wrap;
+}
+.filterDaterange > * {
+  flex: 1 1 132px;
   min-width: 0;
+}
+.filterDaterange > .filterDaterangeDash {
+  flex: none;
 }
 .filterDaterangeDash {
   color: var(--fg-muted);
-}
-
-/* Мультивыбор. */
-.filterMs {
-  position: relative;
-  min-width: 0;
-}
-.filterMsTrigger {
-  text-align: left;
-  overflow: hidden;
-  padding-right: 36px;
-  cursor: pointer;
-}
-.filterMsTrigger[data-empty="true"] .filterMsSummary {
-  color: var(--fg-muted);
-}
-.filterMsSummary {
-  display: block;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.comboControl {
-  position: relative;
-}
-.comboToggle {
-  position: absolute;
-  top: 1px;
-  right: 1px;
-  width: 34px;
-  height: 34px;
-  display: grid;
-  place-items: center;
-  color: var(--fg-tertiary);
-  border: 0;
-  border-left: 1px solid var(--border-subtle);
-  border-radius: 0 var(--radius-md) var(--radius-md) 0;
-  background: transparent;
-  cursor: pointer;
-}
-.comboToggle:hover {
-  color: var(--fg-primary);
-  background: var(--bg-hover);
-}
-
-/* Портальное меню мультивыбора. */
-.msMenu {
-  z-index: var(--z-popover, 300);
-  padding: 4px;
-  background: var(--bg-surface);
-  border: var(--bd-w, 1px) solid var(--border-default);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-lg, 0 12px 32px rgba(0, 0, 0, 0.1), 0 2px 6px rgba(0, 0, 0, 0.04));
-  overflow: auto;
-  max-height: 240px;
-}
-.filterMsOption {
-  width: 100%;
-  min-height: var(--item-h, 34px);
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 8px;
-  padding: var(--sp-3) 8px;
-  text-align: left;
-  color: var(--fg-primary);
-  border: 0;
-  border-radius: var(--radius-sm);
-  background: transparent;
-  cursor: pointer;
-  font: inherit;
-  font-size: var(--fs-ui);
-}
-.filterMsOption:hover,
-.filterMsOption[aria-selected="true"] {
-  background: var(--bg-hover);
-}
-.filterMsOptionTitle {
-  flex: 0 1 auto;
-  max-width: none;
-  text-align: left;
-}
-/* Аватар опции (списки сотрудников): фото или кружок с инициалами перед подписью. */
-.filterMsAvatar {
-  flex: none;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  overflow: hidden;
-  display: inline-grid;
-  place-items: center;
-}
-.filterMsAvatar img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-}
-.filterMsAvatarInitials {
-  width: 100%;
-  height: 100%;
-  display: inline-grid;
-  place-items: center;
-  font-size: var(--fs-meta-sm);
-  font-weight: 600;
-  background: var(--bg-muted);
-  color: var(--fg-tertiary);
-}
-/* Флажок — тот же вид, что в мультивыборе формы и в «Формах». */
-.filterMsCheck {
-  display: grid;
-  place-items: center;
-  width: 16px;
-  height: 16px;
-  border: 1.5px solid var(--flt-field-bd);
-  border-radius: var(--r-xs, 3px);
-  color: #fff;
-  flex: none;
-}
-.filterMsCheck[data-on="true"] {
-  background: var(--terra-solid, var(--accent-600));
-  border-color: var(--terra-solid, var(--accent-600));
 }
 
 /* «Добавить поле». */
@@ -735,73 +577,6 @@
   cursor: pointer;
 }
 
-/* ===== Кнопки (.btn*) — нужны в футере поповера ===== */
-.btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--sp-2, 6px);
-  /* Метрики — один в один с канонической .btn (ui-tokens/button.css). */
-  min-height: var(--btn-h, 36px);
-  padding: var(--sp-3, 8px) var(--sp-6, 14px);
-  border: 1px solid transparent;
-  border-radius: var(--btn-r, 7px);
-  font: inherit;
-  font-size: var(--btn-fs, 13px);
-  font-weight: var(--fw-medium, 500);
-  line-height: var(--lh-snug, 1.3);
-  white-space: nowrap;
-  cursor: pointer;
-  text-decoration: none;
-  transition:
-    background var(--dur-fast) ease,
-    color var(--dur-fast) ease,
-    border-color var(--dur-fast) ease,
-    box-shadow var(--dur-fast) ease,
-    transform var(--dur-fast) var(--ease-out);
-}
-/* Отклик на нажатие — как у канонической .btn (ui-tokens/button.css). */
-.btn:active:not(:disabled):not([aria-disabled='true']) {
-  transform: scale(var(--press-scale));
-}
-@media (prefers-reduced-motion: reduce) {
-  .btn:active:not(:disabled) {
-    transform: none;
-  }
-}
-.btn:focus-visible {
-  outline: var(--focus-ring-w) solid var(--focus);
-  outline-offset: var(--focus-ring-offset);
-}
-.btn:disabled,
-.btn[aria-disabled='true'] {
-  opacity: var(--disabled-opacity);
-  cursor: not-allowed;
-  pointer-events: none;
-}
-.btnSm {
-  min-height: var(--btn-h-sm, 32px);
-  padding: var(--sp-2, 6px) var(--sp-5, 12px);
-}
-/* Белый текст на --accent-500 (#dd6731) — 3.47:1; как у глобальной
-   .btn-primary — тёмный терракот (4.99:1). */
-.btnPrimary {
-  background: var(--terra-solid, var(--accent-600));
-  color: #fff;
-}
-.btnPrimary:hover {
-  background: var(--terra-solid-hover, var(--accent-700));
-}
-.btnGhost {
-  background: transparent;
-  color: var(--fg-secondary);
-  border-color: transparent;
-}
-.btnGhost:hover {
-  background: var(--bg-hover);
-  color: var(--fg-primary);
-}
-
 /* Телефон: фильтр во всю ширину строки — на 50% от 343px плейсхолдер
    обрезался, а условия не помещались. */
 @media (max-width: 640px) {
@@ -866,7 +641,6 @@
     min-width: var(--tap-min, 44px);
     min-height: var(--tap-min, 44px);
   }
-  .filterMsOption,
   .filterAddgridItem,
   .filterPreset {
     min-height: var(--tap-min-compact, 36px);

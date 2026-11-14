@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, type ReactNode } from 'react'
-import { Icon, type IconName } from '@wowhaus-24/ui-react'
+import { Icon, IconButton, type IconName } from '@wowhaus-24/ui-react'
 
 import { BrainIcon } from '../icons.js'
 import { SourceList, type NumberedSource } from '../sources/SourceList.js'
@@ -152,19 +152,14 @@ export function AskAiPanel({
               </button>
             )}
             {onExpand && (
-              <button
-                type="button"
-                className={styles.iconBtn}
-                aria-label="Открыть на всю страницу"
-                onClick={onExpand}
-              >
+              <IconButton ariaLabel="Открыть на всю страницу" onClick={onExpand}>
                 <BrainIcon name="expand" size={15} />
-              </button>
+              </IconButton>
             )}
             {onClose && (
-              <button type="button" className={styles.iconBtn} aria-label="Закрыть" onClick={onClose}>
+              <IconButton ariaLabel="Закрыть" onClick={onClose}>
                 <Icon name="close" size={15} />
-              </button>
+              </IconButton>
             )}
           </div>
         </div>
@@ -240,14 +235,9 @@ export function AskAiPanel({
           <div className={styles.error} role="alert">
             <span className={styles.errorText}>{error}</span>
             {onDismissError && (
-              <button
-                type="button"
-                className={styles.iconBtn}
-                aria-label="Скрыть ошибку"
-                onClick={onDismissError}
-              >
+              <IconButton size={24} ariaLabel="Скрыть ошибку" onClick={onDismissError}>
                 <Icon name="close" size={13} />
-              </button>
+              </IconButton>
             )}
           </div>
         )}

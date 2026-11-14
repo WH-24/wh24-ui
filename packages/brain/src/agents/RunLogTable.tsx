@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { Icon } from '@wowhaus-24/ui-react'
+import { EmptyState, Icon } from '@wowhaus-24/ui-react'
 
 import { BrainIcon } from '../icons.js'
 import {
@@ -139,14 +139,7 @@ export function RunLogTable({
         </p>
       )}
       {!loading && !error && runs.length === 0 && (
-        <div className={styles.empty}>
-          <span className={styles.emptyIcon}>
-            <Icon name="list" size={20} />
-          </span>
-          <div className={styles.emptyTitle}>{emptyTitle}</div>
-          <div className={styles.emptyText}>{emptyText}</div>
-          {emptyAction && <div className={styles.emptyAction}>{emptyAction}</div>}
-        </div>
+        <EmptyState className={styles.empty} icon="list" title={emptyTitle} description={emptyText} actions={emptyAction} />
       )}
       {runs.length > 0 && (
         <div className={styles.scroll} role="region" aria-label={caption} tabIndex={0}>

@@ -15,6 +15,8 @@ import {
   FileDrop,
   Icon,
   Input,
+  Avatar,
+  CheckboxMark,
   MultiCombobox,
   OptionMarker,
   StaticValue,
@@ -52,7 +54,6 @@ import {
   formatNumber,
   formatSize,
   formatValue,
-  initials,
   isBlank,
   optionLabel,
   type FormatContext,
@@ -415,15 +416,9 @@ const datetime: FieldRenderer = {
   View: TextView,
 }
 
+/** Рисунок флажка — общий `CheckboxMark` из ui-react. */
 function CheckGlyph({ on }: { on: boolean }) {
-  return (
-    <span
-      className={[styles.checkBox, on ? styles.checkBoxOn : ''].filter(Boolean).join(' ')}
-      aria-hidden
-    >
-      {on && <Icon name="check" size={11} stroke={2.4} />}
-    </span>
-  )
+  return <CheckboxMark checked={on} />
 }
 
 const checkbox: FieldRenderer = {
@@ -607,9 +602,7 @@ function PersonView({ field, value, ctx }: FieldRenderProps) {
   const label = optionLabel(field, str(value), ctx)
   return (
     <StaticValue className={styles.user}>
-      <span className={styles.avatar} aria-hidden>
-        {initials(label)}
-      </span>
+      <Avatar size={24} name={label} aria-hidden="true" />
       {label}
     </StaticValue>
   )

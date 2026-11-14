@@ -9,7 +9,7 @@
  * текущей странице»: такой фильтр врал бы про остальные 25 страниц.
  */
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
-import { Icon, Input, type ListColumn } from '@wowhaus-24/ui-react'
+import { Avatar, Icon, Input, Menu, MenuItem, type ListColumn } from '@wowhaus-24/ui-react'
 
 import { FormsApiError, type FormsApi, type ListRecordsQuery } from '../api.js'
 import type { Field, Form, FormRecord, SchemaDocument } from '../types.js'
@@ -18,7 +18,6 @@ import { systemValue } from '../render/system.js'
 import {
   formatDateTime,
   formatValue,
-  initials,
   isBlank,
   isNumericType,
   optionLabel,
@@ -125,9 +124,7 @@ function Cell({ field, value, ctx }: { field: Field; value: unknown; ctx: Format
       const label = optionLabel(field, String(value), ctx)
       return (
         <span className={styles.cellUser}>
-          <span className={styles.cellAvatar} aria-hidden>
-            {initials(label)}
-          </span>
+          <Avatar size={24} name={label} aria-hidden="true" />
           <span className={styles.name} style={{ fontWeight: 400 }}>
             {label}
           </span>
@@ -308,7 +305,6 @@ export function FormRecordsPage({
 
   const colsKey = `wh24-forms:cols:${storageKey ?? form.id}`
   const [hidden, setHidden] = useState<string[]>(() => readHidden(colsKey))
-  const [colsOpen, setColsOpen] = useState(false)
   const toggleCol = (key: string) => {
     const next = hidden.includes(key) ? hidden.filter((k) => k !== key) : [...hidden, key]
     setHidden(next)
@@ -611,37 +607,26 @@ export function FormRecordsPage({
           <Icon name="flag" size={14} /> На контроле
         </button>
         <span className={styles.spacer} />
-        <div className={styles.colsWrap}>
-          <button
-            type="button"
-            className="btn btn-ghost btn-sm"
-            aria-label="Колонки"
-            aria-expanded={colsOpen}
-            onClick={() => setColsOpen((v) => !v)}
-          >
-            <Icon name="settings" size={14} /> Колонки
-          </button>
-          {colsOpen && (
-            <div className={styles.colsMenu} role="menu" onMouseLeave={() => setColsOpen(false)}>
-              {columns.map((c) => (
-                <button
-                  key={c.key}
-                  type="button"
-                  role="menuitemcheckbox"
-                  aria-checked={!hidden.includes(c.key)}
-                  className={styles.colsItem}
-                  disabled={!c.toggleable}
-                  onClick={() => toggleCol(c.key)}
-                >
-                  <span style={{ width: 14, display: 'inline-flex' }}>
-                    {!hidden.includes(c.key) && <Icon name="check" size={12} />}
-                  </span>
-                  {c.label}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
+        <Menu
+          label="Колонки"
+          trigger={
+            <button type="button" className="btn btn-ghost btn-sm" aria-label="Колонки">
+              <Icon name="settings" size={14} /> Колонки
+            </button>
+          }
+        >
+          {columns.map((c) => (
+            <MenuItem
+              key={c.key}
+              checked={!hidden.includes(c.key)}
+              disabled={!c.toggleable}
+              keepOpen
+              onSelect={() => toggleCol(c.key)}
+            >
+              {c.label}
+            </MenuItem>
+          ))}
+        </Menu>
       </div>
 
       {renderBody()}

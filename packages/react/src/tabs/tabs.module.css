@@ -15,6 +15,11 @@
   /* Точка отсчёта для полосы-индикатора. */
   position: relative;
 }
+/* Вкладки переносятся на новую строку вместо прокрутки вбок. */
+.tabs[data-wrap] {
+  flex-wrap: wrap;
+  overflow-x: visible;
+}
 .tab {
   display: inline-flex;
   align-items: center;

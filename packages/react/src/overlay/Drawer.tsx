@@ -1,7 +1,7 @@
 import { useId, useRef, type ReactNode, type RefObject } from 'react'
 import { createPortal } from 'react-dom'
 
-import { Icon } from '../list/Icon.js'
+import { DialogBody, DialogFooter, DialogHeader } from './Dialog.js'
 import { motionEase, motionMs } from './motion.js'
 import { usePresence, useExitAnimation, type ExitLayer } from './presence.js'
 import { useFocusTrap, useScrollLock } from './useFocusTrap.js'
@@ -84,21 +84,15 @@ function DrawerPanel({ onClose, title, children, actions, footer, width = 560, e
         className={styles.drawer}
         style={{ width }}
       >
-        <div className={styles.drawerHead}>
-          <h2 id={titleId} className={styles.title}>
-            {title}
-          </h2>
-          <div className={styles.drawerActions}>
-            {actions}
-            {onClose && (
-              <button type="button" className={styles.close} onClick={onClose} aria-label="Закрыть">
-                <Icon name="close" size={16} />
-              </button>
-            )}
-          </div>
-        </div>
-        <div className={styles.drawerBody}>{children}</div>
-        {footer && <div className={styles.footer}>{footer}</div>}
+        <DialogHeader
+          className={styles.drawerHead}
+          title={title}
+          titleId={titleId}
+          onClose={onClose}
+          actions={actions}
+        />
+        <DialogBody className={styles.drawerBody}>{children}</DialogBody>
+        {footer && <DialogFooter>{footer}</DialogFooter>}
       </div>
     </>
   )

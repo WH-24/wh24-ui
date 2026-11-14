@@ -63,23 +63,6 @@
   max-width: 50%;
   margin-left: auto;
 }
-.iconBtn {
-  width: 32px;
-  height: 32px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border: none;
-  border-radius: var(--r-md);
-  background: transparent;
-  color: var(--ink-3);
-  cursor: pointer;
-}
-.iconBtn:hover {
-  background: var(--surf-2);
-  color: var(--ink);
-}
-
 .modes {
   display: inline-flex;
   padding: 2px;
@@ -114,12 +97,8 @@
 }
 
 @media (pointer: coarse) {
-  .iconBtn,
   .modeBtn {
     min-height: var(--tap-min-compact);
-  }
-  .iconBtn {
-    min-width: var(--tap-min-compact);
   }
 }
 

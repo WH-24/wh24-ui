@@ -227,27 +227,6 @@
   color: var(--ink-3);
 }
 
-.spinner {
-  flex: none;
-  display: inline-block;
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  border: 2px solid var(--bd-strong);
-  border-top-color: var(--terra);
-  animation: modelSpin var(--dur-spin) linear infinite;
-}
-@keyframes modelSpin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  /* Кольцо не замирает (застывшее выглядит поломкой), а крутится медленнее. */
-  .spinner {
-    animation-duration: var(--dur-spin-reduced);
-  }
-}
 .srOnly {
   position: absolute;
   width: 1px;

@@ -1,5 +1,6 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type RefObject } from 'react'
 
+import { CheckboxMark } from '../../Checkbox/Checkbox.js'
 import { Icon } from '../Icon.js'
 import { FieldEditor } from './FieldEditor.js'
 import { activeCount, isEmptyValue } from './matchItem.js'
@@ -572,9 +573,7 @@ export function SearchModule<T>({
                   // многоточием — подсказка возвращает его целиком.
                   title={f.label}
                 >
-                  <span className={styles.filterMsCheck} data-on={String(on)}>
-                    {on && <Icon name="check" size={12} />}
-                  </span>
+                  <CheckboxMark checked={on} />
                   <span className={styles.filterAddgridLabel}>{f.label}</span>
                 </button>
               )
@@ -600,7 +599,7 @@ export function SearchModule<T>({
                 </label>
               )}
               <button
-                className={cx(styles.btn, styles.btnPrimary, styles.btnSm)}
+                className={"btn btn-primary btn-sm"}
                 disabled={!presetName.trim()}
                 onClick={saveCurrentPreset}
               >
@@ -608,7 +607,7 @@ export function SearchModule<T>({
                 Сохранить
               </button>
               <button
-                className={cx(styles.btn, styles.btnGhost, styles.btnSm)}
+                className={"btn btn-ghost btn-sm"}
                 onClick={() => {
                   setSaving(false)
                   setPresetName('')
@@ -632,7 +631,7 @@ export function SearchModule<T>({
                 </label>
               )}
               <button
-                className={cx(styles.btn, styles.btnPrimary, styles.btnSm)}
+                className={"btn btn-primary btn-sm"}
                 onClick={() => {
                   if (editingPresetId) saveEditedPreset(editingPresetId)
                   setEditMode(false)
@@ -645,7 +644,7 @@ export function SearchModule<T>({
                 Сохранить
               </button>
               <button
-                className={cx(styles.btn, styles.btnGhost, styles.btnSm)}
+                className={"btn btn-ghost btn-sm"}
                 onClick={() => {
                   setEditMode(false)
                   setRenamingId(null)
@@ -658,12 +657,12 @@ export function SearchModule<T>({
             </>
           ) : (
             <>
-              <button className={cx(styles.btn, styles.btnPrimary, styles.btnSm)} onClick={onClose}>
+              <button className={"btn btn-primary btn-sm"} onClick={onClose}>
                 <Icon name="search" size={14} />
                 Найти
               </button>
               <button
-                className={cx(styles.btn, styles.btnGhost, styles.btnSm, styles.filterFootReset)}
+                className={cx("btn btn-ghost btn-sm", styles.filterFootReset)}
                 onClick={() => {
                   setState({})
                   setFields([])

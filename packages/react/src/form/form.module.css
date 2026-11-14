@@ -293,22 +293,6 @@
   background: var(--surf-2);
 }
 /* Чек-индикатор слева в пункте выпадашки мультивыбора. */
-.mcCheck {
-  flex: 0 0 auto;
-  width: 16px;
-  height: 16px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border: 1.5px solid var(--field-bd, var(--bd-strong));
-  border-radius: var(--r-xs);
-  color: #fff;
-}
-.mcCheckOn {
-  background: var(--terra-solid);
-  border-color: var(--terra-solid);
-}
-
 /* ─── Портальное меню (мультивыбор) ───────────────────────────────── */
 .menu {
   z-index: var(--z-popover);
@@ -443,22 +427,6 @@
 .dpTitle {
   font-size: var(--fs-ui);
   font-weight: var(--fw-semibold);
-  color: var(--ink);
-}
-.dpNav {
-  display: grid;
-  place-items: center;
-  width: 32px;
-  height: 32px;
-  padding: 0;
-  color: var(--ink-2);
-  background: transparent;
-  border: none;
-  border-radius: var(--control-r);
-  cursor: pointer;
-}
-.dpNav:hover {
-  background: var(--surf-2);
   color: var(--ink);
 }
 .dpGrid {
@@ -749,9 +717,5 @@
   .dpDay,
   .dpEmpty {
     height: var(--tap-min-compact);
-  }
-  .dpNav {
-    width: var(--tap-min);
-    height: var(--tap-min);
   }
 }

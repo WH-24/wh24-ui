@@ -53,9 +53,9 @@
   overflow-wrap: anywhere;
 }
 .titleCount {
-  /* Счётчик — один вид на библиотеку: вкладки, заголовок страницы, запись,
-     канбан, панель модуля. */
-  font-size: var(--fs-meta-sm);
+  /* Счётчик у названия страницы — 13px, как в принятом макете (крупнее
+     счётчика вкладок: он стоит рядом с заголовком 22px). */
+  font-size: var(--fs-ui);
   font-weight: var(--fw-medium);
   line-height: 1.45;
   padding: 1px 6px;
@@ -166,25 +166,7 @@
   object-fit: contain;
   margin-bottom: 4px;
 }
-.spinner {
-  width: 32px;
-  height: 32px;
-  border: 3px solid var(--bg-muted);
-  border-top-color: var(--accent-500);
-  border-radius: 50%;
-  animation: spin var(--dur-spin) linear infinite;
-}
 .loaderLabel {
   font-size: var(--fs-ui);
   color: var(--fg-muted);
-}
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .spinner {
-    animation-duration: var(--dur-spin-reduced);
-  }
 }

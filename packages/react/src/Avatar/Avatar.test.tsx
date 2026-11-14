@@ -12,12 +12,13 @@ describe('Avatar', () => {
 
   it('uses ariaLabel when provided', () => {
     render(<Avatar initials="АА" ariaLabel="Профиль Анны" />)
-    expect(screen.getByRole('button', { name: 'Профиль Анны' })).toBeInTheDocument()
+    expect(screen.getByRole('img', { name: 'Профиль Анны' })).toBeInTheDocument()
   })
 
-  it('falls back to initials in default aria-label', () => {
+  it('без обработчика — не кнопка: картинка с подписью из инициалов', () => {
     render(<Avatar initials="ЕП" />)
-    expect(screen.getByRole('button', { name: 'Профиль ЕП' })).toBeInTheDocument()
+    expect(screen.getByRole('img', { name: 'ЕП' })).toBeInTheDocument()
+    expect(screen.queryByRole('button')).toBeNull()
   })
 
   it('fires onClick', async () => {
@@ -31,16 +32,16 @@ describe('Avatar', () => {
 describe('Avatar: худшие данные', () => {
   it('готовые инициалы длиннее двух символов обрезаются', () => {
     render(<Avatar initials="Wiśniewska" />)
-    expect(screen.getByRole('button')).toHaveTextContent(/^Wi$/)
+    expect(screen.getByRole('img')).toHaveTextContent(/^Wi$/)
   })
 
   it('пустые инициалы — «?», а не пустой круг', () => {
     render(<Avatar initials="  " />)
-    expect(screen.getByRole('button', { name: 'Профиль ?' })).toHaveTextContent('?')
+    expect(screen.getByRole('img', { name: '?' })).toHaveTextContent('?')
   })
 
   it('эмодзи не режется пополам', () => {
     render(<Avatar initials="🦊Лиса" />)
-    expect(screen.getByRole('button')).toHaveTextContent(/^🦊Л$/)
+    expect(screen.getByRole('img')).toHaveTextContent(/^🦊Л$/)
   })
 })

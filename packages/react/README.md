@@ -10,7 +10,13 @@ StatBar, etc.) will land here as we migrate them out of `wiki-web`.
 (`mockups/components-mockup.html`): `Tooltip`, `Switch`, `Checkbox`, `Banner`,
 `Pager`, `StatusBadge`, `Avatar` / `AvatarStack`, `HoverCard`,
 `CommandPalette` (+ `useCommandPaletteShortcut`), `NotificationCenter`,
-`Skeleton` / `SkeletonText` / `SkeletonRow`, `ProgressBar`. Живые примеры —
+`Skeleton` / `SkeletonText` / `SkeletonRow`, `ProgressBar`. Одна реализация на
+элемент: `Menu` (+ `MenuItem`, `MenuSeparator`, `MenuLabel`) — любое меню
+действий, `IconButton` (32 и 24, принимает `ref` и атрибуты кнопки), части окна
+`DialogHeader` / `DialogBody` / `DialogFooter` / `DialogClose` (из них собраны
+`Modal`, `Drawer` и подтверждение), `Spinner`, `CheckboxMark` (рисунок флажка
+для пункта списка). Свои меню, окна, кольца ожидания и кружки с инициалами в
+модулях не заводим. Живые примеры —
 `npm run dev -w @wowhaus-24/ui-styleguide`.
 
 ## Install

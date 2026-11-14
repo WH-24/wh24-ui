@@ -24,38 +24,10 @@
   color: var(--ink-2);
 }
 
+/* Пусто — общий EmptyState в рамке журнала. */
 .empty {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
-  padding: 36px 16px;
   border: var(--bd-w) dashed var(--bd-strong);
   border-radius: var(--r-lg);
-  text-align: center;
-}
-.emptyIcon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: var(--surf-3);
-  color: var(--ink-3);
-}
-.emptyTitle {
-  font-size: var(--fs-card);
-  font-weight: var(--fw-semibold);
-}
-.emptyText {
-  max-width: 380px;
-  font-size: var(--fs-ui);
-  line-height: 1.45;
-  color: var(--ink-2);
-}
-.emptyAction {
-  margin-top: 6px;
 }
 
 .scroll {

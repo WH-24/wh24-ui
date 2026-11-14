@@ -64,13 +64,17 @@
 }
 
 .input:checked + .box,
-.input[data-indeterminate] + .box {
+.input[data-indeterminate] + .box,
+.box[data-checked],
+.box[data-indeterminate] {
   background: var(--terra-solid);
   border-color: var(--terra-solid);
 }
 
 .input:checked:not([data-indeterminate]) + .box .tick,
-.input[data-indeterminate] + .box .dash {
+.input[data-indeterminate] + .box .dash,
+.box[data-checked]:not([data-indeterminate]) .tick,
+.box[data-indeterminate] .dash {
   stroke-dashoffset: 0;
 }
 

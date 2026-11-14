@@ -113,48 +113,6 @@
 .spacer {
   flex: 1;
 }
-.colsWrap {
-  position: relative;
-}
-.colsMenu {
-  position: absolute;
-  right: 0;
-  top: calc(100% + 4px);
-  z-index: var(--z-popover);
-  min-width: 220px;
-  max-width: min(320px, calc(100vw - 16px));
-  max-height: min(360px, calc(100vh - 16px));
-  overflow-y: auto;
-  padding: 4px;
-  background: var(--surf);
-  border: var(--bd-w) solid var(--bd);
-  border-radius: var(--r-lg);
-  box-shadow: var(--shadow-lg);
-}
-.colsItem {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  width: 100%;
-  min-height: var(--item-h);
-  padding: 6px 8px;
-  border: 0;
-  border-radius: var(--r-sm);
-  background: transparent;
-  color: var(--ink);
-  font: inherit;
-  font-size: var(--fs-ui);
-  text-align: left;
-  cursor: pointer;
-}
-.colsItem:hover {
-  background: var(--surf-2);
-}
-.colsItem:disabled {
-  color: var(--ink-4);
-  cursor: not-allowed;
-}
-
 /* ─── Таблица ───────────────────────────────────────────────────── */
 .tableWrap {
   background: var(--surf);
@@ -260,18 +218,6 @@
   gap: 8px;
   min-width: 0;
 }
-.cellAvatar {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  background: var(--terra-bg);
-  color: var(--terra-d);
-  display: inline-grid;
-  place-items: center;
-  font-size: var(--fs-meta-sm);
-  font-weight: var(--fw-semibold);
-  flex-shrink: 0;
-}
 .cellChips {
   display: flex;
   gap: 4px;
@@ -295,48 +241,6 @@
 }
 .muted {
   color: var(--ink-4);
-}
-
-/* ─── Статус-пилл ───────────────────────────────────────────────── */
-.pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: var(--fs-meta);
-  font-weight: var(--fw-medium);
-  padding: 2px var(--sp-4);
-  border-radius: var(--r-pill);
-  border: 1px solid var(--bd);
-  background: var(--surf-2);
-  color: var(--ink-2);
-  white-space: nowrap;
-}
-.pill::before {
-  content: "";
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: currentColor;
-}
-.pill[data-tone="good"] {
-  border-color: var(--good-bd);
-  background: var(--good-bg);
-  color: var(--good);
-}
-.pill[data-tone="warn"] {
-  border-color: var(--warn-bd);
-  background: var(--warn-bg);
-  color: var(--warn);
-}
-.pill[data-tone="bad"] {
-  border-color: var(--bad-bd);
-  background: var(--bad-bg);
-  color: var(--bad);
-}
-.pill[data-tone="info"] {
-  border-color: var(--info-bd);
-  background: var(--info-bg);
-  color: var(--info);
 }
 
 /* ─── Пейджер ───────────────────────────────────────────────────── */
@@ -415,50 +319,13 @@
 }
 
 /* ─── Состояния ─────────────────────────────────────────────────── */
+/* Рамка вокруг общего EmptyState. */
 .state {
   background: var(--surf);
   border: 1px solid var(--bd);
   border-radius: var(--r-lg);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 60px 20px;
-  text-align: center;
-  color: var(--ink-3);
 }
-.stateIcon {
-  width: 48px;
-  height: 48px;
-  border-radius: var(--r-lg);
-  background: var(--surf-3);
-  color: var(--ink-3);
-  display: grid;
-  place-items: center;
-  margin-bottom: 14px;
-}
-.stateIcon[data-tone="bad"] {
-  background: var(--bad-bg);
-  color: var(--bad);
-}
-.stateIcon[data-tone="warn"] {
-  background: var(--warn-bg);
-  color: var(--warn);
-}
-.stateTitle {
-  font-size: var(--fs-ui-lg);
-  color: var(--ink);
-  font-weight: var(--fw-medium);
-  margin-bottom: 4px;
-}
-.stateText {
-  font-size: var(--fs-meta);
-  max-width: 340px;
-  line-height: 1.5;
-}
-.stateAction {
-  margin-top: 16px;
-}
+/* Рамка вокруг полос общего Skeleton. */
 .skeleton {
   display: flex;
   flex-direction: column;
@@ -468,46 +335,8 @@
   border: 1px solid var(--bd);
   border-radius: var(--r-lg);
 }
-.bone {
-  height: 14px;
-  border-radius: var(--r-sm);
-  background: var(--surf-3);
-  animation: pulse var(--dur-pulse) ease-in-out infinite;
-}
-@keyframes pulse {
-  50% {
-    opacity: 0.45;
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .bone {
-    animation: none;
-  }
-}
 
 /* ─── Баннеры ───────────────────────────────────────────────────── */
-.banner {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  padding: 10px 14px;
-  border-radius: var(--r-md);
-  border: 1px solid var(--info-bd);
-  background: var(--info-bg);
-  color: var(--info);
-  font-size: var(--fs-ui);
-  line-height: 1.45;
-}
-.banner[data-tone="warn"] {
-  border-color: var(--warn-bd);
-  background: var(--warn-bg);
-  color: var(--warn);
-}
-.banner[data-tone="bad"] {
-  border-color: var(--bad-bd);
-  background: var(--bad-bg);
-  color: var(--bad);
-}
 .bannerList {
   margin: 4px 0 0;
   padding-left: 18px;

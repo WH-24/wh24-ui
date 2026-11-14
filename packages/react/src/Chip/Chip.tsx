@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import type { ButtonHTMLAttributes, ReactNode } from 'react'
 
 import { Icon } from '../list/Icon.js'
 
@@ -11,6 +11,10 @@ export interface ChipProps {
   variant?: ChipVariant
   onRemove?: () => void
   removeLabel?: string
+  /** Свой класс чипа (предел ширины, жирность). */
+  className?: string
+  /** Атрибуты кнопки «убрать» (например, `onMouseDown`, чтобы щелчок не открыл поле вокруг). */
+  removeButtonProps?: Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'type' | 'onClick' | 'aria-label'>
 }
 
 /**
@@ -22,9 +26,11 @@ export function Chip({
   variant = 'default',
   onRemove,
   removeLabel = 'Удалить',
+  className: own,
+  removeButtonProps,
 }: ChipProps) {
   const label = removeLabel
-  const className = variant === 'tag' ? `${styles.chip} ${styles.tag}` : styles.chip
+  const className = [styles.chip, variant === 'tag' ? styles.tag : '', own ?? ''].filter(Boolean).join(' ')
   return (
     <span className={className}>
       {/* Подпись отдельным элементом: длинный тег обрезается многоточием,
@@ -34,6 +40,7 @@ export function Chip({
       </span>
       {onRemove ? (
         <button
+          {...removeButtonProps}
           type="button"
           className={styles.remove}
           aria-label={label}

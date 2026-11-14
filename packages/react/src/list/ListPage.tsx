@@ -14,9 +14,14 @@ import { Icon, type IconName } from "./Icon.js";
 import { FilterBar } from "./filter/FilterBar.js";
 import { useFilterState } from "./filter/useFilterState.js";
 import { activeCount, matchItem } from "./filter/matchItem.js";
-import { motionMs, motionScale } from "../overlay/motion.js";
-import { useExitAnimation, usePresence } from "../overlay/presence.js";
-import { useFocusTrap } from "../overlay/useFocusTrap.js";
+import { Checkbox } from "../Checkbox/Checkbox.js";
+import { IconButton } from "../IconButton/IconButton.js";
+import { motionMs } from "../overlay/motion.js";
+import { Modal } from "../overlay/Modal.js";
+import { EmptyState } from "../page/EmptyState.js";
+import { ErrorState } from "../page/ErrorState.js";
+import { PageHeader } from "../page/PageHeader.js";
+import { Skeleton } from "../Skeleton/Skeleton.js";
 import type { FilterBarConfig, FilterSettingsProvider } from "./filter/types.js";
 import styles from "./ListPage.module.css";
 
@@ -508,7 +513,6 @@ export function ListPage<T>({
   // У пользователя уже есть своя настройка → общая на него не действует.
   const hasOwnCols = useRef(hasOwnStoredCols(colsKey));
   const gearRef = useRef<HTMLButtonElement>(null);
-  const selectAllRef = useRef<HTMLInputElement>(null);
 
   // Переключать можно только именованные колонки (у служебных, напр. аватара,
   // label пустой — они всегда видимы).
@@ -611,35 +615,6 @@ export function ListPage<T>({
     setColsOpen(true);
   };
   const closeCols = () => setColsOpen(false);
-  // Окно колонок — модальное и по поведению: Tab не выходит наружу, Esc —
-  // отмена, после закрытия фокус снова на шестерёнке.
-  const colsRef = useRef<HTMLDivElement>(null);
-  useFocusTrap({ open: colsOpen, containerRef: colsRef, onEscape: closeCols });
-  // Окно колонок уходит как Modal: подложка гаснет, карточка сжимается.
-  const colsBackdropRef = useRef<HTMLDivElement>(null);
-  const colsPresence = usePresence(colsOpen);
-  useExitAnimation(
-    colsPresence.exiting,
-    colsPresence.exiting
-      ? [
-          {
-            ref: colsBackdropRef,
-            frames: [{ opacity: 1 }, { opacity: 0 }],
-            duration: motionMs("--dur-slow-exit"),
-          },
-          {
-            ref: colsRef,
-            // Центрирование окна — тоже transform: сдвиг сохраняем в каждом кадре.
-            frames: [
-              { opacity: 1, transform: "translate(-50%, -50%) scale(1)" },
-              { opacity: 0, transform: `translate(-50%, -50%) scale(${motionScale("--modal-scale")})` },
-            ],
-            duration: motionMs("--dur-slow-exit"),
-          },
-        ]
-      : [],
-    colsPresence.finish,
-  );
   // Safari не фокусирует кнопку по клику — возвращаем фокус явно.
   const wasColsOpen = useRef(false);
   useEffect(() => {
@@ -701,14 +676,6 @@ export function ListPage<T>({
     }
     setColsOpen(false);
   };
-
-  // Промежуточное состояние «выбрать все», когда включена только часть.
-  useEffect(() => {
-    if (selectAllRef.current) {
-      selectAllRef.current.indeterminate =
-        draftVisibleCount > 0 && draftVisibleCount < toggleableCols.length;
-    }
-  }, [draftVisibleCount, toggleableCols.length, colsOpen]);
 
   const colByKey = useMemo(() => new Map(columns.map((c) => [c.key, c])), [columns]);
 
@@ -971,8 +938,7 @@ export function ListPage<T>({
             >
               {host && (
                 <span className={styles.cellSelectBox} onClick={(e) => e.stopPropagation()}>
-                  <input
-                    type="checkbox"
+                  <Checkbox
                     checked={selected.has(id)}
                     onChange={() => toggleSelect(id)}
                     aria-label="Выбрать строку"
@@ -1029,47 +995,22 @@ export function ListPage<T>({
     (typeof filter.q === "string" && filter.q.trim() !== "") ||
     Boolean(externalSearch?.trim());
   const empty = error ? (
-    <div className={styles.empty} role="alert">
-      <div className={styles.emptyIcon} data-tone="error">
-        <Icon name="alert" size={20} />
-      </div>
-      <div className={styles.emptyTitle}>Не удалось загрузить</div>
-      <div className={styles.emptyDesc}>{error}</div>
-      {onRetry && (
-        <button type="button" className={`${styles.btn} ${styles.btnGhost} ${styles.emptyBtn}`} onClick={onRetry}>
-          <Icon name="refresh" size={14} />
-          Повторить
-        </button>
-      )}
-    </div>
+    <ErrorState detail={error} onRetry={onRetry} />
   ) : data.length > 0 ? (
-    <div className={styles.empty}>
-      <div className={styles.emptyIcon}>
-        <Icon name="search" size={20} />
-      </div>
-      <div className={styles.emptyTitle}>Ничего не найдено</div>
-      <div className={styles.emptyDesc}>
-        {filterActive ? "Под фильтр и поиск не подошла ни одна строка." : "Попробуйте изменить фильтры."}
-      </div>
-      {filterActive && !externalSearch?.trim() && (
-        <button
-          type="button"
-          className={`${styles.btn} ${styles.btnGhost} ${styles.emptyBtn}`}
-          onClick={() => setFilter({})}
-        >
-          Показать все строки
-        </button>
-      )}
-    </div>
+    <EmptyState
+      icon="search"
+      title="Ничего не найдено"
+      description={filterActive ? "Под фильтр и поиск не подошла ни одна строка." : "Попробуйте изменить фильтры."}
+      actions={
+        filterActive && !externalSearch?.trim() ? (
+          <button type="button" className="btn btn-ghost btn-sm" onClick={() => setFilter({})}>
+            Показать все строки
+          </button>
+        ) : undefined
+      }
+    />
   ) : (
-    <div className={styles.empty}>
-      <div className={styles.emptyIcon}>
-        <Icon name={emptyIcon} size={20} />
-      </div>
-      <div className={styles.emptyTitle}>{emptyTitle}</div>
-      {emptyDescription && <div className={styles.emptyDesc}>{emptyDescription}</div>}
-      {emptyAction && <div className={styles.emptyAction}>{emptyAction}</div>}
-    </div>
+    <EmptyState icon={emptyIcon} title={emptyTitle} description={emptyDescription} actions={emptyAction} />
   );
   // Скелет: столько же колонок, сколько в таблице, — место не прыгает, когда
   // строки придут.
@@ -1095,24 +1036,18 @@ export function ListPage<T>({
       {columnSettings && <td className={styles.colGear} />}
       {visibleColumns.map((c, i) => (
         <td key={c.key}>
-          <span className={styles.skeletonBar} style={{ width: `${i === 0 ? 70 - r * 5 : 40 + ((r + i) % 3) * 15}%` }} />
+          <Skeleton width={`${i === 0 ? 70 - r * 5 : 40 + ((r + i) % 3) * 15}%`} />
         </td>
       ))}
     </tr>
   ));
 
   const folderEmpty = (
-    <div className={styles.empty}>
-      <div className={styles.emptyIcon}>
-        <Icon name="folder" size={20} />
-      </div>
-      <div className={styles.emptyTitle}>Папка пуста</div>
-      {canDrag && (
-        <div className={styles.emptyDesc}>
-          Перетащите сюда строку из другой папки или переложите через меню.
-        </div>
-      )}
-    </div>
+    <EmptyState
+      icon="folder"
+      title="Папка пуста"
+      description={canDrag ? "Перетащите сюда строку из другой папки или переложите через меню." : undefined}
+    />
   );
   // Пустой уровень: в открытой папке без поиска — «Папка пуста», иначе общий.
   const levelEmpty =
@@ -1124,14 +1059,8 @@ export function ListPage<T>({
 
   return (
     <div className={styles.page}>
-      <div className={styles.pageHeader}>
-        <div>
-          {/* h1 — у страницы-списка это заголовок страницы: читалка и переход по
-              заголовкам должны его находить (раньше был div). */}
-          <h1 className={styles.pageTitle}>{title}</h1>
-          {subtitle && <div className={styles.pageSubtitle}>{subtitle}</div>}
-        </div>
-      </div>
+      {/* Заголовок страницы-списка — общий PageHeader (h1). */}
+      <PageHeader title={title} subtitle={subtitle} />
 
       <div className={styles.toolbar}>
         {toolbarStart?.({ filtered })}
@@ -1227,17 +1156,15 @@ export function ListPage<T>({
                 <tr>
                   {columnSettings && (
                     <th className={styles.colGear}>
-                      <button
+                      <IconButton
                         ref={gearRef}
-                        type="button"
-                        className={styles.gearBtn}
-                        title="Настроить колонки"
-                        aria-label="Настроить колонки"
-                        aria-expanded={colsOpen}
+                        size={24}
+                        ariaLabel="Настроить колонки"
+                        ariaExpanded={colsOpen}
                         onClick={openCols}
                       >
                         <Icon name="settings" size={14} />
-                      </button>
+                      </IconButton>
                     </th>
                   )}
                   {visibleColumns.map((c, i) => {
@@ -1337,121 +1264,80 @@ export function ListPage<T>({
         </>
       )}
 
-      {colsPresence.mounted && (
-        <>
-          <div
-            ref={colsBackdropRef}
-            className={styles.colsBackdrop}
-            data-state={colsPresence.exiting ? "closed" : "open"}
-            onClick={closeCols}
-          />
-          <div
-            ref={colsRef}
-            className={styles.colsModal}
-            data-state={colsPresence.exiting ? "closed" : "open"}
-            role="dialog"
-            aria-modal="true"
-            aria-label={colsTitle}
-          >
-            <div className={styles.colsModalHead}>
-              <div className={styles.colsModalTitle}>{colsTitle}</div>
-              <button
-                type="button"
-                className={styles.colsModalClose}
-                onClick={closeCols}
-                aria-label="Закрыть"
+      {/* Окно колонок — общий Modal: ловушка фокуса, Esc, вход и выход. */}
+      <Modal
+        open={colsOpen}
+        onClose={closeCols}
+        title={colsTitle}
+        maxWidth={1100}
+        className={styles.colsModal}
+        bodyClassName={styles.colsModalBody}
+        footer={
+          <div className={styles.colsModalFoot}>
+            <Checkbox
+              checked={draftVisibleCount === toggleableCols.length}
+              indeterminate={draftVisibleCount > 0 && draftVisibleCount < toggleableCols.length}
+              onChange={toggleAllDraft}
+            >
+              выбрать все
+            </Checkbox>
+            {canEditFields && filterSettings && (
+              <Checkbox
+                checked={colsForAll}
+                onCheckedChange={setColsForAll}
               >
-                <Icon name="close" size={16} />
+                <span title="Набор колонок станет общим — его увидят все, кто не настраивал колонки под себя">
+                  для всех
+                </span>
+              </Checkbox>
+            )}
+            <div className={styles.colsFootActions}>
+              <button type="button" className="btn btn-primary" onClick={applyCols}>
+                Применить
+              </button>
+              <button type="button" className="btn btn-ghost" onClick={closeCols}>
+                Отменить
               </button>
             </div>
-
-            <div className={styles.colsSearchRow}>
-              <input
-                className={styles.colsSearch}
-                value={colsQuery}
-                onChange={(e) => setColsQuery(e.target.value)}
-                placeholder="Поиск по полям"
-                aria-label="Поиск по полям"
-                autoFocus
-              />
-            </div>
-
-            <div className={styles.colsModalBody}>
-              {shownCols.length === 0 ? (
-                <div className={styles.colsNothing}>Поля не найдены</div>
-              ) : (
-                <div className={styles.colsGrid}>
-                  {shownCols.map((c) => {
-                    const on = !draftHidden.has(c.key);
-                    // Последнюю видимую колонку выключить нельзя — иначе таблица пустая.
-                    const lockLast = on && draftVisibleCount === 1;
-                    return (
-                      <label
-                        key={c.key}
-                        className={styles.colsGridItem}
-                        data-on={on || undefined}
-                        title={c.label}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={on}
-                          disabled={lockLast}
-                          onChange={() => toggleDraft(c.key)}
-                        />
-                        <span>{c.label}</span>
-                      </label>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-
-            <div className={styles.colsModalFoot}>
-              <label className={styles.colsSelectAll}>
-                <input
-                  type="checkbox"
-                  ref={selectAllRef}
-                  checked={draftVisibleCount === toggleableCols.length}
-                  onChange={toggleAllDraft}
-                />
-                <span>выбрать все</span>
-              </label>
-              {canEditFields && filterSettings && (
-                <label
-                  className={styles.colsSelectAll}
-                  title="Набор колонок станет общим — его увидят все, кто не настраивал колонки под себя"
-                >
-                  <input
-                    type="checkbox"
-                    checked={colsForAll}
-                    onChange={(e) => setColsForAll(e.target.checked)}
-                  />
-                  <span>для всех</span>
-                </label>
-              )}
-              <div className={styles.colsFootActions}>
-                <button
-                  type="button"
-                  className={`${styles.btn} ${styles.btnPrimary}`}
-                  onClick={applyCols}
-                >
-                  Применить
-                </button>
-                <button
-                  type="button"
-                  className={`${styles.btn} ${styles.btnGhost}`}
-                  onClick={closeCols}
-                >
-                  Отменить
-                </button>
-              </div>
-              <button type="button" className={styles.colsReset} onClick={resetCols}>
-                по умолчанию
-              </button>
-            </div>
+            <button type="button" className={styles.colsReset} onClick={resetCols}>
+              по умолчанию
+            </button>
           </div>
-        </>
-      )}
+        }
+      >
+        <div className={styles.colsSearchRow}>
+          <input
+            className={styles.colsSearch}
+            value={colsQuery}
+            onChange={(e) => setColsQuery(e.target.value)}
+            placeholder="Поиск по полям"
+            aria-label="Поиск по полям"
+            autoFocus
+          />
+        </div>
+        {shownCols.length === 0 ? (
+          <div className={styles.colsNothing}>Поля не найдены</div>
+        ) : (
+          <div className={styles.colsGrid}>
+            {shownCols.map((c) => {
+              const on = !draftHidden.has(c.key);
+              // Последнюю видимую колонку выключить нельзя — иначе таблица пустая.
+              const lockLast = on && draftVisibleCount === 1;
+              return (
+                <Checkbox
+                  key={c.key}
+                  className={styles.colsGridItem}
+                  checked={on}
+                  disabled={lockLast}
+                  onChange={() => toggleDraft(c.key)}
+                >
+                  <span title={c.label}>{c.label}</span>
+                </Checkbox>
+              );
+            })}
+          </div>
+        )}
+      </Modal>
 
       {viewMode === "cards" &&
         renderCard &&

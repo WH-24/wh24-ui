@@ -10,6 +10,8 @@
   border: none;
   cursor: pointer;
   font-family: inherit;
+  padding: 0;
+  flex-shrink: 0;
   transition:
     background var(--dur-fast, 120ms) ease,
     color var(--dur-fast, 120ms) ease,
@@ -49,6 +51,15 @@
   height: 16px;
   align-items: center;
   justify-content: center;
+}
+.btn[data-size='24'] {
+  width: 24px;
+  height: 24px;
+  border-radius: var(--r-sm);
+}
+.btn[data-size='24'] .icon {
+  width: 14px;
+  height: 14px;
 }
 /* Палец: цель не меньше 44px (значок остаётся 16px). */
 @media (pointer: coarse) {

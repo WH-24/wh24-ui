@@ -1,5 +1,5 @@
 import { useEffect, useId, useMemo, useRef, useState } from 'react'
-import { Combobox, FieldRow, Icon, Input, MultiCombobox, Textarea, type ComboboxOption } from '@wowhaus-24/ui-react'
+import { Combobox, FieldRow, Icon, IconButton, Input, MultiCombobox, Textarea, type ComboboxOption } from '@wowhaus-24/ui-react'
 
 import { PrivacyNotice } from '../meta/PrivacyNotice.js'
 import { firstFocusable, useFocusAfterChange } from './focus.js'
@@ -191,15 +191,9 @@ function FilterRow({
           )}
         </div>
       )}
-      <button
-        type="button"
-        className={styles.iconBtn}
-        aria-label={`Убрать условие ${n}`}
-        disabled={disabled}
-        onClick={onRemove}
-      >
+      <IconButton ariaLabel={`Убрать условие ${n}`} disabled={disabled} onClick={onRemove}>
         <Icon name="close" size={14} />
-      </button>
+      </IconButton>
     </li>
   )
 }
