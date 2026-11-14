@@ -428,6 +428,7 @@ describe("FormRecordView — с лентой: общая карточка зап
         onDelete={onDelete}
         loadHistory={loadHistory}
         pyrusUrl="https://pyrus.com/t#id1"
+        route={{ steps: [], current_step_id: null, finished: false }}
       />,
     );
     await user.click(screen.getByRole("button", { name: /Редактировать/ }));
@@ -501,6 +502,56 @@ describe("FormRecordView — полоса стадий согласования 
     expect(screen.queryByRole("navigation", { name: "Стадия" })).toBeNull();
     rerender(view({ route: { steps: [], current_step_id: null, finished: false } }));
     expect(screen.queryByRole("navigation", { name: "Стадия" })).toBeNull();
+  });
+});
+
+describe("FormRecordView — правка только на «Инициализации» (14.11.2026)", () => {
+  const INIT = "00000000-0000-0000-0000-000000000000";
+  const routeAt = (init: "current" | "passed") => ({
+    steps: [
+      { id: INIT, name: "Инициализация", state: init, approvers: [] },
+      {
+        id: "s1",
+        name: "Руководитель",
+        state: init === "current" ? ("pending" as const) : ("current" as const),
+        approvers: [],
+      },
+    ],
+    current_step_id: init === "current" ? INIT : "s1",
+    finished: false,
+  });
+  const view = (route: Parameters<typeof FormRecordView>[0]["route"]) => (
+    <FormRecordView
+      form={{ ...form, route_stages: true }}
+      schema={schema}
+      record={rec(1)}
+      ctx={ctx}
+      discussion={<div>Лента</div>}
+      onEdit={() => {}}
+      route={route}
+    />
+  );
+
+  it("на «Инициализации» «Редактировать» есть; на согласовании и пока маршрут не загружен — нет", () => {
+    const { rerender } = render(view(routeAt("current")));
+    expect(screen.getByRole("button", { name: /Редактировать/ })).toBeInTheDocument();
+    rerender(view(routeAt("passed")));
+    expect(screen.queryByRole("button", { name: /Редактировать/ })).toBeNull();
+    rerender(view(null));
+    expect(screen.queryByRole("button", { name: /Редактировать/ })).toBeNull();
+  });
+
+  it("полоса стадий: «Инициализация» из маршрута не дублируется", () => {
+    render(view(routeAt("current")));
+    const strip = screen.getByRole("navigation", { name: "Стадия" });
+    expect(within(strip).getAllByRole("button").map((b) => b.textContent)).toEqual([
+      "Инициализация",
+      "Руководитель",
+    ]);
+    expect(within(strip).getByRole("button", { name: "Инициализация" })).toHaveAttribute(
+      "aria-current",
+      "step",
+    );
   });
 });
 

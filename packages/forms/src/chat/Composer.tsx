@@ -20,6 +20,7 @@ import {
   draftEmpty,
   formatMinutes,
   myDecisionStep,
+  returnTargets,
   myRevocableSteps,
   parseMinutes,
   staffIndex,
@@ -220,7 +221,9 @@ export function Composer({
     chips.push({
       key: 'approval',
       icon: draft.approval.choice === 'rejected' ? 'close' : 'check',
-      text: `${CHOICE_LABEL[draft.approval.choice]} — «${draft.approval.step_name}»`,
+      text:
+        `${CHOICE_LABEL[draft.approval.choice]} — «${draft.approval.step_name}»` +
+        (draft.approval.return_to ? `, вернуть на «${draft.approval.return_to.name}»` : ''),
       clear: () => patch({ approval: null }),
     })
   }
@@ -370,8 +373,8 @@ export function Composer({
             <ApprovalPanel
               route={route}
               current={decisionStep}
-              onPick={(step_id, step_name, choice) => {
-                patch({ approval: { step_id, step_name, choice } })
+              onPick={(step_id, step_name, choice, return_to) => {
+                patch({ approval: { step_id, step_name, choice, return_to } })
                 setPanel(null)
               }}
             />
@@ -591,9 +594,14 @@ function ApprovalPanel({
 }: {
   route: RecordRoute
   current: RecordRoute['steps'][number] | null
-  onPick: (stepId: string, stepName: string, choice: ApprovalChoice) => void
+  onPick: (stepId: string, stepName: string, choice: ApprovalChoice, returnTo?: { id: string; name: string }) => void
 }) {
   const revocable = myRevocableSteps(route).filter((s) => s.id !== current?.id)
+  // «Против» может вернуть запись на этап раньше или на «Инициализацию» —
+  // автор поправит её и отправит заново. Пусто — запись остаётся на этапе.
+  const targets = current ? returnTargets(route, current.id) : []
+  const [returnTo, setReturnTo] = useState('')
+  const target = targets.find((t) => t.id === returnTo)
   return (
     <div className={styles.approvalPanel}>
       {current && (
@@ -604,11 +612,32 @@ function ApprovalPanel({
               key={ch}
               type="button"
               className={['btn', 'btn-sm', ch === 'approved' ? 'btn-primary' : 'btn-ghost'].join(' ')}
-              onClick={() => onPick(current.id, current.name, ch)}
+              onClick={() =>
+                onPick(
+                  current.id,
+                  current.name,
+                  ch,
+                  ch === 'rejected' && target ? { id: target.id, name: target.name } : undefined,
+                )
+              }
             >
               {CHOICE_LABEL[ch]}
             </button>
           ))}
+        </div>
+      )}
+      {current && targets.length > 0 && availableChoices(current).includes('rejected') && (
+        <div className={styles.panelRow}>
+          <span>При «Против» вернуть на этап</span>
+          <Combobox
+            ariaLabel="Выбрать этап возврата"
+            inputAriaLabel="Вернуть на этап"
+            placeholder="Не возвращать"
+            searchable={false}
+            value={returnTo}
+            onChange={setReturnTo}
+            options={targets.map((t) => ({ value: t.id, label: t.name }))}
+          />
         </div>
       )}
       {revocable.map((s) => (

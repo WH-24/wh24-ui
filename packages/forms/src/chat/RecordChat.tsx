@@ -198,7 +198,8 @@ export function RecordChat({
         ? { kind: 'ready', feed: { ...s.feed, comments: [...s.feed.comments, res.comment], route: res.route } }
         : s,
     )
-    if (d.responsible !== undefined || d.due !== undefined) onRecordChange?.(res.record)
+    // Решение по этапу меняет статус записи (и открывает или закрывает правку).
+    if (d.responsible !== undefined || d.due !== undefined || d.approval) onRecordChange?.(res.record)
   }
 
   const toggleWatch = async () => {
@@ -436,7 +437,8 @@ function Message({
           <Icon name={a.approval.choice === 'rejected' ? 'close' : 'check'} size={14} />
           {a.approval.choice === 'revoked'
             ? `Отозвал(а) решение — этап «${a.approval.step_name}»`
-            : `${CHOICE_LABEL[a.approval.choice]} — этап «${a.approval.step_name}»`}
+            : `${CHOICE_LABEL[a.approval.choice]} — этап «${a.approval.step_name}»` +
+              (a.approval.return_to_name ? `, возвращено на «${a.approval.return_to_name}»` : '')}
           {a.approval.approver && name(a.approval.approver) !== author && (
             <span className={styles.muted}> за {name(a.approval.approver)}</span>
           )}
