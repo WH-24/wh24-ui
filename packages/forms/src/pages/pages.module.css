@@ -17,6 +17,37 @@
 .record {
   max-width: 1400px;
 }
+/* Карточка с лентой — как карточка лида (WH_Portale components/record):
+   две колонки по 50 %, каждой нужна ширина, поэтому без потолка 1400px. */
+.recordWide {
+  max-width: none;
+}
+.recBody {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  align-items: flex-start;
+}
+.recPane {
+  flex: 1 1 420px;
+  min-width: 0;
+}
+/* Слева — обсуждение; поля справа. На узком экране (панели друг под другом)
+   поля идут первыми: запись читают раньше, чем переписку. */
+.recDiscussion {
+  order: 0;
+}
+@media (max-width: 900px) {
+  .recDiscussion {
+    order: 1;
+  }
+}
+.recFields {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
 
 /* ─── Шапка ─────────────────────────────────────────────────────── */
 .header {
@@ -284,28 +315,28 @@
   white-space: nowrap;
 }
 .pill::before {
-  content: '';
+  content: "";
   width: 6px;
   height: 6px;
   border-radius: 50%;
   background: currentColor;
 }
-.pill[data-tone='good'] {
+.pill[data-tone="good"] {
   border-color: var(--good-bd);
   background: var(--good-bg);
   color: var(--good);
 }
-.pill[data-tone='warn'] {
+.pill[data-tone="warn"] {
   border-color: var(--warn-bd);
   background: var(--warn-bg);
   color: var(--warn);
 }
-.pill[data-tone='bad'] {
+.pill[data-tone="bad"] {
   border-color: var(--bad-bd);
   background: var(--bad-bg);
   color: var(--bad);
 }
-.pill[data-tone='info'] {
+.pill[data-tone="info"] {
   border-color: var(--info-bd);
   background: var(--info-bg);
   color: var(--info);
@@ -352,7 +383,7 @@
   opacity: 0.4;
   cursor: default;
 }
-.pageBtn[aria-current='page'] {
+.pageBtn[aria-current="page"] {
   background: var(--ink);
   color: var(--surf);
 }
@@ -405,11 +436,11 @@
   place-items: center;
   margin-bottom: 14px;
 }
-.stateIcon[data-tone='bad'] {
+.stateIcon[data-tone="bad"] {
   background: var(--bad-bg);
   color: var(--bad);
 }
-.stateIcon[data-tone='warn'] {
+.stateIcon[data-tone="warn"] {
   background: var(--warn-bg);
   color: var(--warn);
 }
@@ -461,12 +492,12 @@
   font-size: 13px;
   line-height: 1.45;
 }
-.banner[data-tone='warn'] {
+.banner[data-tone="warn"] {
   border-color: var(--warn-bd);
   background: var(--warn-bg);
   color: var(--warn);
 }
-.banner[data-tone='bad'] {
+.banner[data-tone="bad"] {
   border-color: var(--bad-bd);
   background: var(--bad-bg);
   color: var(--bad);

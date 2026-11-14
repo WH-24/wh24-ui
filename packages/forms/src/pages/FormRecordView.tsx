@@ -6,37 +6,54 @@
  * Один и тот же компонент для полной страницы и для drawer быстрого
  * просмотра из списка: контейнер решает хост.
  */
-import { useState, type ReactNode } from 'react'
-import { Icon } from '@wowhaus-24/ui-react'
+import { useState, type ReactNode } from "react";
+import { Icon } from "@wowhaus-24/ui-react";
 
-import type { Form, FormRecord, RecordHistoryEntry, SchemaDocument } from '../types.js'
-import { FormRenderer } from '../render/FormRenderer.js'
-import { withSystemValues } from '../render/system.js'
-import { formatDateTime, type FormatContext } from '../render/format.js'
-import type { RenderContext } from '../render/registry.js'
-import { RecordHistory } from './RecordHistory.js'
-import { DEFAULT_RECORD_STATUSES, StatusPill, statusLabel, type StatusLabel } from './StatusPill.js'
-import { Banner } from './states.js'
-import styles from './pages.module.css'
+import type {
+  Form,
+  FormRecord,
+  RecordHistoryEntry,
+  SchemaDocument,
+} from "../types.js";
+import { FormRenderer } from "../render/FormRenderer.js";
+import { withSystemValues } from "../render/system.js";
+import { formatDateTime, type FormatContext } from "../render/format.js";
+import type { RenderContext } from "../render/registry.js";
+import { RecordHistory } from "./RecordHistory.js";
+import {
+  DEFAULT_RECORD_STATUSES,
+  StatusPill,
+  statusLabel,
+  type StatusLabel,
+} from "./StatusPill.js";
+import { Banner } from "./states.js";
+import styles from "./pages.module.css";
 
 export interface FormRecordViewProps {
-  form: Form
+  form: Form;
   /** Схема ВЕРСИИ записи (record.form_version), не черновик формы. */
-  schema: SchemaDocument
-  record: FormRecord
-  ctx?: RenderContext
-  statusLabels?: Record<string, StatusLabel>
-  actorName?: (id: string) => string
-  onBack?: () => void
-  backLabel?: string
-  onEdit?: () => void
-  onDelete?: () => void
+  schema: SchemaDocument;
+  record: FormRecord;
+  ctx?: RenderContext;
+  statusLabels?: Record<string, StatusLabel>;
+  actorName?: (id: string) => string;
+  onBack?: () => void;
+  backLabel?: string;
+  onEdit?: () => void;
+  onDelete?: () => void;
   /** Дополнительные действия справа в шапке. */
-  actions?: ReactNode
+  actions?: ReactNode;
   /** Загрузка истории по требованию (кнопка «История»). */
-  loadHistory?: () => Promise<RecordHistoryEntry[]>
+  loadHistory?: () => Promise<RecordHistoryEntry[]>;
   /** Запись старше текущей версии формы — подсказать, что при правке попросят новые поля. */
-  currentVersion?: number
+  currentVersion?: number;
+  /**
+   * Лента записи (RecordChat). Есть — карточка раскладывается как карточка
+   * лида: шапка во всю ширину, ниже слева обсуждение, справа поля, 50 на 50;
+   * на узком экране панели встают друг под другом. Одна вёрстка у форм всех
+   * модулей (владелец 14.11.2026).
+   */
+  discussion?: ReactNode;
 }
 
 export function FormRecordView({
@@ -53,34 +70,82 @@ export function FormRecordView({
   actions,
   loadHistory,
   currentVersion,
+  discussion,
 }: FormRecordViewProps) {
   const [history, setHistory] = useState<
-    { kind: 'closed' } | { kind: 'loading' } | { kind: 'open'; entries: RecordHistoryEntry[] } | { kind: 'error' }
-  >({ kind: 'closed' })
-  const s = statusLabel(record.status, statusLabels)
-  const who = (id: string | null) => (id ? (actorName ? actorName(id) : id) : '—')
+    | { kind: "closed" }
+    | { kind: "loading" }
+    | { kind: "open"; entries: RecordHistoryEntry[] }
+    | { kind: "error" }
+  >({ kind: "closed" });
+  const s = statusLabel(record.status, statusLabels);
+  const who = (id: string | null) =>
+    id ? (actorName ? actorName(id) : id) : "—";
 
   const toggleHistory = async () => {
-    if (history.kind === 'open' || history.kind === 'loading') {
-      setHistory({ kind: 'closed' })
-      return
+    if (history.kind === "open" || history.kind === "loading") {
+      setHistory({ kind: "closed" });
+      return;
     }
-    if (!loadHistory) return
-    setHistory({ kind: 'loading' })
+    if (!loadHistory) return;
+    setHistory({ kind: "loading" });
     try {
-      setHistory({ kind: 'open', entries: await loadHistory() })
+      setHistory({ kind: "open", entries: await loadHistory() });
     } catch {
-      setHistory({ kind: 'error' })
+      setHistory({ kind: "error" });
     }
-  }
+  };
 
-  const outdated = currentVersion != null && record.form_version < currentVersion
+  const outdated =
+    currentVersion != null && record.form_version < currentVersion;
+
+  const fields = (
+    <div className={styles.recFields}>
+      {history.kind === "loading" && (
+        <div className={styles.muted}>Загружаем историю…</div>
+      )}
+      {history.kind === "error" && (
+        <Banner tone="bad">Не удалось загрузить историю.</Banner>
+      )}
+      {history.kind === "open" && (
+        <RecordHistory
+          entries={history.entries}
+          schema={schema}
+          ctx={ctx}
+          actorName={actorName}
+        />
+      )}
+
+      <FormRenderer
+        doc={schema}
+        values={withSystemValues(schema, record.data, {
+          record,
+          formName: form.name,
+          staff: ctx.staff,
+        })}
+        mode="view"
+        ctx={{ ...ctx, lookups: record.lookups }}
+      />
+    </div>
+  );
 
   return (
-    <div className={[styles.page, styles.record].join(' ')}>
+    <div
+      className={[
+        styles.page,
+        styles.record,
+        discussion ? styles.recordWide : "",
+      ]
+        .filter(Boolean)
+        .join(" ")}
+    >
       {onBack && (
         <div>
-          <button type="button" className={['btn', 'btn-ghost', 'btn-sm', styles.back].join(' ')} onClick={onBack}>
+          <button
+            type="button"
+            className={["btn", "btn-ghost", "btn-sm", styles.back].join(" ")}
+            onClick={onBack}
+          >
             <Icon name="back" size={14} />
             {backLabel ?? form.nav_label ?? form.name}
           </button>
@@ -93,7 +158,9 @@ export function FormRecordView({
         <div className={styles.recTitleWrap}>
           <div className={styles.recTitleRow}>
             <h1 className={styles.recTitle} title={record.title}>
-              {record.title || <span className={styles.muted}>Без названия</span>}
+              {record.title || (
+                <span className={styles.muted}>Без названия</span>
+              )}
             </h1>
             <StatusPill tone={s.tone}>{s.label}</StatusPill>
           </div>
@@ -106,7 +173,7 @@ export function FormRecordView({
                 <span>·</span>
                 <span>
                   изменено {formatDateTime(record.updated_at)}
-                  {record.updated_by ? `, ${who(record.updated_by)}` : ''}
+                  {record.updated_by ? `, ${who(record.updated_by)}` : ""}
                 </span>
               </>
             )}
@@ -120,19 +187,27 @@ export function FormRecordView({
             <button
               type="button"
               className="btn btn-ghost btn-sm"
-              aria-expanded={history.kind === 'open'}
+              aria-expanded={history.kind === "open"}
               onClick={toggleHistory}
             >
               <Icon name="list" size={14} /> История
             </button>
           )}
           {onDelete && (
-            <button type="button" className="btn btn-ghost btn-sm" onClick={onDelete}>
+            <button
+              type="button"
+              className="btn btn-ghost btn-sm"
+              onClick={onDelete}
+            >
               <Icon name="trash" size={14} /> Удалить
             </button>
           )}
-          {onEdit && form.status === 'published' && (
-            <button type="button" className="btn btn-primary btn-sm" onClick={onEdit}>
+          {onEdit && form.status === "published" && (
+            <button
+              type="button"
+              className="btn btn-primary btn-sm"
+              onClick={onEdit}
+            >
               <Icon name="edit" size={14} /> Редактировать
             </button>
           )}
@@ -141,23 +216,27 @@ export function FormRecordView({
 
       {outdated && (
         <Banner>
-          Запись сохранена под версией формы v{record.form_version}, текущая — v{currentVersion}. При
-          редактировании попросят заполнить новые обязательные поля.
+          Запись сохранена под версией формы v{record.form_version}, текущая — v
+          {currentVersion}. При редактировании попросят заполнить новые
+          обязательные поля.
         </Banner>
       )}
 
-      {history.kind === 'loading' && <div className={styles.muted}>Загружаем историю…</div>}
-      {history.kind === 'error' && <Banner tone="bad">Не удалось загрузить историю.</Banner>}
-      {history.kind === 'open' && (
-        <RecordHistory entries={history.entries} schema={schema} ctx={ctx} actorName={actorName} />
+      {discussion ? (
+        <div className={styles.recBody}>
+          <section
+            className={[styles.recPane, styles.recDiscussion].join(" ")}
+            aria-label="Обсуждение"
+          >
+            {discussion}
+          </section>
+          <section className={styles.recPane} aria-label="Поля">
+            {fields}
+          </section>
+        </div>
+      ) : (
+        fields
       )}
-
-      <FormRenderer
-        doc={schema}
-        values={withSystemValues(schema, record.data, { record, formName: form.name, staff: ctx.staff })}
-        mode="view"
-        ctx={{ ...ctx, lookups: record.lookups }}
-      />
     </div>
-  )
+  );
 }
