@@ -180,7 +180,8 @@
    (смахивание) — см. `Toast.tsx`. */
 .toastStack {
   position: fixed;
-  bottom: 24px;
+  /* Над открытой панелью массовых действий (её высоту задаёт BulkActionBar). */
+  bottom: calc(24px + var(--wh24-bulk-bar-h, 0px));
   right: 16px;
   z-index: var(--z-toast, 400);
   width: min(360px, calc(100vw - 32px));
@@ -324,7 +325,7 @@
     right: 16px;
     width: auto;
     /* Над нижней навигацией модуля (её высоту задаёт ModuleLayout). */
-    bottom: calc(16px + var(--wh24-bottom-nav-h, 0px) + env(safe-area-inset-bottom, 0px));
+    bottom: calc(16px + var(--wh24-bottom-nav-h, 0px) + var(--wh24-bulk-bar-h, 0px) + env(safe-area-inset-bottom, 0px));
   }
 }
 

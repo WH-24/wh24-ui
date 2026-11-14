@@ -745,6 +745,9 @@ table.tbl {
   cursor: pointer;
 }
 .cellEdit {
+  /* Скрытая подпись для читалки стоит абсолютно — держим её внутри кнопки,
+     иначе она расширяла бы страницу на ширину таблицы. */
+  position: relative;
   display: inline-flex;
   align-items: center;
   max-width: calc(100% + 12px);

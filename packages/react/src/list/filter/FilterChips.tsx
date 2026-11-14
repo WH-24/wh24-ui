@@ -3,6 +3,7 @@ import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { DateField } from '../../form/DateField.js'
 import { Input } from '../../form/Input.js'
 import { Menu, MenuItem } from '../../Menu/Menu.js'
+import { keyboardInitiated } from '../../overlay/motion.js'
 import { AnchorPopover } from '../../popup/AnchorPopover.js'
 import { Icon } from '../Icon.js'
 import { isEmptyValue } from './matchItem.js'
@@ -178,6 +179,8 @@ interface ConditionChipProps<T> {
 function ConditionChip<T>({ field, value, labels: l, draft, onChange, onRemove, onSettled }: ConditionChipProps<T>) {
   const [open, setOpenState] = useState(draft)
   const btnRef = useRef<HTMLButtonElement>(null)
+  // Плашка появилась от действия с клавиатуры — без анимации входа.
+  const instant = useRef(keyboardInitiated()).current
   const setOpen = (next: boolean) => {
     setOpenState(next)
     if (!next) onSettled()
@@ -277,7 +280,7 @@ function ConditionChip<T>({ field, value, labels: l, draft, onChange, onRemove, 
   }
 
   return (
-    <span className={styles.cond} data-draft={draft && !text ? '' : undefined}>
+    <span className={styles.cond} data-draft={draft && !text ? '' : undefined} data-instant={instant || undefined}>
       {editor}
       <button type="button" className={styles.condRemove} aria-label={l.remove(field.label)} onClick={onRemove}>
         <Icon name="close" size={12} />

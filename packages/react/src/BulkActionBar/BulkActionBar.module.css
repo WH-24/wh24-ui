@@ -63,8 +63,13 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+/* Светлая тема — панель тёмная: красный высветлен. Тёмная — панель светлая:
+   насыщенный красный, как на белом. */
 .action.danger {
-  color: color-mix(in srgb, var(--bad) 55%, var(--surf));
+  color: color-mix(in srgb, var(--bad) 45%, var(--surf));
+}
+:global(html[data-theme='dark']) .action.danger {
+  color: var(--bad-strong);
 }
 .action.action:focus-visible,
 .clear:focus-visible {

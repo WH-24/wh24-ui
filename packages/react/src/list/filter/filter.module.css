@@ -696,8 +696,9 @@
 .cond {
   display: inline-flex;
   align-items: stretch;
+  /* Плашка сжимается вместе с полосой (min-width: 0), но не шире 360px. */
   min-width: 0;
-  max-width: min(360px, 100%);
+  max-width: 360px;
   height: var(--control-h-sm, 28px);
   border: 1px solid var(--terra-bd);
   border-radius: var(--r-pill);
@@ -743,13 +744,22 @@
   outline-offset: var(--focus-ring-offset);
   border-radius: var(--r-pill);
 }
+/* Длинное название поля тоже режется — раньше значения, но не до нуля. */
 .condField {
-  flex: none;
+  flex: 0 1 auto;
+  min-width: 4ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
+}
+/* Условие добавлено с клавиатуры — без движения. */
+.cond[data-instant] {
+  animation: none;
 }
 /* Длинное значение (десять отделов, длинное имя) режется многоточием. */
 .condText {
-  min-width: 0;
+  flex: 0 1 auto;
+  min-width: 2ch;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

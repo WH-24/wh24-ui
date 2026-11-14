@@ -34,6 +34,9 @@ export interface BulkAction {
   disabled?: boolean
 }
 
+/** Высота открытой панели — её читает стопка тостов. */
+const BAR_VAR = '--wh24-bulk-bar-h'
+
 export interface BulkActionBarProps {
   /** Идентификаторы выбранных строк; пусто — панель спрятана. */
   selectedIds: string[]
@@ -86,7 +89,15 @@ export function BulkActionBar({
   // и в обработке атрибутов React 18 его ещё нет.
   const barRef = useRef<HTMLDivElement>(null)
   useEffect(() => {
-    barRef.current?.toggleAttribute('inert', !open)
+    const bar = barRef.current
+    bar?.toggleAttribute('inert', !open)
+    // Тосты встают над открытой панелью, а не поверх её кнопок.
+    if (!open || !bar) return
+    const root = document.documentElement
+    root.style.setProperty(BAR_VAR, `${bar.offsetHeight + 8}px`)
+    return () => {
+      root.style.removeProperty(BAR_VAR)
+    }
   }, [open])
 
   const run = (a: BulkAction, choice?: string) => {

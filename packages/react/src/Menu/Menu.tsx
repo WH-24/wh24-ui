@@ -110,9 +110,16 @@ export function Menu({
     [setOpen],
   )
 
+  // Фокус — в первый пункт, когда меню встало на место: до этого оно скрыто
+  // (`visibility: hidden`), и браузер фокус на пункт не ставит — меню,
+  // открытое с клавиатуры, оставалось без фокуса.
+  const placed = place !== null
+  useEffect(() => {
+    if (open && placed) focusAt(0)
+  }, [open, placed])
+
   useEffect(() => {
     if (!open) return
-    focusAt(0)
     const onDown = (e: MouseEvent) => {
       const t = e.target as Node
       if (!menuRef.current?.contains(t) && !btnRef.current?.contains(t)) setOpen(false)
