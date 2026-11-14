@@ -291,4 +291,70 @@ describe('RecordChat — «@ИИ»', () => {
     expect(mentionsAi('письмо ai@wowhaus.ru')).toBe(false)
     expect(mentionsAi('@ИИнна, привет')).toBe(false)
   })
+
+  it('history: правки записи — в ленте по времени; фильтр «Сообщения / Изменения»; без history — только сообщения', async () => {
+    const user = userEvent.setup()
+    const { api } = fakeApi(baseFeed())
+    const history = vi.fn(async () => [
+      {
+        id: 'h2',
+        record_id: 'r1',
+        form_version: 1,
+        actor: 'u2',
+        at: '2026-10-22T09:00:00Z',
+        action: 'updated' as const,
+        changes: { name: { from: 'Старое', to: 'Новое' } },
+      },
+      {
+        id: 'h1',
+        record_id: 'r1',
+        form_version: 1,
+        actor: 'u2',
+        at: '2026-10-22T07:00:00Z',
+        action: 'created' as const,
+        changes: { name: { from: null, to: 'Старое' } },
+      },
+    ])
+    ;(api.records as unknown as { history: typeof history }).history = history
+    const schema = {
+      schema_version: 1,
+      sections: [{ id: 's1', title: 'Основное', sort: 0 }],
+      fields: [{ id: 'name', key: 'name', type: 'text', label: 'Название', section_id: 's1' }],
+    } as never
+    const { unmount } = render(
+      <RecordChat api={api} formId="f1" recordId="r1" staff={staff} history={{ schema }} />,
+    )
+    const log = await screen.findByRole('log')
+    await waitFor(() => expect(log).toHaveTextContent('Изменена'))
+    // По времени: создана (07:00) → сообщение (08:00) → изменена (09:00).
+    const text = log.textContent ?? ''
+    expect(text.indexOf('Создана')).toBeLessThan(text.indexOf('срочно'))
+    expect(text.indexOf('срочно')).toBeLessThan(text.indexOf('Изменена'))
+    // Правка — «было → стало»; у создания перечня полей нет.
+    expect(log).toHaveTextContent('Название')
+    expect(log).toHaveTextContent('Новое')
+    expect(text.match(/Старое/g)).toHaveLength(1)
+
+    await user.click(screen.getByRole('tab', { name: /Изменения/ }))
+    expect(screen.queryByRole('article')).toBeNull()
+    expect(screen.getByRole('log')).toHaveTextContent('Изменена')
+    await user.click(screen.getByRole('tab', { name: /Сообщения/ }))
+    expect(screen.getByRole('article')).toBeTruthy()
+    expect(screen.getByRole('log')).not.toHaveTextContent('Изменена')
+    unmount()
+
+    history.mockClear()
+    render(<RecordChat api={api} formId="f1" recordId="r1" staff={staff} />)
+    await screen.findByRole('article')
+    expect(history).not.toHaveBeenCalled()
+    expect(screen.queryByRole('tab', { name: /Изменения/ })).toBeNull()
+  })
+
+  it('onRoute: маршрут ленты уходит хосту', async () => {
+    const { api } = fakeApi(baseFeed())
+    const onRoute = vi.fn()
+    render(<RecordChat api={api} formId="f1" recordId="r1" staff={staff} onRoute={onRoute} />)
+    await screen.findByRole('article')
+    await waitFor(() => expect(onRoute).toHaveBeenCalledWith(route(true)))
+  })
 })

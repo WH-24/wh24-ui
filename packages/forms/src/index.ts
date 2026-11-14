@@ -113,7 +113,7 @@ export { FormRecordView } from './pages/FormRecordView.js'
 export type { FormRecordViewProps } from './pages/FormRecordView.js'
 export { FormRecordEditor } from './pages/FormRecordEditor.js'
 export type { FormRecordEditorProps } from './pages/FormRecordEditor.js'
-export { RecordHistory } from './pages/RecordHistory.js'
+export { RecordHistory, RecordHistoryEntryView } from './pages/RecordHistory.js'
 export type { RecordHistoryProps } from './pages/RecordHistory.js'
 export { Pager, pageItems } from './pages/Pager.js'
 export type { PagerProps } from './pages/Pager.js'
@@ -126,7 +126,7 @@ export type { StateBoxProps, BannerProps } from './pages/states.js'
 export { RecordChat } from './chat/RecordChat.js'
 export type { RecordChatProps } from './chat/RecordChat.js'
 export { Markup, parseInline, parseBlocks } from './chat/markup.js'
-export { formatMinutes, parseMinutes, CHOICE_LABEL, mentionsAi } from './chat/logic.js'
+export { formatMinutes, parseMinutes, CHOICE_LABEL, mentionsAi, routeStages, ROUTE_INIT_STAGE } from './chat/logic.js'
 
 // Формулы (шаг 2 типов полей): TS-порт internal/formula, фикстуры общие с Go.
 export {
