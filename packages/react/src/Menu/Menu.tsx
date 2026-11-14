@@ -18,6 +18,7 @@ import { createPortal } from 'react-dom'
 
 import { Icon } from '../list/Icon.js'
 import { usePopPresence } from '../overlay/presence.js'
+import { getFocusableElements } from '../overlay/useFocusTrap.js'
 import { chain, cx, useAnchoredPlace } from '../popup/popup.js'
 
 import styles from './Menu.module.css'
@@ -28,7 +29,7 @@ import styles from './Menu.module.css'
  * кнопка-якорь с `aria-haspopup="menu"`, фокус уходит в первый пункт,
  * ↑/↓ ходят по кругу, Home/End — в начало и конец, буква — к пункту на эту
  * букву, Esc закрывает и возвращает фокус на кнопку, Tab закрывает и идёт
- * дальше по странице.
+ * к соседу кнопки по странице.
  *
  * Меню рисуется порталом в `body` у кнопки (место считает общий
  * `placePopover`): не обрезается прокручиваемой колонкой и окном. Движение —
@@ -125,9 +126,17 @@ export function Menu({
     const els = items()
     const i = els.indexOf(document.activeElement as HTMLElement)
     if (e.key === 'Tab') {
-      // Фокус — на кнопку, дальше Tab ведёт браузер: порядок обхода страницы
-      // не рвётся, хотя меню лежит в конце body.
-      close()
+      // Меню лежит в конце body, а не рядом с кнопкой: Tab ведём сами — к
+      // соседу кнопки по странице (внутри модального окна — в его пределах).
+      e.preventDefault()
+      setOpen(false)
+      const btn = btnRef.current
+      if (!btn) return
+      const scope = btn.closest<HTMLElement>('[aria-modal="true"]') ?? document.body
+      const all = getFocusableElements(scope).filter((el) => !menuRef.current?.contains(el))
+      const at = all.indexOf(btn)
+      const next = at < 0 ? undefined : all[(at + (e.shiftKey ? -1 : 1) + all.length) % all.length]
+      ;(next ?? btn).focus()
       return
     }
     if (e.key === 'ArrowDown') focusAt(i + 1)

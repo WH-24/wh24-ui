@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 
-import styles from './pages.module.css'
+import { StatusBadge } from '@wowhaus-24/ui-react'
 
 export type StatusTone = 'neutral' | 'good' | 'warn' | 'bad' | 'info'
 
@@ -10,12 +10,12 @@ export interface StatusPillProps {
   className?: string
 }
 
-/** Статус записи/формы — пилл с точкой. Тон задаёт хост (словарь статусов). */
+/** Статус записи/формы — общий `StatusBadge` из ui-react с точкой. Тон задаёт хост (словарь статусов). */
 export function StatusPill({ children, tone = 'neutral', className }: StatusPillProps) {
   return (
-    <span className={[styles.pill, className].filter(Boolean).join(' ')} data-tone={tone}>
+    <StatusBadge tone={tone} dot className={className}>
       {children}
-    </span>
+    </StatusBadge>
   )
 }
 

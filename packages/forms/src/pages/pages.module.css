@@ -243,48 +243,6 @@
   color: var(--ink-4);
 }
 
-/* ─── Статус-пилл ───────────────────────────────────────────────── */
-.pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: var(--fs-meta);
-  font-weight: var(--fw-medium);
-  padding: 2px var(--sp-4);
-  border-radius: var(--r-pill);
-  border: 1px solid var(--bd);
-  background: var(--surf-2);
-  color: var(--ink-2);
-  white-space: nowrap;
-}
-.pill::before {
-  content: "";
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: currentColor;
-}
-.pill[data-tone="good"] {
-  border-color: var(--good-bd);
-  background: var(--good-bg);
-  color: var(--good);
-}
-.pill[data-tone="warn"] {
-  border-color: var(--warn-bd);
-  background: var(--warn-bg);
-  color: var(--warn);
-}
-.pill[data-tone="bad"] {
-  border-color: var(--bad-bd);
-  background: var(--bad-bg);
-  color: var(--bad);
-}
-.pill[data-tone="info"] {
-  border-color: var(--info-bd);
-  background: var(--info-bg);
-  color: var(--info);
-}
-
 /* ─── Пейджер ───────────────────────────────────────────────────── */
 .pager {
   display: flex;

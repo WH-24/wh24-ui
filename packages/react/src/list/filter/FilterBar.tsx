@@ -12,6 +12,7 @@ import type {
   FilterState,
 } from './types.js'
 import { loadPresets, readShareFromUrl } from './storage.js'
+import { Chip } from '../../Chip/Chip.js'
 import styles from './filter.module.css'
 
 export interface FilterBarProps<T> {
@@ -184,40 +185,31 @@ export function FilterBar<T>({
       >
         {/* Активный пресет → его название; иначе — чипы применённых условий полей. */}
         {activePreset ? (
-          <span className={[styles.filterApplied, styles.filterAppliedPreset].join(' ')}>
-            <span className={styles.filterAppliedLabel}>{activePreset.name}</span>
-            <button
-              className={styles.chipX}
-              type="button"
-              aria-label={`Сбросить фильтр «${activePreset.name}»`}
-              onMouseDown={(e) => e.stopPropagation()}
-              onClick={(e) => {
-                e.stopPropagation()
-                setState({})
-                setFields([])
-                setActivePresetId(null)
-              }}
-            >
-              <Icon name="close" size={12} />
-            </button>
-          </span>
+          <Chip
+            variant="tag"
+            className={[styles.filterApplied, styles.filterAppliedPreset].join(' ')}
+            removeLabel={`Сбросить фильтр «${activePreset.name}»`}
+            removeButtonProps={{ onMouseDown: (e) => e.stopPropagation() }}
+            onRemove={() => {
+              setState({})
+              setFields([])
+              setActivePresetId(null)
+            }}
+          >
+            {activePreset.name}
+          </Chip>
         ) : (
           conditionChips.map((chip) => (
-            <span key={chip.key} className={styles.filterApplied}>
-              <span className={styles.filterAppliedLabel}>{chip.text}</span>
-              <button
-                className={styles.chipX}
-                type="button"
-                aria-label={`Сбросить условие «${chip.text}»`}
-                onMouseDown={(e) => e.stopPropagation()}
-                onClick={(e) => {
-                  e.stopPropagation()
-                  clearField(chip.key)
-                }}
-              >
-                <Icon name="close" size={12} />
-              </button>
-            </span>
+            <Chip
+              key={chip.key}
+              variant="tag"
+              className={styles.filterApplied}
+              removeLabel={`Сбросить условие «${chip.text}»`}
+              removeButtonProps={{ onMouseDown: (e) => e.stopPropagation() }}
+              onRemove={() => clearField(chip.key)}
+            >
+              {chip.text}
+            </Chip>
           ))
         )}
 

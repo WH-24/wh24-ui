@@ -53,9 +53,9 @@
   overflow-wrap: anywhere;
 }
 .titleCount {
-  /* Счётчик — один вид на библиотеку: вкладки, заголовок страницы, запись,
-     канбан, панель модуля. */
-  font-size: var(--fs-meta-sm);
+  /* Счётчик у названия страницы — 13px, как в принятом макете (крупнее
+     счётчика вкладок: он стоит рядом с заголовком 22px). */
+  font-size: var(--fs-ui);
   font-weight: var(--fw-medium);
   line-height: 1.45;
   padding: 1px 6px;
