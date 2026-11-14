@@ -90,35 +90,6 @@
   min-height: var(--tap-min);
 }
 
-.spinner,
-.spinnerLg {
-  flex: none;
-  display: inline-block;
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  border: 2px solid var(--bd-strong);
-  border-top-color: var(--terra);
-  animation: aiSpin var(--dur-spin) linear infinite;
-}
-.spinnerLg {
-  width: 22px;
-  height: 22px;
-  border-width: 3px;
-}
-@keyframes aiSpin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  /* Кольцо не замирает (застывшее выглядит поломкой), а крутится медленнее. */
-  .spinner,
-  .spinnerLg {
-    animation-duration: var(--dur-spin-reduced);
-  }
-}
-
 /* ─── Меню колонки ─────────────────────────────────────────────────── */
 
 /* Кнопка — общий IconButton 24px, здесь только цвет «поля ИИ»; меню — общий Menu. */

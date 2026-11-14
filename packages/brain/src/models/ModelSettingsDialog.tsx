@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useId, useRef, useState } from 'react'
-import { Combobox, FieldRow, type ComboboxOption } from '@wowhaus-24/ui-react'
+import { Combobox, FieldRow, Spinner, type ComboboxOption } from '@wowhaus-24/ui-react'
 
 import { BrainApiError } from '../api.js'
 import { BrainConfirm, BrainDialog } from '../fields/Dialog.js'
@@ -187,7 +187,7 @@ export function ModelSettingsDialog({ api, open, onClose, onChanged, pollMs = 50
       >
         {load.phase === 'loading' && (
           <p className={styles.state} role="status">
-            <span className={styles.spinner} aria-hidden="true" />
+            <Spinner />
             Загружаю настройки…
           </p>
         )}

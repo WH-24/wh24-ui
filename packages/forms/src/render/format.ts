@@ -14,6 +14,7 @@ import type {
   SelectConfig,
   SelectOption,
 } from '../types.js'
+import { initialsOf } from '@wowhaus-24/ui-react'
 import {
   SECTION_COLORS,
   catalogKeyOf,
@@ -101,15 +102,9 @@ export function fileExt(name: string): string {
   return i > 0 ? name.slice(i + 1).toUpperCase().slice(0, 4) : 'FILE'
 }
 
-/** Инициалы: первые буквы 1–2 слов. */
+/** Инициалы: первые буквы 1–2 слов — общий расчёт `Avatar` из ui-react. */
 export function initials(name: string): string {
-  const w = name
-    .replace(/[«»"'()]/g, ' ')
-    .trim()
-    .split(/\s+/)
-    .filter(Boolean)
-  if (!w.length) return '?'
-  return (w[0]![0]! + (w[1]?.[0] ?? '')).toUpperCase()
+  return initialsOf(name)
 }
 
 /** Варианты поля select/multiselect/catalog. */

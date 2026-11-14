@@ -158,8 +158,7 @@
 }
 
 /* Пустое состояние и загрузка */
-.state,
-.empty {
+.state {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -177,26 +176,11 @@
   align-items: center;
   gap: 10px;
 }
+/* Пусто — общий EmptyState в рамке списка. */
 .empty {
-  align-items: center;
-  text-align: center;
-  padding: 32px 20px;
-}
-.emptyIcon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 44px;
-  height: 44px;
+  border: var(--bd-w) dashed var(--bd-strong);
   border-radius: var(--r-lg);
-  background: var(--terra-bg);
-  color: var(--terra-d);
-}
-.emptyTitle {
-  margin: 0;
-  font-size: var(--fs-card);
-  font-weight: var(--fw-semibold);
-  color: var(--ink);
+  background: var(--surf-2);
 }
 .stateText {
   margin: 0;
@@ -206,12 +190,6 @@
 }
 .muted {
   color: var(--ink-3);
-}
-.emptyActions {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 8px;
 }
 .inlineError,
 .formError {
@@ -228,28 +206,6 @@
   display: block;
   margin-top: 8px;
   color: var(--bad);
-}
-
-.spinner {
-  flex: none;
-  display: inline-block;
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  border: 2px solid var(--bd-strong);
-  border-top-color: var(--terra);
-  animation: skillSpin var(--dur-spin) linear infinite;
-}
-@keyframes skillSpin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  /* Кольцо не замирает (застывшее выглядит поломкой), а крутится медленнее. */
-  .spinner {
-    animation-duration: var(--dur-spin-reduced);
-  }
 }
 
 /* Диалог навыка */

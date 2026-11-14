@@ -14,6 +14,7 @@ import { createPortal } from "react-dom";
 import { Icon } from "./Icon.js";
 import { usePopPresence } from "../overlay/presence.js";
 import { limitOptions, moreOptionsText, placePopover, revealOption } from "./popover.js";
+import { Avatar } from "../Avatar/Avatar.js";
 import styles from "./Combobox.module.css";
 
 /** Стили модуля Combobox — реэкспорт, чтобы MultiSelect (FieldEditor) мог
@@ -93,19 +94,6 @@ interface MenuRect {
 }
 
 /** Инициалы из ФИО для аватара-заглушки: первые буквы 1–2 слов. */
-function optionInitials(label: string): string {
-  const w = label
-    .replace(/[«»"'()]/g, " ")
-    .trim()
-    .split(/\s+/)
-    .filter(Boolean);
-  if (!w.length) return "?";
-  // Array.from — по символам, а не по половинкам суррогатной пары: имя с
-  // эмодзи в начале иначе давало «�».
-  const first = (s: string | undefined) => (s ? (Array.from(s)[0] ?? "") : "");
-  return (first(w[0]) + first(w[1])).toUpperCase();
-}
-
 /** Есть ли у варианта метка (иконка или цвет). */
 export function hasOptionMarker(opt: Pick<ComboboxOption, "icon" | "color">): boolean {
   return Boolean(opt.icon || opt.color);
@@ -125,17 +113,16 @@ export function OptionMarker({ icon, color }: Pick<ComboboxOption, "icon" | "col
 }
 
 function OptionAvatar({ opt }: { opt: ComboboxOption }) {
-  // Битая ссылка на фото — инициалы, а не значок сломанной картинки.
-  const [broken, setBroken] = useState(false);
-  useEffect(() => setBroken(false), [opt.avatar]);
+  // Общий Avatar: битая ссылка на фото — инициалы, инициалы — из подписи.
   return (
-    <span className={styles.avatar} aria-hidden>
-      {opt.avatar && !broken ? (
-        <img src={opt.avatar} alt="" loading="lazy" onError={() => setBroken(true)} />
-      ) : (
-        opt.initials ?? optionInitials(opt.label)
-      )}
-    </span>
+    <Avatar
+      size={20}
+      className={styles.avatar}
+      src={opt.avatar}
+      name={opt.label}
+      initials={opt.initials}
+      aria-hidden="true"
+    />
   );
 }
 

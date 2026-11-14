@@ -5,10 +5,7 @@ import styles from './Avatar.module.css'
 export type AvatarSize = 20 | 24 | 32 | 44 | 56
 
 export interface AvatarProps extends Omit<HTMLAttributes<HTMLElement>, 'onClick' | 'children'> {
-  /**
-   * Готовые инициалы (прежний способ). Заданы без `name` — аватар, как и
-   * раньше, всегда кнопка.
-   */
+  /** Готовые инициалы — вместо расчёта из `name`. */
   initials?: string
   /** Имя человека: из него берутся инициалы, цвет и подпись для читалки. */
   name?: string
@@ -33,7 +30,12 @@ export interface AvatarProps extends Omit<HTMLAttributes<HTMLElement>, 'onClick'
  * имя — «?».
  */
 export function initialsOf(name: string | null | undefined): string {
-  const words = (name ?? '').trim().split(/\s+/).filter(Boolean)
+  // Кавычки и скобки названий («Ромашка» ООО) в инициалы не идут.
+  const words = (name ?? '')
+    .replace(/[«»"'()]/g, ' ')
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
   const letters = words
     .slice(0, 2)
     .map((w) => Array.from(w)[0] ?? '')
@@ -108,9 +110,7 @@ export const Avatar = forwardRef<HTMLElement, AvatarProps>(function Avatar(
   )
   const online = status === 'online' ? `, ${statusLabel}` : ''
 
-  // Прежнее поведение: только `initials` — всегда кнопка.
-  const legacy = initials !== undefined && name === undefined
-  if (onClick || legacy) {
+  if (onClick) {
     return (
       <button
         {...rest}
@@ -168,9 +168,8 @@ export const AvatarStack = forwardRef<HTMLSpanElement, AvatarStackProps>(functio
       {shown.map((p, i) => (
         <Avatar
           key={p.id ?? `${p.name ?? p.initials ?? ''}-${i}`}
-          // В стопке `initials` без имени не должен превращать аватар в кнопку.
-          name={p.name ?? p.initials ?? ''}
-          initials={p.name ? p.initials : (p.initials ?? '?')}
+          name={p.name}
+          initials={p.initials}
           src={p.src}
           status={p.status}
           size={size}

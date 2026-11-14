@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 
+import { Spinner } from '@wowhaus-24/ui-react'
 import { BrainIcon } from '../icons.js'
 import { BrainConfirm, BrainDialog } from '../fields/Dialog.js'
 import { brainErrorText } from '../fields/errors.js'
@@ -110,7 +111,7 @@ export function IndexStatusDialog({ api, open, onClose, canManage = true, module
       >
         {state.phase === 'loading' && (
           <p className={styles.state} role="status">
-            <span className={styles.spinner} aria-hidden="true" />
+            <Spinner />
             Загружаю состояние индекса…
           </p>
         )}

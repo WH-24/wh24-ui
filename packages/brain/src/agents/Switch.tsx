@@ -1,6 +1,5 @@
 import type { ReactNode } from 'react'
-
-import styles from './switch.module.css'
+import { Switch } from '@wowhaus-24/ui-react'
 
 export interface BrainSwitchProps {
   checked: boolean
@@ -17,9 +16,9 @@ export interface BrainSwitchProps {
 }
 
 /**
- * Переключатель «включено/выключено» для экрана агентов: `role="switch"` +
- * `aria-checked`, вся строка — цель клика (≥ 28 px). Состояние читается не
- * только цветом: бегунок смещается, во включённом стоит галочка.
+ * Переключатель «включено/выключено» экрана агентов — общий `Switch` из
+ * ui-react (вид принятого макета) с прежними пропсами пакета: подпись справа,
+ * щелчок по ней тоже переключает, `describedBy` — id пояснения.
  */
 export function BrainSwitch({
   checked,
@@ -32,27 +31,16 @@ export function BrainSwitch({
   className,
 }: BrainSwitchProps) {
   return (
-    <button
-      type="button"
-      role="switch"
-      id={id}
-      aria-checked={checked}
-      aria-label={ariaLabel}
-      aria-describedby={describedBy}
+    <Switch
+      checked={checked}
+      onChange={onChange}
       disabled={disabled}
-      className={[styles.switch, className].filter(Boolean).join(' ')}
-      onClick={() => onChange(!checked)}
+      id={id}
+      ariaLabel={ariaLabel}
+      aria-describedby={describedBy}
+      className={className}
     >
-      <span className={styles.track} aria-hidden="true">
-        <span className={styles.thumb}>
-          {checked && (
-            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4">
-              <path d="M5 12.5l4.5 4.5L19 7.5" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          )}
-        </span>
-      </span>
-      <span className={styles.text}>{children}</span>
-    </button>
+      {children}
+    </Switch>
   )
 }

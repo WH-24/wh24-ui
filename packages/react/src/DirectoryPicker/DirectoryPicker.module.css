@@ -212,18 +212,6 @@
   width: 32px;
   height: 32px;
 }
-.avatarFallback {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  border-radius: var(--r-pill);
-  background: var(--surf-3);
-  color: var(--ink-2);
-  font-size: var(--fs-meta);
-  font-weight: 600;
-}
 .text {
   display: flex;
   flex-direction: column;

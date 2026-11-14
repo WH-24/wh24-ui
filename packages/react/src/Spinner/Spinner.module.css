@@ -1,0 +1,37 @@
+/* Кольцо ожидания — один кадр вращения на всю библиотеку. */
+.spinner {
+  flex: none;
+  display: inline-block;
+  box-sizing: border-box;
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--surf-3);
+  border-top-color: var(--terra);
+  border-radius: 50%;
+  animation: spinner-turn var(--dur-spin, 600ms) linear infinite;
+}
+.spinner[data-size='12'] {
+  width: 12px;
+  height: 12px;
+}
+.spinner[data-size='24'] {
+  width: 24px;
+  height: 24px;
+  border-width: 3px;
+}
+.spinner[data-size='32'] {
+  width: 32px;
+  height: 32px;
+  border-width: 3px;
+}
+@keyframes spinner-turn {
+  to {
+    transform: rotate(360deg);
+  }
+}
+/* Кольцо не замирает, а крутится медленнее. */
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation-duration: var(--dur-spin-reduced, 1600ms);
+  }
+}

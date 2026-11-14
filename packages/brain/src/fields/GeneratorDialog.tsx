@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useId, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from 'react'
-import { DateField, FieldRow, MultiCombobox, type ComboboxOption } from '@wowhaus-24/ui-react'
+import { DateField, FieldRow, MultiCombobox, Spinner, type ComboboxOption } from '@wowhaus-24/ui-react'
 
 import type { BrainApi } from '../api.js'
 import { BrainIcon } from '../icons.js'
@@ -337,7 +337,7 @@ export function GeneratorDialog({
 
       {running && (
         <div className={styles.genBusy} role="status" aria-live="polite" aria-busy="true">
-          <span className={styles.spinnerLg} aria-hidden="true" />
+          <Spinner size={24} />
           <div>
             <p className={styles.genBusyTitle}>Составляю…</p>
             <p className={styles.genBusyHint}>Обычно это занимает до минуты. Окно можно оставить открытым.</p>

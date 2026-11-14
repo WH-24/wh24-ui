@@ -1,5 +1,6 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type RefObject } from 'react'
 
+import { CheckboxMark } from '../../Checkbox/Checkbox.js'
 import { Icon } from '../Icon.js'
 import { FieldEditor } from './FieldEditor.js'
 import { activeCount, isEmptyValue } from './matchItem.js'
@@ -572,9 +573,7 @@ export function SearchModule<T>({
                   // многоточием — подсказка возвращает его целиком.
                   title={f.label}
                 >
-                  <span className={styles.filterMsCheck} data-on={String(on)}>
-                    {on && <Icon name="check" size={12} />}
-                  </span>
+                  <CheckboxMark checked={on} />
                   <span className={styles.filterAddgridLabel}>{f.label}</span>
                 </button>
               )

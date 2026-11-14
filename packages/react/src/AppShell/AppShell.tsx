@@ -129,7 +129,7 @@ export function AppShell({
                 <SunGlyph />
               </IconButton>
             ) : null}
-            <Avatar initials={user.initials} ariaLabel={`Профиль ${user.name}`} />
+            <Avatar initials={user.initials} ariaLabel={user.name} />
           </div>
         </header>
       ) : null}

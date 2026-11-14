@@ -1,3 +1,5 @@
+import { Spinner } from '../Spinner/Spinner.js'
+
 import styles from './page.module.css'
 
 /**
@@ -22,7 +24,7 @@ export function Loader({ label, overlay = false, logoSrc }: LoaderProps) {
       aria-label={label ?? 'Загрузка'}
     >
       {logoSrc && <img className={styles.loaderLogo} src={logoSrc} alt="" aria-hidden="true" />}
-      <div className={styles.spinner} aria-hidden="true" />
+      <Spinner size={32} />
       {label && <div className={styles.loaderLabel}>{label}</div>}
     </div>
   )

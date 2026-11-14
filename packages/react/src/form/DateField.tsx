@@ -9,6 +9,7 @@ import {
 } from 'react'
 import { createPortal } from 'react-dom'
 
+import { IconButton } from '../IconButton/IconButton.js'
 import { Icon } from '../list/Icon.js'
 import { placePopover } from '../list/popover.js'
 import { usePopPresence } from '../overlay/presence.js'
@@ -372,31 +373,27 @@ export function DateField({
             onKeyDown={onPopKey}
           >
             <div className={styles.dpHead}>
-              <button
-                type="button"
-                className={styles.dpNav}
-                aria-label="Предыдущий месяц"
+              <IconButton
+                ariaLabel="Предыдущий месяц"
                 onClick={() => {
                   shiftMonth(-1)
                   if (focusDay) setFocusDay(addMonths(focusDay, -1))
                 }}
               >
                 <Icon name="chevleft" size={16} />
-              </button>
+              </IconButton>
               <span className={styles.dpTitle} aria-live="polite">
                 {MONTHS[view.m]} {view.y}
               </span>
-              <button
-                type="button"
-                className={styles.dpNav}
-                aria-label="Следующий месяц"
+              <IconButton
+                ariaLabel="Следующий месяц"
                 onClick={() => {
                   shiftMonth(1)
                   if (focusDay) setFocusDay(addMonths(focusDay, 1))
                 }}
               >
                 <Icon name="chevright" size={16} />
-              </button>
+              </IconButton>
             </div>
             <div className={[styles.dpGrid, styles.dpGridWd].join(' ')}>
               {WEEKDAYS.map((w) => (

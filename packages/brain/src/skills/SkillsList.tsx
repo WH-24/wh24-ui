@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Icon } from '@wowhaus-24/ui-react'
+import { EmptyState, Icon } from '@wowhaus-24/ui-react'
 
 import { BrainConfirm } from '../fields/Dialog.js'
 import { brainErrorText } from '../fields/errors.js'
@@ -76,29 +76,30 @@ export function SkillsList({ skills, loading, error, onRetry, onCreate, onSugges
     )
   } else if (skills.length === 0) {
     body = (
-      <div className={styles.empty}>
-        <span className={styles.emptyIcon} aria-hidden="true">
-          <Icon name="bolt" size={20} />
-        </span>
-        <h3 className={styles.emptyTitle}>Навыков пока нет</h3>
-        <p className={styles.stateText}>
-          Навык — это сохранённая инструкция, которую вызывают командой в начале вопроса: например, «/дайджест» соберёт сводку по вашему шаблону.
-        </p>
-        <div className={styles.emptyActions}>
-          {onCreate && (
-            <button type="button" className="btn btn-primary" onClick={onCreate}>
-              <Icon name="plus" size={14} />
-              Создать навык
-            </button>
-          )}
-          {onSuggest && (
-            <button type="button" className="btn btn-secondary" onClick={onSuggest}>
-              <Icon name="search" size={14} />
-              Найти в чатах
-            </button>
-          )}
-        </div>
-      </div>
+      <EmptyState
+        className={styles.empty}
+        icon="bolt"
+        title="Навыков пока нет"
+        description="Навык — это сохранённая инструкция, которую вызывают командой в начале вопроса: например, «/дайджест» соберёт сводку по вашему шаблону."
+        actions={
+          (onCreate || onSuggest) && (
+            <>
+              {onCreate && (
+                <button type="button" className="btn btn-primary" onClick={onCreate}>
+                  <Icon name="plus" size={14} />
+                  Создать навык
+                </button>
+              )}
+              {onSuggest && (
+                <button type="button" className="btn btn-secondary" onClick={onSuggest}>
+                  <Icon name="search" size={14} />
+                  Найти в чатах
+                </button>
+              )}
+            </>
+          )
+        }
+      />
     )
   } else {
     body = (

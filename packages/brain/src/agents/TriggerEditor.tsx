@@ -1,5 +1,5 @@
 import { useId, useRef } from 'react'
-import { Icon, type IconName } from '@wowhaus-24/ui-react'
+import { Icon, IconButton, type IconName } from '@wowhaus-24/ui-react'
 
 import { BrainIcon } from '../icons.js'
 import { EventTriggerFields } from './EventTriggerFields.js'
@@ -125,14 +125,9 @@ export function TriggerEditor({
                     {t.enabled ? 'Включён' : 'Выключен'}
                   </BrainSwitch>
                   {!lockedHere && (
-                    <button
-                      type="button"
-                      className={styles.iconBtn}
-                      aria-label={`Удалить триггер: ${label}${nameInKind}`}
-                      onClick={() => remove(i)}
-                    >
+                    <IconButton ariaLabel={`Удалить триггер: ${label}${nameInKind}`} onClick={() => remove(i)}>
                       <Icon name="trash" size={15} />
-                    </button>
+                    </IconButton>
                   )}
                 </div>
 

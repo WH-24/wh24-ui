@@ -64,3 +64,32 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(function Che
     </label>
   )
 })
+
+export interface CheckboxMarkProps {
+  checked?: boolean
+  indeterminate?: boolean
+  className?: string
+}
+
+/**
+ * Рисунок флажка без поля ввода — для мест, где сам пункт уже кнопка или
+ * вариант списка (`role="option"`, `aria-pressed`): нативный `input` внутри
+ * них недопустим. Состояние объявляет сам пункт; рисунок читалке не виден.
+ */
+export function CheckboxMark({ checked = false, indeterminate = false, className }: CheckboxMarkProps) {
+  return (
+    <span
+      className={cx(styles.box, className)}
+      data-checked={checked || undefined}
+      data-indeterminate={indeterminate || undefined}
+      aria-hidden="true"
+    >
+      <svg viewBox="0 0 12 12" className={styles.tick}>
+        <path d="M2.5 6.2l2.4 2.4 4.6-5" />
+      </svg>
+      <svg viewBox="0 0 12 12" className={styles.dash}>
+        <path d="M3 6h6" />
+      </svg>
+    </span>
+  )
+}

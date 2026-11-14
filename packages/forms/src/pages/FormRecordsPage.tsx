@@ -9,7 +9,7 @@
  * текущей странице»: такой фильтр врал бы про остальные 25 страниц.
  */
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
-import { Icon, Input, Menu, MenuItem, type ListColumn } from '@wowhaus-24/ui-react'
+import { Avatar, Icon, Input, Menu, MenuItem, type ListColumn } from '@wowhaus-24/ui-react'
 
 import { FormsApiError, type FormsApi, type ListRecordsQuery } from '../api.js'
 import type { Field, Form, FormRecord, SchemaDocument } from '../types.js'
@@ -18,7 +18,6 @@ import { systemValue } from '../render/system.js'
 import {
   formatDateTime,
   formatValue,
-  initials,
   isBlank,
   isNumericType,
   optionLabel,
@@ -125,9 +124,7 @@ function Cell({ field, value, ctx }: { field: Field; value: unknown; ctx: Format
       const label = optionLabel(field, String(value), ctx)
       return (
         <span className={styles.cellUser}>
-          <span className={styles.cellAvatar} aria-hidden>
-            {initials(label)}
-          </span>
+          <Avatar size={24} name={label} aria-hidden="true" />
           <span className={styles.name} style={{ fontWeight: 400 }}>
             {label}
           </span>

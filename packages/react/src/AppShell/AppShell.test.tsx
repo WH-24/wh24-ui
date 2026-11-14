@@ -16,7 +16,7 @@ describe('AppShell', () => {
     // Search pill (Pill renders aria-label "Открыть палитру команд")
     expect(screen.getByRole('button', { name: 'Открыть палитру команд' })).toBeInTheDocument()
     // Avatar
-    expect(screen.getByRole('button', { name: 'Профиль Антон Краснов' })).toBeInTheDocument()
+    expect(screen.getByRole('img', { name: 'Антон Краснов' })).toBeInTheDocument()
     expect(screen.getByText('АК')).toBeInTheDocument()
   })
 
@@ -73,7 +73,7 @@ describe('AppShell', () => {
     expect(screen.queryByRole('banner')).not.toBeInTheDocument()
     expect(screen.queryByRole('link', { name: 'На главную' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Открыть палитру команд' })).not.toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: 'Профиль A' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('img', { name: 'A' })).not.toBeInTheDocument()
     // Содержимое приложения на месте — убирается только шапка.
     expect(screen.getByText('content')).toBeInTheDocument()
   })

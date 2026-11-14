@@ -89,18 +89,6 @@
   padding-top: var(--sp-2);
   padding-bottom: var(--sp-2);
 }
-.avatar {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  background: var(--terra-bg);
-  color: var(--terra-d);
-  display: inline-grid;
-  place-items: center;
-  font-size: var(--fs-meta-sm);
-  font-weight: var(--fw-semibold);
-  flex: 0 0 auto;
-}
 .chips {
   flex-wrap: wrap;
   gap: 6px;
@@ -136,23 +124,6 @@
 .check {
   gap: 8px;
 }
-/* Флажок — тот же вид, что в мультивыборе и в фильтре списка. */
-.checkBox {
-  width: 16px;
-  height: 16px;
-  border-radius: var(--r-xs);
-  border: 1.5px solid var(--field-bd);
-  display: inline-grid;
-  place-items: center;
-  background: var(--surf);
-  color: #fff;
-  flex: 0 0 auto;
-}
-.checkBoxOn {
-  background: var(--terra-solid);
-  border-color: var(--terra-solid);
-}
-
 /* Чекбокс в режиме редактирования — кнопка в ритме контрола */
 .checkBtn {
   display: flex;

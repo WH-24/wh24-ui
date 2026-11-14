@@ -1,5 +1,6 @@
 import { useId, useState } from 'react'
 
+import { Spinner } from '@wowhaus-24/ui-react'
 import { BrainIcon } from '../icons.js'
 import { cellErrorText } from './errors.js'
 import type { AiFieldValue } from './types.js'
@@ -42,7 +43,7 @@ export function AiFieldCell({ value, onRetry, label, className }: AiFieldCellPro
   if (value.status === 'queued' || value.status === 'computing') {
     return (
       <span className={cls} data-state="busy" aria-live="polite" aria-busy="true">
-        <span className={styles.spinner} aria-hidden="true" />
+        <Spinner size={12} />
         Считаю…
       </span>
     )

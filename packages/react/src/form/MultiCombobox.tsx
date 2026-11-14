@@ -1,6 +1,7 @@
 import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { createPortal } from 'react-dom'
 
+import { CheckboxMark } from '../Checkbox/Checkbox.js'
 import { Icon } from '../list/Icon.js'
 import { OptionMarker, hasOptionMarker, type ComboboxOption } from '../list/Combobox.js'
 import { limitOptions, moreOptionsText, placePopover, revealOption } from '../list/popover.js'
@@ -212,14 +213,7 @@ export function MultiCombobox({
                     onMouseDown={(e) => e.preventDefault()}
                     onClick={() => toggle(o)}
                   >
-                    <span
-                      className={[styles.mcCheck, on ? styles.mcCheckOn : '']
-                        .filter(Boolean)
-                        .join(' ')}
-                      aria-hidden
-                    >
-                      {on && <Icon name="check" size={12} />}
-                    </span>
+                    <CheckboxMark checked={on} />
                     {hasOptionMarker(o) && <OptionMarker {...o} />}
                     <span className={styles.optionTitle}>{o.label}</span>
                     {o.hint && <span className={styles.optionCode}>{o.hint}</span>}

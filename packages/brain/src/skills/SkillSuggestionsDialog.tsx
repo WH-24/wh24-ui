@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 
+import { Spinner } from '@wowhaus-24/ui-react'
 import { BrainApiError } from '../api.js'
 import { BrainDialog } from '../fields/Dialog.js'
 import { brainErrorText } from '../fields/errors.js'
@@ -84,7 +85,7 @@ export function SkillSuggestionsDialog({ api, open, onClose, onPick }: SkillSugg
       <div aria-live="polite">
         {state.phase === 'loading' && (
           <p className={styles.state} role="status">
-            <span className={styles.spinner} aria-hidden="true" />
+            <Spinner />
             Читаю ваши вопросы…
           </p>
         )}
