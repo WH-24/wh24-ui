@@ -18,6 +18,8 @@ import {
   useTheme,
 } from '@wowhaus-24/ui-react'
 
+import { NewComponents } from './NewComponents'
+
 export function Styleguide() {
   const { theme, toggle } = useTheme()
   const [megaOpen, setMegaOpen] = useState(false)
@@ -267,6 +269,14 @@ export function Styleguide() {
           note="Block editor — в работе. Возвращайтесь после релиза."
         />
       </Section>
+
+      <NewComponents
+        section={(title, desc, body) => (
+          <Section key={title} title={title} desc={desc}>
+            {body}
+          </Section>
+        )}
+      />
 
       <Section
         title="AppShell"

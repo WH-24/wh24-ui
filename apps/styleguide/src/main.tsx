@@ -1,5 +1,6 @@
 import '@wowhaus-24/ui-tokens/tokens.css'
 import '@wowhaus-24/ui-tokens/base.css'
+import '@wowhaus-24/ui-tokens/button.css'
 import './styles.css'
 
 import { StrictMode } from 'react'

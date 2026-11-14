@@ -1,0 +1,58 @@
+/* Подсказка — вид `.tip` принятого макета: тёмная плашка на светлой теме,
+   светлая на тёмной (те же --ink/--surf, что у уведомления). */
+.tip {
+  position: fixed;
+  z-index: var(--z-popover, 300);
+  display: inline-flex;
+  align-items: center;
+  max-width: min(320px, calc(100vw - 16px));
+  padding: 4px 8px;
+  border-radius: var(--r-sm, 5px);
+  background: var(--ink);
+  color: var(--surf);
+  font-size: var(--fs-meta, 12px);
+  line-height: 1.35;
+  pointer-events: none;
+  animation: tipIn var(--dur-fast, 120ms) var(--ease-out, ease-out);
+}
+
+/* Соседняя подсказка — без анимации: панель кнопок читается одним движением. */
+.tip[data-instant] {
+  animation: none;
+}
+
+.text {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.kbd {
+  flex: none;
+  margin-left: var(--sp-2, 6px);
+  padding: 1px 5px;
+  border: var(--bd-w, 1px) solid color-mix(in srgb, currentColor 35%, transparent);
+  border-radius: var(--r-xs, 3px);
+  background: none;
+  color: inherit;
+  font: var(--fs-meta-sm, 11px) var(--font-mono, ui-monospace, monospace);
+  white-space: nowrap;
+}
+
+@keyframes tipIn {
+  from {
+    opacity: 0;
+    transform: scale(var(--pop-scale, 0.96));
+  }
+}
+
+@keyframes tipFade {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tip {
+    animation-name: tipFade;
+  }
+}

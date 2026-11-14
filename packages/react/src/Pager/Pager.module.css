@@ -1,0 +1,89 @@
+/* Пейджер — `.pg` / `.pgb` принятого макета. */
+.pg {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--sp-1, 4px);
+  min-width: 0;
+  font-size: var(--fs-ui, 13px);
+  color: var(--ink-3);
+}
+
+.pgb,
+.arrow {
+  display: inline-grid;
+  place-items: center;
+  min-width: var(--control-h-xs, 28px);
+  height: var(--control-h-xs, 28px);
+  padding: 0 var(--sp-1, 4px);
+  border: 0;
+  border-radius: var(--r-sm, 5px);
+  background: none;
+  color: var(--ink-2);
+  font: inherit;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  transition:
+    background var(--dur-fast, 120ms) ease,
+    transform var(--dur-fast, 120ms) var(--ease-out, ease-out);
+}
+
+.arrow {
+  padding: 0;
+  color: var(--ink-3);
+}
+
+.flip {
+  display: inline-flex;
+  transform: scaleX(-1);
+}
+
+.pgb[aria-current] {
+  background: var(--terra-bg);
+  color: var(--terra-text);
+  font-weight: var(--fw-semibold, 600);
+}
+
+.pgb:active:not([aria-current]),
+.arrow:active:not(:disabled) {
+  transform: scale(var(--press-scale, 0.97));
+}
+
+.pgb:focus-visible,
+.arrow:focus-visible {
+  outline: var(--focus-ring-w, 2px) solid var(--focus, var(--terra));
+  outline-offset: var(--focus-ring-offset, 2px);
+}
+
+.arrow:disabled {
+  opacity: var(--disabled-opacity, 0.45);
+  cursor: default;
+}
+
+.gap {
+  min-width: var(--sp-7, 16px);
+  text-align: center;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .pgb:hover:not([aria-current]),
+  .arrow:hover:not(:disabled) {
+    background: var(--surf-2);
+    color: var(--ink);
+  }
+}
+
+@media (pointer: coarse) {
+  .pgb,
+  .arrow {
+    min-width: var(--tap-min-compact, 36px);
+    height: var(--tap-min-compact, 36px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pgb:active:not([aria-current]),
+  .arrow:active:not(:disabled) {
+    transform: none;
+  }
+}

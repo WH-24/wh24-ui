@@ -1,0 +1,50 @@
+/* Карточка при наведении — `.pop.hc` принятого макета. */
+.hc {
+  position: fixed;
+  z-index: var(--z-popover, 300);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4, 10px);
+  width: 280px;
+  max-width: calc(100vw - 16px);
+  padding: var(--sp-6, 14px);
+  border: var(--bd-w, 1px) solid var(--bd-strong);
+  border-radius: var(--r-lg, 10px);
+  background: var(--surf);
+  box-shadow: var(--shadow-lg);
+  color: var(--ink);
+  font-size: var(--fs-ui, 13px);
+  overflow-wrap: anywhere;
+  /* Растёт от элемента, у которого открылась: левый верхний угол. */
+  transform-origin: left top;
+  animation: hcIn var(--dur-base, 180ms) var(--ease-out, ease-out);
+}
+
+.hc[data-flipped] {
+  transform-origin: left bottom;
+}
+
+@keyframes hcIn {
+  from {
+    opacity: 0;
+    transform: scale(var(--pop-scale, 0.96));
+  }
+}
+
+@keyframes hcFade {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (max-width: 640px) {
+  .hc {
+    width: calc(100vw - 16px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hc {
+    animation-name: hcFade;
+  }
+}

@@ -1,0 +1,174 @@
+/* Палитра команд — `.scrim.cmd` / `.cmdk` принятого макета.
+   Анимации появления нет намеренно: ею пользуются десятки раз в день. */
+.scrim {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal, 200);
+  display: grid;
+  place-items: start center;
+  padding: 12vh var(--sp-7, 16px) var(--sp-7, 16px);
+  background: var(--scrim);
+}
+
+.cmdk {
+  display: flex;
+  flex-direction: column;
+  width: min(580px, 100%);
+  max-height: 100%;
+  min-width: 0;
+  overflow: hidden;
+  border: var(--bd-w, 1px) solid var(--bd-strong);
+  border-radius: var(--r-xl, 12px);
+  background: var(--surf);
+  box-shadow: var(--shadow-lg);
+  color: var(--ink);
+}
+
+.cmdk:focus {
+  outline: none;
+}
+
+.inputRow {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4, 10px);
+  padding: var(--sp-5, 12px) var(--sp-6, 14px);
+  border-bottom: var(--bd-w, 1px) solid var(--bd-soft);
+  color: var(--ink-3);
+}
+
+.input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: none;
+  font: inherit;
+  font-size: var(--fs-body, 15px);
+  color: var(--ink);
+}
+
+.input::placeholder {
+  color: var(--ink-3);
+}
+
+.kbd,
+.footer kbd {
+  flex: none;
+  padding: 1px 5px;
+  border: var(--bd-w, 1px) solid var(--bd);
+  border-radius: var(--r-xs, 3px);
+  background: var(--surf-2);
+  color: var(--ink-2);
+  font: var(--fs-meta-sm, 11px) var(--font-mono, ui-monospace, monospace);
+  white-space: nowrap;
+}
+
+.list {
+  flex: 1;
+  min-height: 0;
+  max-height: min(360px, 50vh);
+  overflow: auto;
+  padding: var(--sp-2, 6px);
+}
+
+.group {
+  padding: var(--sp-3, 8px) var(--sp-3, 8px) var(--sp-1, 4px);
+  font-size: var(--fs-meta-sm, 11px);
+  font-weight: var(--fw-semibold, 600);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.opt {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4, 10px);
+  min-height: var(--item-h, 34px);
+  padding: var(--sp-2, 6px) var(--sp-3, 8px);
+  border-radius: var(--r-sm, 5px);
+  font-size: var(--fs-ui, 13px);
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.opt[data-active] {
+  background: var(--surf-2);
+  box-shadow: inset 0 0 0 1px var(--bd-strong);
+}
+
+.opt[aria-disabled='true'] {
+  opacity: var(--disabled-opacity, 0.45);
+  cursor: default;
+}
+
+.lead {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  color: var(--ink-3);
+}
+
+.label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sub {
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 45%;
+  margin-left: auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--fs-meta, 12px);
+  color: var(--ink-3);
+}
+
+.opt > .kbd {
+  margin-left: auto;
+}
+.sub + .kbd {
+  margin-left: 0;
+}
+
+.empty {
+  padding: 9px var(--sp-3, 8px);
+  font-size: var(--fs-ui, 13px);
+  color: var(--ink-3);
+}
+
+.footer {
+  display: flex;
+  gap: var(--sp-7, 16px);
+  padding: var(--sp-3, 8px) var(--sp-6, 14px);
+  border-top: var(--bd-w, 1px) solid var(--bd-soft);
+  font-size: var(--fs-meta, 12px);
+  color: var(--ink-3);
+}
+
+.footer kbd + kbd {
+  margin-left: 2px;
+}
+
+@media (pointer: coarse) {
+  .opt {
+    min-height: var(--tap-min, 44px);
+  }
+}
+
+@media (max-width: 640px) {
+  .scrim {
+    place-items: start stretch;
+    padding: var(--sp-3, 8px);
+  }
+  .footer {
+    display: none;
+  }
+}
