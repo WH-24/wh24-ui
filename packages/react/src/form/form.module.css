@@ -83,7 +83,10 @@
     grid-column: span 6;
   }
 }
-@container wh-field-grid (max-width: 480px) {
+/* 400, а не 480: колонка полей карточки записи в портале — 470px, и на
+   пороге 480 её поля вставали в один столбик (до контейнерных запросов там
+   было два). Один столбик — только на ширине телефона. */
+@container wh-field-grid (max-width: 400px) {
   .grid > .row,
   .grid > .row[data-span='3'],
   .grid > .row[data-span='4'] {
