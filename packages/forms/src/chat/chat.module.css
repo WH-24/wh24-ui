@@ -635,3 +635,18 @@
   padding: 6px 10px;
   font-size: 12px;
 }
+
+/* Лента в колонке карточки записи (RecordCard, обёртка data-record-feed): без
+   своей рамки, во всю высоту колонки — сообщения прокручиваются, поле ввода
+   остаётся внизу. */
+:global([data-record-feed]) > .chat {
+  flex: 1 1 auto;
+  min-height: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+:global([data-record-feed]) > .chat > .list {
+  flex: 1 1 auto;
+  min-height: 0;
+}

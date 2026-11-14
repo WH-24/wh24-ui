@@ -175,3 +175,18 @@ export type {
   Theme,
   ThemeMode,
 } from '@wowhaus-24/ui-tokens'
+
+// ── Карточка записи: стандарт лида/проекта/ФМ и записей форм ───────────────
+export { RecordCard } from './record/RecordCard.js'
+export type {
+  Crumb as RecordCrumb,
+  Kpi as RecordKpi,
+  Stage as RecordStage,
+  PaneSpec as RecordPaneSpec,
+  FailMenuItem as RecordFailMenuItem,
+  RecordCardProps,
+} from './record/RecordCard.js'
+export { RecordTabs, RecordTabPanel } from './record/RecordTabs.js'
+export { ActionsMenu } from './record/ActionsMenu.js'
+export { cleanSeps } from './record/menuItems.js'
+export type { MenuEntry } from './record/menuItems.js'
