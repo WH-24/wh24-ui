@@ -25,8 +25,10 @@ export interface BulkAction {
   /**
    * Выполнить. Вернули Promise — панель занята, пока он не завершится. После
    * успеха выбор снимается (кроме `keepSelection`); при ошибке — остаётся.
+   * Вернули `false` (пользователь отказался в подтверждении) — выбор тоже
+   * остаётся.
    */
-  onRun: (selectedIds: string[], choice?: string) => void | Promise<void>
+  onRun: (selectedIds: string[], choice?: string) => void | boolean | Promise<void | boolean>
   /** Не снимать выбор после действия (выгрузка, печать). */
   keepSelection?: boolean
   disabled?: boolean
@@ -89,15 +91,15 @@ export function BulkActionBar({
 
   const run = (a: BulkAction, choice?: string) => {
     if (busy) return
-    const done = () => {
-      if (!a.keepSelection) onClear()
+    const done = (result: void | boolean) => {
+      if (result !== false && !a.keepSelection) onClear()
     }
     const result = a.onRun(selectedIds, choice)
-    if (result && typeof result.then === 'function') {
+    if (typeof result === 'object' && result !== null) {
       setBusy(true)
       // Не удалось — выбор остаётся: действие можно повторить.
       result.then(done, (e: unknown) => onError?.(e, a)).finally(() => setBusy(false))
-    } else done()
+    } else done(result)
   }
 
   if (typeof document === 'undefined') return null
