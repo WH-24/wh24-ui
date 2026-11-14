@@ -14,6 +14,11 @@ export interface ProgressBarProps extends Omit<HTMLAttributes<HTMLDivElement>, '
   size?: 'sm' | 'md'
   /** Что именно выполняется — для читалки. */
   ariaLabel?: string
+  /**
+   * Значение словами для читалки («3 из 12 файлов», «2,4 из 8 МБ») — когда
+   * голый процент ничего не говорит.
+   */
+  valueText?: string
 }
 
 /**
@@ -21,7 +26,7 @@ export interface ProgressBarProps extends Omit<HTMLAttributes<HTMLDivElement>, '
  * перерасчёта раскладки); без него — бегущий отрезок.
  */
 export const ProgressBar = forwardRef<HTMLDivElement, ProgressBarProps>(function ProgressBar(
-  { value, tone = 'brand', size = 'md', ariaLabel = 'Выполнение', className, ...rest },
+  { value, tone = 'brand', size = 'md', ariaLabel = 'Выполнение', valueText, className, ...rest },
   ref,
 ) {
   const known = typeof value === 'number' && Number.isFinite(value)
@@ -33,6 +38,7 @@ export const ProgressBar = forwardRef<HTMLDivElement, ProgressBarProps>(function
       aria-valuemin={0}
       aria-valuemax={100}
       aria-valuenow={v === undefined ? undefined : Math.round(v)}
+      aria-valuetext={valueText}
       {...rest}
       ref={ref}
       className={cx(styles.track, styles[size], styles[tone], className)}

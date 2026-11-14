@@ -35,9 +35,26 @@ export interface HoverCardProps extends Omit<HTMLAttributes<HTMLDivElement>, 'co
 const EXIT_MS = 135
 
 /**
+ * «Разогрев»: пока одна карточка открыта или только что закрылась, следующая
+ * не ждёт полсекунды — человек уже показал, что читает карточки (ведёт
+ * курсором по столбцу имён). Короткая пауза остаётся, чтобы курсор, идущий
+ * мимо соседнего имени к открытой карточке, её не перехватил.
+ */
+const WARM_WINDOW_MS = 300
+const WARM_DELAY_MS = 80
+let openCards = 0
+let lastClosedAt = Number.NEGATIVE_INFINITY
+const isWarm = () => {
+  if (openCards > 0) return true
+  const since = Date.now() - lastClosedAt
+  return since >= 0 && since < WARM_WINDOW_MS
+}
+
+/**
  * Карточка при наведении: короткая справка о человеке или записи, не уходя
  * со страницы. Появляется через полсекунды, остаётся, пока курсор на
- * элементе или на самой карточке; уход курсора и Esc закрывают.
+ * элементе или на самой карточке; уход курсора и Esc закрывают. Переход с
+ * одного имени на соседнее открывает следующую карточку почти сразу.
  *
  * Это удобство для мыши: на сенсорных экранах карточки нет, поэтому всё, что
  * в ней есть, должно быть достижимо и обычным путём (переходом по ссылке).
@@ -63,6 +80,11 @@ export const HoverCard = forwardRef<HTMLDivElement, HoverCardProps>(function Hov
   const set = (next: boolean) => {
     if (openRef.current === next) return
     openRef.current = next
+    if (next) openCards += 1
+    else {
+      openCards = Math.max(0, openCards - 1)
+      lastClosedAt = Date.now()
+    }
     setOpen(next)
     notify.current?.(next)
   }
@@ -70,7 +92,7 @@ export const HoverCard = forwardRef<HTMLDivElement, HoverCardProps>(function Hov
     if (disabled) return
     anchorRef.current = el
     clear()
-    timer.current = setTimeout(() => set(true), openDelay)
+    timer.current = setTimeout(() => set(true), isWarm() ? Math.min(openDelay, WARM_DELAY_MS) : openDelay)
   }
   const scheduleClose = () => {
     clear()
@@ -81,7 +103,17 @@ export const HoverCard = forwardRef<HTMLDivElement, HoverCardProps>(function Hov
     set(false)
   }
 
-  useEffect(() => clear, [])
+  useEffect(
+    () => () => {
+      clear()
+      // Убрали со страницы открытой — счётчик открытых не должен «залипнуть».
+      if (openRef.current) {
+        openRef.current = false
+        openCards = Math.max(0, openCards - 1)
+      }
+    },
+    [],
+  )
   useEffect(() => {
     if (disabled) closeNow()
     // eslint-disable-next-line react-hooks/exhaustive-deps

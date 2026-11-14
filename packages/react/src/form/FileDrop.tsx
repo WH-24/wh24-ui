@@ -1,4 +1,4 @@
-import { useRef, useState, type DragEvent, type CSSProperties } from 'react'
+import { useEffect, useRef, useState, type DragEvent, type CSSProperties } from 'react'
 
 import { Icon } from '../list/Icon.js'
 import { ProgressBar } from '../ProgressBar/ProgressBar.js'
@@ -95,6 +95,22 @@ export function FileDrop({
 }: FileDropProps) {
   const labels = { ...STATUS_LABELS, ...statusLabels }
   const inputRef = useRef<HTMLInputElement>(null)
+  const rootRef = useRef<HTMLDivElement>(null)
+  // Открепили файл с клавиатуры — строка исчезла вместе с кнопкой, и фокус
+  // упал бы в начало страницы. Переносим его на крестик соседнего файла, а
+  // если файлов не осталось — на зону выбора.
+  const removedAt = useRef<number | null>(null)
+  useEffect(() => {
+    const at = removedAt.current
+    if (at === null) return
+    removedAt.current = null
+    const root = rootRef.current
+    const active = document.activeElement
+    if (!root || (active && active !== document.body)) return
+    const buttons = root.querySelectorAll<HTMLElement>('[data-fd-remove]')
+    const next = buttons[Math.min(at, buttons.length - 1)] ?? root.querySelector<HTMLElement>('[data-fd-zone]')
+    next?.focus()
+  }, [files])
   const [over, setOver] = useState(false)
   // Сколько файлов не вошло по лимиту — говорим, а не отбрасываем молча.
   const [skipped, setSkipped] = useState(0)
@@ -119,10 +135,10 @@ export function FileDrop({
   }
 
   return (
-    <div className={[styles.fd, className].filter(Boolean).join(' ')} style={style}>
+    <div ref={rootRef} className={[styles.fd, className].filter(Boolean).join(' ')} style={style}>
       {files.length > 0 && (
         <ul className={styles.fdList}>
-          {files.map((f) => (
+          {files.map((f, index) => (
             <li
               key={f.id}
               className={f.status ? `${styles.fdItem} ${styles.fdItemStatus}` : styles.fdItem}
@@ -158,9 +174,12 @@ export function FileDrop({
               {f.size != null && <span className={styles.fdSize}>{formatSize(f.size)}</span>}
               {f.status && (
                 <span className={styles.fdStatus} role={f.status === 'error' ? 'alert' : 'status'}>
-                  {f.status === 'uploading' && f.progress != null
-                    ? `${labels.uploading} ${Math.round(Math.min(100, Math.max(0, f.progress)))}%`
-                    : labels[f.status]}
+                  {labels[f.status]}
+                  {/* Проценты — только глазам: иначе читалка объявляла бы каждое
+                      их изменение. Ход загрузки она берёт у полосы. */}
+                  {f.status === 'uploading' && f.progress != null && (
+                    <span aria-hidden="true"> {Math.round(Math.min(100, Math.max(0, f.progress)))}%</span>
+                  )}
                   {f.status === 'error' && f.onRetry && (
                     <>
                       {' · '}
@@ -176,7 +195,11 @@ export function FileDrop({
                   type="button"
                   className={styles.fdRm}
                   aria-label={`Открепить «${f.name}»`}
-                  onClick={() => onRemove(f)}
+                  data-fd-remove=""
+                  onClick={(e) => {
+                    removedAt.current = document.activeElement === e.currentTarget ? index : null
+                    onRemove(f)
+                  }}
                 >
                   <Icon name="close" size={12} />
                 </button>
@@ -199,6 +222,7 @@ export function FileDrop({
       {onAdd && !full && (
         <div
           className={styles.fdZone}
+          data-fd-zone=""
           data-over={over || undefined}
           data-disabled={disabled || undefined}
           role="button"

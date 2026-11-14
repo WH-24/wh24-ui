@@ -112,6 +112,7 @@ export function NewComponents({ section }: { section: (title: string, desc: stri
           <Switch checked={sw} onChange={setSw}>
             Уведомления на почту
           </Switch>
+          <Switch defaultChecked>Сам ведёт состояние</Switch>
           <Switch checked={false} onChange={() => {}} disabled>
             Недоступно
           </Switch>

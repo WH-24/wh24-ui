@@ -1,4 +1,4 @@
-import { forwardRef, type HTMLAttributes } from 'react'
+import { forwardRef, useEffect, useRef, type HTMLAttributes } from 'react'
 
 import { Icon } from '../list/Icon.js'
 import { cx } from '../popup/popup.js'
@@ -56,20 +56,47 @@ export const Pager = forwardRef<HTMLElement, PagerProps>(function Pager(
   },
   ref,
 ) {
+  const navRef = useRef<HTMLElement | null>(null)
+  // Стрелка, с которой ушли на край, выключается и теряет фокус — он падал
+  // бы в начало страницы. Запоминаем, что фокус был на стрелке, и после
+  // перехода ставим его на текущую страницу.
+  const arrowFocus = useRef(false)
   const count = Math.max(0, Math.floor(pageCount))
+  const cur = Math.min(Math.max(count, 1), Math.max(1, Math.floor(page)))
+  useEffect(() => {
+    if (!arrowFocus.current) return
+    arrowFocus.current = false
+    const nav = navRef.current
+    if (!nav) return
+    const active = document.activeElement
+    const lost = !active || active === document.body || (nav.contains(active) && (active as HTMLButtonElement).disabled)
+    if (lost) nav.querySelector<HTMLElement>('[aria-current="page"]')?.focus()
+  }, [cur, count])
   if (count <= 1) return null
-  const cur = Math.min(count, Math.max(1, Math.floor(page)))
   const go = (p: number) => {
     if (p >= 1 && p <= count && p !== cur) onChange(p)
   }
+  const step = (p: number) => {
+    arrowFocus.current = (p === 1 || p === count) && navRef.current?.contains(document.activeElement) === true
+    go(p)
+  }
   return (
-    <nav {...rest} ref={ref} aria-label={ariaLabel} className={cx(styles.pg, className)}>
+    <nav
+      {...rest}
+      ref={(el) => {
+        navRef.current = el
+        if (typeof ref === 'function') ref(el)
+        else if (ref) ref.current = el
+      }}
+      aria-label={ariaLabel}
+      className={cx(styles.pg, className)}
+    >
       <button
         type="button"
         className={styles.arrow}
         aria-label={prevLabel}
         disabled={cur === 1}
-        onClick={() => go(cur - 1)}
+        onClick={() => step(cur - 1)}
       >
         <span className={styles.flip}>
           <Icon name="chevright" size={16} />
@@ -98,7 +125,7 @@ export const Pager = forwardRef<HTMLElement, PagerProps>(function Pager(
         className={styles.arrow}
         aria-label={nextLabel}
         disabled={cur === count}
-        onClick={() => go(cur + 1)}
+        onClick={() => step(cur + 1)}
       >
         <Icon name="chevright" size={16} />
       </button>

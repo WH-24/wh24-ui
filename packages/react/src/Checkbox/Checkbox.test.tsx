@@ -71,4 +71,14 @@ describe('Checkbox', () => {
     expect(ref.current).toHaveAttribute('name', 'agree')
     expect(container.firstElementChild).toHaveClass('mine')
   })
+
+  it('«выбрана часть» переживает щелчок, пока хозяин её не снял', async () => {
+    render(<Checkbox indeterminate checked={false} onChange={() => {}} aria-label="Все" />)
+    const box = screen.getByRole('checkbox') as HTMLInputElement
+    expect(box.indeterminate).toBe(true)
+    await userEvent.click(box)
+    // Браузер на щелчке сбрасывает свойство; проп не менялся — возвращаем.
+    expect(box.indeterminate).toBe(true)
+    expect(box).toHaveAttribute('data-indeterminate')
+  })
 })
