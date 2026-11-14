@@ -9,7 +9,7 @@ import { Icon, Input, MultiCombobox } from '@wowhaus-24/ui-react'
 import type { FormsApi } from '../api.js'
 import { FormsApiError } from '../api.js'
 import type { OrgOption, RecordRoute } from '../types.js'
-import { CHOICE_LABEL, STEP_STATE_LABEL, staffIndex } from './logic.js'
+import { CHOICE_LABEL, STEP_STATE_LABEL, isInitStep, staffIndex } from './logic.js'
 import styles from './chat.module.css'
 
 interface EditStep {
@@ -48,7 +48,10 @@ export function RouteBar({
   const start = () => {
     setError(null)
     setEdit(
-      route.steps.map((s) => ({ key: s.id, id: s.id, name: s.name, approvers: s.approvers.map((a) => a.staff_id) })),
+      // «Инициализация» есть у каждой записи сама — в настройке маршрута её нет.
+      route.steps
+        .filter((s) => !isInitStep(s))
+        .map((s) => ({ key: s.id, id: s.id, name: s.name, approvers: s.approvers.map((a) => a.staff_id) })),
     )
   }
 
@@ -195,7 +198,7 @@ export function RouteBar({
                   className={[styles.approver, a.choice ? styles[`ch_${a.choice}`] : ''].join(' ')}
                   title={a.choice ? CHOICE_LABEL[a.choice] : 'Ещё не решал(а)'}
                 >
-                  {people.name(a.staff_id)}
+                  {a.staff_id ? people.name(a.staff_id) : 'Автор записи'}
                   {a.choice && ` · ${CHOICE_LABEL[a.choice]}`}
                 </span>
               ))}

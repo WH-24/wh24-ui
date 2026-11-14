@@ -1,12 +1,15 @@
-import { forwardRef, useId, type ButtonHTMLAttributes, type ReactNode } from 'react'
+import { forwardRef, useId, useState, type ButtonHTMLAttributes, type ReactNode } from 'react'
 
 import { cx } from '../popup/popup.js'
 
 import styles from './Switch.module.css'
 
 export interface SwitchProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'onChange' | 'role' | 'type'> {
-  checked: boolean
-  onChange: (checked: boolean) => void
+  /** Управляемое значение. Не задано — переключатель ведёт состояние сам. */
+  checked?: boolean
+  /** Начальное значение, когда `checked` не задан. */
+  defaultChecked?: boolean
+  onChange?: (checked: boolean) => void
   /** Видимая подпись справа; щелчок по ней тоже переключает. */
   children?: ReactNode
   /** Подпись для читалки, когда видимой нет. */
@@ -16,12 +19,15 @@ export interface SwitchProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement
 
 /**
  * Переключатель «включено / выключено»: настройка, которая действует сразу,
- * без «Сохранить». Для выбора в форме — `Checkbox`.
+ * без «Сохранить». Для выбора в форме — `Checkbox`. Работает и управляемым
+ * (`checked` + `onChange`), и сам по себе (`defaultChecked`).
  */
 export const Switch = forwardRef<HTMLButtonElement, SwitchProps>(function Switch(
-  { checked, onChange, children, ariaLabel, disabled, className, id, onClick, ...rest },
+  { checked: checkedProp, defaultChecked = false, onChange, children, ariaLabel, disabled, className, id, onClick, ...rest },
   ref,
 ) {
+  const [inner, setInner] = useState(defaultChecked)
+  const checked = checkedProp ?? inner
   const auto = useId()
   const btnId = id ?? `sw-${auto}`
   const labelId = `${btnId}-label`
@@ -39,7 +45,9 @@ export const Switch = forwardRef<HTMLButtonElement, SwitchProps>(function Switch
       className={cx(styles.sw, children == null && className)}
       onClick={(e) => {
         onClick?.(e)
-        if (!e.defaultPrevented) onChange(!checked)
+        if (e.defaultPrevented) return
+        if (checkedProp === undefined) setInner(!checked)
+        onChange?.(!checked)
       }}
     >
       <span className={styles.thumb} aria-hidden="true" />

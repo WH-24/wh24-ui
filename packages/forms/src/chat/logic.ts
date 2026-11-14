@@ -68,22 +68,32 @@ export function myDecisionStep(route: RecordRoute | null): RecordRouteStep | nul
   return step && step.approvers.some((a) => a.mine) ? step : null
 }
 
-/** Мои решения, которые можно отозвать (на любом этапе). */
-/** Первая стадия полосы: запись создана, согласование ещё не началось. */
-export const ROUTE_INIT_STAGE = '__init__'
+/**
+ * Этап «Инициализация» — первый этап записи формы с маршрутом (id — нулевой
+ * UUID): автор правит запись и «Утверждено» на нём отправляет её на
+ * согласование. В настройке маршрута формы его нет.
+ */
+export const ROUTE_INIT_STEP_ID = '00000000-0000-0000-0000-000000000000'
+/** Стадия «Инициализация» полосы у сервиса, который этап ещё не отдаёт. */
+export const ROUTE_INIT_STAGE = ROUTE_INIT_STEP_ID
+
+export function isInitStep(step: { id: string }): boolean {
+  return step.id === ROUTE_INIT_STEP_ID
+}
 
 /**
  * Стадии записи для полосы карточки (как у лида): «Инициализация», дальше —
- * этапы маршрута согласования по порядку. Текущая — этап, который сейчас
- * согласуют; маршрут пройден — последний этап; согласование не начато —
- * «Инициализация». У маршрута без этапов полосы нет (null).
+ * этапы маршрута согласования по порядку. Текущая — этап, на котором стоит
+ * запись; маршрут пройден — последний этап. У маршрута без этапов полосы
+ * нет (null). Старый сервис «Инициализацию» не отдаёт — добавляем сами.
  */
 export function routeStages(
   route: RecordRoute | null | undefined,
 ): { stages: { value: string; label: string }[]; stage: string } | null {
   if (!route || route.steps.length === 0) return null
+  const hasInit = isInitStep(route.steps[0]!)
   const stages = [
-    { value: ROUTE_INIT_STAGE, label: 'Инициализация' },
+    ...(hasInit ? [] : [{ value: ROUTE_INIT_STAGE, label: 'Инициализация' }]),
     ...route.steps.map((st) => ({ value: st.id, label: st.name })),
   ]
   const current = route.current_step_id && route.steps.some((st) => st.id === route.current_step_id)
@@ -94,12 +104,34 @@ export function routeStages(
   return { stages, stage: current }
 }
 
+/**
+ * Можно ли сейчас править запись: у формы с маршрутом — только на
+ * «Инициализации» (в том числе когда запись туда вернули); после отправки на
+ * согласование правка задним числом закрыта (владелец 14.11.2026). Маршрут
+ * ещё не загружен — «нет»: кнопка правки не мигает. Сервер проверяет то же.
+ */
+export function routeAllowsEdit(route: RecordRoute | null | undefined): boolean {
+  if (!route) return false
+  const first = route.steps[0]
+  if (!first || !isInitStep(first)) return true
+  return first.state === 'current'
+}
+
+/** Этапы, на которые можно вернуть запись решением «Против»: раньше текущего. */
+export function returnTargets(route: RecordRoute, stepId: string): RecordRouteStep[] {
+  const i = route.steps.findIndex((s) => s.id === stepId)
+  return i > 0 ? route.steps.slice(0, i) : []
+}
+
+/** Мои решения, которые можно отозвать (на любом этапе). */
 export function myRevocableSteps(route: RecordRoute | null): RecordRouteStep[] {
   return (route?.steps ?? []).filter((s) => s.approvers.some((a) => a.mine && a.choice))
 }
 
 /** Какие варианты решения доступны на этапе. */
 export function availableChoices(step: RecordRouteStep): ApprovalChoice[] {
+  // «Инициализация»: запись можно только отправить на согласование.
+  if (isInitStep(step)) return ['approved']
   const out: ApprovalChoice[] = ['approved', 'acknowledged', 'rejected']
   if (step.approvers.some((a) => a.mine && a.choice)) out.push('revoked')
   return out
@@ -110,7 +142,13 @@ export interface Draft {
   body: string
   /** Упомянутые: id → подпись, как вставлена в текст. */
   mentions: Record<string, string>
-  approval: { step_id: string; step_name: string; choice: ApprovalChoice } | null
+  approval: {
+    step_id: string
+    step_name: string
+    choice: ApprovalChoice
+    /** «Против» с возвратом: на какой этап вернуть запись. */
+    return_to?: { id: string; name: string }
+  } | null
   /** undefined — не трогаем; '' — снять. */
   responsible?: string
   due?: string
@@ -147,7 +185,10 @@ export function draftToComment(d: Draft): NewComment {
     .map(([id]) => id)
   const c: NewComment = { body: d.body.trim() }
   if (mentions.length) c.mentions = mentions
-  if (d.approval) c.approval = { step_id: d.approval.step_id, choice: d.approval.choice }
+  if (d.approval) {
+    c.approval = { step_id: d.approval.step_id, choice: d.approval.choice }
+    if (d.approval.choice === 'rejected' && d.approval.return_to) c.approval.return_to = d.approval.return_to.id
+  }
   if (d.responsible !== undefined) c.responsible = d.responsible
   if (d.due !== undefined) c.due = d.due
   if (d.spent) c.spent_minutes = d.spent

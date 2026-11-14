@@ -26,4 +26,9 @@ describe('ProgressBar', () => {
     expect(bar).not.toHaveAttribute('aria-valuenow')
     expect(bar).toHaveAttribute('data-indeterminate')
   })
+
+  it('valueText — значение словами для читалки', () => {
+    const { getByRole } = render(<ProgressBar value={25} valueText="3 из 12 файлов" />)
+    expect(getByRole('progressbar')).toHaveAttribute('aria-valuetext', '3 из 12 файлов')
+  })
 })

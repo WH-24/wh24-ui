@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 
@@ -79,5 +79,46 @@ describe('NotificationCenter', () => {
     expect(onOpenChange).toHaveBeenCalledWith(false)
     // Управляемый: без смены пропа остаётся открытым.
     expect(screen.getByRole('dialog')).toBeInTheDocument()
+  })
+
+  it('стрелки, Home и End ходят по уведомлениям', async () => {
+    render(<NotificationCenter items={ITEMS} />)
+    await userEvent.click(screen.getByRole('button', { name: /Уведомления/ }))
+    const rows = within(screen.getByRole('dialog')).getAllByRole('button')
+    await userEvent.keyboard('{ArrowDown}')
+    expect(rows[0]).toHaveFocus()
+    await userEvent.keyboard('{ArrowDown}')
+    expect(rows[1]).toHaveFocus()
+    await userEvent.keyboard('{End}')
+    expect(rows[2]).toHaveFocus()
+    await userEvent.keyboard('{ArrowDown}')
+    expect(rows[2]).toHaveFocus()
+    await userEvent.keyboard('{Home}')
+    expect(rows[0]).toHaveFocus()
+    await userEvent.keyboard('{ArrowUp}')
+    expect(rows[0]).toHaveFocus()
+  })
+
+  it('закрытие щелчком по уведомлению возвращает фокус на колокольчик', async () => {
+    render(<NotificationCenter items={ITEMS} closeOnItemClick />)
+    const bell = screen.getByRole('button', { name: /Уведомления/ })
+    await userEvent.click(bell)
+    await userEvent.click(within(screen.getByRole('dialog')).getAllByRole('button')[1]!)
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(bell).toHaveFocus()
+  })
+
+  it('фокус ушёл с клавиатуры дальше по странице — список закрывается', async () => {
+    render(
+      <>
+        <NotificationCenter items={ITEMS} />
+        <button>Дальше</button>
+      </>,
+    )
+    await userEvent.click(screen.getByRole('button', { name: /Уведомления/ }))
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
+    screen.getByRole('button', { name: 'Дальше' }).focus()
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+    expect(screen.getByRole('button', { name: 'Дальше' })).toHaveFocus()
   })
 })

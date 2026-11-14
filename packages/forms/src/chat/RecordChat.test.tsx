@@ -357,4 +357,54 @@ describe('RecordChat — «@ИИ»', () => {
     await screen.findByRole('article')
     await waitFor(() => expect(onRoute).toHaveBeenCalledWith(route(true)))
   })
+
+  it('«Инициализация»: автору доступно только «Утверждено» — оно отправляет запись на согласование', async () => {
+    const user = userEvent.setup()
+    const INIT = '00000000-0000-0000-0000-000000000000'
+    const r: RecordRoute = {
+      steps: [
+        { id: INIT, name: 'Инициализация', state: 'current', approvers: [{ staff_id: '', choice: '', decided_at: null, mine: true }] },
+        { id: 'st1', name: 'Руководитель', state: 'pending', approvers: [{ staff_id: 's1', choice: '', decided_at: null, mine: false }] },
+      ],
+      current_step_id: INIT,
+      finished: false,
+    }
+    const { api, sent } = fakeApi(baseFeed({ route: r }))
+    const onRecordChange = vi.fn()
+    render(<RecordChat api={api} formId="f1" recordId="r1" staff={staff} onRecordChange={onRecordChange} />)
+    await user.click(await screen.findByRole('button', { name: 'Утверждено' }))
+    expect(screen.queryByRole('button', { name: 'Против' })).toBeNull()
+    // Панель решения стоит над кнопкой панели инструментов — её «Утверждено» первое.
+    await user.click(screen.getAllByRole('button', { name: 'Утверждено' })[0]!)
+    await user.click(screen.getByRole('button', { name: 'Отправить' }))
+    await waitFor(() => expect(sent).toHaveLength(1))
+    expect(sent[0]?.approval).toEqual({ step_id: INIT, choice: 'approved' })
+    // Решение меняет статус записи — карточка получает её сразу.
+    expect(onRecordChange).toHaveBeenCalled()
+  })
+
+  it('«Против» с возвратом: согласующий выбирает этап, на который вернуть запись', async () => {
+    const user = userEvent.setup()
+    const INIT = '00000000-0000-0000-0000-000000000000'
+    const r: RecordRoute = {
+      steps: [
+        { id: INIT, name: 'Инициализация', state: 'passed', approvers: [{ staff_id: '', choice: 'approved', decided_at: null, mine: false }] },
+        { id: 'st1', name: 'Руководитель', state: 'current', approvers: [{ staff_id: 's1', choice: '', decided_at: null, mine: true }] },
+      ],
+      current_step_id: 'st1',
+      finished: false,
+    }
+    const { api, sent } = fakeApi(baseFeed({ route: r }))
+    render(<RecordChat api={api} formId="f1" recordId="r1" staff={staff} />)
+    await user.click(await screen.findByRole('button', { name: 'Утверждено' }))
+    await user.click(screen.getByRole('combobox', { name: 'Вернуть на этап' }))
+    await user.click(await screen.findByRole('option', { name: 'Инициализация' }))
+    await user.click(screen.getByRole('button', { name: 'Против' }))
+    expect(screen.getByRole('list', { name: 'Действия сообщения' })).toHaveTextContent(
+      'Против — «Руководитель», вернуть на «Инициализация»',
+    )
+    await user.click(screen.getByRole('button', { name: 'Отправить' }))
+    await waitFor(() => expect(sent).toHaveLength(1))
+    expect(sent[0]?.approval).toEqual({ step_id: 'st1', choice: 'rejected', return_to: INIT })
+  })
 })

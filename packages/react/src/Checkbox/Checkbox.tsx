@@ -25,9 +25,12 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(function Che
 ) {
   const inner = useRef<HTMLInputElement | null>(null)
   // `indeterminate` — свойство, а не атрибут: в разметке его не задать.
+  // Сверяем после каждой отрисовки: щелчок сам сбрасывает свойство в браузере,
+  // и если хозяин оставил «выбрана часть», читалка услышала бы другое, чем
+  // нарисовано.
   useEffect(() => {
-    if (inner.current) inner.current.indeterminate = indeterminate
-  }, [indeterminate])
+    if (inner.current && inner.current.indeterminate !== indeterminate) inner.current.indeterminate = indeterminate
+  })
 
   return (
     <label className={cx(styles.cb, className)} style={style} data-disabled={disabled || undefined}>
@@ -43,6 +46,8 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(function Che
         disabled={disabled}
         data-indeterminate={indeterminate || undefined}
         onChange={(e) => {
+          // Браузер уже снял «выбрана часть» — возвращаем, пока проп не сменился.
+          if (indeterminate) e.target.indeterminate = true
           onChange?.(e)
           onCheckedChange?.(e.target.checked)
         }}
