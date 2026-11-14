@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 
-import { Icon } from '../list/Icon.js'
+import { DialogBody, DialogFooter, DialogHeader } from './Dialog.js'
 import { modalExitLayers } from './Modal.js'
 import { useExitAnimation } from './presence.js'
 import { useFocusTrap, useScrollLock } from './useFocusTrap.js'
@@ -148,18 +148,15 @@ function ConfirmCard({
         aria-describedby="wh24-confirm-message"
         className={`${styles.card} ${styles.confirmCard}`}
       >
-        <div className={styles.head}>
-          <h2 id="wh24-confirm-title" className={styles.title}>
-            {pending.title ?? (pending.alert ? 'Не получилось' : 'Подтверждение')}
-          </h2>
-          <button type="button" className={styles.close} onClick={() => close(false)} aria-label="Закрыть">
-            <Icon name="close" size={16} />
-          </button>
-        </div>
-        <div id="wh24-confirm-message" className={`${styles.body} ${styles.confirmMessage}`}>
+        <DialogHeader
+          title={pending.title ?? (pending.alert ? 'Не получилось' : 'Подтверждение')}
+          titleId="wh24-confirm-title"
+          onClose={() => close(false)}
+        />
+        <DialogBody id="wh24-confirm-message" className={styles.confirmMessage}>
           {pending.message}
-        </div>
-        <div className={styles.footer}>
+        </DialogBody>
+        <DialogFooter>
           {!pending.alert && (
             <button ref={cancelRef} type="button" className="btn btn-secondary btn-sm" onClick={() => close(false)}>
               {pending.cancelLabel ?? 'Отмена'}
@@ -173,7 +170,7 @@ function ConfirmCard({
           >
             {pending.confirmLabel ?? (pending.alert ? 'Понятно' : danger ? 'Удалить' : 'Подтвердить')}
           </button>
-        </div>
+        </DialogFooter>
       </div>
     </div>
   )

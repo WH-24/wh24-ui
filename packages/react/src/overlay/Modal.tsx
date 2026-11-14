@@ -1,7 +1,8 @@
-import { useId, useRef, type ReactNode, type RefObject } from 'react'
+import { useId, useRef, type KeyboardEvent, type ReactNode, type RefObject } from 'react'
 import { createPortal } from 'react-dom'
 
-import { Icon } from '../list/Icon.js'
+import { cx } from '../popup/popup.js'
+import { DialogBody, DialogFooter, DialogHeader } from './Dialog.js'
 import { motionMs, motionScale } from './motion.js'
 import { usePresence, useExitAnimation, type ExitLayer } from './presence.js'
 import { useFocusTrap, useScrollLock } from './useFocusTrap.js'
@@ -35,6 +36,17 @@ export interface ModalProps {
   closeOnBackdrop?: boolean
   /** Свой класс тела (отступы, сетка). */
   bodyClassName?: string
+  /** Свой класс карточки окна. */
+  className?: string
+  /** Пояснение под заголовком; читалка объявит его как описание окна. */
+  description?: ReactNode
+  /**
+   * Идёт запрос: Esc, «Закрыть» и клик мимо окно не закрывают, крестик
+   * недоступен (но остаётся на месте — окно не «прыгает»).
+   */
+  busy?: boolean
+  /** Клавиши внутри окна — раньше общих обработчиков страницы. */
+  onKeyDown?: (e: KeyboardEvent<HTMLDivElement>) => void
 }
 
 export function Modal(props: ModalProps) {
@@ -76,13 +88,19 @@ function ModalCard({
   role = 'dialog',
   closeOnBackdrop = true,
   bodyClassName,
+  className,
+  description,
+  busy,
+  onKeyDown,
   exiting,
   onExited,
 }: CardProps) {
   const titleId = useId()
+  const descId = useId()
   const ref = useRef<HTMLDivElement>(null)
   const backdropRef = useRef<HTMLDivElement>(null)
-  useFocusTrap({ open: !exiting, containerRef: ref, onEscape: onClose })
+  const cancel = busy ? undefined : onClose
+  useFocusTrap({ open: !exiting, containerRef: ref, onEscape: cancel })
   useScrollLock(!exiting)
   useExitAnimation(exiting, exiting ? modalExitLayers(backdropRef, ref) : [], onExited)
   return (
@@ -91,7 +109,7 @@ function ModalCard({
       className={styles.backdrop}
       data-state={exiting ? 'closed' : 'open'}
       onMouseDown={(e) => {
-        if (closeOnBackdrop && e.target === e.currentTarget) onClose?.()
+        if (closeOnBackdrop && e.target === e.currentTarget) cancel?.()
       }}
     >
       <div
@@ -99,21 +117,19 @@ function ModalCard({
         role={role}
         aria-modal="true"
         aria-labelledby={titleId}
-        className={styles.card}
+        aria-describedby={description ? descId : undefined}
+        className={cx(styles.card, className)}
         style={{ maxWidth }}
+        onKeyDown={onKeyDown}
       >
-        <div className={styles.head}>
-          <h2 id={titleId} className={styles.title}>
-            {title}
-          </h2>
-          {onClose && (
-            <button type="button" className={styles.close} onClick={onClose} aria-label="Закрыть">
-              <Icon name="close" size={16} />
-            </button>
-          )}
-        </div>
-        <div className={bodyClassName ? `${styles.body} ${bodyClassName}` : styles.body}>{children}</div>
-        {footer && <div className={styles.footer}>{footer}</div>}
+        <DialogHeader title={title} titleId={titleId} onClose={onClose} closeDisabled={busy} />
+        {description && (
+          <p id={descId} className={styles.desc}>
+            {description}
+          </p>
+        )}
+        <DialogBody className={bodyClassName}>{children}</DialogBody>
+        {footer && <DialogFooter>{footer}</DialogFooter>}
       </div>
     </div>
   )

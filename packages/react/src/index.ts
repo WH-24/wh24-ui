@@ -37,6 +37,9 @@ export type { ComingSoonProps } from './ComingSoon/ComingSoon.js'
 export { IconButton } from './IconButton/IconButton.js'
 export type { IconButtonProps } from './IconButton/IconButton.js'
 
+export { Menu, MenuItem, MenuSeparator, MenuLabel } from './Menu/Menu.js'
+export type { MenuProps, MenuItemProps } from './Menu/Menu.js'
+
 export { MegaDropdown } from './MegaDropdown/MegaDropdown.js'
 export type { MegaDropdownProps } from './MegaDropdown/MegaDropdown.js'
 

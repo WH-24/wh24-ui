@@ -71,30 +71,6 @@
 .page:has(> .tableWrap) {
   padding-bottom: 0;
 }
-.pageHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 24px;
-  margin-bottom: 16px;
-}
-.pageTitle {
-  margin: 0;
-  line-height: 1.25;
-  font-size: var(--fs-h2);
-  font-weight: 600;
-  color: var(--fg-primary);
-  letter-spacing: -0.01em;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-.pageSubtitle {
-  font-size: var(--fs-ui);
-  color: var(--fg-tertiary);
-  margin-top: 4px;
-}
-
 /* ===== Тулбар ===== */
 .toolbar {
   display: flex;
@@ -302,27 +278,10 @@ table.tbl {
   opacity: 0.6;
 }
 
-/* ===== Загрузка: скелет строк ===== */
+/* ===== Загрузка: скелет строк (полосы — общий Skeleton) ===== */
 .skeletonRow td {
   padding-top: 14px;
   padding-bottom: 14px;
-}
-.skeletonBar {
-  display: block;
-  height: 10px;
-  border-radius: var(--r-pill);
-  background: var(--bg-muted);
-  animation: skeleton-pulse var(--dur-pulse) ease-in-out infinite;
-}
-@keyframes skeleton-pulse {
-  50% {
-    opacity: 0.5;
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .skeletonBar {
-    animation: none;
-  }
 }
 
 /* ===== Первая загрузка: скелет → содержимое =====
@@ -379,49 +338,6 @@ table.tbl {
   }
 }
 
-/* ===== Пустое состояние ===== */
-.empty {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 60px 20px;
-  text-align: center;
-  color: var(--fg-tertiary);
-}
-.emptyIcon {
-  width: 48px;
-  height: 48px;
-  border-radius: var(--r-lg);
-  background: var(--bg-muted);
-  color: var(--fg-tertiary);
-  display: grid;
-  place-items: center;
-  margin-bottom: 14px;
-}
-.emptyTitle {
-  font-size: var(--fs-ui-lg);
-  color: var(--fg-primary);
-  font-weight: 500;
-  margin-bottom: 4px;
-}
-.emptyDesc {
-  font-size: var(--fs-meta);
-  max-width: 320px;
-}
-.emptyIcon[data-tone="error"] {
-  color: var(--danger-fg, #a32d2d);
-}
-.emptyBtn,
-.emptyAction {
-  margin-top: 12px;
-}
-.emptyBtn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
-
 /* ===== Карточный вид ===== */
 .listCardsGrid {
   display: grid;
@@ -444,72 +360,9 @@ table.tbl {
   font-size: var(--fs-meta);
   color: var(--fg-tertiary);
 }
-.pagerNav {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
 .selectionCount {
   font-size: var(--fs-meta);
   color: var(--fg-tertiary);
-}
-
-/* ===== Кнопки (.btn*) — для пагинации ===== */
-.btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--sp-2, 6px);
-  /* Метрики — один в один с канонической .btn (ui-tokens/button.css). */
-  min-height: var(--btn-h, 36px);
-  padding: var(--sp-3, 8px) var(--sp-6, 14px);
-  border: 1px solid transparent;
-  border-radius: var(--btn-r, 7px);
-  font: inherit;
-  font-size: var(--btn-fs, 13px);
-  font-weight: var(--fw-medium, 500);
-  line-height: var(--lh-snug, 1.3);
-  white-space: nowrap;
-  cursor: pointer;
-  text-decoration: none;
-  transition:
-    background var(--dur-fast) ease,
-    color var(--dur-fast) ease,
-    border-color var(--dur-fast) ease,
-    box-shadow var(--dur-fast) ease,
-    transform var(--dur-fast) var(--ease-out);
-}
-/* Отклик на нажатие — как у канонической .btn (ui-tokens/button.css). */
-.btn:active:not(:disabled):not([aria-disabled='true']) {
-  transform: scale(var(--press-scale));
-}
-@media (prefers-reduced-motion: reduce) {
-  .btn:active:not(:disabled) {
-    transform: none;
-  }
-}
-.btn:focus-visible {
-  outline: var(--focus-ring-w) solid var(--focus);
-  outline-offset: var(--focus-ring-offset);
-}
-.btn:disabled,
-.btn[aria-disabled='true'] {
-  opacity: var(--disabled-opacity);
-  cursor: not-allowed;
-  pointer-events: none;
-}
-.btnSm {
-  min-height: var(--btn-h-sm, 32px);
-  padding: var(--sp-2, 6px) var(--sp-5, 12px);
-}
-.btnGhost {
-  background: transparent;
-  color: var(--fg-secondary);
-  border-color: transparent;
-}
-.btnGhost:hover {
-  background: var(--bg-hover);
-  color: var(--fg-primary);
 }
 
 /* ── Настройка колонок: служебная колонка-шестерёнка в конце шапки + панель ── */
@@ -520,103 +373,15 @@ table.tbl {
   padding-left: 8px;
   padding-right: 0;
 }
-.gearBtn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
-  padding: 0;
-  border: 0;
-  border-radius: var(--radius-sm);
-  background: transparent;
-  color: var(--fg-tertiary);
-  cursor: pointer;
-  transition:
-    background var(--dur-fast) ease,
-    color var(--dur-fast) ease;
-}
-.gearBtn:hover,
-.gearBtn[aria-expanded="true"] {
-  background: var(--bg-hover);
-  color: var(--fg-primary);
-}
-.colsBackdrop {
-  position: fixed;
-  inset: 0;
-  z-index: var(--z-modal, 200);
-  background: var(--scrim, rgba(26, 26, 26, 0.45));
-  animation: list-fade var(--dur-slow) var(--ease-out);
-}
-/* Закрывающееся окно доигрывает выход и не ловит клики. */
-.colsBackdrop[data-state="closed"],
-.colsModal[data-state="closed"] {
-  pointer-events: none;
-}
-/* Окно колонок входит как Modal. Центрирование — тоже transform, поэтому
-   сдвиг повторён в кадре. */
-@keyframes cols-modal-in {
-  from {
-    opacity: 0;
-    transform: translate(-50%, -50%) scale(var(--modal-scale));
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .colsModal.colsModal {
-    animation-name: list-fade;
-  }
-}
-
 /* Окно настройки колонок: список полей сущности бывает в несколько десятков,
    поэтому не выпадашка, а модальное окно с поиском и сеткой. */
-.colsModal {
-  position: fixed;
-  z-index: calc(var(--z-modal, 200) + 1);
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  animation: cols-modal-in var(--dur-slow) var(--ease-out);
-  width: min(1100px, calc(100vw - 32px));
+/* Каркас — общий Modal; здесь ширина, высота и раскладка тела. */
+.colsModal.colsModal {
   max-height: min(760px, calc(100vh - 48px));
-  display: flex;
-  flex-direction: column;
-  background: var(--bg-surface);
-  border: 1px solid var(--border-default);
-  border-radius: var(--r-xl, 12px);
-  box-shadow: var(--shadow-lg);
-}
-.colsModalHead {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 16px 20px 12px;
-}
-.colsModalTitle {
-  flex: 1;
-  min-width: 0;
-  font-size: var(--fs-title);
-  font-weight: 600;
-  color: var(--fg-primary);
-  overflow-wrap: anywhere;
-}
-.colsModalClose {
-  display: grid;
-  place-items: center;
-  flex: none;
-  width: 32px;
-  height: 32px;
-  border: none;
-  border-radius: var(--control-r, 7px);
-  background: transparent;
-  color: var(--fg-tertiary);
-  cursor: pointer;
-}
-.colsModalClose:hover {
-  background: var(--bg-hover);
-  color: var(--fg-primary);
 }
 .colsSearchRow {
-  padding: 0 20px 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border-subtle);
 }
 .colsSearch {
   width: 100%;
@@ -641,11 +406,10 @@ table.tbl {
   box-shadow: var(--field-ring, 0 0 0 3px var(--accent-50));
   border-radius: var(--control-r, 7px);
 }
-.colsModalBody {
-  flex: 1;
-  overflow: auto;
-  padding: 4px 20px 12px;
-  border-top: 1px solid var(--border-subtle);
+.colsModalBody.colsModalBody {
+  padding: 16px 20px 12px;
+  font-size: var(--fs-ui);
+  color: var(--fg-primary);
 }
 /* Колоночная раскладка: поля идут сверху вниз, затем в следующий столбец. */
 .colsGrid {
@@ -663,7 +427,8 @@ table.tbl {
     columns: 1;
   }
 }
-.colsGridItem {
+/* Пункт — общий Checkbox со своей плашкой. */
+.colsGridItem.colsGridItem {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -678,16 +443,14 @@ table.tbl {
 .colsGridItem:hover {
   background: var(--bg-hover);
 }
-.colsGridItem[data-on] {
+.colsGridItem:has(input:checked) {
   background: var(--accent-50);
 }
-.colsGridItem span {
+.colsGridItem.colsGridItem > span:last-child {
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-.colsGridItem input:disabled {
-  cursor: not-allowed;
 }
 .colsNothing {
   padding: 32px 0;
@@ -695,21 +458,13 @@ table.tbl {
   font-size: var(--fs-ui);
   color: var(--fg-tertiary);
 }
+/* Подвал окна: «выбрать все», «для всех», кнопки, «по умолчанию». */
 .colsModalFoot {
   display: flex;
+  flex: 1 1 100%;
   flex-wrap: wrap;
   align-items: center;
   gap: 16px;
-  padding: 12px 20px 16px;
-  border-top: 1px solid var(--border-default);
-}
-.colsSelectAll {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: var(--fs-ui);
-  color: var(--fg-secondary);
-  cursor: pointer;
 }
 .colsFootActions {
   display: flex;
@@ -727,17 +482,6 @@ table.tbl {
 }
 .colsReset:hover {
   color: var(--fg-secondary);
-}
-
-/* Основное действие в модалках списка (Применить). */
-/* Белый текст на --accent-500 (#dd6731) — 3.47:1; как у глобальной
-   .btn-primary — тёмный терракот (4.99:1). */
-.btnPrimary {
-  background: var(--terra-solid, var(--accent-600));
-  color: #fff;
-}
-.btnPrimary:hover {
-  background: var(--terra-solid-hover, var(--accent-700));
 }
 
 /* ── Папки (groups) — как в файловом менеджере ───────────────────────────── */
@@ -961,11 +705,6 @@ table.tbl {
   }
 }
 @media (pointer: coarse) {
-  .gearBtn,
-  .colsModalClose {
-    min-width: var(--tap-min, 44px);
-    min-height: var(--tap-min, 44px);
-  }
   .colsGridItem {
     min-height: var(--tap-min-compact, 36px);
   }

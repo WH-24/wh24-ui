@@ -1,6 +1,5 @@
-import { useEffect, useId, useRef, type KeyboardEvent, type ReactNode, type RefObject } from 'react'
-import { createPortal } from 'react-dom'
-import { Icon } from '@wowhaus-24/ui-react'
+import { useEffect, useRef, type KeyboardEvent, type ReactNode, type RefObject } from 'react'
+import { Modal } from '@wowhaus-24/ui-react'
 
 import styles from './dialog.module.css'
 
@@ -21,13 +20,15 @@ export interface BrainDialogProps {
   className?: string
 }
 
-const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+const WIDTH = { sm: 420, md: 560, lg: 760 } as const
 
 /**
- * Модальное окно для полей ИИ и генераторов: `role="dialog"` + `aria-modal`,
- * фокус заперт внутри и возвращается на кнопку, открывшую окно, Esc закрывает
- * (и не доходит до хоста — у портала на Esc закрывается панель «Спросить ИИ»),
- * фон страницы не прокручивается. На телефоне — «шторка» на всю ширину.
+ * Модальное окно для полей ИИ и генераторов — общий `Modal` из ui-react: тот
+ * же вид, ловушка фокуса со стеком окон, возврат фокуса на кнопку, открывшую
+ * окно, вход и выход по правилам движения. Своё здесь: размеры `sm/md/lg`,
+ * `busy` (идёт запрос — окно не закрыть), куда встаёт фокус при открытии, и
+ * Esc, который не доходит до хоста (у портала на Esc закрывается панель
+ * «Спросить ИИ»).
  *
  * Меню общих `Combobox`/`MultiCombobox` рисуются порталом в `<body>` с z-index
  * выше окна, поэтому поверх него открываются без обходных путей.
@@ -44,100 +45,50 @@ export function BrainDialog({
   initialFocus,
   className,
 }: BrainDialogProps) {
-  const panel = useRef<HTMLDivElement>(null)
-  const titleId = useId()
-  const descId = useId()
+  const content = useRef<HTMLDivElement>(null)
 
+  // Фокус при открытии: заданный элемент → [data-autofocus] → первое поле →
+  // первая кнопка тела. Ловушка `Modal` к этому моменту уже поставила фокус
+  // на само окно; переносим его один раз, а не при каждом рендере.
   useEffect(() => {
     if (!open) return
-    const opener = document.activeElement as HTMLElement | null
-    const prevOverflow = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
+    const panel = content.current?.closest<HTMLElement>('[role="dialog"]')
     const target =
       initialFocus?.current ??
-      panel.current?.querySelector<HTMLElement>('[data-autofocus]') ??
-      panel.current?.querySelector<HTMLElement>(`.${styles.body} input:not([disabled]), .${styles.body} textarea:not([disabled])`) ??
-      panel.current?.querySelector<HTMLElement>(`.${styles.body} button:not([disabled])`) ??
-      panel.current
+      panel?.querySelector<HTMLElement>('[data-autofocus]') ??
+      content.current?.querySelector<HTMLElement>('input:not([disabled]), textarea:not([disabled])') ??
+      content.current?.querySelector<HTMLElement>('button:not([disabled])')
     target?.focus()
-    return () => {
-      document.body.style.overflow = prevOverflow
-      if (opener && document.contains(opener)) opener.focus()
-    }
-    // Фокус ставим один раз при открытии, а не при каждом рендере.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open])
 
-  if (!open || typeof document === 'undefined') return null
-
   const onKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
-    if (e.key === 'Escape') {
-      // Esc, закрывающий выпадающий список внутри окна (общие Combobox/MultiCombobox
-      // держат `aria-expanded` на поле ввода), окно не закрывает — только список.
-      if (e.defaultPrevented) return
-      if ((e.target as HTMLElement).getAttribute?.('aria-expanded') === 'true') return
-      e.preventDefault()
-      e.stopPropagation()
-      if (!busy) onClose()
-      return
-    }
-    if (e.key !== 'Tab') return
-    const items = Array.from(panel.current?.querySelectorAll<HTMLElement>(FOCUSABLE) ?? []).filter(
-      (el) => el.offsetParent !== null || el === document.activeElement,
-    )
-    if (items.length === 0) {
-      e.preventDefault()
-      panel.current?.focus()
-      return
-    }
-    const first = items[0]!
-    const last = items[items.length - 1]!
-    const active = document.activeElement
-    if (e.shiftKey && (active === first || active === panel.current)) {
-      e.preventDefault()
-      last.focus()
-    } else if (!e.shiftKey && active === last) {
-      e.preventDefault()
-      first.focus()
-    }
+    if (e.key !== 'Escape') return
+    // Esc, закрывающий выпадающий список внутри окна (общие Combobox/MultiCombobox
+    // держат `aria-expanded` на поле ввода), окно не закрывает — только список.
+    if (e.defaultPrevented) return
+    if ((e.target as HTMLElement).getAttribute?.('aria-expanded') === 'true') return
+    e.preventDefault()
+    e.stopPropagation()
+    if (!busy) onClose()
   }
 
-  return createPortal(
-    <div
-      className={styles.backdrop}
-      onMouseDown={(e) => {
-        if (e.target === e.currentTarget && !busy) onClose()
-      }}
+  return (
+    <Modal
+      open={open}
+      onClose={onClose}
+      title={title}
+      description={description}
+      footer={footer}
+      maxWidth={WIDTH[size]}
+      busy={busy}
+      className={className}
+      onKeyDown={onKeyDown}
     >
-      <div
-        ref={panel}
-        className={[styles.panel, className].filter(Boolean).join(' ')}
-        data-size={size}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby={titleId}
-        aria-describedby={description ? descId : undefined}
-        tabIndex={-1}
-        onKeyDown={onKeyDown}
-      >
-        <header className={styles.head}>
-          <h2 id={titleId} className={styles.title}>
-            {title}
-          </h2>
-          <button type="button" className={styles.close} aria-label="Закрыть" disabled={busy} onClick={onClose}>
-            <Icon name="close" size={16} />
-          </button>
-        </header>
-        {description && (
-          <p id={descId} className={styles.desc}>
-            {description}
-          </p>
-        )}
-        <div className={styles.body}>{children}</div>
-        {footer && <footer className={styles.foot}>{footer}</footer>}
+      <div ref={content} className={styles.body}>
+        {children}
       </div>
-    </div>,
-    document.body,
+    </Modal>
   )
 }
 
