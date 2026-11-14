@@ -1,0 +1,115 @@
+/* Флажок — `.cb` принятого макета: квадрат 18px, галочка дорисовывается. */
+.cb {
+  position: relative;
+  display: inline-flex;
+  align-items: flex-start;
+  gap: var(--sp-3, 8px);
+  min-width: 0;
+  max-width: 100%;
+  font-size: var(--fs-ui, 13px);
+  line-height: 18px;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.cb[data-disabled] {
+  cursor: default;
+  color: var(--ink-3);
+}
+
+.input {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  opacity: 0;
+  cursor: inherit;
+}
+
+.box {
+  position: relative;
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border: var(--bd-w, 1px) solid var(--field-bd);
+  border-radius: var(--r-sm, 5px);
+  background: var(--surf);
+  transition:
+    background var(--dur-fast, 120ms) ease,
+    border-color var(--dur-fast, 120ms) ease,
+    transform var(--dur-fast, 120ms) var(--ease-out, ease-out);
+}
+
+.cb:not([data-disabled]):active .box {
+  transform: scale(0.92);
+}
+
+.tick,
+.dash {
+  grid-area: 1 / 1;
+  width: 12px;
+  height: 12px;
+  fill: none;
+  stroke: #fff;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 16;
+  stroke-dashoffset: 16;
+  transition: stroke-dashoffset var(--dur-base, 180ms) var(--ease-out, ease-out);
+}
+
+.input:checked + .box,
+.input[data-indeterminate] + .box {
+  background: var(--terra-solid);
+  border-color: var(--terra-solid);
+}
+
+.input:checked:not([data-indeterminate]) + .box .tick,
+.input[data-indeterminate] + .box .dash {
+  stroke-dashoffset: 0;
+}
+
+.input:focus-visible + .box {
+  outline: var(--focus-ring-w, 2px) solid var(--focus, var(--terra));
+  outline-offset: var(--focus-ring-offset, 2px);
+}
+
+.input:disabled + .box {
+  opacity: var(--disabled-opacity, 0.45);
+}
+
+.text {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+/* Палец: цель 44px, рисунок флажка прежний. */
+@media (pointer: coarse) {
+  .cb {
+    min-height: var(--tap-min, 44px);
+    align-items: center;
+  }
+  .input {
+    top: 50%;
+    left: -13px;
+    width: var(--tap-min, 44px);
+    height: var(--tap-min, 44px);
+    transform: translateY(-50%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .box,
+  .tick,
+  .dash {
+    transition-duration: 0ms;
+  }
+  .cb:not([data-disabled]):active .box {
+    transform: none;
+  }
+}

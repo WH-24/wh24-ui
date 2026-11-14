@@ -19,8 +19,8 @@ export type {
   AppShellLinkRendererProps,
 } from './AppShell/AppShell.js'
 
-export { Avatar } from './Avatar/Avatar.js'
-export type { AvatarProps } from './Avatar/Avatar.js'
+export { Avatar, AvatarStack, initialsOf, avatarTint } from './Avatar/Avatar.js'
+export type { AvatarProps, AvatarSize, AvatarStackProps } from './Avatar/Avatar.js'
 
 export { BestPracticeBadge } from './BestPracticeBadge/BestPracticeBadge.js'
 export type { BestPracticeBadgeProps } from './BestPracticeBadge/BestPracticeBadge.js'
@@ -113,7 +113,7 @@ export type { MultiComboboxProps } from './form/MultiCombobox.js'
 export { DateField } from './form/DateField.js'
 export type { DateFieldProps } from './form/DateField.js'
 export { FileDrop } from './form/FileDrop.js'
-export type { FileDropProps, FileDropItem } from './form/FileDrop.js'
+export type { FileDropProps, FileDropItem, FileDropStatusLabels } from './form/FileDrop.js'
 
 // DirectoryPicker — поиск-справочник (люди/отделы/…) с вкладками, режим
 // быстрого поиска. Data-agnostic: данные/аватары/onSelect — через props.
@@ -190,3 +190,27 @@ export { RecordTabs, RecordTabPanel } from './record/RecordTabs.js'
 export { ActionsMenu } from './record/ActionsMenu.js'
 export { cleanSeps } from './record/menuItems.js'
 export type { MenuEntry } from './record/menuItems.js'
+
+// ── Новые элементы по принятому макету (mockups/components-mockup.html) ─────
+export { Tooltip } from './Tooltip/Tooltip.js'
+export type { TooltipProps } from './Tooltip/Tooltip.js'
+export { Switch } from './Switch/Switch.js'
+export type { SwitchProps } from './Switch/Switch.js'
+export { Checkbox } from './Checkbox/Checkbox.js'
+export type { CheckboxProps } from './Checkbox/Checkbox.js'
+export { Banner } from './Banner/Banner.js'
+export type { BannerProps, BannerTone } from './Banner/Banner.js'
+export { Pager, pagerRange } from './Pager/Pager.js'
+export type { PagerProps } from './Pager/Pager.js'
+export { StatusBadge } from './StatusBadge/StatusBadge.js'
+export type { StatusBadgeProps, StatusBadgeTone } from './StatusBadge/StatusBadge.js'
+export { HoverCard } from './HoverCard/HoverCard.js'
+export type { HoverCardProps } from './HoverCard/HoverCard.js'
+export { CommandPalette, useCommandPaletteShortcut } from './CommandPalette/CommandPalette.js'
+export type { CommandPaletteProps, CommandItem } from './CommandPalette/CommandPalette.js'
+export { NotificationCenter } from './NotificationCenter/NotificationCenter.js'
+export type { NotificationCenterProps, NotificationItem } from './NotificationCenter/NotificationCenter.js'
+export { Skeleton, SkeletonText, SkeletonRow } from './Skeleton/Skeleton.js'
+export type { SkeletonProps, SkeletonTextProps, SkeletonRowProps } from './Skeleton/Skeleton.js'
+export { ProgressBar } from './ProgressBar/ProgressBar.js'
+export type { ProgressBarProps, ProgressBarTone } from './ProgressBar/ProgressBar.js'

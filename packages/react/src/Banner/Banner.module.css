@@ -1,0 +1,110 @@
+/* Сообщение на странице — `.banner` принятого макета. */
+.banner {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4, 10px);
+  min-width: 0;
+  padding: var(--sp-3, 8px) var(--sp-3, 8px) var(--sp-3, 8px) var(--sp-5, 12px);
+  border-radius: var(--control-r, 7px);
+  font-size: var(--fs-ui, 13px);
+  line-height: 1.45;
+  color: var(--ink-2);
+}
+
+.info {
+  background: var(--info-bg);
+}
+.warn {
+  background: var(--warn-bg);
+}
+.good {
+  background: var(--good-bg);
+}
+.bad {
+  background: var(--bad-bg);
+}
+
+.icon {
+  flex: none;
+  display: inline-flex;
+}
+.info .icon {
+  color: var(--info);
+}
+.warn .icon {
+  color: var(--warn);
+}
+.good .icon {
+  color: var(--good);
+}
+.bad .icon {
+  color: var(--bad);
+}
+
+.text {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.action {
+  flex: none;
+  display: inline-flex;
+}
+
+.close {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  width: var(--control-h-xs, 28px);
+  height: var(--control-h-xs, 28px);
+  padding: 0;
+  border: 0;
+  border-radius: var(--control-r, 7px);
+  background: transparent;
+  color: var(--ink-3);
+  cursor: pointer;
+  transition:
+    background var(--dur-fast, 120ms) ease,
+    color var(--dur-fast, 120ms) ease,
+    transform var(--dur-fast, 120ms) var(--ease-out, ease-out);
+}
+
+.close:active {
+  transform: scale(var(--press-scale, 0.97));
+}
+
+.close:focus-visible {
+  outline: var(--focus-ring-w, 2px) solid var(--focus, var(--terra));
+  outline-offset: var(--focus-ring-offset, 2px);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .close:hover {
+    background: color-mix(in srgb, currentColor 12%, transparent);
+    color: var(--ink);
+  }
+}
+
+/* Узкий экран: действие и крестик не сжимают текст в столбик из слов. */
+@media (max-width: 640px) {
+  .banner {
+    flex-wrap: wrap;
+  }
+  .text {
+    flex-basis: 60%;
+  }
+}
+
+@media (pointer: coarse) {
+  .close {
+    min-width: var(--tap-min, 44px);
+    min-height: var(--tap-min, 44px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .close:active {
+    transform: none;
+  }
+}

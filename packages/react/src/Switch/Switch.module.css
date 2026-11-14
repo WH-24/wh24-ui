@@ -1,0 +1,84 @@
+/* Переключатель — `.sw` принятого макета: дорожка 38×22, бегунок 18. */
+.row {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-3, 8px);
+  min-width: 0;
+  max-width: 100%;
+  font-size: var(--fs-ui, 13px);
+  color: var(--ink);
+}
+
+.label {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+}
+
+.row[data-disabled] .label {
+  color: var(--ink-3);
+  cursor: default;
+}
+
+.sw {
+  position: relative;
+  flex: none;
+  width: 38px;
+  height: 22px;
+  padding: 2px;
+  border: 0;
+  border-radius: var(--r-pill, 999px);
+  background: var(--ink-4);
+  cursor: pointer;
+  transition: background var(--dur-base, 180ms) ease;
+}
+
+.sw[aria-checked='true'] {
+  background: var(--terra-solid);
+}
+
+.sw:focus-visible {
+  outline: var(--focus-ring-w, 2px) solid var(--focus, var(--terra));
+  outline-offset: var(--focus-ring-offset, 2px);
+}
+
+.sw:disabled {
+  opacity: var(--disabled-opacity, 0.45);
+  cursor: default;
+}
+
+.thumb {
+  display: block;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--dur-slow, 240ms) var(--ease-in-out, ease-in-out);
+}
+
+.sw[aria-checked='true'] .thumb {
+  transform: translateX(16px);
+}
+
+/* Палец: цель 44px вокруг дорожки, сама дорожка не растёт. */
+@media (pointer: coarse) {
+  .sw::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: var(--tap-min, 44px);
+    height: var(--tap-min, 44px);
+    transform: translate(-50%, -50%);
+  }
+  .label {
+    padding-block: var(--sp-3, 8px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .thumb {
+    transition-duration: 0ms;
+  }
+}

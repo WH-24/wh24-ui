@@ -1,0 +1,67 @@
+/* Полоса выполнения — `.file .bar` принятого макета, вынесенная в компонент. */
+.track {
+  position: relative;
+  display: block;
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  border-radius: var(--r-pill, 999px);
+  background: var(--surf-3);
+}
+
+.sm {
+  height: 2px;
+}
+.md {
+  height: 4px;
+}
+
+.fill {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--terra);
+  transform-origin: left center;
+  /* Ход выполнения — равномерно, без «рывка в начале». */
+  transition: transform var(--dur-base, 180ms) linear;
+}
+
+.good .fill {
+  background: var(--good);
+}
+.bad .fill {
+  background: var(--bad);
+}
+
+.track[data-indeterminate] .fill {
+  right: auto;
+  width: 40%;
+  transition: none;
+  animation: pbRun 1.3s linear infinite;
+}
+
+@keyframes pbRun {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(250%);
+  }
+}
+
+@keyframes pbPulse {
+  50% {
+    opacity: 0.45;
+  }
+}
+
+/* «Уменьшить движение»: без бега — полоса на месте, мягко меняет плотность. */
+@media (prefers-reduced-motion: reduce) {
+  .fill {
+    transition: none;
+  }
+  .track[data-indeterminate] .fill {
+    width: 100%;
+    animation: pbPulse 1.6s ease-in-out infinite;
+  }
+}

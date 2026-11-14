@@ -611,3 +611,49 @@
   background: var(--bad-bg);
   color: var(--bad);
 }
+
+/* ── FileDrop: состояние загрузки файла (макет `.file .bar`) ─────────────── */
+.fdItemStatus {
+  position: relative;
+  overflow: hidden;
+}
+.fdStatus {
+  flex: 0 0 auto;
+  color: var(--ink-3);
+  font-size: var(--fs-meta, 12px);
+  white-space: nowrap;
+}
+.fdItemStatus[data-status='done'] .fdStatus {
+  color: var(--good);
+}
+.fdItemStatus[data-status='error'] .fdStatus {
+  color: var(--bad);
+}
+.fdRetry {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
+.fdRetry:focus-visible {
+  outline: var(--focus-ring-w, 2px) solid var(--focus, var(--terra));
+  outline-offset: var(--focus-ring-offset, 2px);
+  border-radius: var(--r-xs, 3px);
+}
+/* Два класса — чтобы перекрыть `position: relative` самой полосы. */
+.fdItemStatus > .fdBar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: 0;
+  background: transparent;
+}
+@media (pointer: coarse) {
+  .fdRetry {
+    min-height: var(--tap-min-compact, 36px);
+  }
+}
