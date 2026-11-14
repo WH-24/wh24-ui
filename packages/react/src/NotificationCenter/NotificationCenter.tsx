@@ -1,4 +1,13 @@
-import { forwardRef, useEffect, useId, useRef, useState, type HTMLAttributes, type ReactNode } from 'react'
+import {
+  forwardRef,
+  useEffect,
+  useId,
+  useRef,
+  useState,
+  type HTMLAttributes,
+  type KeyboardEvent as ReactKeyboardEvent,
+  type ReactNode,
+} from 'react'
 import { createPortal } from 'react-dom'
 
 import { Avatar } from '../Avatar/Avatar.js'
@@ -58,6 +67,8 @@ export const NotificationCenter = forwardRef<HTMLDivElement, NotificationCenterP
     unreadCount,
     open: openProp,
     onOpenChange,
+    onBlur,
+    onKeyDown,
     closeOnItemClick = false,
     title = 'Уведомления',
     markAllLabel = 'Прочитать все',
@@ -124,9 +135,33 @@ export const NotificationCenter = forwardRef<HTMLDivElement, NotificationCenterP
   }, [open, openProp])
 
   // Открылся — фокус в список: с клавиатуры до него иначе не дойти (портал).
+  // Закрылся, а фокус был внутри (щелчок по уведомлению, колокольчик) —
+  // возвращаем его на колокольчик, иначе он падает в начало страницы.
   useEffect(() => {
-    if (open) popRef.current?.focus()
+    if (open) {
+      popRef.current?.focus()
+      return
+    }
+    const pop = popRef.current
+    if (pop && pop.contains(document.activeElement)) focusBell()
   }, [open])
+
+  // Стрелки, Home и End ходят по уведомлениям — список длинный, Tab по нему
+  // долгий. Tab остаётся обычным.
+  const onListKey = (e: ReactKeyboardEvent<HTMLDivElement>) => {
+    if (e.altKey || e.ctrlKey || e.metaKey) return
+    const rows = Array.from(e.currentTarget.querySelectorAll<HTMLElement>('[data-note-row]'))
+    if (!rows.length) return
+    const at = rows.indexOf(document.activeElement as HTMLElement)
+    let to = -1
+    if (e.key === 'ArrowDown') to = Math.min(rows.length - 1, at + 1)
+    else if (e.key === 'ArrowUp') to = at <= 0 ? 0 : at - 1
+    else if (e.key === 'Home') to = 0
+    else if (e.key === 'End') to = rows.length - 1
+    if (to < 0) return
+    e.preventDefault()
+    rows[to]?.focus()
+  }
 
   return (
     <>
@@ -153,6 +188,19 @@ export const NotificationCenter = forwardRef<HTMLDivElement, NotificationCenterP
             aria-labelledby={`${uid}-title`}
             tabIndex={-1}
             className={cx(styles.notes, className)}
+            onKeyDown={(e) => {
+              onKeyDown?.(e)
+              if (!e.defaultPrevented) onListKey(e)
+            }}
+            // Фокус ушёл с клавиатуры дальше по странице — окно больше не
+            // нужно. Уход «в никуда» (щелчок по пустому месту) закрывает
+            // обработчик щелчка мимо.
+            onBlur={(e) => {
+              onBlur?.(e)
+              const to = e.relatedTarget as Node | null
+              if (!to || popRef.current?.contains(to) || anchorRef.current?.contains(to)) return
+              setOpen(false)
+            }}
             data-flipped={place?.flipped || undefined}
             style={{
               ...style,
@@ -178,6 +226,7 @@ export const NotificationCenter = forwardRef<HTMLDivElement, NotificationCenterP
                   key={x.id}
                   type="button"
                   className={styles.item}
+                  data-note-row=""
                   data-unread={x.unread || undefined}
                   onClick={() => {
                     onItemClick?.(x)

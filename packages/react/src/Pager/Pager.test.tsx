@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 
 import { Pager, pagerRange } from './Pager'
@@ -54,5 +55,30 @@ describe('Pager', () => {
   it('одна страница — пейджера нет', () => {
     const { container } = render(<Pager page={1} pageCount={1} onChange={() => {}} />)
     expect(container).toBeEmptyDOMElement()
+  })
+
+  it('стрелка на краю выключается — фокус переходит на текущую страницу', async () => {
+    function Host() {
+      const [page, setPage] = useState(2)
+      return <Pager page={page} pageCount={5} onChange={setPage} />
+    }
+    render(<Host />)
+    const prev = screen.getByRole('button', { name: 'Предыдущая страница' })
+    prev.focus()
+    await userEvent.keyboard('{Enter}')
+    expect(prev).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Страница 1' })).toHaveFocus()
+  })
+
+  it('переход не на край фокус со стрелки не уводит', async () => {
+    function Host() {
+      const [page, setPage] = useState(1)
+      return <Pager page={page} pageCount={5} onChange={setPage} />
+    }
+    render(<Host />)
+    const next = screen.getByRole('button', { name: 'Следующая страница' })
+    next.focus()
+    await userEvent.keyboard('{Enter}')
+    expect(next).toHaveFocus()
   })
 })

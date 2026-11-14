@@ -74,4 +74,37 @@ describe('HoverCard', () => {
     tick(1000)
     expect(card()).not.toBeInTheDocument()
   })
+
+  it('после закрытия одной карточки соседняя открывается почти сразу', () => {
+    render(
+      <>
+        <HoverCard content={<div>Карточка А</div>}>
+          <a href="#a">Анна</a>
+        </HoverCard>
+        <HoverCard content={<div>Карточка Б</div>}>
+          <a href="#b">Борис</a>
+        </HoverCard>
+      </>,
+    )
+    const a = screen.getByRole('link', { name: 'Анна' })
+    const b = screen.getByRole('link', { name: 'Борис' })
+    fireEvent.mouseEnter(a)
+    tick(500)
+    expect(screen.getByText('Карточка А')).toBeInTheDocument()
+    fireEvent.mouseLeave(a)
+    fireEvent.mouseEnter(b)
+    tick(50)
+    expect(screen.queryByText('Карточка Б')).not.toBeInTheDocument()
+    tick(50)
+    expect(screen.getByText('Карточка Б')).toBeInTheDocument()
+
+    // Пауза дольше окна — снова обычная задержка.
+    fireEvent.mouseLeave(b)
+    tick(1000)
+    fireEvent.mouseEnter(a)
+    tick(200)
+    expect(screen.queryByText('Карточка А')).not.toBeInTheDocument()
+    tick(350)
+    expect(screen.getByText('Карточка А')).toBeInTheDocument()
+  })
 })

@@ -57,4 +57,20 @@ describe('Switch', () => {
     expect(ref.current).toBe(screen.getByTestId('sw'))
     expect(ref.current).toHaveClass('mine')
   })
+
+  it('без checked ведёт состояние сам: defaultChecked и щелчок', async () => {
+    const onChange = vi.fn()
+    render(<Switch defaultChecked onChange={onChange} ariaLabel="Сам" />)
+    const sw = screen.getByRole('switch', { name: 'Сам' })
+    expect(sw).toHaveAttribute('aria-checked', 'true')
+    await userEvent.click(sw)
+    expect(sw).toHaveAttribute('aria-checked', 'false')
+    expect(onChange).toHaveBeenLastCalledWith(false)
+  })
+
+  it('управляемый без смены пропа не переключается сам', async () => {
+    render(<Switch checked={false} ariaLabel="Жёсткий" />)
+    await userEvent.click(screen.getByRole('switch'))
+    expect(screen.getByRole('switch')).toHaveAttribute('aria-checked', 'false')
+  })
 })
