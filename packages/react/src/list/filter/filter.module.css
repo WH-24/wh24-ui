@@ -483,8 +483,13 @@
   align-items: center;
   gap: 6px;
 }
+/* Два общих DateField; в узкой колонке (телефон) встают друг под другом,
+   чтобы «дд.мм.гггг» не обрезалось. */
+.filterDaterange {
+  flex-wrap: wrap;
+}
 .filterDaterange > * {
-  flex: 1 1 0;
+  flex: 1 1 132px;
   min-width: 0;
 }
 .filterDaterange > .filterDaterangeDash {
