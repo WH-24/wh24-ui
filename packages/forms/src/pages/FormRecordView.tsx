@@ -18,8 +18,10 @@ import type {
   Form,
   FormRecord,
   RecordHistoryEntry,
+  RecordRoute,
   SchemaDocument,
 } from "../types.js";
+import { routeStages } from "../chat/logic.js";
 import { FormRenderer } from "../render/FormRenderer.js";
 import { withSystemValues } from "../render/system.js";
 import { formatDateTime, type FormatContext } from "../render/format.js";
@@ -60,6 +62,13 @@ export interface FormRecordViewProps {
   discussion?: ReactNode;
   /** Ссылка на задачу Pyrus, с которой сверяется запись: «Открыть в Pyrus». */
   pyrusUrl?: string;
+  /**
+   * Маршрут согласования записи (хост получает его из ленты — `RecordChat`
+   * `onRoute`). У формы с «Отображать статусы согласования» карточка записи
+   * показывает по нему полосу стадий, как у лида: «Инициализация», дальше
+   * названия этапов. Нет маршрута или этапов — полосы нет.
+   */
+  route?: RecordRoute | null;
 }
 
 export function FormRecordView({
@@ -78,6 +87,7 @@ export function FormRecordView({
   currentVersion,
   discussion,
   pyrusUrl,
+  route,
 }: FormRecordViewProps) {
   const [history, setHistory] = useState<
     | { kind: "closed" }
@@ -132,6 +142,8 @@ export function FormRecordView({
       ? [{ id: "delete", label: "Удалить", danger: true, onSelect: onDelete }]
       : [];
     const created = `${who(record.created_by)}, ${formatDateTime(record.created_at)}`;
+    // Полоса стадий — только показ: стадию двигает согласование в ленте.
+    const strip = form.route_stages ? routeStages(route) : null;
     return (
       <RecordCard
         crumbs={[
@@ -156,6 +168,8 @@ export function FormRecordView({
           { label: "Версия формы", value: `v${record.form_version}` },
         ]}
         pyrusUrl={pyrusUrl}
+        stages={strip?.stages}
+        stage={strip?.stage}
         headerAside={actions}
         menu={menu}
         notice={outdatedBanner || undefined}

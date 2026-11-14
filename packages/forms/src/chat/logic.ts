@@ -69,6 +69,31 @@ export function myDecisionStep(route: RecordRoute | null): RecordRouteStep | nul
 }
 
 /** Мои решения, которые можно отозвать (на любом этапе). */
+/** Первая стадия полосы: запись создана, согласование ещё не началось. */
+export const ROUTE_INIT_STAGE = '__init__'
+
+/**
+ * Стадии записи для полосы карточки (как у лида): «Инициализация», дальше —
+ * этапы маршрута согласования по порядку. Текущая — этап, который сейчас
+ * согласуют; маршрут пройден — последний этап; согласование не начато —
+ * «Инициализация». У маршрута без этапов полосы нет (null).
+ */
+export function routeStages(
+  route: RecordRoute | null | undefined,
+): { stages: { value: string; label: string }[]; stage: string } | null {
+  if (!route || route.steps.length === 0) return null
+  const stages = [
+    { value: ROUTE_INIT_STAGE, label: 'Инициализация' },
+    ...route.steps.map((st) => ({ value: st.id, label: st.name })),
+  ]
+  const current = route.current_step_id && route.steps.some((st) => st.id === route.current_step_id)
+    ? route.current_step_id
+    : route.finished
+      ? route.steps[route.steps.length - 1]!.id
+      : ROUTE_INIT_STAGE
+  return { stages, stage: current }
+}
+
 export function myRevocableSteps(route: RecordRoute | null): RecordRouteStep[] {
   return (route?.steps ?? []).filter((s) => s.approvers.some((a) => a.mine && a.choice))
 }

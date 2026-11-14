@@ -349,4 +349,12 @@ describe('RecordChat — «@ИИ»', () => {
     expect(history).not.toHaveBeenCalled()
     expect(screen.queryByRole('tab', { name: /Изменения/ })).toBeNull()
   })
+
+  it('onRoute: маршрут ленты уходит хосту', async () => {
+    const { api } = fakeApi(baseFeed())
+    const onRoute = vi.fn()
+    render(<RecordChat api={api} formId="f1" recordId="r1" staff={staff} onRoute={onRoute} />)
+    await screen.findByRole('article')
+    await waitFor(() => expect(onRoute).toHaveBeenCalledWith(route(true)))
+  })
 })

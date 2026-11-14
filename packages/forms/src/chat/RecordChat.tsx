@@ -23,6 +23,7 @@ import type {
   RecordComment,
   RecordFeed,
   RecordHistoryEntry,
+  RecordRoute,
   SchemaDocument,
 } from '../types.js'
 import { formatDate, formatDateTime, formatSize, type FormatContext } from '../render/format.js'
@@ -58,6 +59,11 @@ export interface RecordChatProps {
     onNavigate?: (url: string) => void
   }
   /**
+   * Маршрут записи загружен или изменился (решение по этапу, настройка):
+   * карточка рисует по нему полосу стадий согласования.
+   */
+  onRoute?: (route: RecordRoute) => void
+  /**
    * Правки записи — в ленте, как у лида: история записи подгружается и
    * встаёт между сообщениями по времени. Нужны схема версии записи (подписи
    * полей), справочники и имена авторов. Нет — в ленте только сообщения.
@@ -91,6 +97,7 @@ export function RecordChat({
   onError,
   ai,
   history,
+  onRoute,
 }: RecordChatProps) {
   const [load, setLoad] = useState<Load>({ kind: 'loading' })
   const [replyTo, setReplyTo] = useState<RecordComment | null>(null)
@@ -129,6 +136,14 @@ export function RecordChat({
     setLoad({ kind: 'loading' })
     void reload()
   }, [reload])
+
+  // Маршрут — хосту (полоса стадий карточки); функция хоста может меняться каждый рендер.
+  const onRouteRef = useRef(onRoute)
+  onRouteRef.current = onRoute
+  const route = load.kind === 'ready' ? load.feed.route : null
+  useEffect(() => {
+    if (route) onRouteRef.current?.(route)
+  }, [route])
 
   // Новое сообщение — прокрутить вниз.
   const count = (load.kind === 'ready' ? load.feed.comments.length : 0) + changes.length
