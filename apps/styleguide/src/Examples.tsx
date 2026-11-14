@@ -9,14 +9,20 @@ import {
   FieldGrid,
   FieldRow,
   Icon,
+  IconButton,
   Input,
   Kanban,
   ListPage,
+  Menu,
+  MenuItem,
+  MenuLabel,
+  MenuSeparator,
   Modal,
   MultiCombobox,
   PageHeader,
   RecordCard,
   SegmentedControl,
+  Spinner,
   Tabs,
   Textarea,
   ToastProvider,
@@ -293,6 +299,7 @@ export function Examples({ section }: { section: (title: string, desc: string, b
   const [tab, setTab] = useState('all')
   const [seg, setSeg] = useState('mine')
   const [stage, setStage] = useState('talk')
+  const [menuWatch, setMenuWatch] = useState(true)
 
   const columns: ListColumn<Lead>[] = [
     {
@@ -336,8 +343,9 @@ export function Examples({ section }: { section: (title: string, desc: string, b
         get: (r) => r.owner,
       },
       { key: 'company', label: 'Заказчик', type: 'text', get: (r) => r.company },
+      { key: 'due', label: 'Срок', type: 'daterange', get: (r) => `2026-11-${String(10 + (Number(r.id) % 18)).padStart(2, '0')}` },
     ],
-    defaultFields: ['stage', 'owner', 'company'],
+    defaultFields: ['stage', 'owner', 'company', 'due'],
   }
 
   const tabs = worst
@@ -518,6 +526,60 @@ export function Examples({ section }: { section: (title: string, desc: string, b
         )}
 
         {section('Окна и уведомления', 'Modal, Drawer, подтверждение (подпись кнопки — по тону), уведомление.', <OverlayButtons worst={worst} />)}
+
+        {section(
+          'Меню, кнопка-значок, кольцо ожидания',
+          'Menu — одно на библиотеку (значок, пояснение, сочетание клавиш, флажок, недоступный и опасный пункт); IconButton 32 и 24; Spinner четырёх размеров.',
+          <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 16 }}>
+            <Menu
+              label="Действия с записью"
+              trigger={
+                <IconButton ariaLabel="Действия с записью">
+                  <Icon name="more" size={16} />
+                </IconButton>
+              }
+            >
+              <MenuLabel>Запись</MenuLabel>
+              <MenuItem icon={<Icon name="pen" size={14} />} shortcut="E">
+                {worst ? 'Изменить карточку записи и все связанные с ней документы' : 'Изменить'}
+              </MenuItem>
+              <MenuItem icon={<Icon name="folder" size={14} />} hint="в архив">
+                Переместить
+              </MenuItem>
+              <MenuItem disabled>Согласовать</MenuItem>
+              <MenuSeparator />
+              <MenuItem checked={menuWatch} keepOpen onSelect={() => setMenuWatch((v) => !v)}>
+                На контроле
+              </MenuItem>
+              <MenuSeparator />
+              <MenuItem danger icon={<Icon name="trash" size={14} />}>
+                Удалить
+              </MenuItem>
+            </Menu>
+            <Menu
+              label="Ещё"
+              align="start"
+              trigger={
+                <button type="button" className="btn btn-secondary btn-sm">
+                  Меню от левого края
+                </button>
+              }
+            >
+              {(worst ? Array.from({ length: 25 }, (_, i) => `Пункт ${i + 1}`) : ['Первый', 'Второй', 'Третий']).map((t) => (
+                <MenuItem key={t}>{t}</MenuItem>
+              ))}
+            </Menu>
+            <IconButton size={24} ariaLabel="Настроить">
+              <Icon name="settings" size={14} />
+            </IconButton>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 12 }}>
+              <Spinner size={12} />
+              <Spinner />
+              <Spinner size={24} />
+              <Spinner size={32} label="Загрузка" />
+            </span>
+          </div>,
+        )}
 
         {section(
           'Поля формы',
