@@ -12,8 +12,18 @@
   min-width: 280px;
   cursor: pointer;
   transition:
-    border-color 0.15s,
-    background 0.15s;
+    border-color var(--dur-fast) ease,
+    background var(--dur-fast) ease,
+    transform var(--dur-fast) var(--ease-out);
+}
+/* Отклик на нажатие: элемент чуть «проседает» (--press-scale). */
+.pill:active {
+  transform: scale(var(--press-scale));
+}
+@media (prefers-reduced-motion: reduce) {
+  .pill:active {
+    transform: none;
+  }
 }
 
 .pill:hover {

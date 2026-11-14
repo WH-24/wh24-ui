@@ -1,4 +1,6 @@
-import { useCallback, useLayoutEffect, useState, type RefObject } from 'react'
+import { useCallback, useLayoutEffect, useRef, useState, type RefObject } from 'react'
+
+import { keyboardInitiated, motionEase, motionMs, motionScale } from './motion.js'
 
 /**
  * Присутствие окна с анимацией выхода. `open: false` не убирает окно из DOM
@@ -24,9 +26,9 @@ export interface ExitLayer {
   frames: Keyframe[]
   /** Длительность, мс. */
   duration: number
+  /** Кривая; по умолчанию `--ease-out`. */
+  easing?: string
 }
-
-const EASE_OUT = 'cubic-bezier(0.23, 1, 0.32, 1)'
 
 /**
  * Тестовые DOM (jsdom, happy-dom) анимаций по-настоящему не проигрывают:
@@ -64,8 +66,8 @@ export function useExitAnimation(exiting: boolean, layers: ExitLayer[], done: ()
     })
     const anims = layers.map((l, i) =>
       els[i]!.animate(reduce ? [{ opacity: 1 }, { opacity: 0 }] : l.frames, {
-        duration: reduce ? Math.min(l.duration, 140) : l.duration,
-        easing: EASE_OUT,
+        duration: reduce ? Math.min(l.duration, motionMs('--dur-base-exit')) : l.duration,
+        easing: l.easing ?? motionEase('--ease-out'),
         fill: 'forwards',
       }),
     )
@@ -91,4 +93,56 @@ export function useExitAnimation(exiting: boolean, layers: ExitLayer[], done: ()
     }
     // Слои — новые объекты на каждой отрисовке, но их ref стабильны.
   }, [exiting])
+}
+
+/**
+ * Присутствие всплывающего (список выбора, календарь, меню): выход
+ * доигрывается за `--dur-base-exit` — прозрачность и масштаб `--pop-scale`
+ * (`shift` — вместо масштаба сдвиг вверх, для панели во всю ширину).
+ *
+ * Действие с клавиатуры не анимируется: `instant` — открыто стрелкой,
+ * вводом или Tab (на элемент вешается `data-instant`, CSS отключает вход);
+ * закрытие с клавиатуры (Esc, Enter) убирает всплывающее сразу.
+ */
+export function usePopPresence(
+  open: boolean,
+  ref: RefObject<HTMLElement | null>,
+  opts: { shift?: string } = {},
+): { mounted: boolean; exiting: boolean; instant: boolean } {
+  const { mounted, exiting, finish } = usePresence(open)
+  const wasOpen = useRef(false)
+  const instant = useRef(false)
+  const skipExit = useRef(false)
+  if (open !== wasOpen.current) {
+    wasOpen.current = open
+    if (open) instant.current = keyboardInitiated()
+    else skipExit.current = keyboardInitiated()
+  }
+  const skip = exiting && skipExit.current
+  useLayoutEffect(() => {
+    if (skip) finish()
+  }, [skip, finish])
+  const play = exiting && !skip
+  // Токены читаем только на выходе: getComputedStyle на каждой отрисовке
+  // каждого списка формы — лишний пересчёт стилей.
+  useExitAnimation(
+    play,
+    play
+      ? [
+          {
+            ref,
+            frames: [
+              { opacity: 1, transform: 'none' },
+              {
+                opacity: 0,
+                transform: opts.shift ? `translateY(${opts.shift})` : `scale(${motionScale('--pop-scale')})`,
+              },
+            ],
+            duration: motionMs('--dur-base-exit'),
+          },
+        ]
+      : [],
+    finish,
+  )
+  return { mounted, exiting, instant: instant.current }
 }

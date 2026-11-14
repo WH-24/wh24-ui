@@ -194,8 +194,8 @@
   text-decoration: none;
   cursor: default;
   transition:
-    background-color 0.15s ease,
-    color 0.15s ease;
+    background-color var(--dur-fast) ease,
+    color var(--dur-fast) ease;
 }
 button.cite {
   cursor: pointer;
@@ -215,9 +215,4 @@ button.cite:hover {
 button.cite:focus-visible {
   outline: var(--focus-ring-w, 2px) solid var(--terra);
   outline-offset: 1px;
-}
-@media (prefers-reduced-motion: reduce) {
-  .cite {
-    transition: none;
-  }
 }

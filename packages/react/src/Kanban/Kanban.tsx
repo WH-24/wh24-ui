@@ -1,6 +1,7 @@
 import { useEffect, useId, useRef, useState, type CSSProperties, type DragEvent, type ReactNode } from 'react'
 
 import { Icon } from '../list/Icon.js'
+import { usePopPresence } from '../overlay/presence.js'
 
 import styles from './Kanban.module.css'
 
@@ -301,6 +302,7 @@ function KanbanCard({
   const [pos, setPos] = useState<CSSProperties>({})
   const menuRef = useRef<HTMLDivElement>(null)
   const btnRef = useRef<HTMLButtonElement>(null)
+  const pop = usePopPresence(menu, menuRef)
 
   const openMenu = () => {
     const r = btnRef.current?.getBoundingClientRect()
@@ -392,11 +394,14 @@ function KanbanCard({
           >
             <Icon name="more" size={16} />
           </button>
-          {menu && (
+          {pop.mounted && (
             <div
               ref={menuRef}
               className={styles.menu}
               style={pos}
+              // Раскрыто вверх — растёт от нижнего правого угла, от кнопки «⋯».
+              data-flipped={pos.bottom !== undefined || undefined}
+              data-instant={pop.instant || undefined}
               role="menu"
               aria-label={`Действия: ${label}`}
               // Tab из меню уводит фокус — меню закрываем, а не оставляем висеть.

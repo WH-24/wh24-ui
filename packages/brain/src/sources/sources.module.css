@@ -30,7 +30,7 @@
 
 .chev {
   display: inline-flex;
-  transition: transform 0.12s;
+  transition: transform var(--dur-fast) var(--ease-out);
 }
 .chev[data-open] {
   transform: rotate(90deg);
@@ -77,8 +77,8 @@
   border-radius: var(--r-lg);
   background: var(--surf);
   transition:
-    border-color 0.12s,
-    background 0.12s;
+    border-color var(--dur-fast) ease,
+    background var(--dur-fast) ease;
 }
 .card:hover {
   border-color: var(--terra-bd);
@@ -177,4 +177,11 @@
 }
 .open:hover {
   text-decoration: underline;
+}
+
+/* «Уменьшить движение»: стрелка поворачивается сразу. */
+@media (prefers-reduced-motion: reduce) {
+  .chev {
+    transition: none;
+  }
 }

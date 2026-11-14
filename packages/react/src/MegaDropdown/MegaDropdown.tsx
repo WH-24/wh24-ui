@@ -1,5 +1,7 @@
 import { useEffect, useRef, type ReactNode } from 'react'
 
+import { usePopPresence } from '../overlay/presence.js'
+
 import styles from './MegaDropdown.module.css'
 
 export interface MegaDropdownProps {
@@ -20,7 +22,8 @@ export interface MegaDropdownProps {
  * below its trigger (consumer is responsible for the trigger button).
  *
  * Behaviour:
- * - Returns null when `open` is false (no DOM presence)
+ * - Returns null when `open` is false (no DOM presence); a pointer-initiated
+ *   close first plays a short exit (opacity + 4px shift, `--dur-base-exit`)
  * - Auto-focuses the first interactive element on open
  * - Closes on Escape (calls `onClose`)
  *
@@ -45,7 +48,9 @@ export function MegaDropdown({ open, onClose, ariaLabel, children, footer }: Meg
     return () => document.removeEventListener('keydown', onKey)
   }, [open, onClose])
 
-  if (!open) return null
+  // Панель во всю ширину: масштаб не нужен, только прозрачность и сдвиг.
+  const pop = usePopPresence(open, panelRef, { shift: '-4px' })
+  if (!pop.mounted) return null
 
   return (
     <div
@@ -54,6 +59,7 @@ export function MegaDropdown({ open, onClose, ariaLabel, children, footer }: Meg
       aria-label={ariaLabel}
       aria-modal="false"
       className={styles.panel}
+      data-instant={pop.instant || undefined}
     >
       <div className={styles.cols}>{children}</div>
       {footer ? <div className={styles.footer}>{footer}</div> : null}

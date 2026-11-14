@@ -122,7 +122,10 @@
   height: 100%;
   border-radius: var(--r-pill);
   background: var(--warn);
-  transition: width 0.4s ease;
+  /* Заполнение — сдвигом, а не шириной (ширина пересчитывает раскладку):
+     полоса во всю ширину выезжает слева, лишнее обрезает .bar. */
+  width: 100%;
+  transition: transform var(--dur-slow) var(--ease-out);
 }
 .barFill[data-complete] {
   background: var(--good);
@@ -232,7 +235,7 @@
   border-radius: 50%;
   border: 2px solid var(--bd-strong);
   border-top-color: var(--terra);
-  animation: modelSpin 0.8s linear infinite;
+  animation: modelSpin var(--dur-spin) linear infinite;
 }
 @keyframes modelSpin {
   to {
@@ -240,10 +243,9 @@
   }
 }
 @media (prefers-reduced-motion: reduce) {
+  /* Кольцо не замирает (застывшее выглядит поломкой), а крутится медленнее. */
   .spinner {
-    animation: none;
-    border-top-color: var(--bd-strong);
-    border-right-color: var(--terra);
+    animation-duration: var(--dur-spin-reduced);
   }
 }
 .srOnly {

@@ -492,3 +492,31 @@
     width: 44px;
   }
 }
+
+/* ── Движение: меню «⋯» ──
+   Вход — прозрачность и масштаб от стороны контрола (--dur-base, ease-out);
+   выход доигрывает компонент (--dur-base-exit). Открыто с клавиатуры
+   (data-instant) — без анимации. */
+.menu {
+  transform-origin: top right;
+  animation: record-menu-in var(--dur-base) var(--ease-out);
+}
+.menu[data-instant] {
+  animation: none;
+}
+@keyframes record-menu-in {
+  from {
+    opacity: 0;
+    transform: scale(var(--pop-scale));
+  }
+}
+@keyframes record-menu-fade {
+  from {
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .menu {
+    animation-name: record-menu-fade;
+  }
+}

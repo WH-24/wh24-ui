@@ -29,7 +29,7 @@
   font-family: var(--font-sans);
   color: var(--ink);
   min-width: 0;
-  transition: border-color 0.12s;
+  transition: border-color var(--dur-fast) ease;
 }
 .card:hover,
 .card:focus-within {
@@ -310,7 +310,7 @@
   border-radius: 50%;
   border: 2px solid var(--bd-strong);
   border-top-color: var(--terra);
-  animation: skillSpin 0.8s linear infinite;
+  animation: skillSpin var(--dur-spin) linear infinite;
 }
 @keyframes skillSpin {
   to {
@@ -318,10 +318,9 @@
   }
 }
 @media (prefers-reduced-motion: reduce) {
+  /* Кольцо не замирает (застывшее выглядит поломкой), а крутится медленнее. */
   .spinner {
-    animation: none;
-    border-top-color: var(--bd-strong);
-    border-right-color: var(--terra);
+    animation-duration: var(--dur-spin-reduced);
   }
 }
 

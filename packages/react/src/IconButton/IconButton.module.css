@@ -11,12 +11,12 @@
   cursor: pointer;
   font-family: inherit;
   transition:
-    background 0.15s,
-    color 0.15s,
+    background var(--dur-fast, 120ms) ease,
+    color var(--dur-fast, 120ms) ease,
     transform var(--dur-fast, 120ms) var(--ease-out, ease-out);
 }
 .btn:active:not(:disabled) {
-  transform: scale(0.94);
+  transform: scale(var(--press-scale, 0.97));
 }
 @media (prefers-reduced-motion: reduce) {
   .btn:active:not(:disabled) {

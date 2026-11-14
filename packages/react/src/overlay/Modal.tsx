@@ -1,8 +1,9 @@
-import { useId, useRef, type ReactNode } from 'react'
+import { useId, useRef, type ReactNode, type RefObject } from 'react'
 import { createPortal } from 'react-dom'
 
 import { Icon } from '../list/Icon.js'
-import { usePresence, useExitAnimation } from './presence.js'
+import { motionMs, motionScale } from './motion.js'
+import { usePresence, useExitAnimation, type ExitLayer } from './presence.js'
 import { useFocusTrap, useScrollLock } from './useFocusTrap.js'
 
 import styles from './overlay.module.css'
@@ -12,8 +13,8 @@ import styles from './overlay.module.css'
  * необязательный подвал с кнопками. Вид — `.modal-*` портала; поведение —
  * ловушка фокуса со стеком окон (Esc и Tab обрабатывает только верхнее
  * окно), возврат фокуса на кнопку-инициатор, страница под окном не
- * прокручивается. Появление — 190 мс (подложка гаснет в, карточка из 0.97),
- * выход — 140 мс; при «уменьшить движение» — только затухание.
+ * прокручивается. Появление — `--dur-slow` (подложка проявляется, карточка из
+ * `--modal-scale`), выход — `--dur-slow-exit`; при «уменьшить движение» — только затухание.
  *
  * ⚠️ `onClose` — это отмена: Esc, «Закрыть» и клик мимо карточки. Не
  * подключайте сюда разрушительные действия. Без `onClose` окно этими
@@ -42,6 +43,25 @@ export function Modal(props: ModalProps) {
   return createPortal(<ModalCard {...props} exiting={exiting} onExited={finish} />, document.body)
 }
 
+/** Выход окна по центру (Modal, Confirm): подложка гаснет, карточка сжимается. */
+export function modalExitLayers(
+  backdropRef: RefObject<HTMLElement | null>,
+  cardRef: RefObject<HTMLElement | null>,
+): ExitLayer[] {
+  const duration = motionMs('--dur-slow-exit')
+  return [
+    { ref: backdropRef, frames: [{ opacity: 1 }, { opacity: 0 }], duration },
+    {
+      ref: cardRef,
+      frames: [
+        { opacity: 1, transform: 'scale(1)' },
+        { opacity: 0, transform: `scale(${motionScale('--modal-scale')})` },
+      ],
+      duration,
+    },
+  ]
+}
+
 interface CardProps extends ModalProps {
   exiting: boolean
   onExited: () => void
@@ -64,21 +84,7 @@ function ModalCard({
   const backdropRef = useRef<HTMLDivElement>(null)
   useFocusTrap({ open: !exiting, containerRef: ref, onEscape: onClose })
   useScrollLock(!exiting)
-  useExitAnimation(
-    exiting,
-    [
-      { ref: backdropRef, frames: [{ opacity: 1 }, { opacity: 0 }], duration: 140 },
-      {
-        ref,
-        frames: [
-          { opacity: 1, transform: 'scale(1)' },
-          { opacity: 0, transform: 'scale(0.97)' },
-        ],
-        duration: 140,
-      },
-    ],
-    onExited,
-  )
+  useExitAnimation(exiting, exiting ? modalExitLayers(backdropRef, ref) : [], onExited)
   return (
     <div
       ref={backdropRef}

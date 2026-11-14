@@ -9,6 +9,8 @@
   margin-bottom: 16px;
   overflow-x: auto;
   scrollbar-width: none;
+  /* Точка отсчёта для полосы-индикатора. */
+  position: relative;
 }
 .tab {
   display: inline-flex;
@@ -25,17 +27,41 @@
   margin-bottom: -1px;
   white-space: nowrap;
   cursor: pointer;
-  transition:
-    color 0.1s,
-    border-color 0.1s;
+  transition: color var(--dur-fast) ease;
 }
 .tab:hover {
   color: var(--fg-primary);
 }
 .tab[aria-selected='true'] {
   color: var(--fg-primary);
-  border-bottom-color: var(--accent-600);
   font-weight: 500;
+}
+/* Место полосы не измерено (нет раскладки) — подчёркивание на самой вкладке. */
+.tabs:not([data-indicator]) .tab[aria-selected='true'] {
+  border-bottom-color: var(--accent-600);
+}
+/* Одна полоса на все вкладки: переезжает к выбранной (движение по экрану —
+   --dur-slow, in-out). Место и ширину ставит компонент через transform;
+   занимает ровно то же место, что нижняя рамка вкладки. */
+.ind {
+  display: none;
+  position: absolute;
+  left: 0;
+  bottom: -1px;
+  width: 100px;
+  height: 2px;
+  background: var(--accent-600);
+  transform-origin: left;
+  transition: transform var(--dur-slow) var(--ease-in-out);
+  pointer-events: none;
+}
+.tabs[data-indicator] .ind {
+  display: block;
+}
+/* Первая постановка и переключение с клавиатуры — без перехода. */
+.ind[data-instant],
+.thumb[data-instant] {
+  transition: none;
 }
 .tab:focus-visible {
   outline: 2px solid var(--accent-500);
@@ -59,6 +85,7 @@
 }
 
 .seg {
+  position: relative;
   display: inline-flex;
   background: var(--bg-muted);
   border-radius: var(--radius-md);
@@ -79,6 +106,13 @@
   color: var(--fg-tertiary);
   white-space: nowrap;
   cursor: pointer;
+  /* Над плашкой-бегунком. */
+  position: relative;
+  z-index: 1;
+  transition:
+    color var(--dur-fast) ease,
+    background var(--dur-fast) ease,
+    box-shadow var(--dur-fast) ease;
 }
 .segBtn:hover {
   color: var(--fg-primary);
@@ -92,9 +126,33 @@
   outline: 2px solid var(--accent-500);
   outline-offset: 1px;
 }
+/* Плашка выбранного варианта: одна на переключатель, переезжает к новому
+   (--dur-slow, in-out). Место и ширину ставит компонент; пока не измерено —
+   фон остаётся на самой кнопке. */
+.thumb {
+  display: none;
+  position: absolute;
+  top: 2px;
+  bottom: 2px;
+  left: 0;
+  border-radius: 6px;
+  background: var(--bg-surface);
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--dur-slow) var(--ease-in-out);
+  pointer-events: none;
+}
+.seg[data-indicator] .thumb {
+  display: block;
+}
+.seg[data-indicator] .segBtn[aria-pressed='true'] {
+  background: transparent;
+  box-shadow: none;
+}
 
+/* «Уменьшить движение»: цвет меняется плавно, полоса и плашка не едут. */
 @media (prefers-reduced-motion: reduce) {
-  .tab {
+  .ind,
+  .thumb {
     transition: none;
   }
 }

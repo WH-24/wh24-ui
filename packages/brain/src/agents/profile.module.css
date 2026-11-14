@@ -74,7 +74,7 @@
   margin: -8px -10px;
   border-radius: var(--r-md);
   background: var(--terra-bg);
-  animation: agentChanged 1.6s ease-out 1;
+  animation: agentChanged var(--dur-flash) var(--ease-out) 1;
 }
 @keyframes agentChanged {
   from {

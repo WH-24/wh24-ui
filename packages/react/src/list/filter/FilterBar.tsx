@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 
+import { usePopPresence } from '../../overlay/presence.js'
 import { Icon } from '../Icon.js'
 import { SearchModule } from './SearchModule.js'
 import { activeCount, isEmptyValue } from './matchItem.js'
@@ -36,6 +37,8 @@ export function FilterBar<T>({
 }: FilterBarProps<T>) {
   const [open, setOpen] = useState(false)
   const barRef = useRef<HTMLDivElement>(null)
+  const popRef = useRef<HTMLDivElement>(null)
+  const pop = usePopPresence(open, popRef)
   const inputRef = useRef<HTMLInputElement>(null)
 
   // Явно выбранный пресет (по id) — чтобы при одинаковом state подсвечивался
@@ -257,8 +260,10 @@ export function FilterBar<T>({
         )}
       </div>
 
-      {open && (
+      {pop.mounted && (
         <SearchModule
+          rootRef={popRef}
+          instant={pop.instant}
           config={config}
           state={state}
           setState={setState}

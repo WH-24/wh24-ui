@@ -19,7 +19,7 @@
   background: var(--surf-2);
   border: 1px solid var(--bd-soft);
   border-radius: var(--r-lg);
-  transition: border-color 0.12s ease, opacity 0.12s ease, box-shadow 0.12s ease;
+  transition: border-color var(--dur-fast, 120ms) ease, opacity var(--dur-fast, 120ms) ease, box-shadow var(--dur-fast, 120ms) ease;
 }
 
 .colOver {
@@ -92,12 +92,12 @@
   border: 1px solid var(--bd);
   border-radius: var(--r-md);
   /* transform — для сдвига под чертой вставки: без него карточка прыгала
-     на каждом dragover (Emil: движение по экрану — ease-out, 150 мс). */
+     на каждом dragover (движение по экрану — ease-out, --dur-base). */
   transition:
-    border-color 0.12s ease,
-    box-shadow 0.12s ease,
-    opacity 0.12s ease,
-    transform 150ms var(--ease-out, cubic-bezier(0.23, 1, 0.32, 1));
+    border-color var(--dur-fast, 120ms) ease,
+    box-shadow var(--dur-fast, 120ms) ease,
+    opacity var(--dur-fast, 120ms) ease,
+    transform var(--dur-base, 180ms) var(--ease-out, cubic-bezier(0.23, 1, 0.32, 1));
 }
 
 .card[draggable='true'] {
@@ -247,10 +247,10 @@ button.cardBody {
   flex: 0 0 auto;
 }
 
+/* «Уменьшить движение»: цвет и тень меняются плавно, сдвига карточки нет. */
 @media (prefers-reduced-motion: reduce) {
-  .col,
   .card {
-    transition: none;
+    transition-property: border-color, box-shadow, opacity;
   }
 }
 
@@ -283,5 +283,36 @@ button.cardBody {
   .col {
     flex-basis: min(272px, calc(100vw - 48px));
     scroll-snap-align: start;
+  }
+}
+
+/* ── Движение: меню «⋯» карточки ──
+   Вход — прозрачность и масштаб от стороны контрола (--dur-base, ease-out);
+   выход доигрывает компонент (--dur-base-exit). Открыто с клавиатуры
+   (data-instant) — без анимации. */
+.menu {
+  transform-origin: top right;
+  animation: kanban-menu-in var(--dur-base, 180ms) var(--ease-out, cubic-bezier(0.23, 1, 0.32, 1));
+}
+.menu[data-flipped] {
+  transform-origin: bottom right;
+}
+.menu[data-instant] {
+  animation: none;
+}
+@keyframes kanban-menu-in {
+  from {
+    opacity: 0;
+    transform: scale(var(--pop-scale, 0.96));
+  }
+}
+@keyframes kanban-menu-fade {
+  from {
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .menu {
+    animation-name: kanban-menu-fade;
   }
 }

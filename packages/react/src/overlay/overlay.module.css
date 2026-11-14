@@ -13,7 +13,7 @@
   align-items: center;
   justify-content: center;
   padding: 16px;
-  animation: overlay-fade-in var(--dur-base, 180ms) var(--ease-out, ease-out);
+  animation: overlay-fade-in var(--dur-slow, 240ms) var(--ease-out, ease-out);
 }
 :global(html[data-theme='dark']) .backdrop {
   background: rgba(0, 0, 0, 0.6);
@@ -31,8 +31,10 @@
   max-height: calc(100dvh - 48px);
   overflow: hidden;
   outline: none;
-  /* Появление: из 0.97, а не из нуля — окно «проявляется» на месте. */
-  animation: modal-in 190ms var(--ease-out, cubic-bezier(0.23, 1, 0.32, 1));
+  /* Появление: из --modal-scale, а не из нуля — окно «проявляется» на месте.
+     Окно по центру экрана, поэтому и растёт от центра. */
+  transform-origin: center;
+  animation: modal-in var(--dur-slow, 240ms) var(--ease-out, cubic-bezier(0.23, 1, 0.32, 1));
 }
 @keyframes overlay-fade-in {
   from {
@@ -42,7 +44,7 @@
 @keyframes modal-in {
   from {
     opacity: 0;
-    transform: scale(0.97);
+    transform: scale(var(--modal-scale, 0.97));
   }
 }
 /* Закрывающееся окно доигрывает выход и не ловит клики. */
@@ -128,7 +130,8 @@
   background: var(--scrim-soft, rgba(26, 26, 26, 0.32));
   z-index: var(--z-backdrop, 40);
   pointer-events: auto;
-  animation: overlay-fade-in 200ms var(--ease-out, ease-out);
+  /* Проявляется вместе с панелью: та же длительность и кривая. */
+  animation: overlay-fade-in var(--dur-panel, 320ms) var(--ease-drawer, cubic-bezier(0.32, 0.72, 0, 1));
 }
 :global(html[data-theme='dark']) .drawerBackdrop {
   background: rgba(0, 0, 0, 0.55);
@@ -148,7 +151,7 @@
   flex-direction: column;
   outline: none;
   /* Кривая листа iOS: быстрый старт, долгий мягкий доезд. */
-  animation: drawer-in var(--dur-slow, 240ms) var(--ease-drawer, cubic-bezier(0.32, 0.72, 0, 1));
+  animation: drawer-in var(--dur-panel, 320ms) var(--ease-drawer, cubic-bezier(0.32, 0.72, 0, 1));
 }
 @keyframes drawer-in {
   from {
@@ -201,12 +204,16 @@
   max-width: 360px;
   cursor: pointer;
   pointer-events: auto;
-  animation: toast-in var(--dur-base, 180ms) var(--ease-out, cubic-bezier(0.23, 1, 0.32, 1));
+  /* Переход, а не keyframes: тосты приходят пачкой, переход не
+     перезапускается и перенацеливается. Вход — от @starting-style. */
+  transition:
+    opacity var(--dur-base, 180ms) var(--ease-out, cubic-bezier(0.23, 1, 0.32, 1)),
+    transform var(--dur-base, 180ms) var(--ease-out, cubic-bezier(0.23, 1, 0.32, 1));
 }
-@keyframes toast-in {
-  from {
+@starting-style {
+  .toast {
     opacity: 0;
-    transform: translateY(8px);
+    transform: translateY(var(--enter-shift, 8px));
   }
 }
 /* Подложки значка и кнопок — от цвета текста тоста, а не белые: в тёмной
@@ -290,8 +297,15 @@
    короткое затухание оставляет смену состояния заметной. */
 @media (prefers-reduced-motion: reduce) {
   .drawer,
-  .toast,
   .card {
-    animation: overlay-fade-in 140ms ease-out;
+    animation: overlay-fade-in var(--dur-base-exit, 135ms) var(--ease-out, ease-out);
+  }
+  .toast {
+    transition: opacity var(--dur-base-exit, 135ms) var(--ease-out, ease-out);
+  }
+  @starting-style {
+    .toast {
+      transform: none;
+    }
   }
 }

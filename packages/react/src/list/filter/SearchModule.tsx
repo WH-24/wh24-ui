@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type RefObject } from 'react'
 
 import { Icon } from '../Icon.js'
 import { FieldEditor } from './FieldEditor.js'
@@ -35,6 +35,10 @@ interface SearchModuleProps<T> {
   defaultPresetId?: string
   onSetDefaultPreset?: (id: string) => void
   onClose: () => void
+  /** Корень панели — для анимации выхода (FilterBar). */
+  rootRef?: RefObject<HTMLDivElement | null>
+  /** Открыто с клавиатуры — без анимации входа. */
+  instant?: boolean
 }
 
 /** Сравнение текущего фильтра с пресетом (для подсветки активного). */
@@ -66,6 +70,8 @@ export function SearchModule<T>({
   defaultPresetId = '',
   onSetDefaultPreset,
   onClose,
+  rootRef,
+  instant,
 }: SearchModuleProps<T>) {
   const [userPresets, setUserPresets] = useState<FilterPreset[]>(() => loadPresets(config.scope))
   const [saving, setSaving] = useState(false)
@@ -313,7 +319,15 @@ export function SearchModule<T>({
   const canSave = count > 0 || fieldsCustomized
 
   return (
-    <div ref={popRef} className={styles.filterPop} onMouseDown={(e) => e.stopPropagation()}>
+    <div
+      ref={(el) => {
+        popRef.current = el
+        if (rootRef) rootRef.current = el
+      }}
+      className={styles.filterPop}
+      data-instant={instant || undefined}
+      onMouseDown={(e) => e.stopPropagation()}
+    >
       {/* Левая колонка — пресеты. */}
       <div className={styles.filterPresets}>
         <div className={styles.filterPresetsTitle}>

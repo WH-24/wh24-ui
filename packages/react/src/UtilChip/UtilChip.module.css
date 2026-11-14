@@ -12,9 +12,19 @@
   text-decoration: none;
   cursor: pointer;
   transition:
-    background 0.15s,
-    border-color 0.15s,
-    color 0.15s;
+    background var(--dur-fast) ease,
+    border-color var(--dur-fast) ease,
+    color var(--dur-fast) ease,
+    transform var(--dur-fast) var(--ease-out);
+}
+/* Отклик на нажатие: элемент чуть «проседает» (--press-scale). */
+.chip:active:not(.disabled) {
+  transform: scale(var(--press-scale));
+}
+@media (prefers-reduced-motion: reduce) {
+  .chip:active:not(.disabled) {
+    transform: none;
+  }
 }
 
 .chip:hover {

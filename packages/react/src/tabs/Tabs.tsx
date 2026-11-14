@@ -1,6 +1,9 @@
 import { useRef, type KeyboardEvent, type ReactNode } from 'react'
 
+import { keyboardInitiated } from '../overlay/motion.js'
+
 import styles from './tabs.module.css'
+import { useSlideIndicator } from './useSlideIndicator.js'
 
 export interface TabSpec<K extends string = string> {
   id: K
@@ -12,7 +15,9 @@ export interface TabSpec<K extends string = string> {
 /**
  * Вкладки страницы по образцу WAI-ARIA: role=tablist/tab, стрелки и
  * Home/End переключают, в порядке Tab стоит только активная вкладка.
- * Вид — как `.tabs/.tab` портала: подчёркивание терракотой у активной.
+ * Вид — как `.tabs/.tab` портала: подчёркивание терракотой у активной —
+ * одна полоса на все вкладки, по клику она переезжает к выбранной; при
+ * переключении стрелками встаёт на место сразу.
  *
  * Содержимое оборачивайте в `TabPanel` с тем же `idPrefix` — тогда
  * вкладка и панель связаны для читалки (aria-controls/labelledby).
@@ -29,8 +34,14 @@ export interface TabsProps<K extends string> {
 
 export function Tabs<K extends string>({ tabs, value, onChange, ariaLabel, idPrefix, className }: TabsProps<K>) {
   const refs = useRef<(HTMLButtonElement | null)[]>([])
+  const listRef = useRef<HTMLDivElement>(null)
+  const indRef = useRef<HTMLSpanElement>(null)
+  // Действие с клавиатуры не анимируется: полоса встаёт сразу.
+  const instant = useRef(false)
+  useSlideIndicator(listRef, indRef, '[role="tab"][aria-selected="true"]', 'scale', instant, tabs.length)
   const move = (i: number) => {
     const n = (i + tabs.length) % tabs.length
+    instant.current = true
     onChange(tabs[n]!.id)
     refs.current[n]?.focus()
   }
@@ -43,7 +54,12 @@ export function Tabs<K extends string>({ tabs, value, onChange, ariaLabel, idPre
     e.preventDefault()
   }
   return (
-    <div role="tablist" aria-label={ariaLabel} className={className ? `${styles.tabs} ${className}` : styles.tabs}>
+    <div
+      ref={listRef}
+      role="tablist"
+      aria-label={ariaLabel}
+      className={className ? `${styles.tabs} ${className}` : styles.tabs}
+    >
       {tabs.map((t, i) => {
         const on = t.id === value
         return (
@@ -59,7 +75,10 @@ export function Tabs<K extends string>({ tabs, value, onChange, ariaLabel, idPre
             aria-controls={`${idPrefix}-panel-${t.id}`}
             tabIndex={on ? 0 : -1}
             className={styles.tab}
-            onClick={() => onChange(t.id)}
+            onClick={() => {
+              instant.current = keyboardInitiated()
+              onChange(t.id)
+            }}
             onKeyDown={(e) => onKey(e, i)}
           >
             {t.label}
@@ -67,6 +86,7 @@ export function Tabs<K extends string>({ tabs, value, onChange, ariaLabel, idPre
           </button>
         )
       })}
+      <span ref={indRef} className={styles.ind} role="presentation" aria-hidden="true" />
     </div>
   )
 }

@@ -421,7 +421,7 @@
   content: '›';
   display: inline-block;
   width: 14px;
-  transition: transform 0.12s;
+  transition: transform var(--dur-fast) var(--ease-out);
 }
 .archived[open] > summary::before {
   transform: rotate(90deg);
@@ -597,4 +597,11 @@
 }
 .tagsHint[data-active] {
   background: var(--terra-bg);
+}
+
+/* «Уменьшить движение»: стрелка поворачивается сразу. */
+@media (prefers-reduced-motion: reduce) {
+  .archived > summary::before {
+    transition: none;
+  }
 }

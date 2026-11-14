@@ -23,3 +23,28 @@
   padding-top: var(--sp-5);
   border-top: 1px solid var(--bd);
 }
+
+/* Движение: панель во всю ширину — без масштаба, только прозрачность и
+   короткий сдвиг сверху. Открыта с клавиатуры (data-instant) — сразу. */
+.panel {
+  animation: mega-in var(--dur-base) var(--ease-out);
+}
+.panel[data-instant] {
+  animation: none;
+}
+@keyframes mega-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+@keyframes mega-fade {
+  from {
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .panel {
+    animation-name: mega-fade;
+  }
+}
