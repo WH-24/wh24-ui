@@ -541,6 +541,12 @@ export interface Form {
    * согласования, false — только форма. Нет поля (старый сервис) — как true.
    */
   chat_enabled?: boolean
+  /**
+   * «Отображать статусы согласования»: в карточке записи с лентой — полоса
+   * стадий, как у лида: «Инициализация», дальше названия этапов маршрута.
+   * Нет поля (старый сервис) — как false.
+   */
+  route_stages?: boolean
   sort_order: number
   created_by: string
   created_at: string

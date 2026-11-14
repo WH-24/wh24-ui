@@ -412,7 +412,7 @@ describe("FormRecordView — с лентой: общая карточка зап
     );
   });
 
-  it("действия карточки: «Редактировать» у вкладки «Поля», «Удалить» в меню «⋯», «История» — вкладкой, Pyrus — ссылкой", async () => {
+  it("действия карточки: «Редактировать» у вкладки «Поля», «Удалить» в меню «⋯», Pyrus — ссылкой; «Истории» вкладкой нет — правки в ленте", async () => {
     const user = userEvent.setup();
     const onEdit = vi.fn();
     const onDelete = vi.fn();
@@ -439,12 +439,68 @@ describe("FormRecordView — с лентой: общая карточка зап
     await user.click(screen.getByRole("button", { name: "Ещё действия" }));
     await user.click(screen.getByRole("menuitem", { name: "Удалить" }));
     expect(onDelete).toHaveBeenCalledTimes(1);
-    // История не грузится, пока вкладку не открыли.
+    // Истории отдельной вкладкой нет: правки записи показывает лента.
+    expect(screen.queryByRole("tab", { name: "История" })).toBeNull();
+    expect(screen.queryByRole("button", { name: /История/ })).toBeNull();
     expect(loadHistory).not.toHaveBeenCalled();
-    await user.click(screen.getByRole("tab", { name: "История" }));
-    await waitFor(() => expect(loadHistory).toHaveBeenCalledTimes(1));
-    // «Редактировать» — действие вкладки «Поля».
-    expect(screen.queryByRole("button", { name: /Редактировать/ })).toBeNull();
+  });
+});
+
+describe("FormRecordView — полоса стадий согласования (route_stages, 14.11.2026)", () => {
+  const route = {
+    steps: [
+      { id: "s1", name: "Руководитель", state: "passed" as const, approvers: [] },
+      { id: "s2", name: "Бухгалтерия", state: "current" as const, approvers: [] },
+    ],
+    current_step_id: "s2",
+    finished: false,
+  };
+  const view = (over: Partial<Parameters<typeof FormRecordView>[0]> = {}) => (
+    <FormRecordView
+      form={{ ...form, route_stages: true }}
+      schema={schema}
+      record={rec(1)}
+      ctx={ctx}
+      discussion={<div>Лента</div>}
+      route={route}
+      {...over}
+    />
+  );
+
+  it("включена — «Инициализация» и этапы маршрута, текущий этап отмечен; стадии не нажимаются", () => {
+    render(view());
+    const strip = screen.getByRole("navigation", { name: "Стадия" });
+    const names = within(strip)
+      .getAllByRole("button")
+      .map((b) => b.textContent);
+    expect(names).toEqual(["Инициализация", "Руководитель", "Бухгалтерия"]);
+    expect(within(strip).getByRole("button", { name: "Бухгалтерия" })).toHaveAttribute(
+      "aria-current",
+      "step",
+    );
+    expect(within(strip).getByRole("button", { name: "Руководитель" })).toBeDisabled();
+  });
+
+  it("согласование не начато — «Инициализация»; пройдено — последний этап", () => {
+    const { rerender } = render(view({ route: { ...route, current_step_id: null } }));
+    expect(screen.getByRole("button", { name: "Инициализация" })).toHaveAttribute(
+      "aria-current",
+      "step",
+    );
+    rerender(view({ route: { ...route, current_step_id: null, finished: true } }));
+    expect(screen.getByRole("button", { name: "Бухгалтерия" })).toHaveAttribute(
+      "aria-current",
+      "step",
+    );
+  });
+
+  it("настройка выключена, нет маршрута или этапов — полосы нет", () => {
+    const { rerender } = render(view({ form }));
+    expect(screen.queryByRole("navigation", { name: "Стадия" })).toBeNull();
+    rerender(view({ route: null }));
+    expect(screen.queryByRole("navigation", { name: "Стадия" })).toBeNull();
+    rerender(view({ route: { steps: [], current_step_id: null, finished: false } }));
+    expect(screen.queryByRole("navigation", { name: "Стадия" })).toBeNull();
   });
 });
 
