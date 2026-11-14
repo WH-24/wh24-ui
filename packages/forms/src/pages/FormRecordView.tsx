@@ -5,12 +5,13 @@
  *
  * С лентой (`discussion`) запись открывается в общей карточке записи
  * `RecordCard` из ui-react — той же, что у лида, проекта и ФМ: слева лента,
- * справа вкладки «Поля» и «История».
+ * справа поля. Истории отдельной вкладкой там нет: правки записи показывает
+ * сама лента (`RecordChat` с `history`), как у лида.
  *
  * Один и тот же компонент для полной страницы и для drawer быстрого
  * просмотра из списка: контейнер решает хост.
  */
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { Icon, RecordCard, type MenuEntry } from "@wowhaus-24/ui-react";
 
 import type {
@@ -47,7 +48,7 @@ export interface FormRecordViewProps {
   onDelete?: () => void;
   /** Дополнительные действия справа в шапке. */
   actions?: ReactNode;
-  /** Загрузка истории по требованию (кнопка «История»). */
+  /** Загрузка истории по требованию (кнопка «История»). С лентой не нужна: правки — в ленте. */
   loadHistory?: () => Promise<RecordHistoryEntry[]>;
   /** Запись старше текущей версии формы — подсказать, что при правке попросят новые поля. */
   currentVersion?: number;
@@ -59,60 +60,6 @@ export interface FormRecordViewProps {
   discussion?: ReactNode;
   /** Ссылка на задачу Pyrus, с которой сверяется запись: «Открыть в Pyrus». */
   pyrusUrl?: string;
-}
-
-/** Вкладка «История» карточки: грузится при первом открытии. */
-function HistoryTab({
-  load,
-  schema,
-  ctx,
-  actorName,
-}: {
-  load: () => Promise<RecordHistoryEntry[]>;
-  schema: SchemaDocument;
-  ctx: RenderContext;
-  actorName?: (id: string) => string;
-}) {
-  const [state, setState] = useState<
-    | { kind: "loading" }
-    | { kind: "open"; entries: RecordHistoryEntry[] }
-    | { kind: "error" }
-  >({ kind: "loading" });
-  // Хост передаёт новую функцию на каждый рендер — грузим один раз.
-  const loadRef = useRef(load);
-  loadRef.current = load;
-  useEffect(() => {
-    let cancelled = false;
-    loadRef.current().then(
-      (entries) => {
-        if (!cancelled) setState({ kind: "open", entries });
-      },
-      () => {
-        if (!cancelled) setState({ kind: "error" });
-      },
-    );
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-  return (
-    <div className={styles.cardTab}>
-      {state.kind === "loading" && (
-        <div className={styles.muted}>Загружаем историю…</div>
-      )}
-      {state.kind === "error" && (
-        <Banner tone="bad">Не удалось загрузить историю.</Banner>
-      )}
-      {state.kind === "open" && (
-        <RecordHistory
-          entries={state.entries}
-          schema={schema}
-          ctx={ctx}
-          actorName={actorName}
-        />
-      )}
-    </div>
-  );
 }
 
 export function FormRecordView({
@@ -225,13 +172,9 @@ export function FormRecordView({
         }}
         right={{
           label: "Поля",
-          tabs: [
-            { id: "fields", label: "Поля" },
-            ...(loadHistory ? [{ id: "history", label: "История" }] : []),
-          ],
-          keepMounted: ["fields"],
-          headAside: (tab) =>
-            tab === "fields" && onEdit && form.status === "published" ? (
+          tabs: [{ id: "fields", label: "Поля" }],
+          headAside: () =>
+            onEdit && form.status === "published" ? (
               <button
                 type="button"
                 className={["btn", "btn-primary", "btn-sm", styles.cardEdit].join(" ")}
@@ -240,17 +183,7 @@ export function FormRecordView({
                 <Icon name="edit" size={14} /> Редактировать
               </button>
             ) : null,
-          render: (tab) =>
-            tab === "history" && loadHistory ? (
-              <HistoryTab
-                load={loadHistory}
-                schema={schema}
-                ctx={ctx}
-                actorName={actorName}
-              />
-            ) : (
-              <div className={styles.cardTab}>{body}</div>
-            ),
+          render: () => <div className={styles.cardTab}>{body}</div>,
         }}
       />
     );

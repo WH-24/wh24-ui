@@ -412,7 +412,7 @@ describe("FormRecordView — с лентой: общая карточка зап
     );
   });
 
-  it("действия карточки: «Редактировать» у вкладки «Поля», «Удалить» в меню «⋯», «История» — вкладкой, Pyrus — ссылкой", async () => {
+  it("действия карточки: «Редактировать» у вкладки «Поля», «Удалить» в меню «⋯», Pyrus — ссылкой; «Истории» вкладкой нет — правки в ленте", async () => {
     const user = userEvent.setup();
     const onEdit = vi.fn();
     const onDelete = vi.fn();
@@ -439,12 +439,10 @@ describe("FormRecordView — с лентой: общая карточка зап
     await user.click(screen.getByRole("button", { name: "Ещё действия" }));
     await user.click(screen.getByRole("menuitem", { name: "Удалить" }));
     expect(onDelete).toHaveBeenCalledTimes(1);
-    // История не грузится, пока вкладку не открыли.
+    // Истории отдельной вкладкой нет: правки записи показывает лента.
+    expect(screen.queryByRole("tab", { name: "История" })).toBeNull();
+    expect(screen.queryByRole("button", { name: /История/ })).toBeNull();
     expect(loadHistory).not.toHaveBeenCalled();
-    await user.click(screen.getByRole("tab", { name: "История" }));
-    await waitFor(() => expect(loadHistory).toHaveBeenCalledTimes(1));
-    // «Редактировать» — действие вкладки «Поля».
-    expect(screen.queryByRole("button", { name: /Редактировать/ })).toBeNull();
   });
 });
 

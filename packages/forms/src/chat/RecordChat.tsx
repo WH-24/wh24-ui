@@ -7,14 +7,26 @@
  *
  * Сверху — маршрут записи: этапы, согласующие и их решения; администратор
  * формы правит маршрут здесь же («Настроить»), без отдельной страницы.
+ *
+ * С `history` лента показывает и правки записи — между сообщениями, по
+ * времени, как лента лида; сверху фильтр «Всё · Сообщения · Изменения».
  */
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
-import { Icon } from '@wowhaus-24/ui-react'
+import { Icon, RecordTabs } from '@wowhaus-24/ui-react'
 
 import type { FormsApi } from '../api.js'
 import { FormsApiError } from '../api.js'
-import type { FormFile, FormRecord, OrgOption, RecordComment, RecordFeed } from '../types.js'
-import { formatDate, formatDateTime, formatSize } from '../render/format.js'
+import type {
+  FormFile,
+  FormRecord,
+  OrgOption,
+  RecordComment,
+  RecordFeed,
+  RecordHistoryEntry,
+  SchemaDocument,
+} from '../types.js'
+import { formatDate, formatDateTime, formatSize, type FormatContext } from '../render/format.js'
+import { RecordHistoryEntryView } from '../pages/RecordHistory.js'
 import { Composer } from './Composer.js'
 import { RouteBar } from './RouteBar.js'
 import { Markup } from './markup.js'
@@ -45,7 +57,22 @@ export interface RecordChatProps {
     /** Открыть источник в портале; нет — обычная ссылка. */
     onNavigate?: (url: string) => void
   }
+  /**
+   * Правки записи — в ленте, как у лида: история записи подгружается и
+   * встаёт между сообщениями по времени. Нужны схема версии записи (подписи
+   * полей), справочники и имена авторов. Нет — в ленте только сообщения.
+   */
+  history?: {
+    schema: SchemaDocument
+    ctx?: FormatContext
+    actorName?: (id: string) => string
+  }
 }
+
+type FeedFilter = 'all' | 'messages' | 'changes'
+type FeedItem =
+  | { kind: 'message'; at: string; c: RecordComment }
+  | { kind: 'change'; at: string; e: RecordHistoryEntry }
 
 type Load = { kind: 'loading' } | { kind: 'error'; message: string } | { kind: 'ready'; feed: RecordFeed }
 
@@ -63,6 +90,7 @@ export function RecordChat({
   onRecordChange,
   onError,
   ai,
+  history,
 }: RecordChatProps) {
   const [load, setLoad] = useState<Load>({ kind: 'loading' })
   const [replyTo, setReplyTo] = useState<RecordComment | null>(null)
@@ -70,14 +98,32 @@ export function RecordChat({
   const people = useMemo(() => staffIndex(staff), [staff])
   const names = useMemo(() => staff.map((s) => s.label), [staff])
 
+  // Правки записи для ленты. Сбой истории ленту не роняет: сообщения важнее.
+  const withHistory = Boolean(history)
+  const [changes, setChanges] = useState<RecordHistoryEntry[]>([])
+  const [changesFailed, setChangesFailed] = useState(false)
+  const [filter, setFilter] = useState<FeedFilter>('all')
+
   const reload = useCallback(async () => {
+    if (withHistory) {
+      // Через then: и отказ запроса, и сбой самого вызова — только плашка об истории.
+      Promise.resolve()
+        .then(() => api.records.history(formId, recordId))
+        .then(
+          (rows) => {
+            setChanges(Array.isArray(rows) ? rows : [])
+            setChangesFailed(false)
+          },
+          () => setChangesFailed(true),
+        )
+    }
     try {
       const feed = await api.records.feed(formId, recordId)
       setLoad({ kind: 'ready', feed })
     } catch (e) {
       setLoad({ kind: 'error', message: errText(e, 'Не удалось загрузить ленту') })
     }
-  }, [api, formId, recordId])
+  }, [api, formId, recordId, withHistory])
 
   useEffect(() => {
     setLoad({ kind: 'loading' })
@@ -85,11 +131,11 @@ export function RecordChat({
   }, [reload])
 
   // Новое сообщение — прокрутить вниз.
-  const count = load.kind === 'ready' ? load.feed.comments.length : 0
+  const count = (load.kind === 'ready' ? load.feed.comments.length : 0) + changes.length
   useEffect(() => {
     const el = listRef.current
     if (el) el.scrollTop = el.scrollHeight
-  }, [count])
+  }, [count, filter])
 
   // «@ИИ»: после вопроса ждём ответ сообщением от ИИ (перечитываем ленту раз в 2 с, ≈3 минуты).
   const [waitingAi, setWaitingAi] = useState<string | null>(null)
@@ -184,6 +230,17 @@ export function RecordChat({
   const { feed } = load
   const byId = new Map(feed.comments.map((c) => [c.id, c]))
   const spentTotal = feed.comments.reduce((n, c) => n + (c.actions.spent_minutes ?? 0), 0)
+  // Сообщения и правки записи — одной лентой по времени (при равном — как пришли).
+  const items: FeedItem[] = [
+    ...feed.comments.map((c): FeedItem => ({ kind: 'message', at: c.created_at, c })),
+    ...(history ? changes.map((e): FeedItem => ({ kind: 'change', at: e.at, e })) : []),
+  ]
+    .map((it, i) => ({ it, i, t: Date.parse(it.at) || 0 }))
+    .sort((a, b) => a.t - b.t || a.i - b.i)
+    .map((x) => x.it)
+  const shown = items.filter(
+    (it) => filter === 'all' || (filter === 'messages' ? it.kind === 'message' : it.kind === 'change'),
+  )
 
   return (
     <section className={styles.chat} aria-label="Лента записи">
@@ -204,24 +261,64 @@ export function RecordChat({
         </div>
       )}
 
-      <div className={styles.list} ref={listRef} role="log" aria-label="Сообщения">
-        {feed.comments.length === 0 && <div className={styles.muted}>Сообщений пока нет</div>}
-        {feed.comments.map((c) => (
-          <Message
-            key={c.id}
-            c={c}
-            author={people.author(c.author)}
-            name={people.name}
-            names={ai ? [...names, 'ИИ'] : names}
-            quoted={c.reply_to ? byId.get(c.reply_to) : undefined}
-            onNavigate={ai?.onNavigate}
-            quotedAuthor={(q) => people.author(q.author)}
-            requesterName={people.author}
-            onReply={canWrite ? () => setReplyTo(c) : undefined}
-            onOpenFile={openFile}
-            fileUrl={(f) => api.records.fileUrl(formId, recordId, f.id).then((r) => r.url)}
+      {history && (
+        <div className={styles.feedTabs}>
+          <RecordTabs
+            ariaLabel="Фильтр ленты"
+            idPrefix="record-feed"
+            value={filter}
+            onChange={(id) => setFilter(id as FeedFilter)}
+            tabs={[
+              { id: 'all', label: 'Всё' },
+              { id: 'messages', label: 'Сообщения', count: feed.comments.length },
+              { id: 'changes', label: 'Изменения', count: changes.length },
+            ]}
           />
-        ))}
+        </div>
+      )}
+
+      {history && changesFailed && (
+        <div className={styles.error} role="status">
+          Изменения записи не загрузились.{' '}
+          <button type="button" className="btn btn-ghost btn-sm" onClick={() => void reload()}>
+            Повторить
+          </button>
+        </div>
+      )}
+
+      <div className={styles.list} ref={listRef} role="log" aria-label="Сообщения">
+        {shown.length === 0 && (
+          <div className={styles.muted}>
+            {filter === 'changes' ? 'Изменений пока нет' : 'Сообщений пока нет'}
+          </div>
+        )}
+        {shown.map((it) =>
+          it.kind === 'change' ? (
+            <RecordHistoryEntryView
+              key={`h-${it.e.id}`}
+              entry={it.e}
+              schema={history!.schema}
+              ctx={history!.ctx}
+              actorName={history!.actorName ?? people.author}
+              compact
+            />
+          ) : (
+            <Message
+              key={it.c.id}
+              c={it.c}
+              author={people.author(it.c.author)}
+              name={people.name}
+              names={ai ? [...names, 'ИИ'] : names}
+              quoted={it.c.reply_to ? byId.get(it.c.reply_to) : undefined}
+              onNavigate={ai?.onNavigate}
+              quotedAuthor={(q) => people.author(q.author)}
+              requesterName={people.author}
+              onReply={canWrite ? () => setReplyTo(it.c) : undefined}
+              onOpenFile={openFile}
+              fileUrl={(f) => api.records.fileUrl(formId, recordId, f.id).then((r) => r.url)}
+            />
+          ),
+        )}
       </div>
 
       {waitingAi && (
