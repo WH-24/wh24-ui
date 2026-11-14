@@ -17,8 +17,8 @@
   flex-direction: column;
   gap: 10px;
   padding: 14px 16px;
-  border: var(--bd-hairline) solid var(--bd-strong);
-  border-radius: var(--r-xl);
+  border: var(--bd-w) solid var(--bd-strong);
+  border-radius: var(--r-lg);
   background: var(--surf);
 }
 .sectionTitle {
@@ -29,7 +29,7 @@
 }
 .hint {
   margin: 0;
-  font-size: 12.5px;
+  font-size: var(--fs-meta);
   line-height: 1.5;
   color: var(--ink-2);
 }
@@ -39,14 +39,14 @@
   border-radius: var(--r-md);
   border: 1px solid var(--warn-bd);
   background: var(--warn-bg);
-  font-size: 13px;
+  font-size: var(--fs-ui);
   line-height: 1.45;
   color: var(--ink);
 }
 .status {
   min-height: 1.2em;
   margin: 0;
-  font-size: 12.5px;
+  font-size: var(--fs-meta);
   color: var(--good);
 }
 .status[data-tone='bad'] {
@@ -54,7 +54,7 @@
 }
 .ok {
   margin: 4px 0 0;
-  font-size: 13px;
+  font-size: var(--fs-ui);
   color: var(--good);
 }
 .bad {
@@ -64,7 +64,7 @@
   border: 1px solid var(--bad-bd);
   background: var(--bad-bg);
   color: var(--bad);
-  font-size: 13px;
+  font-size: var(--fs-ui);
   line-height: 1.45;
 }
 
@@ -75,7 +75,7 @@
   margin: 0;
   padding: 16px;
   color: var(--ink-2);
-  font-size: 13.5px;
+  font-size: var(--fs-ui);
 }
 .errorBox {
   display: flex;
@@ -84,10 +84,10 @@
   gap: 10px;
   padding: 14px 16px;
   border: 1px solid var(--bad-bd);
-  border-radius: var(--r-xl);
+  border-radius: var(--r-lg);
   background: var(--bad-bg);
   color: var(--bad);
-  font-size: 13.5px;
+  font-size: var(--fs-ui);
 }
 .errorBox p {
   margin: 0;
@@ -104,12 +104,12 @@
   flex-wrap: wrap;
   justify-content: space-between;
   gap: 4px 12px;
-  font-size: 13px;
+  font-size: var(--fs-ui);
 }
 .coverageModel {
   color: var(--ink-3);
   font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
-  font-size: 12px;
+  font-size: var(--fs-meta);
 }
 .bar {
   height: 10px;
@@ -145,7 +145,7 @@
   border-radius: var(--r-md);
   background: var(--info-bg);
   border: 1px solid var(--info-bd);
-  font-size: 13px;
+  font-size: var(--fs-ui);
   line-height: 1.45;
 }
 .switching p {
@@ -166,11 +166,11 @@
 .table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 13px;
+  font-size: var(--fs-ui);
 }
 .table th,
 .table td {
-  padding: 7px 10px;
+  padding: var(--sp-3) 10px;
   border-bottom: var(--bd-hairline) solid var(--bd-strong);
   text-align: left;
   white-space: nowrap;
@@ -178,7 +178,7 @@
 .table thead th {
   color: var(--ink-3);
   font-weight: var(--fw-medium);
-  font-size: 12px;
+  font-size: var(--fs-meta);
 }
 .table tbody th {
   font-weight: var(--fw-medium);
@@ -205,7 +205,7 @@
   flex-direction: column;
   gap: 4px;
   padding: 10px 12px;
-  border: var(--bd-hairline) solid var(--bd-strong);
+  border: var(--bd-w) solid var(--bd-strong);
   border-radius: var(--r-md);
   background: var(--surf-2);
 }
@@ -220,10 +220,10 @@
 }
 .connectorName {
   font-weight: var(--fw-semibold);
-  font-size: 13.5px;
+  font-size: var(--fs-ui);
 }
 .connectorMeta {
-  font-size: 12.5px;
+  font-size: var(--fs-meta);
   color: var(--ink-3);
 }
 

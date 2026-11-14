@@ -1,77 +1,73 @@
 /* ======================================================================
-   Combobox — выпадающий список с поиском. Самодостаточные стили: токены
-   определяются прямо на корне и на портальном меню (оно рендерится в
-   <body>, вне scope страницы), поэтому потребителю НЕ нужно подключать
-   токены дизайн-системы. Значения взяты из WH_Portale design-system
-   (light), dark — через [data-theme="dark"].
+   Combobox — выпадающий список с поиском. Имена переменных — как в
+   ui-tokens/bridge.css (портал определяет их сам, модули подключают
+   bridge.css); здесь они заданы на корне и на портальном меню (оно
+   рендерится в <body>, вне scope страницы) и берут значения из tokens.css.
    ====================================================================== */
 
 .combo,
 .menu {
-  --fg-primary: #1a1a1a;
-  --fg-secondary: #3d3d3d;
-  /* Как в ui-tokens/bridge.css: текст ≥ 4.5:1 (прежние #7a7a7a/#b4b2a9 —
-     4.29 и 2.1:1). */
+  /* Имена bridge.css, значения — из tokens.css: своей копии палитры здесь
+     больше нет, смена темы и бренда приходит сама. Запасное значение после
+     запятой — на случай страницы без tokens.css. */
+  --fg-primary: var(--ink, #1a1a1a);
+  --fg-secondary: var(--ink-2, #3d3d3d);
+  /* Как в ui-tokens/bridge.css: текст ≥ 4.5:1. */
   --fg-tertiary: #5c5c5c;
   --fg-muted: #696969;
   /* Рамка поля ≥ 3:1 к поверхности (WCAG 1.4.11), как --field-bd у Input. */
   --cb-field-bd: var(--field-bd, rgba(0, 0, 0, 0.44));
-  --accent-50: #fbeee5;
-  --accent-400: #dd6731;
-  --accent-500: #dd6731;
-  --accent-600: #b8501f;
-  --accent-700: #b8501f;
+  --accent-50: var(--terra-bg, #fbeee5);
+  --accent-400: var(--terra, #dd6731);
+  --accent-500: var(--terra, #dd6731);
+  --accent-600: var(--terra-d, #b8501f);
+  --accent-700: var(--terra-d, #b8501f);
   /* Терракота текстом: ≥ 4.9:1 и на белом, и на --accent-50. */
   --accent-text: var(--terra-text, #a8481b);
-  --bg-surface: #ffffff;
-  --bg-subtle: #f7f5f0;
-  --bg-muted: #efece4;
-  --bg-hover: #f7f5f0;
-  --bg-active: #efece4;
-  --border-subtle: rgba(0, 0, 0, 0.05);
-  --border-default: rgba(0, 0, 0, 0.08);
-  --border-strong: rgba(0, 0, 0, 0.12);
-  --radius-sm: 5px;
-  --radius-md: 7px;
-  --radius-lg: 10px;
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.06);
-  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.1), 0 2px 6px rgba(0, 0, 0, 0.04);
-  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --bg-surface: var(--surf, #ffffff);
+  --bg-subtle: var(--surf-2, #f7f5f0);
+  --bg-muted: var(--surf-3, #efece4);
+  --bg-hover: var(--surf-2, #f7f5f0);
+  --bg-active: var(--surf-3, #efece4);
+  --border-subtle: var(--bd-soft, rgba(0, 0, 0, 0.05));
+  --border-default: var(--bd, rgba(0, 0, 0, 0.08));
+  --border-strong: var(--bd-strong, rgba(0, 0, 0, 0.12));
+  --radius-sm: var(--r-sm, 5px);
+  --radius-md: var(--r-md, 7px);
+  --radius-lg: var(--r-lg, 10px);
 }
 
 :where([data-theme='dark']) .combo,
 :where([data-theme='dark']) .menu {
-  --fg-primary: #f2f2ef;
-  --fg-secondary: #d8d8d1;
+  --fg-primary: var(--ink, #f2f2ef);
+  --fg-secondary: var(--ink-2, #d8d8d1);
   --fg-tertiary: #a9aa9f;
   --fg-muted: #94968c;
   --cb-field-bd: var(--field-bd, rgba(255, 255, 255, 0.34));
-  --accent-50: rgba(221, 103, 49, 0.2);
+  --accent-50: var(--terra-bg, rgba(221, 103, 49, 0.2));
   --accent-text: var(--terra-text, #e57a48);
-  --bg-surface: #161816;
-  --bg-subtle: #1c1f1c;
-  --bg-muted: #272b27;
-  --bg-hover: #1c1f1c;
-  --bg-active: #272b27;
-  --border-subtle: rgba(255, 255, 255, 0.07);
-  --border-default: rgba(255, 255, 255, 0.1);
-  --border-strong: rgba(255, 255, 255, 0.16);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.45), 0 1px 2px rgba(0, 0, 0, 0.35);
-  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.55), 0 2px 6px rgba(0, 0, 0, 0.35);
+  --bg-surface: var(--surf, #161816);
+  --bg-subtle: var(--surf-2, #1c1f1c);
+  --bg-muted: var(--surf-3, #272b27);
+  --bg-hover: var(--surf-2, #1c1f1c);
+  --bg-active: var(--surf-3, #272b27);
+  --border-subtle: var(--bd-soft, rgba(255, 255, 255, 0.07));
+  --border-default: var(--bd, rgba(255, 255, 255, 0.1));
+  --border-strong: var(--bd-strong, rgba(255, 255, 255, 0.16));
 }
 
 /* ===== Базовый input (.form-input аналог) ===== */
 .formInput {
   appearance: none;
   width: 100%;
-  height: 36px;
-  padding: 0 10px;
-  border: 1px solid var(--cb-field-bd);
+  height: var(--control-h, 36px);
+  padding: 0 var(--field-px, 10px);
+  border: var(--bd-w, 1px) solid var(--cb-field-bd);
   border-radius: var(--radius-md);
   background: var(--bg-surface);
   color: var(--fg-primary);
   font: inherit;
-  font-size: 13px;
+  font-size: var(--fs-ui);
   outline: none;
   transition:
     border-color var(--dur-fast) ease,
@@ -79,7 +75,7 @@
 }
 /* Ореол фокуса — терракотовый, как у Input (был синим вне палитры). */
 .formInput:focus {
-  border-color: var(--accent-500);
+  border-color: var(--focus, var(--accent-500));
   box-shadow: var(--field-ring, 0 0 0 3px var(--accent-50));
 }
 .formInput::placeholder {
@@ -92,8 +88,8 @@
   border-radius: var(--radius-md);
 }
 .formInput:disabled {
-  opacity: var(--disabled-opacity, 0.45);
-  cursor: default;
+  opacity: var(--disabled-opacity);
+  cursor: not-allowed;
 }
 /* Внутри Combobox прозрачность ставит обёртка — не умножаем 0.5 × 0.6. */
 .combo .formInput:disabled {
@@ -130,7 +126,7 @@
   background: var(--bg-hover);
 }
 .combo:has(.input:disabled) {
-  opacity: var(--disabled-opacity, 0.45);
+  opacity: var(--disabled-opacity);
 }
 .combo:has(.input:disabled) .toggle {
   cursor: not-allowed;
@@ -138,23 +134,23 @@
 
 /* Меню рендерится в портал → стилизуем по классу .menu напрямую. */
 .menu {
-  z-index: 90;
+  z-index: var(--z-popover, 300);
   padding: 4px;
   background: var(--bg-surface);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-lg);
+  border: var(--bd-w, 1px) solid var(--border-default);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg, 0 12px 32px rgba(0, 0, 0, 0.1), 0 2px 6px rgba(0, 0, 0, 0.04));
   overflow: auto;
   max-height: 240px;
 }
 .option {
   width: 100%;
-  min-height: 34px;
+  min-height: var(--item-h, 34px);
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  padding: 7px 8px;
+  padding: var(--sp-3) 8px;
   text-align: left;
   color: var(--fg-primary);
   border: 0;
@@ -162,7 +158,7 @@
   background: transparent;
   cursor: pointer;
   font: inherit;
-  font-size: 13px;
+  font-size: var(--fs-ui);
 }
 .option:hover,
 .option[aria-selected='true'],
@@ -195,13 +191,13 @@
   line-height: 1.35;
   /* Контраст ≥ 4.5:1 на белом и в тёмной теме: --fg-tertiary давал 4.29. */
   color: color-mix(in srgb, var(--fg-tertiary) 75%, var(--fg-primary));
-  font-family: var(--font-mono);
-  font-size: 11px;
+  font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace);
+  font-size: var(--fs-meta-sm);
 }
 .empty {
-  padding: 9px 8px;
+  padding: var(--sp-4) 8px;
   color: var(--fg-tertiary);
-  font-size: 13px;
+  font-size: var(--fs-ui);
 }
 
 /* ===== Невалидное значение ===== */
@@ -216,7 +212,7 @@
 /* ===== Группы опций ===== */
 .group {
   padding: 8px 10px 4px;
-  font-size: 10.5px;
+  font-size: var(--fs-meta-sm);
   font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -242,7 +238,7 @@
   justify-content: center;
   background: var(--bg-subtle);
   color: var(--fg-tertiary);
-  font-size: 9px;
+  font-size: var(--fs-meta-sm);
   font-weight: 600;
   line-height: 1;
 }
@@ -318,5 +314,20 @@
 @media (prefers-reduced-motion: reduce) {
   .menu {
     animation-name: combo-pop-fade;
+  }
+}
+
+/* Список обрезан (вариантов больше, чем рисуем за раз) — подсказка в конце. */
+.more {
+  padding: var(--sp-3, 8px);
+  color: var(--fg-tertiary);
+  font-size: var(--fs-meta);
+  border-top: 1px solid var(--border-subtle);
+  margin-top: 4px;
+}
+/* Палец: пункт списка — цель не меньше 36px. */
+@media (pointer: coarse) {
+  .option {
+    min-height: var(--tap-min-compact, 36px);
   }
 }

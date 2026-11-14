@@ -7,7 +7,7 @@
   border: none;
   border-radius: var(--r-sm);
   font-family: inherit;
-  font-size: 11px;
+  font-size: var(--fs-meta-sm);
   color: var(--ink-2);
   cursor: pointer;
   transition:
@@ -29,12 +29,12 @@
 }
 
 .iconLeft {
-  font-size: 11px;
+  font-size: var(--fs-meta-sm);
   line-height: 1;
 }
 
 .chev {
-  font-size: 10px;
+  font-size: var(--fs-meta-sm);
   color: var(--ink-3);
   margin-left: 2px;
 }

@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom'
 
 import { Icon } from '../list/Icon.js'
 import { OptionMarker, hasOptionMarker, type ComboboxOption } from '../list/Combobox.js'
-import { placePopover, revealOption } from '../list/popover.js'
+import { limitOptions, moreOptionsText, placePopover, revealOption } from '../list/popover.js'
 import { usePopPresence } from '../overlay/presence.js'
 
 import styles from './form.module.css'
@@ -86,11 +86,13 @@ export function MultiCombobox({
     return { value: v, label: o?.label ?? v, icon: o?.icon, color: o?.color }
   })
 
-  const filtered = useMemo(() => {
+  const { shown: filtered, rest: hiddenCount } = useMemo(() => {
     const q = query.trim().toLowerCase()
-    if (!q) return options
-    return options.filter(
-      (o) => o.label.toLowerCase().includes(q) || (o.hint ?? '').toLowerCase().includes(q),
+    if (!q) return limitOptions(options)
+    return limitOptions(
+      options.filter(
+        (o) => o.label.toLowerCase().includes(q) || (o.hint ?? '').toLowerCase().includes(q),
+      ),
     )
   }, [options, query])
 
@@ -225,6 +227,11 @@ export function MultiCombobox({
                 )
               })
             )}
+            {hiddenCount > 0 && (
+              <div className={styles.more} role="presentation">
+                {moreOptionsText(filtered.length, hiddenCount)}
+              </div>
+            )}
           </div>,
           document.body,
         )
@@ -260,7 +267,9 @@ export function MultiCombobox({
             data-color={c.color ? '' : undefined}
           >
             {c.icon && <OptionMarker icon={c.icon} color={c.color} />}
-            {c.label}
+            <span className={styles.mcChipLabel} title={c.label}>
+              {c.label}
+            </span>
             {!disabled && (
               <button
                 type="button"

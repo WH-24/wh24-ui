@@ -55,7 +55,7 @@
 .kbd,
 .footer kbd {
   flex: none;
-  padding: 1px 5px;
+  padding: 1px var(--sp-2);
   border: var(--bd-w, 1px) solid var(--bd);
   border-radius: var(--r-xs, 3px);
   background: var(--surf-2);
@@ -74,7 +74,7 @@
 
 .group {
   padding: var(--sp-3, 8px) var(--sp-3, 8px) var(--sp-1, 4px);
-  font-size: var(--fs-meta-sm, 11px);
+  font-size: var(--fs-meta-sm);
   font-weight: var(--fw-semibold, 600);
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -88,7 +88,7 @@
   min-height: var(--item-h, 34px);
   padding: var(--sp-2, 6px) var(--sp-3, 8px);
   border-radius: var(--r-sm, 5px);
-  font-size: var(--fs-ui, 13px);
+  font-size: var(--fs-ui);
   color: var(--ink);
   cursor: pointer;
 }
@@ -99,8 +99,8 @@
 }
 
 .opt[aria-disabled='true'] {
-  opacity: var(--disabled-opacity, 0.45);
-  cursor: default;
+  opacity: var(--disabled-opacity);
+  cursor: not-allowed;
 }
 
 .lead {
@@ -127,7 +127,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: var(--fs-meta, 12px);
+  font-size: var(--fs-meta);
   color: var(--ink-3);
 }
 
@@ -140,7 +140,7 @@
 
 .empty {
   padding: 9px var(--sp-3, 8px);
-  font-size: var(--fs-ui, 13px);
+  font-size: var(--fs-ui);
   color: var(--ink-3);
 }
 
@@ -149,7 +149,7 @@
   gap: var(--sp-7, 16px);
   padding: var(--sp-3, 8px) var(--sp-6, 14px);
   border-top: var(--bd-w, 1px) solid var(--bd-soft);
-  font-size: var(--fs-meta, 12px);
+  font-size: var(--fs-meta);
   color: var(--ink-3);
 }
 

@@ -10,14 +10,14 @@
   background: none;
   color: var(--ink);
   font-family: var(--font-sans);
-  font-size: 13px;
+  font-size: var(--fs-ui);
   line-height: 1.35;
   text-align: left;
   cursor: pointer;
 }
 .switch:disabled {
   opacity: var(--disabled-opacity);
-  cursor: default;
+  cursor: not-allowed;
 }
 .switch:focus-visible {
   outline: var(--focus-ring-w) solid var(--focus);

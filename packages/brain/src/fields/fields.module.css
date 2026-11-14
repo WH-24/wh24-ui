@@ -11,7 +11,7 @@
   /* Родительская ячейка таблицы держит текст в одну строку, а здесь значение многострочное. */
   white-space: normal;
   font-family: var(--font-sans);
-  font-size: 13px;
+  font-size: var(--fs-ui);
   line-height: 1.4;
   color: var(--ink);
 }
@@ -58,16 +58,16 @@
 }
 .textBtn:focus-visible {
   outline: var(--focus-ring-w) solid var(--focus);
-  outline-offset: 2px;
+  outline-offset: var(--focus-ring-offset);
   border-radius: var(--r-xs);
 }
 .staleTag {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  padding: 0 7px 0 5px;
+  padding: 0 var(--sp-3) 0 var(--sp-2);
   border-radius: var(--r-pill);
-  border: var(--bd-hairline) solid var(--warn-bd);
+  border: var(--bd-w) solid var(--warn-bd);
   background: var(--warn-bg);
   color: var(--warn);
   font-size: var(--fs-meta-sm);
@@ -78,7 +78,7 @@
 .failedText {
   display: inline-flex;
   align-items: flex-start;
-  gap: 5px;
+  gap: var(--sp-2);
   color: var(--bad);
   overflow-wrap: anywhere;
 }
@@ -126,11 +126,11 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
+  width: 24px;
+  height: 24px;
   padding: 0;
   border: 0;
-  border-radius: var(--r-md);
+  border-radius: var(--r-sm);
   background: none;
   color: var(--terra-d);
   cursor: pointer;
@@ -155,10 +155,10 @@
   z-index: var(--brain-dialog-z, 85);
   box-sizing: border-box;
   padding: 4px;
-  border: var(--bd-hairline) solid var(--bd-strong);
+  border: var(--bd-w) solid var(--bd);
   border-radius: var(--r-lg);
   background: var(--surf);
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow-lg);
   font-family: var(--font-sans);
   color: var(--ink);
 }
@@ -169,11 +169,11 @@
   min-height: var(--tap-min-compact);
   padding: 6px 10px;
   border: 0;
-  border-radius: var(--r-md);
+  border-radius: var(--r-sm);
   background: none;
   color: var(--ink);
   font: inherit;
-  font-size: 13px;
+  font-size: var(--fs-ui);
   text-align: left;
   cursor: pointer;
 }
@@ -187,7 +187,7 @@
 }
 .colItem:disabled {
   opacity: var(--disabled-opacity);
-  cursor: default;
+  cursor: not-allowed;
 }
 .colItem[data-danger] {
   color: var(--bad);
@@ -228,10 +228,10 @@
   gap: 2px;
   min-height: 28px;
   padding: 0 2px 0 10px;
-  border: var(--bd-hairline) solid var(--bd-strong);
+  border: var(--bd-w) solid var(--bd-strong);
   border-radius: var(--r-pill);
   background: var(--surf-2);
-  font-size: 13px;
+  font-size: var(--fs-ui);
 }
 .optionText {
   overflow-wrap: anywhere;
@@ -261,7 +261,7 @@
 }
 .optionRemove:focus-visible {
   outline: var(--focus-ring-w) solid var(--focus);
-  outline-offset: 1px;
+  outline-offset: var(--focus-ring-offset);
 }
 .optionAdd {
   display: flex;
@@ -274,7 +274,7 @@
 .fixedNote {
   grid-column: 1 / -1;
   margin: 0;
-  font-size: 13px;
+  font-size: var(--fs-ui);
   color: var(--ink-2);
 }
 .switches {
@@ -284,7 +284,7 @@
 }
 .switchHint {
   margin: 0 0 8px 44px;
-  font-size: 12.5px;
+  font-size: var(--fs-meta);
   line-height: 1.45;
   color: var(--ink-2);
 }
@@ -318,10 +318,10 @@
   flex-direction: column;
   gap: 3px;
   padding: 8px 10px;
-  border: var(--bd-hairline) solid var(--bd-strong);
+  border: var(--bd-w) solid var(--bd-strong);
   border-radius: var(--r-md);
   background: var(--surf-2);
-  font-size: 13px;
+  font-size: var(--fs-ui);
 }
 .previewTitle {
   font-size: var(--fs-meta);
@@ -355,7 +355,7 @@
   border: 1px solid var(--bad-bd);
   background: var(--bad-bg);
   color: var(--bad);
-  font-size: 13px;
+  font-size: var(--fs-ui);
   line-height: 1.45;
 }
 
@@ -367,7 +367,7 @@
   align-self: flex-start;
   gap: 2px;
   padding: 3px;
-  border: var(--bd-hairline) solid var(--bd-strong);
+  border: var(--bd-w) solid var(--bd-strong);
   border-radius: var(--r-lg);
   background: var(--surf-2);
 }
@@ -379,7 +379,7 @@
   background: none;
   color: var(--ink-2);
   font: inherit;
-  font-size: 13px;
+  font-size: var(--fs-ui);
   font-weight: var(--fw-medium);
   cursor: pointer;
 }
@@ -398,7 +398,7 @@
 
 .staticValue {
   margin: 0;
-  font-size: 14px;
+  font-size: var(--fs-ui-lg);
   font-weight: var(--fw-medium);
   overflow-wrap: anywhere;
 }
@@ -407,7 +407,7 @@
   grid-template-columns: 1fr 1fr;
   gap: 12px;
 }
-@media (max-width: 480px) {
+@media (max-width: 640px) {
   .period {
     grid-template-columns: 1fr;
   }
@@ -421,12 +421,12 @@
 }
 .genBusyTitle {
   margin: 0;
-  font-size: 15px;
+  font-size: var(--fs-title);
   font-weight: var(--fw-semibold);
 }
 .genBusyHint {
   margin: 2px 0 0;
-  font-size: 13px;
+  font-size: var(--fs-ui);
   color: var(--ink-2);
 }
 .result {
@@ -456,12 +456,12 @@
   max-width: min(460px, calc(100vw - 24px));
   transform: translateX(-50%);
   padding: 10px 8px 10px 14px;
-  border: var(--bd-hairline) solid var(--bd-strong);
+  border: var(--bd-w) solid var(--bd-strong);
   border-radius: var(--r-lg);
   background: var(--surf);
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow-lg);
   font-family: var(--font-sans);
-  font-size: 13px;
+  font-size: var(--fs-ui);
   line-height: 1.45;
   color: var(--ink);
 }
@@ -499,5 +499,5 @@
 }
 .noticeClose:focus-visible {
   outline: var(--focus-ring-w) solid var(--focus);
-  outline-offset: 1px;
+  outline-offset: var(--focus-ring-offset);
 }

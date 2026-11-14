@@ -33,7 +33,7 @@
 .blogo {
   width: 24px;
   height: 24px;
-  border-radius: 6px;
+  border-radius: var(--r-sm);
   background: var(--terra);
   position: relative;
   flex-shrink: 0;
@@ -60,7 +60,7 @@
 }
 
 .bname {
-  font-size: 14px;
+  font-size: var(--fs-ui-lg);
   font-weight: var(--fw-semibold);
   color: var(--ink);
   letter-spacing: -0.01em;
@@ -84,7 +84,7 @@
   padding: 36px 32px 40px;
 }
 
-@media (max-width: 520px) {
+@media (max-width: 640px) {
   .topbar {
     padding: 0 18px;
   }

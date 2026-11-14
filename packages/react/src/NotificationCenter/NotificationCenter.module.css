@@ -15,7 +15,7 @@
   border-radius: var(--r-pill, 999px);
   background: var(--terra-solid);
   color: #fff;
-  font-size: var(--fs-meta-sm, 11px);
+  font-size: var(--fs-meta-sm);
   font-weight: var(--fw-semibold, 600);
   line-height: 16px;
   text-align: center;
@@ -63,7 +63,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: var(--fs-ui, 13px);
+  font-size: var(--fs-ui);
   font-weight: var(--fw-semibold, 600);
 }
 
@@ -76,7 +76,7 @@
   background: transparent;
   color: var(--ink-2);
   font: inherit;
-  font-size: var(--fs-ui, 13px);
+  font-size: var(--fs-ui);
   cursor: pointer;
   transition:
     background var(--dur-fast, 120ms) ease,
@@ -88,8 +88,8 @@
 }
 
 .markAll:disabled {
-  opacity: var(--disabled-opacity, 0.45);
-  cursor: default;
+  opacity: var(--disabled-opacity);
+  cursor: not-allowed;
 }
 
 .list {
@@ -112,7 +112,7 @@
   background: none;
   color: var(--ink-2);
   font: inherit;
-  font-size: var(--fs-ui, 13px);
+  font-size: var(--fs-ui);
   line-height: 1.45;
   text-align: left;
   cursor: pointer;
@@ -125,8 +125,8 @@
 
 .markAll:focus-visible,
 .item:focus-visible {
-  outline: var(--focus-ring-w, 2px) solid var(--focus, var(--terra));
-  outline-offset: var(--focus-ring-inset, -2px);
+  outline: var(--focus-ring-w) solid var(--focus);
+  outline-offset: var(--focus-ring-inset);
 }
 
 .body {
@@ -147,7 +147,7 @@
 }
 
 .time {
-  font-size: var(--fs-meta, 12px);
+  font-size: var(--fs-meta);
   color: var(--ink-3);
 }
 
@@ -166,7 +166,7 @@
 .empty {
   padding: var(--sp-7, 16px) var(--sp-3, 8px);
   text-align: center;
-  font-size: var(--fs-ui, 13px);
+  font-size: var(--fs-ui);
   color: var(--ink-3);
 }
 

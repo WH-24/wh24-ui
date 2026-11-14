@@ -65,7 +65,10 @@
 }
 .title {
   margin: 0;
-  font-size: 15px;
+  /* Заголовок одним длинным словом (имя файла, почта) не выталкивает крестик. */
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-size: var(--fs-title);
   font-weight: 600;
   line-height: 1.35;
   color: var(--fg-primary);
@@ -73,7 +76,7 @@
 .close {
   width: 32px;
   height: 32px;
-  border-radius: var(--radius-sm);
+  border-radius: var(--control-r);
   display: grid;
   place-items: center;
   color: var(--fg-tertiary);
@@ -87,19 +90,21 @@
   color: var(--fg-primary);
 }
 .close:focus-visible {
-  outline: 2px solid var(--accent-500);
-  outline-offset: 1px;
+  outline: var(--focus-ring-w) solid var(--focus);
+  outline-offset: var(--focus-ring-offset);
 }
 .body {
   padding: 20px;
   overflow-y: auto;
   overscroll-behavior: contain;
   flex: 1;
-  font-size: 14px;
+  font-size: var(--fs-ui-lg);
   color: var(--fg-secondary);
 }
 .footer {
   display: flex;
+  /* Три длинные кнопки на телефоне переносятся, а не обрезаются. */
+  flex-wrap: wrap;
   align-items: center;
   justify-content: flex-end;
   gap: 8px;
@@ -115,7 +120,7 @@
   max-width: 400px;
 }
 .confirmMessage {
-  font-size: 13px;
+  font-size: var(--fs-ui);
   line-height: 1.5;
 }
 .confirmMessage b,
@@ -167,6 +172,7 @@
 }
 .drawerActions {
   margin-left: auto;
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   gap: 4px;
@@ -199,7 +205,7 @@
   color: var(--bg-surface);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-lg);
-  font-size: 13px;
+  font-size: var(--fs-ui);
   min-width: 220px;
   max-width: 360px;
   cursor: pointer;
@@ -247,11 +253,14 @@
 }
 .toastClose:focus-visible {
   opacity: 1;
-  outline: 2px solid currentColor;
-  outline-offset: 1px;
+  outline: var(--focus-ring-w) solid currentColor;
+  outline-offset: var(--focus-ring-offset);
 }
 .toastMsg {
   flex: 1;
+  /* Длинный адрес или ошибка сервера без пробелов — переносится. */
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 .toastAction {
   flex-shrink: 0;
@@ -269,8 +278,8 @@
   background: color-mix(in srgb, currentColor 15%, transparent);
 }
 .toastAction:focus-visible {
-  outline: 2px solid currentColor;
-  outline-offset: 2px;
+  outline: var(--focus-ring-w) solid currentColor;
+  outline-offset: var(--focus-ring-offset);
 }
 .toast_success {
   background: var(--good-strong);
@@ -282,7 +291,7 @@
 }
 
 /* Телефон: тосты во всю ширину с полями, над нижним краем и «чёлкой». */
-@media (max-width: 560px) {
+@media (max-width: 640px) {
   .toastStack {
     left: 16px;
     right: 16px;
@@ -307,5 +316,15 @@
     .toast {
       transform: none;
     }
+  }
+}
+@media (pointer: coarse) {
+  .close {
+    min-width: var(--tap-min);
+    min-height: var(--tap-min);
+  }
+  .toastClose {
+    min-width: var(--tap-min-compact);
+    min-height: var(--tap-min-compact);
   }
 }

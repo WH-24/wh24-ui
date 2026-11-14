@@ -1,7 +1,7 @@
 .chip {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: var(--sp-2);
   font-size: var(--fs-meta);
   padding: 4px 10px;
   background: var(--surf);
@@ -9,6 +9,14 @@
   border: 1px solid var(--bd);
   border-radius: var(--r-pill);
   white-space: nowrap;
+  /* Длинный тег не шире своего контейнера: подпись обрезается многоточием. */
+  max-width: 100%;
+  min-width: 0;
+}
+.label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .chip.tag {
@@ -25,6 +33,7 @@
   justify-content: center;
   width: 16px;
   height: 16px;
+  flex: none;
   margin-right: -4px;
   padding: 0;
   background: transparent;
@@ -44,6 +53,6 @@
   opacity: 1;
 }
 .remove:focus-visible {
-  outline: 2px solid var(--focus, var(--terra));
-  outline-offset: 1px;
+  outline: var(--focus-ring-w) solid var(--focus);
+  outline-offset: var(--focus-ring-offset);
 }

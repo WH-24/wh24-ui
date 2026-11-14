@@ -5,7 +5,7 @@
   flex-wrap: wrap;
   gap: var(--sp-1, 4px);
   min-width: 0;
-  font-size: var(--fs-ui, 13px);
+  font-size: var(--fs-ui);
   color: var(--ink-3);
 }
 
@@ -51,13 +51,13 @@
 
 .pgb:focus-visible,
 .arrow:focus-visible {
-  outline: var(--focus-ring-w, 2px) solid var(--focus, var(--terra));
-  outline-offset: var(--focus-ring-offset, 2px);
+  outline: var(--focus-ring-w) solid var(--focus);
+  outline-offset: var(--focus-ring-offset);
 }
 
 .arrow:disabled {
-  opacity: var(--disabled-opacity, 0.45);
-  cursor: default;
+  opacity: var(--disabled-opacity);
+  cursor: not-allowed;
 }
 
 .gap {

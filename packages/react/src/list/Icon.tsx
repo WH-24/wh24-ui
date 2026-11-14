@@ -18,6 +18,7 @@ export type IconName =
   | 'close'
   | 'chevdown'
   | 'chevright'
+  | 'chevleft'
   | 'chevdown_sm'
   | 'chevright_sm'
   | 'sortdown'
@@ -190,6 +191,11 @@ const paths: Record<Exclude<IconName, 'telegram' | 'send'>, ReactNode> = {
   chevright: (
     <>
       <path d="M9 6l6 6-6 6" />
+    </>
+  ),
+  chevleft: (
+    <>
+      <path d="M15 6l-6 6 6 6" />
     </>
   ),
   back: (

@@ -3,8 +3,8 @@
   grid-template-columns: repeat(4, 1fr);
   gap: 0;
   background: var(--surf);
-  border: 0.5px solid var(--bd);
-  border-radius: var(--r-xl);
+  border: var(--bd-w) solid var(--bd);
+  border-radius: var(--r-lg);
   padding: 20px 26px;
   margin: 0;
 }
@@ -27,7 +27,7 @@
 }
 
 .label {
-  font-size: 11px;
+  font-size: var(--fs-meta-sm);
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--ink-3);
@@ -50,7 +50,7 @@
 }
 
 .trend {
-  font-size: 11px;
+  font-size: var(--fs-meta-sm);
   font-weight: var(--fw-medium);
   color: var(--good);
 }
@@ -67,7 +67,7 @@
   color: var(--terra-text);
 }
 
-@media (max-width: 880px) {
+@media (max-width: 1024px) {
   .bar {
     grid-template-columns: repeat(2, 1fr);
     gap: 16px 0;
@@ -77,7 +77,7 @@
   }
 }
 
-@media (max-width: 520px) {
+@media (max-width: 640px) {
   .bar {
     padding: 16px;
     grid-template-columns: 1fr 1fr;

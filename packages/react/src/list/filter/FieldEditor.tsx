@@ -162,13 +162,13 @@ function MultiSelect({
           <div
             className={styles.msMenu}
             role="listbox"
-            // zIndex 1000 — над модулем поиска (.filterPop = 200), как у Combobox.
+            // Слой — из CSS (.msMenu, --z-popover): меню в <body> стоит после
+            // модуля поиска и рисуется над ним, но под уведомлениями.
             style={{
               position: "fixed",
               top: rect.top,
               left: rect.left,
               minWidth: rect.width,
-              zIndex: 1000,
             }}
           >
             {options.map((o) => {

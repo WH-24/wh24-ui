@@ -18,6 +18,7 @@ import {
   useTheme,
 } from '@wowhaus-24/ui-react'
 
+import { Examples } from './Examples'
 import { NewComponents } from './NewComponents'
 
 export function Styleguide() {
@@ -166,7 +167,7 @@ export function Styleguide() {
       </Section>
 
       <Section title="NavTile" desc="Большая навигация-плитка. Default — `<a>`.">
-        <div className="sg-grid-4" style={{ gridTemplateColumns: 'repeat(2, 1fr)' }}>
+        <div className="sg-grid-4" style={{ gridTemplateColumns: 'repeat(2, minmax(0, 1fr))' }}>
           <NavTile
             href="#browser"
             name="Браузер"
@@ -271,6 +272,14 @@ export function Styleguide() {
       </Section>
 
       <NewComponents
+        section={(title, desc, body) => (
+          <Section key={title} title={title} desc={desc}>
+            {body}
+          </Section>
+        )}
+      />
+
+      <Examples
         section={(title, desc, body) => (
           <Section key={title} title={title} desc={desc}>
             {body}

@@ -39,6 +39,7 @@ export function Tabs<K extends string>({ tabs, value, onChange, ariaLabel, idPre
   // Действие с клавиатуры не анимируется: полоса встаёт сразу.
   const instant = useRef(false)
   useSlideIndicator(listRef, indRef, '[role="tab"][aria-selected="true"]', 'scale', instant, tabs.length)
+  const hasValue = tabs.some((t) => t.id === value)
   const move = (i: number) => {
     const n = (i + tabs.length) % tabs.length
     instant.current = true
@@ -62,6 +63,9 @@ export function Tabs<K extends string>({ tabs, value, onChange, ariaLabel, idPre
     >
       {tabs.map((t, i) => {
         const on = t.id === value
+        // value не совпал ни с одной вкладкой — в список всё равно можно
+        // попасть с клавиатуры: Tab встаёт на первую.
+        const reachable = on || (!hasValue && i === 0)
         return (
           <button
             key={t.id}
@@ -73,7 +77,7 @@ export function Tabs<K extends string>({ tabs, value, onChange, ariaLabel, idPre
             id={`${idPrefix}-tab-${t.id}`}
             aria-selected={on}
             aria-controls={`${idPrefix}-panel-${t.id}`}
-            tabIndex={on ? 0 : -1}
+            tabIndex={reachable ? 0 : -1}
             className={styles.tab}
             onClick={() => {
               instant.current = keyboardInitiated()

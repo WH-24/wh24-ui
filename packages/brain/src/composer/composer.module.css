@@ -3,8 +3,8 @@
 
 .composer {
   background: var(--surf);
-  border: var(--bd-hairline) solid var(--bd-strong);
-  border-radius: 14px;
+  border: var(--bd-w) solid var(--bd-strong);
+  border-radius: var(--r-lg);
   padding: 12px 14px;
   box-shadow: var(--shadow-sm);
   cursor: text;
@@ -14,9 +14,9 @@
     box-shadow var(--dur-fast) ease;
 }
 .composer:focus-within {
-  border-color: var(--terra);
+  border-color: var(--focus);
   box-shadow:
-    0 0 0 3px var(--terra-bg),
+    var(--field-ring),
     var(--shadow-sm);
 }
 .composer[data-dragging] {
@@ -25,7 +25,7 @@
   background: var(--terra-bg);
 }
 .composer[data-disabled] {
-  cursor: default;
+  cursor: not-allowed;
   background: var(--surf-2);
 }
 
@@ -81,7 +81,7 @@
   cursor: pointer;
 }
 .tool:hover:not(:disabled) {
-  background: var(--surf-3);
+  background: var(--surf-2);
   color: var(--ink);
 }
 .tool:disabled {
@@ -111,12 +111,12 @@
   width: 36px;
   height: 36px;
   padding: 0;
-  border-radius: var(--r-lg);
+  border-radius: var(--control-r);
   min-height: 0;
   flex-shrink: 0;
 }
 .send:disabled {
-  cursor: default;
+  cursor: not-allowed;
 }
 .stopIcon {
   display: block;
@@ -150,11 +150,11 @@
 .fileChip {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
+  gap: var(--sp-3);
   max-width: 240px;
   min-height: 36px;
   padding: 3px 3px 3px 6px;
-  border: var(--bd-hairline) solid var(--bd-strong);
+  border: var(--bd-w) solid var(--bd-strong);
   border-radius: var(--r-md);
   background: var(--surf-2);
   font-size: var(--fs-meta);
@@ -179,8 +179,8 @@
   white-space: nowrap;
 }
 .fileRemove {
-  width: 28px;
-  height: 28px;
+  width: 24px;
+  height: 24px;
   flex-shrink: 0;
   display: inline-flex;
   align-items: center;
@@ -210,8 +210,8 @@
   padding: 4px;
   overflow-y: auto;
   list-style: none;
-  border: var(--bd-hairline) solid var(--bd-strong);
-  border-radius: var(--r-md);
+  border: var(--bd-w) solid var(--bd);
+  border-radius: var(--r-lg);
   background: var(--surf);
 }
 .slashOption {
@@ -230,26 +230,26 @@
 }
 .slashCmd {
   font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
-  font-size: 13px;
+  font-size: var(--fs-ui);
   font-weight: var(--fw-semibold);
   color: var(--terra-d);
 }
 .slashName {
-  font-size: 13px;
+  font-size: var(--fs-ui);
   color: var(--ink);
 }
 .slashDesc {
   flex-basis: 100%;
-  font-size: 12px;
+  font-size: var(--fs-meta);
   line-height: 1.35;
   color: var(--ink-3);
 }
 .slashEmpty {
   margin: 0;
   padding: 8px 10px;
-  border: var(--bd-hairline) dashed var(--bd-strong);
+  border: var(--bd-w) dashed var(--bd-strong);
   border-radius: var(--r-md);
-  font-size: 13px;
+  font-size: var(--fs-ui);
   color: var(--ink-2);
 }
 @media (pointer: coarse) {

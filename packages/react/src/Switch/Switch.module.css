@@ -5,7 +5,7 @@
   gap: var(--sp-3, 8px);
   min-width: 0;
   max-width: 100%;
-  font-size: var(--fs-ui, 13px);
+  font-size: var(--fs-ui);
   color: var(--ink);
 }
 
@@ -17,7 +17,7 @@
 
 .row[data-disabled] .label {
   color: var(--ink-3);
-  cursor: default;
+  cursor: not-allowed;
 }
 
 .sw {
@@ -38,13 +38,13 @@
 }
 
 .sw:focus-visible {
-  outline: var(--focus-ring-w, 2px) solid var(--focus, var(--terra));
-  outline-offset: var(--focus-ring-offset, 2px);
+  outline: var(--focus-ring-w) solid var(--focus);
+  outline-offset: var(--focus-ring-offset);
 }
 
 .sw:disabled {
-  opacity: var(--disabled-opacity, 0.45);
-  cursor: default;
+  opacity: var(--disabled-opacity);
+  cursor: not-allowed;
 }
 
 .thumb {

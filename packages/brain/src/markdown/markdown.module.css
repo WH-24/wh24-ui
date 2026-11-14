@@ -90,20 +90,20 @@
 
 .md code {
   font-family: var(--font-mono);
-  font-size: 13px;
-  padding: 1px 5px;
+  font-size: var(--fs-ui);
+  padding: 1px var(--sp-2);
   border-radius: var(--r-xs);
   background: var(--surf-2);
-  border: var(--bd-hairline) solid var(--bd);
+  border: var(--bd-w) solid var(--bd);
   overflow-wrap: break-word;
   word-break: break-word;
 }
 .md pre {
   margin: 0 0 10px;
-  padding: 11px 13px;
+  padding: var(--sp-4) 13px;
   border-radius: var(--r-lg);
   background: var(--surf-2);
-  border: var(--bd-hairline) solid var(--bd);
+  border: var(--bd-w) solid var(--bd);
   max-width: 100%;
   overflow-x: auto;
 }
@@ -111,7 +111,7 @@
   padding: 0;
   border: none;
   background: transparent;
-  font-size: 12.5px;
+  font-size: var(--fs-meta);
   line-height: 1.55;
   word-break: normal;
 }
@@ -134,13 +134,13 @@
 }
 .md table {
   border-collapse: collapse;
-  font-size: 13.5px;
+  font-size: var(--fs-ui);
   min-width: 100%;
 }
 .md th,
 .md td {
   padding: 6px 10px;
-  border: var(--bd-hairline) solid var(--bd);
+  border: var(--bd-w) solid var(--bd);
   text-align: left;
   vertical-align: top;
 }
@@ -157,8 +157,8 @@
   gap: 6px;
   min-height: 32px;
   margin: 4px 0 10px;
-  padding: 5px 10px;
-  border: var(--bd-hairline) solid var(--bd-strong);
+  padding: var(--sp-2) 10px;
+  border: var(--bd-w) solid var(--bd-strong);
   border-radius: var(--r-md);
   background: var(--surf-2);
   color: var(--ink-2);
@@ -186,7 +186,7 @@
   border-radius: var(--r-sm);
   background: var(--surf-3);
   color: var(--ink-3);
-  font-size: 11px;
+  font-size: var(--fs-meta-sm);
   font-weight: var(--fw-semibold);
   font-variant-numeric: tabular-nums;
   line-height: 1;
@@ -213,6 +213,6 @@ button.cite:hover {
   color: #fff;
 }
 button.cite:focus-visible {
-  outline: var(--focus-ring-w, 2px) solid var(--terra);
-  outline-offset: 1px;
+  outline: var(--focus-ring-w) solid var(--focus);
+  outline-offset: var(--focus-ring-offset);
 }

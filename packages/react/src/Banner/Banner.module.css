@@ -6,7 +6,7 @@
   min-width: 0;
   padding: var(--sp-3, 8px) var(--sp-3, 8px) var(--sp-3, 8px) var(--sp-5, 12px);
   border-radius: var(--control-r, 7px);
-  font-size: var(--fs-ui, 13px);
+  font-size: var(--fs-ui);
   line-height: 1.45;
   color: var(--ink-2);
 }
@@ -75,8 +75,8 @@
 }
 
 .close:focus-visible {
-  outline: var(--focus-ring-w, 2px) solid var(--focus, var(--terra));
-  outline-offset: var(--focus-ring-offset, 2px);
+  outline: var(--focus-ring-w) solid var(--focus);
+  outline-offset: var(--focus-ring-offset);
 }
 
 @media (hover: hover) and (pointer: fine) {
