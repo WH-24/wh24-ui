@@ -5,6 +5,7 @@ import { DialogBody, DialogFooter, DialogHeader } from './Dialog.js'
 import { modalExitLayers } from './Modal.js'
 import { useExitAnimation } from './presence.js'
 import { useFocusTrap, useScrollLock } from './useFocusTrap.js'
+import { useSheetSwipe } from './useSheetSwipe.js'
 
 import styles from './overlay.module.css'
 
@@ -126,6 +127,7 @@ function ConfirmCard({
   const cancelRef = useRef<HTMLButtonElement>(null)
   useFocusTrap({ open: !exiting, containerRef: ref, onEscape: () => close(false) })
   useScrollLock(!exiting)
+  useSheetSwipe(ref, () => close(false), !exiting)
   useExitAnimation(exiting, exiting ? modalExitLayers(backdropRef, ref) : [], onExited)
   const danger = !pending.alert && pending.tone !== 'primary'
   useEffect(() => {

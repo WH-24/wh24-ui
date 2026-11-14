@@ -4,7 +4,9 @@ import { createPortal } from 'react-dom'
 import { DialogBody, DialogFooter, DialogHeader } from './Dialog.js'
 import { motionEase, motionMs } from './motion.js'
 import { usePresence, useExitAnimation, type ExitLayer } from './presence.js'
+import { sheetExitLayers } from './Modal.js'
 import { useFocusTrap, useScrollLock } from './useFocusTrap.js'
+import { isSheet, useSheetSwipe } from './useSheetSwipe.js'
 
 import styles from './overlay.module.css'
 
@@ -14,7 +16,8 @@ import styles from './overlay.module.css'
  * действиями, прокручиваемое тело. Модальна: ловушка фокуса, Esc и клик по
  * подложке закрывают (это отмена, см. `Modal`). Выезд — `--dur-panel` по кривой
  * `--ease-drawer`, обратно — `--dur-panel-exit` по ней же; подложка проявляется вместе с
- * панелью, а не вспыхивает. Страница под панелью не прокручивается.
+ * панелью, а не вспыхивает. Страница под панелью не прокручивается. На телефоне (до 640px)
+ * панель — лист снизу со смахиванием вниз за шапку, как `Modal`.
  */
 export interface DrawerProps {
   open: boolean
@@ -40,6 +43,8 @@ function drawerExitLayers(
   backdropRef: RefObject<HTMLElement | null>,
   panelRef: RefObject<HTMLElement | null>,
 ): ExitLayer[] {
+  // Телефон: панель — лист снизу, уходит вниз.
+  if (isSheet()) return sheetExitLayers(backdropRef, panelRef)
   const duration = motionMs('--dur-panel-exit')
   const easing = motionEase('--ease-drawer')
   return [
@@ -64,6 +69,7 @@ function DrawerPanel({ onClose, title, children, actions, footer, width = 560, e
   const backdropRef = useRef<HTMLDivElement>(null)
   useFocusTrap({ open: !exiting, containerRef: ref, onEscape: onClose })
   useScrollLock(!exiting)
+  useSheetSwipe(ref, onClose, !exiting)
   useExitAnimation(exiting, exiting ? drawerExitLayers(backdropRef, ref) : [], onExited)
   return (
     <>

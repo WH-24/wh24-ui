@@ -30,6 +30,8 @@ export interface DateFieldProps {
   style?: CSSProperties
   /** Значение не прошло проверку — красная рамка у контрола. */
   invalid?: boolean
+  /** `ghost` — без рамки до наведения и фокуса (правка на месте). */
+  variant?: 'default' | 'ghost'
 }
 
 const WEEKDAYS = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс']
@@ -161,6 +163,7 @@ export function DateField({
   ariaLabel,
   style,
   invalid = false,
+  variant,
 }: DateFieldProps) {
   // Значение со временем (`2026-11-14T00:00:00Z` — так дату отдаёт часть API)
   // раньше молча показывалось пустым: берём календарную часть.
@@ -467,6 +470,7 @@ export function DateField({
         className={[styles.control, styles.dpControl, className].filter(Boolean).join(' ')}
         data-disabled={disabled || undefined}
         aria-invalid={invalid || undefined}
+        data-variant={variant === 'ghost' ? 'ghost' : undefined}
         style={style}
       >
         <input

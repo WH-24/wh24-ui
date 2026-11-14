@@ -216,3 +216,76 @@
     min-height: var(--tap-min-compact);
   }
 }
+
+/* ── Телефон: нижняя навигация (`mobileNav="bottom"`, принятый макет) ──
+   Панель закреплена внизу: значок и короткая подпись, пункты делят ширину
+   поровну; содержимому оставлено место под ней и под «чёлкой». */
+.linkShort {
+  display: none;
+}
+@media (max-width: 640px) {
+  .layout[data-mobile-nav='bottom'] {
+    grid-template-rows: 1fr;
+  }
+  .layout[data-mobile-nav='bottom'] .panel {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: calc(var(--z-backdrop, 40) - 1);
+    border-bottom: 0;
+    border-top: 1px solid var(--border-default);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  .layout[data-mobile-nav='bottom'] .nav {
+    gap: 0;
+    padding: 4px max(4px, env(safe-area-inset-right, 0px)) 4px max(4px, env(safe-area-inset-left, 0px));
+    mask-image: none;
+  }
+  .layout[data-mobile-nav='bottom'] .group {
+    display: contents;
+  }
+  .layout[data-mobile-nav='bottom'] .link {
+    position: relative;
+    flex: 1 1 0;
+    min-width: 56px;
+    min-height: 48px;
+    flex-direction: column;
+    justify-content: center;
+    gap: 2px;
+    padding: 6px 2px;
+    font-size: var(--fs-meta-sm);
+    line-height: 1.2;
+    text-align: center;
+    white-space: nowrap;
+  }
+  .layout[data-mobile-nav='bottom'] .linkLabel {
+    flex: none;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  /* Есть короткая подпись — показываем её, полную оставляем читалке. */
+  .layout[data-mobile-nav='bottom'] .linkLabel[data-has-short] {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+  .layout[data-mobile-nav='bottom'] .linkShort {
+    display: block;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .layout[data-mobile-nav='bottom'] .count {
+    margin-left: 0;
+    position: absolute;
+    top: 2px;
+    left: calc(50% + 6px);
+  }
+  .layout[data-mobile-nav='bottom'] .body {
+    padding-bottom: calc(56px + env(safe-area-inset-bottom, 0px));
+  }
+}

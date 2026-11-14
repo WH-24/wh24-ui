@@ -646,3 +646,154 @@
     min-height: var(--tap-min-compact, 36px);
   }
 }
+
+/* ===== Фильтр плашками (`variant="chips"`, `.cond` принятого макета) ===== */
+.chipsBar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.chipsSearch {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 0 1 300px;
+  min-width: 160px;
+  height: var(--control-h, 36px);
+  padding: 0 var(--field-px, 10px);
+  border: var(--bd-w, 1px) solid var(--field-bd, var(--bd-strong));
+  border-radius: var(--control-r, var(--r-md));
+  background: var(--surf);
+  color: var(--ink-3);
+  transition:
+    border-color var(--dur-fast) ease,
+    box-shadow var(--dur-fast) ease;
+}
+.chipsSearch:focus-within {
+  border-color: var(--focus);
+  box-shadow: var(--field-ring);
+}
+.chipsSearchInput {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--fs-ui);
+  outline: none;
+}
+.chipsSearchInput:focus-visible {
+  outline: none;
+}
+.chipsSearchInput::placeholder {
+  color: var(--ink-3);
+}
+.cond {
+  display: inline-flex;
+  align-items: stretch;
+  min-width: 0;
+  max-width: min(360px, 100%);
+  height: var(--control-h-sm, 28px);
+  border: 1px solid var(--terra-bd);
+  border-radius: var(--r-pill);
+  background: var(--terra-bg);
+  color: var(--terra-text);
+  animation: cond-in var(--dur-base, 180ms) var(--ease-out, cubic-bezier(0.23, 1, 0.32, 1));
+}
+@keyframes cond-in {
+  from {
+    opacity: 0;
+    transform: scale(var(--pop-scale, 0.96));
+  }
+}
+.condValue,
+.condRemove {
+  display: inline-flex;
+  align-items: center;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-size: var(--fs-meta);
+  cursor: pointer;
+  border-radius: var(--r-pill);
+  transition: background var(--dur-fast) ease;
+}
+.condValue {
+  gap: 4px;
+  min-width: 0;
+  padding: 0 4px 0 11px;
+}
+.condRemove {
+  flex: none;
+  padding: 0 8px 0 4px;
+}
+.condValue:hover,
+.condRemove:hover {
+  background: color-mix(in srgb, currentColor 12%, transparent);
+}
+.condValue:focus-visible,
+.condRemove:focus-visible {
+  outline: var(--focus-ring-w) solid var(--focus);
+  outline-offset: var(--focus-ring-offset);
+  border-radius: var(--r-pill);
+}
+.condField {
+  flex: none;
+  white-space: nowrap;
+}
+/* Длинное значение (десять отделов, длинное имя) режется многоточием. */
+.condText {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: var(--fw-semibold, 600);
+}
+.condValue > svg {
+  flex: none;
+}
+.chipsAdd > svg {
+  flex: none;
+}
+.condInput {
+  width: 240px;
+  max-width: 100%;
+}
+.condRange {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 300px;
+  max-width: 100%;
+  color: var(--ink-3);
+}
+@media (pointer: coarse) {
+  .cond {
+    height: var(--tap-min-compact);
+  }
+  .condRemove {
+    min-width: var(--tap-min-compact);
+    justify-content: center;
+  }
+}
+@media (max-width: 640px) {
+  .chipsSearch {
+    flex: 1 1 100%;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cond {
+    animation-name: cond-fade;
+  }
+  @keyframes cond-fade {
+    from {
+      opacity: 0;
+    }
+  }
+}

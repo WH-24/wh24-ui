@@ -80,7 +80,11 @@ export type {
   ListGroups,
   ListPageProps,
   ListView,
+  ListSavedView,
+  ListViewLabels,
+  ListBulkLabels,
 } from './list/ListPage.js'
+export type { ListCellEdit } from './list/EditableCell.js'
 export type {
   FilterBarConfig,
   FilterFieldDef,
@@ -97,6 +101,8 @@ export { matchItem, activeCount } from './list/filter/matchItem.js'
 // внутри ListPage.
 export { FilterBar } from './list/filter/FilterBar.js'
 export type { FilterBarProps } from './list/filter/FilterBar.js'
+export { conditionText } from './list/filter/FilterChips.js'
+export type { FilterChipsLabels } from './list/filter/FilterChips.js'
 export { useFilterState } from './list/filter/useFilterState.js'
 export { Combobox, OptionMarker, hasOptionMarker } from './list/Combobox.js'
 export type { ComboboxOption, ComboboxProps } from './list/Combobox.js'
@@ -121,7 +127,7 @@ export type { FileDropProps, FileDropItem, FileDropStatusLabels } from './form/F
 // DirectoryPicker — поиск-справочник (люди/отделы/…) с вкладками, режим
 // быстрого поиска. Data-agnostic: данные/аватары/onSelect — через props.
 export { Kanban } from './Kanban/Kanban.js'
-export type { KanbanColumn, KanbanProps, KanbanTone } from './Kanban/Kanban.js'
+export type { KanbanColumn, KanbanLabels, KanbanProps, KanbanTone } from './Kanban/Kanban.js'
 export { DirectoryPicker } from './DirectoryPicker/DirectoryPicker.js'
 export type {
   DirectoryPickerProps,
@@ -223,3 +229,13 @@ export { useDelayedLoading } from './Skeleton/useDelayedLoading.js'
 export type { DelayedLoadingOptions } from './Skeleton/useDelayedLoading.js'
 export { ProgressBar } from './ProgressBar/ProgressBar.js'
 export type { ProgressBarProps, ProgressBarTone } from './ProgressBar/ProgressBar.js'
+
+// ── Списки и карточки по принятому макету (шаг 5) ────────────────────────────
+// Виды-вкладки, фильтр-плашки, массовые действия, правка в ячейке — пропсы
+// ListPage/FilterBar/Kanban; здесь — самостоятельные части.
+export { BulkActionBar } from './BulkActionBar/BulkActionBar.js'
+export type { BulkAction, BulkActionBarProps } from './BulkActionBar/BulkActionBar.js'
+export { SaveIndicator } from './SaveIndicator/SaveIndicator.js'
+export type { SaveIndicatorProps, SaveState } from './SaveIndicator/SaveIndicator.js'
+export { useFlip, flipMoves } from './motion/useFlip.js'
+export type { FlipOptions, FlipMove, FlipRect } from './motion/useFlip.js'

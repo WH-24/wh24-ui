@@ -1,0 +1,47 @@
+/* Панель у якоря с полями внутри — вид и движение как у `Menu`. */
+.pop {
+  position: fixed;
+  z-index: var(--z-popover, 300);
+  pointer-events: auto;
+  box-sizing: border-box;
+  max-width: calc(100vw - 16px);
+  padding: var(--sp-2, 8px);
+  background: var(--surf);
+  border: var(--bd-w, 1px) solid var(--bd);
+  border-radius: var(--r-lg, 10px);
+  box-shadow: var(--shadow-lg);
+  color: var(--ink);
+  font-size: var(--fs-ui, 13px);
+  outline: none;
+  transform-origin: top left;
+  animation: anchor-pop-in var(--dur-base, 180ms) var(--ease-out, cubic-bezier(0.23, 1, 0.32, 1));
+}
+.pop[data-align='end'] {
+  transform-origin: top right;
+}
+.pop[data-flipped] {
+  transform-origin: bottom left;
+}
+.pop[data-flipped][data-align='end'] {
+  transform-origin: bottom right;
+}
+/* Открыто с клавиатуры — без движения. */
+.pop[data-instant] {
+  animation: none;
+}
+@keyframes anchor-pop-in {
+  from {
+    opacity: 0;
+    transform: scale(var(--pop-scale, 0.96));
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pop {
+    animation-name: anchor-pop-fade;
+  }
+  @keyframes anchor-pop-fade {
+    from {
+      opacity: 0;
+    }
+  }
+}

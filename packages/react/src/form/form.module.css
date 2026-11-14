@@ -719,3 +719,19 @@
     height: var(--tap-min-compact);
   }
 }
+
+/* ─── Поле-призрак: правка на месте (`.ghost` принятого макета) ─────────
+   Рамки и фона нет, пока на поле не навели и не встали; ошибка видна всегда. */
+.control[data-variant='ghost']:not(:focus):not(:focus-within):not([aria-invalid='true']) {
+  border-color: transparent;
+  background: transparent;
+}
+.control[data-variant='ghost']:not(:focus):not(:focus-within):not([aria-invalid='true']):hover {
+  background: var(--surf-2);
+}
+@media (hover: none) {
+  /* Палец: наведения нет — поле слегка подсвечено всегда. */
+  .control[data-variant='ghost']:not(:focus):not(:focus-within):not([aria-invalid='true']) {
+    background: var(--surf-2);
+  }
+}

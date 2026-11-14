@@ -2,6 +2,7 @@ import {
   Fragment,
   useCallback,
   useEffect,
+  useId,
   useMemo,
   useRef,
   useState,
@@ -22,7 +23,15 @@ import { EmptyState } from "../page/EmptyState.js";
 import { ErrorState } from "../page/ErrorState.js";
 import { PageHeader } from "../page/PageHeader.js";
 import { Skeleton } from "../Skeleton/Skeleton.js";
-import type { FilterBarConfig, FilterSettingsProvider } from "./filter/types.js";
+import { BulkActionBar, type BulkAction } from "../BulkActionBar/BulkActionBar.js";
+import { Input } from "../form/Input.js";
+import { useFlip } from "../motion/useFlip.js";
+import { AnchorPopover } from "../popup/AnchorPopover.js";
+import { Tabs } from "../tabs/Tabs.js";
+import { EditableCell, type ListCellEdit } from "./EditableCell.js";
+import type { FilterChipsLabels } from "./filter/FilterChips.js";
+import { isEmptyValue } from "./filter/matchItem.js";
+import type { FilterBarConfig, FilterSettingsProvider, FilterState } from "./filter/types.js";
 import styles from "./ListPage.module.css";
 
 /** Каскад первой загрузки: задержка растёт до этого шага, дальше — общая. */
@@ -73,6 +82,49 @@ export interface ListColumn<T> {
    * подпись обрезается многоточием, действия остаются на месте.
    */
   headerActions?: ReactNode;
+  /**
+   * Правка в ячейке: щелчок (или Enter/F2 на ячейке) превращает её в поле
+   * ввода или список значений. Не задано — ячейка как раньше. Содержимое
+   * правимой ячейки (`render`) не должно содержать своих кнопок и ссылок.
+   */
+  edit?: ListCellEdit<T>;
+}
+
+/**
+ * Сохранённый вид списка — вкладка над тулбаром: название и условия фильтра.
+ * Хранит и отдаёт виды хост (свой бэкенд или localStorage) — внутри списка
+ * хранилища нет.
+ */
+export interface ListSavedView {
+  id: string;
+  label: string;
+  /** Условия вида — тот же `FilterState`, что у фильтра. */
+  state: FilterState;
+  /** Необязательные поля фильтра, видимые в панели при этом виде. */
+  fields?: string[];
+}
+
+/** Подписи видов; любую можно заменить. */
+export interface ListViewLabels {
+  tabs?: string;
+  save?: string;
+  namePlaceholder?: string;
+  submit?: string;
+}
+
+/** Подписи панели массовых действий. */
+export interface ListBulkLabels {
+  count?: (count: number) => string;
+  clear?: string;
+  toolbar?: string;
+}
+
+/** Условия без поиска и пустых значений — для сравнения вида с текущим фильтром. */
+function conditionsOf(state: FilterState): string {
+  const keys = Object.keys(state)
+    .filter((k) => k !== "q" && !isEmptyValue(state[k] ?? null))
+    .sort();
+  return JSON.stringify(keys.map((k) => [k, state[k]]));
 }
 
 /** Минимум на колонку, если не задан явно. */
@@ -232,6 +284,7 @@ export interface ListGroups<T> {
 }
 
 const DRAG_TYPE = "application/x-wh24-list-row";
+const NO_OPTIONS: ReadonlyArray<{ value: string; label: string }> = [];
 
 /**
  * Что показать на текущем уровне. `open` — открытая папка (null — корень),
@@ -348,6 +401,44 @@ export interface ListPageProps<T> {
    * открытой папки догружаются по прокрутке теми же порциями (`pageSize`).
    */
   groups?: ListGroups<T>;
+
+  // ── Виды, фильтр-плашки, массовые действия, правка в ячейке (всё по желанию) ──
+  /**
+   * Сохранённые виды — вкладки со счётчиками над тулбаром. Выбор вкладки
+   * применяет её условия; когда условия отличаются от выбранного вида,
+   * появляется «Сохранить вид» (если дан `onSaveView`). Не задано — вкладок
+   * нет, пресеты в панели фильтра работают как раньше.
+   */
+  views?: ReadonlyArray<ListSavedView>;
+  /** Выбранный вид (управляемо). Без него список ведёт выбор сам. */
+  viewId?: string | null;
+  onViewChange?: (id: string) => void;
+  /** Сохранить текущие условия новым видом. Хост добавляет его в `views`. */
+  onSaveView?: (name: string, state: FilterState) => void;
+  viewLabels?: ListViewLabels;
+  /**
+   * Вид фильтра: `panel` (по умолчанию) — поле с панелью полей и пресетов;
+   * `chips` — условия плашками «Поле: значение ▾» и кнопка «Фильтр».
+   */
+  filterVariant?: "panel" | "chips";
+  filterChipLabels?: Partial<FilterChipsLabels>;
+  /**
+   * Массовые действия: при выбранных строках снизу по центру выезжает панель
+   * «Выбрано: N» с этими действиями (нужен `selectable`). Слот
+   * `selectionActions` в тулбаре работает как раньше.
+   */
+  bulkActions?: ReadonlyArray<BulkAction>;
+  bulkLabels?: ListBulkLabels;
+  /** Массовое действие не выполнилось (Promise отклонён). */
+  onBulkError?: (error: unknown, action: BulkAction) => void;
+  /** Правка в ячейке не сохранилась: значение откатилось. */
+  onEditError?: (error: unknown, ctx: { row: T; columnKey: string; value: string }) => void;
+  /**
+   * Строки и карточки, оставшиеся после удаления, массового изменения или
+   * сужения фильтром, плавно доезжают до нового места. При сортировке
+   * движения нет. В карточном виде без папок карточка получает обёртку.
+   */
+  animateChanges?: boolean;
 }
 
 /**
@@ -385,6 +476,18 @@ export function ListPage<T>({
   selectionActions,
   columnSettings = true,
   groups,
+  views,
+  viewId: viewIdProp,
+  onViewChange,
+  onSaveView,
+  viewLabels,
+  filterVariant = "panel",
+  filterChipLabels,
+  bulkActions,
+  bulkLabels,
+  onBulkError,
+  onEditError,
+  animateChanges = false,
 }: ListPageProps<T>) {
   const {
     state: filter,
@@ -396,6 +499,100 @@ export function ListPage<T>({
     defaultSort ?? { key: columns[0]?.key ?? "", dir: "asc" },
   );
   const [selected, setSelected] = useState<Set<string>>(new Set());
+
+  // ── Сохранённые виды (вкладки) ────────────────────────────────────────────
+  const viewsPrefix = useId();
+  const filterKey = conditionsOf(filter);
+  const [ownView, setOwnView] = useState<string | null>(
+    () => views?.find((v) => conditionsOf(v.state) === filterKey)?.id ?? views?.[0]?.id ?? null,
+  );
+  const viewId = viewIdProp !== undefined ? viewIdProp : ownView;
+  const activeView = views?.find((v) => v.id === viewId) ?? null;
+  const selectView = (id: string) => {
+    const v = views?.find((x) => x.id === id);
+    if (!v) return;
+    if (viewIdProp === undefined) setOwnView(id);
+    onViewChange?.(id);
+    // Поиск — не часть вида: набранный текст остаётся при смене вкладки.
+    const q = filter.q;
+    setFilter(typeof q === "string" && q && v.state.q === undefined ? { ...v.state, q } : { ...v.state });
+    if (v.fields) setFilterFields(v.fields);
+  };
+  const viewCounts = useMemo(
+    () => views?.map((v) => data.reduce((n, r) => n + (matchItem(r, v.state, filterConfig) ? 1 : 0), 0)) ?? [],
+    [views, data, filterConfig],
+  );
+  const canSaveView =
+    Boolean(onSaveView) && filterKey !== "[]" && (!activeView || conditionsOf(activeView.state) !== filterKey);
+  const [saveOpen, setSaveOpen] = useState(false);
+  const [saveName, setSaveName] = useState("");
+  const saveBtnRef = useRef<HTMLButtonElement>(null);
+  // Только что сохранённый вид хост добавит в `views` — выбираем его вкладку.
+  const savedKey = useRef<string | null>(null);
+  useEffect(() => {
+    if (savedKey.current === null || !views) return;
+    const fresh = views.find((v) => v.id !== viewId && conditionsOf(v.state) === savedKey.current);
+    if (!fresh) return;
+    savedKey.current = null;
+    if (viewIdProp === undefined) setOwnView(fresh.id);
+    onViewChange?.(fresh.id);
+  }, [views, viewId, viewIdProp, onViewChange]);
+  const submitView = () => {
+    const name = saveName.trim();
+    if (!name || !onSaveView) return;
+    const state: FilterState = {};
+    for (const k of Object.keys(filter)) {
+      const v = filter[k] ?? null;
+      if (k !== "q" && !isEmptyValue(v)) state[k] = v;
+    }
+    savedKey.current = filterKey;
+    onSaveView(name, state);
+    setSaveOpen(false);
+    setSaveName("");
+  };
+  const saveViewControl = canSaveView ? (
+    <>
+      <button
+        ref={saveBtnRef}
+        type="button"
+        className="btn btn-ghost btn-sm"
+        aria-haspopup="dialog"
+        aria-expanded={saveOpen}
+        onClick={() => setSaveOpen((o) => !o)}
+      >
+        <Icon name="plus" size={14} />
+        {viewLabels?.save ?? "Сохранить вид"}
+      </button>
+      <AnchorPopover
+        open={saveOpen}
+        anchor={() => saveBtnRef.current}
+        label={viewLabels?.save ?? "Сохранить вид"}
+        onClose={(back) => {
+          setSaveOpen(false);
+          if (back) saveBtnRef.current?.focus();
+        }}
+      >
+        <form
+          className={styles.saveView}
+          onSubmit={(e) => {
+            e.preventDefault();
+            submitView();
+          }}
+        >
+          <Input
+            value={saveName}
+            onChange={(e) => setSaveName(e.target.value)}
+            placeholder={viewLabels?.namePlaceholder ?? "Название вида"}
+            aria-label={viewLabels?.namePlaceholder ?? "Название вида"}
+            maxLength={60}
+          />
+          <button type="submit" className="btn btn-primary btn-sm" disabled={!saveName.trim()}>
+            {viewLabels?.submit ?? "Сохранить"}
+          </button>
+        </form>
+      </AnchorPopover>
+    </>
+  ) : null;
   // Режим показа: сохранённый выбор пользователя (по scope) важнее defaultView.
   // Переключатель есть только там, где кроме таблицы задан хоть один вид.
   const hasCards = Boolean(renderCard);
@@ -743,6 +940,16 @@ export function ListPage<T>({
     return () => io.disconnect();
   }, [viewMode, hasMore, pageSize, totalRows, shown]);
 
+  // Переезд оставшихся строк: повод — сменился НАБОР строк (удаление, фильтр,
+  // массовое изменение), а не их порядок: сортировка движения не даёт.
+  const pageRef = useRef<HTMLDivElement>(null);
+  const flipTrigger = useMemo(() => {
+    if (!animateChanges) return "";
+    if (filtered.length > 2000) return String(filtered.length);
+    return filtered.map(getId).sort().join("\u0001");
+  }, [animateChanges, filtered, getId]);
+  useFlip(pageRef, flipTrigger, { disabled: !animateChanges });
+
   const canDrag = Boolean(groups?.onMove);
   const rowById = useMemo(() => new Map(data.map((r) => [getId(r), r])), [data, getId]);
 
@@ -897,6 +1104,7 @@ export function ListPage<T>({
       <tr
         key={id}
         {...dragProps(row)}
+        data-flip-id={animateChanges ? id : undefined}
         data-selected={selectable ? String(selected.has(id)) : undefined}
         onClick={onRowClick ? () => onRowClick(row) : undefined}
         // Строка открывается и с клавиатуры: Tab до строки, Enter/пробел —
@@ -930,10 +1138,13 @@ export function ListPage<T>({
           // В первой ячейке — чекбокс выбора (виден при наведении/выборе),
           // отдельной колонки чекбоксов нет.
           const host = selectable && i === 0;
+          const ed = c.edit && (c.edit.canEdit?.(row) ?? true) ? c.edit : null;
           return (
             <td
               key={c.key}
-              className={[c.className, host ? styles.colSelectHost : ""].filter(Boolean).join(" ")}
+              className={[c.className, host ? styles.colSelectHost : "", ed ? styles.cellEditable : ""]
+                .filter(Boolean)
+                .join(" ")}
               onMouseEnter={showFullOnHover}
             >
               {host && (
@@ -945,7 +1156,21 @@ export function ListPage<T>({
                   />
                 </span>
               )}
-              {c.render(row)}
+              {ed ? (
+                <EditableCell
+                  type={ed.type}
+                  options={ed.options ?? NO_OPTIONS}
+                  value={ed.getValue?.(row) ?? c.sortValue?.(row) ?? ""}
+                  label={ed.ariaLabel ?? c.label}
+                  placeholder={ed.placeholder}
+                  onCommit={(v) => ed.onCommit(row, v)}
+                  onError={(e, v) => onEditError?.(e, { row, columnKey: c.key, value: v })}
+                >
+                  {c.render(row)}
+                </EditableCell>
+              ) : (
+                c.render(row)
+              )}
             </td>
           );
         })}
@@ -981,6 +1206,7 @@ export function ListPage<T>({
     () => filtered.filter((r) => selected.has(getId(r))),
     [filtered, selected, getId],
   );
+  const selectedIds = useMemo(() => selectedRows.map(getId), [selectedRows, getId]);
 
   // +1 — служебная колонка с шестерёнкой. Отдельной колонки чекбоксов нет:
   // чекбокс выбора живёт в первой ячейке.
@@ -1057,10 +1283,45 @@ export function ListPage<T>({
         : empty
       : null;
 
+  // С видами содержимое списка — панель выбранной вкладки (для читалки).
+  // Обёртка `display: contents`: раскладка страницы от неё не меняется.
+  const wrapView = (node: ReactNode) =>
+    views && views.length > 0 && activeView ? (
+      <div
+        className={styles.viewPanel}
+        role="tabpanel"
+        id={`${viewsPrefix}-panel-${activeView.id}`}
+        aria-labelledby={`${viewsPrefix}-tab-${activeView.id}`}
+      >
+        {node}
+      </div>
+    ) : (
+      node
+    );
+
   return (
-    <div className={styles.page}>
+    <div className={styles.page} ref={pageRef}>
       {/* Заголовок страницы-списка — общий PageHeader (h1). */}
       <PageHeader title={title} subtitle={subtitle} />
+
+      {views && views.length > 0 && (
+        <Tabs
+          tabs={views.map((v, i) => ({
+            id: v.id,
+            label: (
+              <span className={styles.viewTabLabel} title={v.label}>
+                {v.label}
+              </span>
+            ),
+            count: viewCounts[i],
+          }))}
+          value={viewId ?? ""}
+          onChange={selectView}
+          ariaLabel={viewLabels?.tabs ?? "Виды списка"}
+          idPrefix={viewsPrefix}
+          className={styles.viewTabs}
+        />
+      )}
 
       <div className={styles.toolbar}>
         {toolbarStart?.({ filtered })}
@@ -1075,11 +1336,15 @@ export function ListPage<T>({
           setFields={setFilterFields}
           canEditFields={canEditFields}
           settings={filterSettings}
+          variant={filterVariant}
+          chipLabels={filterChipLabels}
+          trailing={saveViewControl}
         />
+        {filterVariant !== "chips" && saveViewControl}
 
         <div style={{ flex: 1 }} />
 
-        {selectable && selected.size > 0 && (
+        {selectable && selected.size > 0 && !(bulkActions && !selectionActions) && (
           <>
             <span className={styles.selectionCount}>{selected.size} выбрано</span>
             {selectionActions?.({
@@ -1140,6 +1405,8 @@ export function ListPage<T>({
         {toolbarEnd?.({ viewMode })}
       </div>
 
+      {wrapView(
+        <>
       {viewMode !== "board" && viewMode !== "dashboard" && (dropBar || crumbs)}
 
       {viewMode === "list" && (
@@ -1352,7 +1619,7 @@ export function ListPage<T>({
             {level.rows.length > 0 && (
               <div className={styles.listCardsGrid} data-reveal={revealAttr}>
                 {levelRows.map((row) => (
-                  <div key={getId(row)} {...dragProps(row)}>
+                  <div key={getId(row)} {...dragProps(row)} data-flip-id={animateChanges ? getId(row) : undefined}>
                     {renderCard(row)}
                   </div>
                 ))}
@@ -1370,9 +1637,15 @@ export function ListPage<T>({
         ) : (
           <>
             <div className={styles.listCardsGrid} data-reveal={revealAttr}>
-              {visible.map((row) => (
-                <Fragment key={getId(row)}>{renderCard(row)}</Fragment>
-              ))}
+              {visible.map((row) =>
+                animateChanges ? (
+                  <div key={getId(row)} data-flip-id={getId(row)} className={styles.flipCard}>
+                    {renderCard(row)}
+                  </div>
+                ) : (
+                  <Fragment key={getId(row)}>{renderCard(row)}</Fragment>
+                ),
+              )}
             </div>
             {/* Сентинел: как только виден — догружаем следующую порцию. */}
             {hasMore && <div ref={sentinelRef} className={styles.cardsSentinel} />}
@@ -1398,6 +1671,20 @@ export function ListPage<T>({
           </div>
         </div>
       ) : null}
+        </>,
+      )}
+
+      {selectable && bulkActions && bulkActions.length > 0 && (
+        <BulkActionBar
+          selectedIds={selectedIds}
+          actions={bulkActions}
+          onClear={clearSelection}
+          onError={onBulkError}
+          countLabel={bulkLabels?.count}
+          clearLabel={bulkLabels?.clear}
+          ariaLabel={bulkLabels?.toolbar}
+        />
+      )}
     </div>
   );
 }

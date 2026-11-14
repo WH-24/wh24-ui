@@ -1,0 +1,18 @@
+/* Отметка сохранения — `.saveind` принятого макета. */
+.root {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--fs-meta);
+  color: var(--ink-3);
+  white-space: nowrap;
+}
+.root[data-state='idle'] {
+  display: none;
+}
+.root[data-state='saved'] svg {
+  color: var(--good);
+}
+.root[data-state='error'] {
+  color: var(--bad);
+}

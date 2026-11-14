@@ -41,7 +41,7 @@ export interface DialogHeaderProps {
 
 export function DialogHeader({ title, titleId, onClose, closeDisabled, actions, className }: DialogHeaderProps) {
   return (
-    <div className={cx(styles.head, className)}>
+    <div className={cx(styles.head, className)} data-dialog-head="">
       <h2 id={titleId} className={styles.title}>
         {title}
       </h2>
