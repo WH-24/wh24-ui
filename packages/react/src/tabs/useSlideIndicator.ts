@@ -25,6 +25,11 @@ export function useSlideIndicator(
   instant: MutableRefObject<boolean>,
   /** Число элементов: при смене заново подписываемся на их размеры. */
   count: number,
+  /**
+   * Элементы переносятся на новые строки (вкладки карточки записи): полоса
+   * встаёт под выбранный элемент и по вертикали.
+   */
+  wrap = false,
 ): void {
   const placed = useRef(false)
   const place = useRef<(now: boolean) => void>(() => {})
@@ -42,7 +47,11 @@ export function useSlideIndicator(
     if (now || !placed.current) ind.setAttribute('data-instant', '')
     else ind.removeAttribute('data-instant')
     if (mode === 'scale') {
-      ind.style.transform = `translateX(${el.offsetLeft}px) scaleX(${width / BASE_WIDTH})`
+      // Полоса прижата к низу контейнера (на 1px ниже — на месте его рамки);
+      // в верхних строках поднимаем её под выбранный элемент.
+      const dy = wrap ? el.offsetTop + el.offsetHeight - (container.clientHeight + 1) : 0
+      const x = dy ? `translate(${el.offsetLeft}px, ${dy}px)` : `translateX(${el.offsetLeft}px)`
+      ind.style.transform = `${x} scaleX(${width / BASE_WIDTH})`
     } else {
       ind.style.width = `${width}px`
       ind.style.transform = `translateX(${el.offsetLeft}px)`

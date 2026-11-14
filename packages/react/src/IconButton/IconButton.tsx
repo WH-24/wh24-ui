@@ -1,13 +1,13 @@
-import type { ReactNode } from 'react'
+import { forwardRef, type ButtonHTMLAttributes, type ReactNode } from 'react'
 
 import styles from './IconButton.module.css'
 
-export interface IconButtonProps {
+export interface IconButtonProps
+  extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'children' | 'title' | 'aria-label'> {
   ariaLabel: string
   children: ReactNode
-  onClick?: () => void
-  /** Недоступна (первый шаг нельзя поднять выше, идёт запрос). */
-  disabled?: boolean
+  /** Сторона квадрата, px: 32 (по умолчанию) или 24 — в плотных строках и чипах. */
+  size?: 32 | 24
   /** Кнопка раскрывает/сворачивает блок — читалка объявит состояние. */
   ariaExpanded?: boolean
   /** Кнопка-переключатель (закладка, «в избранном»). */
@@ -17,32 +17,29 @@ export interface IconButtonProps {
 }
 
 /**
- * Square 32×32 icon-only button. Used in topbar (theme toggle,
- * admin link), action bars, and similar places.
+ * Квадратная кнопка-значок (32×32 или 24×24): шапка, панели действий,
+ * «Закрыть» окна, «⋯» меню. Принимает `ref`, `className` и любые атрибуты
+ * кнопки — её можно класть якорем в меню и подсказку.
  */
-export function IconButton({
-  ariaLabel,
-  children,
-  onClick,
-  disabled,
-  ariaExpanded,
-  ariaPressed,
-  title,
-}: IconButtonProps) {
+export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(function IconButton(
+  { ariaLabel, children, size = 32, ariaExpanded, ariaPressed, title, className, type = 'button', ...rest },
+  ref,
+) {
   return (
     <button
-      type="button"
-      className={styles.btn}
-      aria-label={ariaLabel}
       aria-expanded={ariaExpanded}
       aria-pressed={ariaPressed}
+      {...rest}
+      ref={ref}
+      type={type}
+      className={className ? `${styles.btn} ${className}` : styles.btn}
+      data-size={size === 24 ? '24' : undefined}
+      aria-label={ariaLabel}
       title={title ?? ariaLabel}
-      disabled={disabled}
-      onClick={onClick}
     >
       <span className={styles.icon} aria-hidden="true">
         {children}
       </span>
     </button>
   )
-}
+})

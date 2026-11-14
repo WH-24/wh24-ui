@@ -291,7 +291,7 @@ export function RecordCard(props: RecordCardProps) {
           </div>
           <div className={s.headActions}>
             {pyrusUrl && (
-              <a className={s.btn} href={pyrusUrl} target="_blank" rel="noopener noreferrer">
+              <a className="btn btn-secondary" href={pyrusUrl} target="_blank" rel="noopener noreferrer">
                 {props.icons?.external ?? <Icon name="external" size={14} />}
                 Открыть в Pyrus
               </a>

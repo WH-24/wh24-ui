@@ -97,118 +97,24 @@
   align-items: center;
   gap: 8px;
 }
-/* Вид — как у канонической .btn-secondary (ui-tokens/button.css): высота,
-   скругление, кегль, наведение, нажатие, недоступность. */
-.btn {
-  min-height: var(--btn-h);
-  padding: 0 var(--sp-6);
-  border-radius: var(--btn-r);
-  border: 1px solid var(--border-default);
-  background: var(--bg-surface);
-  color: var(--fg-primary);
-  font: inherit;
-  font-size: var(--btn-fs);
-  font-weight: var(--fw-medium);
-  line-height: var(--lh-snug);
-  transition:
-    background var(--dur-fast) ease,
-    border-color var(--dur-fast) ease,
-    color var(--dur-fast) ease,
-    transform var(--dur-fast) var(--ease-out);
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  cursor: pointer;
-  text-decoration: none;
-  white-space: nowrap;
-}
-.btn:hover {
-  background: var(--bg-hover);
-  border-color: var(--border-strong);
-}
-.btn:active:not(:disabled) {
-  transform: scale(var(--press-scale));
-}
-@media (prefers-reduced-motion: reduce) {
-  .btn:active:not(:disabled) {
-    transform: none;
-  }
-}
-.btn:disabled {
-  opacity: var(--disabled-opacity);
-  cursor: not-allowed;
-  pointer-events: none;
-}
-.iconBtn {
+/* Квадратная кнопка «⋯»: вид — глобальные `btn btn-secondary`. */
+.iconBtn.iconBtn {
   width: var(--btn-h);
   padding: 0;
-  justify-content: center;
 }
-.btn:focus-visible,
-.iconBtn:focus-visible,
-.tab:focus-visible,
-.stage:focus-visible,
-.menuItem:focus-visible {
+.stage:focus-visible {
   outline: var(--focus-ring-w) solid var(--focus);
   outline-offset: var(--focus-ring-offset);
 }
 
-/* ── Меню «⋯» ── */
-.menuWrap {
-  position: relative;
-}
-.menu {
-  position: absolute;
-  right: 0;
-  top: calc(100% + 6px);
-  z-index: var(--z-popover);
+/* ── Меню «⋯» — общий `Menu`; здесь только ширина ── */
+.menu.menu {
   width: min(300px, calc(100vw - 32px));
-  /* 25 пунктов не уходят за экран — меню прокручивается. */
-  max-height: min(360px, calc(100vh - 16px));
-  overflow-y: auto;
-  padding: 4px;
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--border-default);
-  background: var(--bg-surface);
-  box-shadow: var(--shadow-lg);
+  max-width: none;
 }
-.menuItem {
-  width: 100%;
-  min-height: var(--item-h);
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  /* Вертикальные поля — для пункта в две строки. */
-  padding: var(--sp-2) var(--sp-3);
-  line-height: var(--lh-snug);
-  border: none;
-  border-radius: var(--radius-sm);
-  background: transparent;
-  font: inherit;
-  font-size: var(--fs-ui);
-  color: var(--fg-primary);
-  cursor: pointer;
-  text-align: left;
-  overflow-wrap: anywhere;
+.menuWrap {
+  display: inline-flex;
 }
-.menuItem:hover,
-.menuItem:focus-visible {
-  background: var(--bg-hover);
-}
-.menuDanger {
-  color: var(--danger-fg);
-}
-.menuHint {
-  margin-left: auto;
-  font-size: var(--fs-meta);
-  color: var(--fg-tertiary);
-}
-.menuSep {
-  height: 1px;
-  margin: 4px;
-  background: var(--border-subtle);
-}
-
 /* ── Полоса стадий ── */
 /* Стадий бывает 15+: полоса в один ряд с прокруткой вбок, текст стадии — в
    строку целиком (владелец 28.10.2026). Пока стадий мало, они растягиваются. */
@@ -417,55 +323,24 @@
 .bodyFixed .paneFill [role="log"] {
   max-height: none;
 }
-.tablist {
-  display: flex;
-  flex-wrap: wrap;
+/* Вкладки колонки — общий `Tabs` (tabs.module.css) со своей раскладкой:
+   без нижней рамки и отступов, плотнее. Двойной класс — чтобы перекрыть
+   базовые правила `Tabs` при любом порядке файлов в сборке. */
+.recordTabs.recordTabs {
+  margin-bottom: 0;
+}
+.recordTabs.recordTabs [role='tab'] {
+  padding: 0 var(--sp-5);
+  gap: 6px;
+}
+.tablist.tablist {
   gap: 4px;
   flex: 1 1 auto;
   min-width: 0;
+  padding: 0;
+  border-bottom: none;
 }
-/* Вид — как у вкладок страницы (tabs.module.css): кегль, цвет, жирность
-   выбранной, цвет черты. */
-.tab {
-  min-height: var(--tab-h);
-  padding: 0 var(--sp-5);
-  border: none;
-  border-bottom: 2px solid transparent;
-  background: transparent;
-  font: inherit;
-  font-size: var(--fs-ui);
-  color: var(--fg-tertiary);
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
-.tab:hover {
-  color: var(--fg-primary);
-}
-.tab[aria-selected="true"] {
-  color: var(--fg-primary);
-  font-weight: 500;
-  border-bottom-color: var(--accent-600);
-}
-.tabCount {
-  /* Счётчик — один вид на библиотеку: вкладки, заголовок страницы, запись,
-     канбан, панель модуля. */
-  font-size: var(--fs-meta-sm);
-  font-weight: var(--fw-medium);
-  line-height: 1.45;
-  padding: 1px 6px;
-  border-radius: var(--r-pill);
-  background: var(--bg-muted);
-  color: var(--fg-secondary);
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-}
-.tab[aria-selected="true"] .tabCount {
-  background: var(--accent-50);
-  color: var(--accent-text);
-}
-.mobileTabs {
+.mobileTabs.mobileTabs {
   display: none;
 }
 
@@ -500,7 +375,7 @@
   .pane {
     flex-basis: 100%;
   }
-  .mobileTabs {
+  .mobileTabs.mobileTabs {
     display: flex;
     position: sticky;
     top: 0;
@@ -509,7 +384,7 @@
     border-bottom: 1px solid var(--border-subtle);
     padding: 0 16px;
   }
-  .mobileTabs .tab {
+  .mobileTabs.mobileTabs [role='tab'] {
     flex: 1 1 0;
     justify-content: center;
     min-height: var(--tap-min);
@@ -518,48 +393,15 @@
     display: none;
   }
 }
-/* Палец (в том числе iPad, а не только узкий экран): цели не меньше 44px,
-   пункты меню — 36px. */
+/* Палец (в том числе iPad, а не только узкий экран): цели не меньше 44px. */
 @media (pointer: coarse) {
-  .btn,
   .iconBtn,
-  .tab,
+  .recordTabs.recordTabs [role='tab'],
   .stage,
   .smallBtn {
     min-height: var(--tap-min);
   }
   .iconBtn {
     width: var(--tap-min);
-  }
-  .menuItem {
-    min-height: var(--tap-min-compact);
-  }
-}
-
-/* ── Движение: меню «⋯» ──
-   Вход — прозрачность и масштаб от стороны контрола (--dur-base, ease-out);
-   выход доигрывает компонент (--dur-base-exit). Открыто с клавиатуры
-   (data-instant) — без анимации. */
-.menu {
-  transform-origin: top right;
-  animation: record-menu-in var(--dur-base) var(--ease-out);
-}
-.menu[data-instant] {
-  animation: none;
-}
-@keyframes record-menu-in {
-  from {
-    opacity: 0;
-    transform: scale(var(--pop-scale));
-  }
-}
-@keyframes record-menu-fade {
-  from {
-    opacity: 0;
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .menu {
-    animation-name: record-menu-fade;
   }
 }

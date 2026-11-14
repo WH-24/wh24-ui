@@ -1,0 +1,141 @@
+/* Меню действий — одно на библиотеку. Координаты (top/left) ставит компонент
+   от кнопки-якоря; вид — как у меню «⋯» карточки записи и канбана. */
+.menu {
+  position: fixed;
+  z-index: var(--z-popover, 300);
+  /* Меню поверх модального Radix-диалога обязано оставаться кликабельным. */
+  pointer-events: auto;
+  box-sizing: border-box;
+  min-width: 200px;
+  max-width: min(320px, calc(100vw - 16px));
+  /* 25 пунктов не уходят за экран — меню прокручивается. */
+  max-height: min(360px, calc(100vh - 16px));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: var(--sp-1, 4px);
+  background: var(--surf);
+  border: var(--bd-w, 1px) solid var(--bd);
+  border-radius: var(--r-lg, 10px);
+  box-shadow: var(--shadow-lg);
+  color: var(--ink);
+  font-size: var(--fs-ui, 13px);
+  /* Растёт от кнопки: угол со стороны якоря. */
+  transform-origin: top right;
+  animation: menu-in var(--dur-base, 180ms) var(--ease-out, cubic-bezier(0.23, 1, 0.32, 1));
+}
+.menu[data-align='start'] {
+  transform-origin: top left;
+}
+.menu[data-flipped] {
+  transform-origin: bottom right;
+}
+.menu[data-flipped][data-align='start'] {
+  transform-origin: bottom left;
+}
+/* Открыто с клавиатуры — без анимации. */
+.menu[data-instant] {
+  animation: none;
+}
+@keyframes menu-in {
+  from {
+    opacity: 0;
+    transform: scale(var(--pop-scale, 0.96));
+  }
+}
+@keyframes menu-fade {
+  from {
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .menu {
+    animation-name: menu-fade;
+  }
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3, 8px);
+  width: 100%;
+  min-height: var(--item-h, 34px);
+  /* Вертикальные поля — для пункта в две строки. */
+  padding: var(--sp-2, 6px) var(--sp-3, 8px);
+  border: 0;
+  border-radius: var(--r-sm, 5px);
+  background: none;
+  font: inherit;
+  font-size: var(--fs-ui, 13px);
+  line-height: var(--lh-snug, 1.3);
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+}
+.item:hover:not(:disabled),
+.item:focus-visible {
+  background: var(--surf-2);
+}
+.item:focus-visible {
+  outline: var(--focus-ring-w, 2px) solid var(--focus);
+  outline-offset: var(--focus-ring-inset, -2px);
+}
+.item:disabled {
+  opacity: var(--disabled-opacity, 0.45);
+  cursor: not-allowed;
+}
+.danger {
+  color: var(--bad);
+}
+.icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  min-width: 16px;
+  color: var(--ink-3);
+}
+.danger .icon {
+  color: inherit;
+}
+.label {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.hint {
+  margin-left: auto;
+  flex: 0 1 auto;
+  font-size: var(--fs-meta, 12px);
+  color: var(--ink-3);
+}
+.shortcut {
+  margin-left: auto;
+  flex: 0 0 auto;
+  font: var(--fs-meta-sm, 11px) var(--font-mono, ui-monospace, monospace);
+  color: var(--ink-3);
+}
+.check {
+  display: inline-flex;
+  flex: 0 0 auto;
+  width: 14px;
+  height: 14px;
+  color: var(--terra-text, var(--terra));
+}
+.sep {
+  height: 1px;
+  margin: var(--sp-1, 4px);
+  background: var(--bd-soft);
+}
+.groupLabel {
+  padding: var(--sp-1, 4px) var(--sp-3, 8px);
+  font-size: var(--fs-meta-sm, 11px);
+  color: var(--ink-3);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+@media (pointer: coarse) {
+  .item {
+    min-height: var(--tap-min-compact, 36px);
+  }
+}

@@ -1,7 +1,8 @@
 import { useEffect, useId, useMemo, useRef, useState, type CSSProperties, type DragEvent, type ReactNode } from 'react'
 
 import { Icon } from '../list/Icon.js'
-import { usePopPresence } from '../overlay/presence.js'
+import { IconButton } from '../IconButton/IconButton.js'
+import { Menu, MenuItem, MenuLabel } from '../Menu/Menu.js'
 
 import styles from './Kanban.module.css'
 
@@ -313,49 +314,7 @@ function KanbanCard({
   onDown,
   children,
 }: CardProps) {
-  const [menu, setMenu] = useState(false)
   const menuId = useId()
-  // Меню — position: fixed от кнопки: колонка прокручивается сама, и
-  // абсолютное меню у нижней карточки обрезалось бы её краем.
-  const [pos, setPos] = useState<CSSProperties>({})
-  const menuRef = useRef<HTMLDivElement>(null)
-  const btnRef = useRef<HTMLButtonElement>(null)
-  const pop = usePopPresence(menu, menuRef)
-
-  const openMenu = () => {
-    const r = btnRef.current?.getBoundingClientRect()
-    if (r) {
-      const right = Math.max(8, window.innerWidth - r.right)
-      // Снизу места мало — раскрываемся вверх.
-      setPos(
-        r.bottom + 240 > window.innerHeight
-          ? { bottom: window.innerHeight - r.top + 4, right }
-          : { top: r.bottom + 4, right },
-      )
-    }
-    setMenu(true)
-  }
-
-  useEffect(() => {
-    if (!menu) return
-    const close = (e: MouseEvent) => {
-      if (!menuRef.current?.contains(e.target as Node) && !btnRef.current?.contains(e.target as Node)) setMenu(false)
-    }
-    // Прокрутка или ресайз уводят кнопку из-под меню — проще закрыть.
-    const hide = (e: Event) => {
-      if (!menuRef.current?.contains(e.target as Node)) setMenu(false)
-    }
-    document.addEventListener('mousedown', close)
-    window.addEventListener('scroll', hide, true)
-    window.addEventListener('resize', hide)
-    menuRef.current?.querySelector('button')?.focus()
-    return () => {
-      document.removeEventListener('mousedown', close)
-      window.removeEventListener('scroll', hide, true)
-      window.removeEventListener('resize', hide)
-    }
-  }, [menu])
-
   const hasMenu = targets.length > 0 || !!onUp || !!onDown
   const cls = [
     styles.card,
@@ -399,119 +358,49 @@ function KanbanCard({
       )}
       {hasMenu && (
         <div className={styles.moveWrap}>
-          <button
-            ref={btnRef}
-            type="button"
-            className={styles.moveBtn}
-            aria-haspopup="menu"
-            aria-expanded={menu}
-            aria-label={`Переместить «${label}»`}
-            title="Переместить в…"
-            disabled={busy}
-            onClick={() => (menu ? setMenu(false) : openMenu())}
+          <Menu
+            label={`Действия: ${label}`}
+            trigger={
+              <IconButton size={24} ariaLabel={`Переместить «${label}»`} title="Переместить в…" disabled={busy}>
+                <Icon name="more" size={16} />
+              </IconButton>
+            }
           >
-            <Icon name="more" size={16} />
-          </button>
-          {pop.mounted && (
-            <div
-              ref={menuRef}
-              className={styles.menu}
-              style={pos}
-              // Раскрыто вверх — растёт от нижнего правого угла, от кнопки «⋯».
-              data-flipped={pos.bottom !== undefined || undefined}
-              data-instant={pop.instant || undefined}
-              role="menu"
-              aria-label={`Действия: ${label}`}
-              // Tab из меню уводит фокус — меню закрываем, а не оставляем висеть.
-              onBlur={(e) => {
-                const to = e.relatedTarget as Node | null
-                if (to && (menuRef.current?.contains(to) || btnRef.current?.contains(to))) return
-                setMenu(false)
-              }}
-              onKeyDown={(e) => {
-                if (e.key === 'Escape') {
-                  e.preventDefault()
-                  e.stopPropagation()
-                  setMenu(false)
-                  btnRef.current?.focus()
-                }
-                if (['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(e.key)) {
-                  e.preventDefault()
-                  const btns = Array.from(menuRef.current?.querySelectorAll('button') ?? [])
-                  const i = btns.indexOf(document.activeElement as HTMLButtonElement)
-                  const next =
-                    e.key === 'Home'
-                      ? btns[0]
-                      : e.key === 'End'
-                        ? btns[btns.length - 1]
-                        : btns[(i + (e.key === 'ArrowDown' ? 1 : btns.length - 1)) % btns.length]
-                  next?.focus()
-                }
-              }}
-            >
-              {(onUp || onDown) && (
-                <div role="group" aria-labelledby={`${menuId}-order`}>
-                  <div id={`${menuId}-order`} className={styles.menuTitle} role="presentation">
-                    Порядок
-                  </div>
-                  {onUp && (
-                    <button
-                      type="button"
-                      role="menuitem"
-                      tabIndex={-1}
-                      className={styles.menuItem}
-                      onClick={() => {
-                        setMenu(false)
-                        onUp()
-                      }}
-                    >
-                      <Icon name="arrowup" size={14} />
-                      Выше
-                    </button>
-                  )}
-                  {onDown && (
-                    <button
-                      type="button"
-                      role="menuitem"
-                      tabIndex={-1}
-                      className={styles.menuItem}
-                      onClick={() => {
-                        setMenu(false)
-                        onDown()
-                      }}
-                    >
-                      <Icon name="arrowdown" size={14} />
-                      Ниже
-                    </button>
-                  )}
-                </div>
-              )}
-              {targets.length > 0 && (
-                <div role="group" aria-labelledby={`${menuId}-move`}>
-                  <div id={`${menuId}-move`} className={styles.menuTitle} role="presentation">
-                    Переместить в
-                  </div>
-                  {targets.map((t) => (
-                    <button
-                      key={t.id}
-                      type="button"
-                      role="menuitem"
-                      tabIndex={-1}
-                      className={styles.menuItem}
-                      style={{ '--kanban-tone': toneVar[t.tone ?? 'neutral'] } as CSSProperties}
-                      onClick={() => {
-                        setMenu(false)
-                        onMove(t.id)
-                      }}
-                    >
-                      <span className={styles.dot} aria-hidden="true" />
-                      {t.title}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
+            {(onUp || onDown) && (
+              <div role="group" aria-labelledby={`${menuId}-order`}>
+                <MenuLabel id={`${menuId}-order`}>Порядок</MenuLabel>
+                {onUp && (
+                  <MenuItem icon={<Icon name="arrowup" size={14} />} onSelect={onUp}>
+                    Выше
+                  </MenuItem>
+                )}
+                {onDown && (
+                  <MenuItem icon={<Icon name="arrowdown" size={14} />} onSelect={onDown}>
+                    Ниже
+                  </MenuItem>
+                )}
+              </div>
+            )}
+            {targets.length > 0 && (
+              <div role="group" aria-labelledby={`${menuId}-move`}>
+                <MenuLabel id={`${menuId}-move`}>Переместить в</MenuLabel>
+                {targets.map((t) => (
+                  <MenuItem
+                    key={t.id}
+                    icon={
+                      <span
+                        className={styles.dot}
+                        style={{ '--kanban-tone': toneVar[t.tone ?? 'neutral'] } as CSSProperties}
+                      />
+                    }
+                    onSelect={() => onMove(t.id)}
+                  >
+                    {t.title}
+                  </MenuItem>
+                ))}
+              </div>
+            )}
+          </Menu>
         </div>
       )}
     </li>

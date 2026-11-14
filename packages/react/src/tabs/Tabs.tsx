@@ -29,16 +29,22 @@ export interface TabsProps<K extends string> {
   /** Имя группы вкладок для читалки. */
   ariaLabel: string
   idPrefix: string
+  /** Свой класс списка вкладок (отступы, рамка, липкая шапка). */
   className?: string
+  /**
+   * Вкладки не помещаются — переносятся на новую строку, а не прокручиваются
+   * вбок (вкладки колонки карточки записи).
+   */
+  wrap?: boolean
 }
 
-export function Tabs<K extends string>({ tabs, value, onChange, ariaLabel, idPrefix, className }: TabsProps<K>) {
+export function Tabs<K extends string>({ tabs, value, onChange, ariaLabel, idPrefix, className, wrap }: TabsProps<K>) {
   const refs = useRef<(HTMLButtonElement | null)[]>([])
   const listRef = useRef<HTMLDivElement>(null)
   const indRef = useRef<HTMLSpanElement>(null)
   // Действие с клавиатуры не анимируется: полоса встаёт сразу.
   const instant = useRef(false)
-  useSlideIndicator(listRef, indRef, '[role="tab"][aria-selected="true"]', 'scale', instant, tabs.length)
+  useSlideIndicator(listRef, indRef, '[role="tab"][aria-selected="true"]', 'scale', instant, tabs.length, wrap)
   const hasValue = tabs.some((t) => t.id === value)
   const move = (i: number) => {
     const n = (i + tabs.length) % tabs.length
@@ -60,6 +66,7 @@ export function Tabs<K extends string>({ tabs, value, onChange, ariaLabel, idPre
       role="tablist"
       aria-label={ariaLabel}
       className={className ? `${styles.tabs} ${className}` : styles.tabs}
+      data-wrap={wrap || undefined}
     >
       {tabs.map((t, i) => {
         const on = t.id === value
