@@ -1,6 +1,7 @@
 import { useRef, useState, type DragEvent, type CSSProperties } from 'react'
 
 import { Icon } from '../list/Icon.js'
+import { ProgressBar } from '../ProgressBar/ProgressBar.js'
 
 import styles from './form.module.css'
 
@@ -16,6 +17,31 @@ export interface FileDropItem {
    * берут по клику, через `onOpen`, а не держат в списке заранее.
    */
   href?: string
+  /**
+   * Состояние загрузки. Не задано — обычный прикреплённый файл, как раньше.
+   * `uploading` — под строкой бежит полоса (с `progress` — заполняется),
+   * `done` — «Загружен», `error` — «Не загрузился» и «Повторить».
+   */
+  status?: 'uploading' | 'done' | 'error'
+  /** Сколько загружено, 0–100. Только для `uploading`; не задано — полоса бежит. */
+  progress?: number
+  /** Повторить загрузку после ошибки. Без обработчика ссылки «Повторить» нет. */
+  onRetry?: () => void
+}
+
+/** Подписи состояния загрузки. */
+export interface FileDropStatusLabels {
+  uploading: string
+  done: string
+  error: string
+  retry: string
+}
+
+const STATUS_LABELS: FileDropStatusLabels = {
+  uploading: 'Загружается…',
+  done: 'Загружен',
+  error: 'Не загрузился',
+  retry: 'Повторить',
 }
 
 export interface FileDropProps {
@@ -35,6 +61,8 @@ export interface FileDropProps {
   id?: string
   className?: string
   style?: CSSProperties
+  /** Свои подписи состояния загрузки (по умолчанию — русские). */
+  statusLabels?: Partial<FileDropStatusLabels>
 }
 
 function formatSize(n: number): string {
@@ -63,7 +91,9 @@ export function FileDrop({
   id,
   className,
   style,
+  statusLabels,
 }: FileDropProps) {
+  const labels = { ...STATUS_LABELS, ...statusLabels }
   const inputRef = useRef<HTMLInputElement>(null)
   const [over, setOver] = useState(false)
   // Сколько файлов не вошло по лимиту — говорим, а не отбрасываем молча.
@@ -93,7 +123,11 @@ export function FileDrop({
       {files.length > 0 && (
         <ul className={styles.fdList}>
           {files.map((f) => (
-            <li key={f.id} className={styles.fdItem}>
+            <li
+              key={f.id}
+              className={f.status ? `${styles.fdItem} ${styles.fdItemStatus}` : styles.fdItem}
+              data-status={f.status}
+            >
               {f.href ? (
                 <a
                   className={styles.fdName}
@@ -122,6 +156,21 @@ export function FileDrop({
                 </span>
               )}
               {f.size != null && <span className={styles.fdSize}>{formatSize(f.size)}</span>}
+              {f.status && (
+                <span className={styles.fdStatus} role={f.status === 'error' ? 'alert' : 'status'}>
+                  {f.status === 'uploading' && f.progress != null
+                    ? `${labels.uploading} ${Math.round(Math.min(100, Math.max(0, f.progress)))}%`
+                    : labels[f.status]}
+                  {f.status === 'error' && f.onRetry && (
+                    <>
+                      {' · '}
+                      <button type="button" className={styles.fdRetry} onClick={f.onRetry}>
+                        {labels.retry}
+                      </button>
+                    </>
+                  )}
+                </span>
+              )}
               {onRemove && !disabled && (
                 <button
                   type="button"
@@ -131,6 +180,16 @@ export function FileDrop({
                 >
                   <Icon name="close" size={12} />
                 </button>
+              )}
+              {(f.status === 'uploading' || f.status === 'error') && (
+                <ProgressBar
+                  className={styles.fdBar}
+                  size="sm"
+                  tone={f.status === 'error' ? 'bad' : 'brand'}
+                  value={f.status === 'error' ? 100 : f.progress}
+                  ariaLabel={`${labels.uploading} «${f.name}»`}
+                  aria-hidden={f.status === 'error' || undefined}
+                />
               )}
             </li>
           ))}

@@ -4,6 +4,15 @@ React-side helpers over `@wowhaus-24/ui-tokens`. Currently exports a
 `ThemeProvider` + `useTheme` hook. Headless primitives (Pill, NavTile,
 StatBar, etc.) will land here as we migrate them out of `wiki-web`.
 
+## Components
+
+Полный список — в `src/index.ts`. Элементы по принятому макету
+(`mockups/components-mockup.html`): `Tooltip`, `Switch`, `Checkbox`, `Banner`,
+`Pager`, `StatusBadge`, `Avatar` / `AvatarStack`, `HoverCard`,
+`CommandPalette` (+ `useCommandPaletteShortcut`), `NotificationCenter`,
+`Skeleton` / `SkeletonText` / `SkeletonRow`, `ProgressBar`. Живые примеры —
+`npm run dev -w @wowhaus-24/ui-styleguide`.
+
 ## Install
 
 ```bash
