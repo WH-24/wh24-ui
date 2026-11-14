@@ -109,11 +109,16 @@ export const space = {
 export const shadows = {
   sm: 'var(--shadow-sm)',
   md: 'var(--shadow-md)',
+  lg: 'var(--shadow-lg)',
 } as const
 
 export const zIndex = {
   mega: 'var(--z-mega)',
+  backdrop: 'var(--z-backdrop)',
+  drawer: 'var(--z-drawer)',
   modal: 'var(--z-modal)',
+  confirm: 'var(--z-confirm)',
+  popover: 'var(--z-popover)',
   toast: 'var(--z-toast)',
 } as const
 
@@ -127,6 +132,7 @@ export const focus = {
   color: 'var(--focus)',
   ringWidth: 'var(--focus-ring-w)',
   ringOffset: 'var(--focus-ring-offset)',
+  ringInset: 'var(--focus-ring-inset)',
 } as const
 
 export const fields = {
@@ -136,6 +142,17 @@ export const fields = {
   background: 'var(--field-bg)',
   border: 'var(--field-bd)',
   borderFocus: 'var(--field-bd-focus)',
+  ring: 'var(--field-ring)',
+} as const
+
+/** Размеры элементов управления: поле, кнопка, пункт меню, вкладка. */
+export const controls = {
+  height: 'var(--control-h)',
+  heightSm: 'var(--control-h-sm)',
+  heightXs: 'var(--control-h-xs)',
+  radius: 'var(--control-r)',
+  itemHeight: 'var(--item-h)',
+  tabHeight: 'var(--tab-h)',
 } as const
 
 /** Buttons — глобальные классы .btn/.btn-primary/… см. button.css. */

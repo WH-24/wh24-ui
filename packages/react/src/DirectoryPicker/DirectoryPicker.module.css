@@ -23,7 +23,7 @@
 .search:focus-within {
   background: var(--surf);
   border-color: var(--terra);
-  box-shadow: 0 0 0 3px var(--terra-bg);
+  box-shadow: var(--field-ring, 0 0 0 3px var(--terra-bg));
 }
 /* Встраивание в готовый контейнер: убираем собственную рамку/фон/кольцо. */
 .searchPlain,

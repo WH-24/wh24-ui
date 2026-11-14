@@ -103,7 +103,7 @@
 }
 .control:focus {
   border-color: var(--terra);
-  box-shadow: 0 0 0 3px var(--terra-bg);
+  box-shadow: var(--field-ring, 0 0 0 3px var(--terra-bg));
 }
 /* Кольцо фокуса рисует сам контрол (рамка + тень). Общее :focus-visible из
    ui-tokens/base.css той же специфичности и грузится позже — без этого правила
@@ -118,7 +118,7 @@
 .dpControl:focus-within,
 .mcControl:focus-within {
   border-color: var(--terra);
-  box-shadow: 0 0 0 3px var(--terra-bg);
+  box-shadow: var(--field-ring, 0 0 0 3px var(--terra-bg));
 }
 .dpInput:focus-visible,
 .mcInput:focus-visible {
@@ -128,8 +128,10 @@
   opacity: var(--disabled-opacity);
   cursor: default;
 }
+/* Рамка ошибки — не бледнее обычной: --bad-bd давал 1.99:1 при 3.23:1 у
+   поля в покое. */
 .control[aria-invalid='true'] {
-  border-color: var(--bad-bd);
+  border-color: var(--bad);
 }
 .control[aria-invalid='true']:focus,
 .dpControl[aria-invalid='true']:focus-within,
