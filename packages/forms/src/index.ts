@@ -126,6 +126,8 @@ export type { StateBoxProps, BannerProps } from './pages/states.js'
 export { RecordChat } from './chat/RecordChat.js'
 export type { RecordChatProps } from './chat/RecordChat.js'
 export { Markup, parseInline, parseBlocks } from './chat/markup.js'
+export { FormRouteEditor } from './chat/FormRouteEditor.js'
+export type { FormRouteEditorProps } from './chat/FormRouteEditor.js'
 export { formatMinutes, parseMinutes, CHOICE_LABEL, mentionsAi, routeStages, routeAllowsEdit, isInitStep, ROUTE_INIT_STAGE, ROUTE_INIT_STEP_ID } from './chat/logic.js'
 
 // Формулы (шаг 2 типов полей): TS-порт internal/formula, фикстуры общие с Go.
