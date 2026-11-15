@@ -218,12 +218,15 @@ export function NewComponents({ section }: { section: (title: string, desc: stri
           <Avatar name="Павел Ефимов" tint={false} onClick={() => {}} />
           <AvatarStack people={PEOPLE.map((name) => ({ name }))} max={4} />
           <AvatarStack people={PEOPLE.map((name) => ({ name }))} max={3} size={24} />
+          <Avatar name="Анна Соколова" size={28} />
+          <Avatar name="Анна Соколова" size={72} />
+          <Avatar name="ООО «Ромашка»" square />
         </div>,
       )}
 
       {section(
         'HoverCard',
-        'Карточка при наведении (полсекунды) или фокусе; на сенсорных экранах её нет.',
+        'Карточка при наведении (полсекунды) или фокусе; на сенсорных экранах её нет. С openOnTap — и по касанию (третья: «Часы проекта»).',
         <div className="sg-row">
           {PEOPLE.slice(0, 2).map((name) => (
             <HoverCard
@@ -251,6 +254,24 @@ export function NewComponents({ section }: { section: (title: string, desc: stri
               </a>
             </HoverCard>
           ))}
+          <HoverCard
+            openOnTap
+            openDelay={150}
+            role="dialog"
+            aria-label="Часы проекта «Школа»"
+            content={
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '4px 12px' }}>
+                <span>Израсходовано</span>
+                <b>412 ч</b>
+                <span>Заложено</span>
+                <b>600 ч</b>
+              </div>
+            }
+          >
+            <button type="button" className="btn btn-ghost btn-sm">
+              412 из 600 ч
+            </button>
+          </HoverCard>
         </div>,
       )}
 
@@ -268,7 +289,7 @@ export function NewComponents({ section }: { section: (title: string, desc: stri
 
       {section(
         'NotificationCenter',
-        'Колокольчик со счётчиком и список; данные и «прочитано» — у хозяина.',
+        'Колокольчик со счётчиком и список; данные и «прочитано» — у хозяина. Второй — с «Удалить все», крестиком «Убрать из ленты» и низом окна.',
         <div className="sg-row">
           <button type="button" className="btn btn-ghost btn-sm" onClick={() => setNotes(NOTES)}>
             Вернуть непрочитанные
@@ -279,6 +300,13 @@ export function NewComponents({ section }: { section: (title: string, desc: stri
               items={notes}
               onItemClick={(it) => setNotes(notes.map((x) => (x.id === it.id ? { ...x, unread: false } : x)))}
               onMarkAllRead={() => setNotes(notes.map((x) => ({ ...x, unread: false })))}
+              onClearAll={() => setNotes([])}
+              onDismiss={(it) => setNotes(notes.filter((x) => x.id !== it.id))}
+              footer={
+                <button type="button" className="btn btn-ghost btn-sm">
+                  Все уведомления
+                </button>
+              }
             />
           </span>
         </div>,

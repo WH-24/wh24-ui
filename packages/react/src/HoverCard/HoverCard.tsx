@@ -2,6 +2,7 @@ import {
   cloneElement,
   forwardRef,
   useEffect,
+  useId,
   useRef,
   useState,
   type FocusEvent,
@@ -29,6 +30,13 @@ export interface HoverCardProps extends Omit<HTMLAttributes<HTMLDivElement>, 'co
   disabled?: boolean
   /** Сообщить об открытии и закрытии (например, чтобы подгрузить данные). */
   onOpenChange?: (open: boolean) => void
+  /**
+   * Открывать и касанием (щелчком): касание по элементу открывает карточку
+   * сразу и закрывает её повторно, касание мимо закрывает. Для мест, где
+   * подробности нужны и на телефоне. По умолчанию выключено — карточка
+   * только для мыши и клавиатуры.
+   */
+  openOnTap?: boolean
 }
 
 /** Выход — на четверть быстрее входа (--dur-base-exit). */
@@ -58,16 +66,36 @@ const isWarm = () => {
  *
  * Это удобство для мыши: на сенсорных экранах карточки нет, поэтому всё, что
  * в ней есть, должно быть достижимо и обычным путём (переходом по ссылке).
+ * Исключение — `openOnTap`: тогда касание (и щелчок) открывает карточку сразу,
+ * повторное касание или касание мимо закрывает. Элемент-якорь в этом случае
+ * должен быть кнопкой — так он доступен с клавиатуры (Enter, пробел).
  */
 export const HoverCard = forwardRef<HTMLDivElement, HoverCardProps>(function HoverCard(
-  { content, children, openDelay = 500, closeDelay = 120, disabled = false, onOpenChange, className, style, ...rest },
+  {
+    content,
+    children,
+    openDelay = 500,
+    closeDelay = 120,
+    disabled = false,
+    onOpenChange,
+    openOnTap = false,
+    className,
+    style,
+    id: idProp,
+    ...rest
+  },
   ref,
 ) {
+  const autoId = useId()
+  const cardId = idProp ?? autoId
   const [open, setOpen] = useState(false)
   const anchorRef = useRef<HTMLElement | null>(null)
   const cardRef = useRef<HTMLDivElement | null>(null)
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const touched = useRef(false)
+  // Открыта касанием: «мышиные» события, которые браузер досылает после тапа
+  // (уход курсора), её не закрывают — закрывает касание мимо или повторное.
+  const tapOpen = useRef(false)
   const pointerFocus = useRef(false)
   const notify = useRef(onOpenChange)
   notify.current = onOpenChange
@@ -82,6 +110,7 @@ export const HoverCard = forwardRef<HTMLDivElement, HoverCardProps>(function Hov
     openRef.current = next
     if (next) openCards += 1
     else {
+      tapOpen.current = false
       openCards = Math.max(0, openCards - 1)
       lastClosedAt = Date.now()
     }
@@ -120,6 +149,19 @@ export const HoverCard = forwardRef<HTMLDivElement, HoverCardProps>(function Hov
   }, [disabled])
   useEscape(open, closeNow)
 
+  // Открыта касанием — касание мимо элемента и карточки закрывает.
+  useEffect(() => {
+    if (!open || !openOnTap) return
+    const onDown = (e: PointerEvent) => {
+      const t = e.target as Node | null
+      if (anchorRef.current?.contains(t) || cardRef.current?.contains(t)) return
+      closeNow()
+    }
+    document.addEventListener('pointerdown', onDown)
+    return () => document.removeEventListener('pointerdown', onDown)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, openOnTap])
+
   const { mounted, exiting, finish } = usePresence(open)
   const place = useAnchoredPlace(mounted, () => anchorRef.current, cardRef)
   useExitAnimation(
@@ -146,13 +188,31 @@ export const HoverCard = forwardRef<HTMLDivElement, HoverCardProps>(function Hov
     }),
     onMouseLeave: chain(p.onMouseLeave, () => {
       touched.current = false
+      if (tapOpen.current) return
       if (open) scheduleClose()
       else clear()
     }),
     onTouchStart: chain(p.onTouchStart, () => {
       touched.current = true
-      closeNow()
+      // Касанием карточка открывается щелчком ниже — здесь её не трогаем.
+      if (!openOnTap) closeNow()
     }),
+    ...(openOnTap
+      ? {
+          'aria-expanded': open,
+          'aria-controls': open ? cardId : undefined,
+          onClick: chain(p.onClick, (e: MouseEvent<HTMLElement>) => {
+            if (disabled) return
+            anchorRef.current = e.currentTarget
+            if (openRef.current) closeNow()
+            else {
+              clear()
+              set(true)
+              tapOpen.current = touched.current
+            }
+          }),
+        }
+      : null),
     onPointerDown: chain(p.onPointerDown, () => {
       pointerFocus.current = true
     }),
@@ -176,6 +236,7 @@ export const HoverCard = forwardRef<HTMLDivElement, HoverCardProps>(function Hov
         createPortal(
           <div
             {...rest}
+            id={openOnTap ? cardId : idProp}
             ref={(el) => {
               cardRef.current = el
               if (typeof ref === 'function') ref(el)
@@ -190,7 +251,9 @@ export const HoverCard = forwardRef<HTMLDivElement, HoverCardProps>(function Hov
               visibility: place ? undefined : 'hidden',
             }}
             onMouseEnter={clear}
-            onMouseLeave={scheduleClose}
+            onMouseLeave={() => {
+              if (!tapOpen.current) scheduleClose()
+            }}
             onBlur={(e) => {
               const to = e.relatedTarget as Node | null
               if (cardRef.current?.contains(to) || anchorRef.current?.contains(to)) return

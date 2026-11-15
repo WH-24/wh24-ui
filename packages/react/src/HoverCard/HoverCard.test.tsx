@@ -107,4 +107,75 @@ describe('HoverCard', () => {
     tick(350)
     expect(screen.getByText('Карточка А')).toBeInTheDocument()
   })
+
+  describe('openOnTap', () => {
+    function setupTap(onClick?: () => void) {
+      const onOpenChange = vi.fn()
+      render(
+        <>
+          <HoverCard content={<div>Главный архитектор</div>} onOpenChange={onOpenChange} openOnTap>
+            <button type="button" onClick={onClick}>
+              Анна Соколова
+            </button>
+          </HoverCard>
+          <p>Снаружи</p>
+        </>,
+      )
+      return {
+        btn: screen.getByRole('button', { name: 'Анна Соколова' }),
+        onOpenChange,
+      }
+    }
+
+    it('касание открывает сразу, повторное — закрывает', () => {
+      const onClick = vi.fn()
+      const { btn, onOpenChange } = setupTap(onClick)
+      expect(btn).toHaveAttribute('aria-expanded', 'false')
+      fireEvent.touchStart(btn)
+      fireEvent.click(btn)
+      expect(card()).toBeInTheDocument()
+      expect(btn).toHaveAttribute('aria-expanded', 'true')
+      expect(btn.getAttribute('aria-controls')).toBe(card()!.parentElement!.id)
+      expect(onOpenChange).toHaveBeenLastCalledWith(true)
+      // Свой обработчик щелчка у якоря сохраняется.
+      expect(onClick).toHaveBeenCalledTimes(1)
+      fireEvent.touchStart(btn)
+      fireEvent.click(btn)
+      expect(card()).not.toBeInTheDocument()
+      expect(onOpenChange).toHaveBeenLastCalledWith(false)
+    })
+
+    it('открытую касанием не закрывает «уход курсора», который досылает браузер', () => {
+      const { btn } = setupTap()
+      fireEvent.touchStart(btn)
+      fireEvent.mouseEnter(btn)
+      fireEvent.click(btn)
+      fireEvent.mouseLeave(btn)
+      tick(1000)
+      expect(card()).toBeInTheDocument()
+    })
+
+    it('касание мимо закрывает, касание по карточке — нет', () => {
+      const { btn } = setupTap()
+      fireEvent.click(btn)
+      fireEvent.pointerDown(card()!)
+      expect(card()).toBeInTheDocument()
+      fireEvent.pointerDown(screen.getByText('Снаружи'))
+      expect(card()).not.toBeInTheDocument()
+    })
+
+    it('наведение мышью работает как прежде', () => {
+      const { btn } = setupTap()
+      fireEvent.mouseEnter(btn)
+      tick(500)
+      expect(card()).toBeInTheDocument()
+    })
+
+    it('без openOnTap щелчок карточку не открывает', () => {
+      const link = setup()
+      fireEvent.click(link)
+      expect(card()).not.toBeInTheDocument()
+      expect(link).not.toHaveAttribute('aria-expanded')
+    })
+  })
 })

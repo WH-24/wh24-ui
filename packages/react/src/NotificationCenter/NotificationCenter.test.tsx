@@ -1,19 +1,34 @@
 import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 
 import { NotificationCenter, type NotificationItem } from './NotificationCenter'
 
 const ITEMS: NotificationItem[] = [
-  { id: '1', who: 'Анна Соколова', text: 'упомянула вас в проекте «Школа»', time: '5 минут назад', unread: true },
-  { id: '2', who: 'Ольга Демченко', text: 'согласовала отчёт времени', time: 'час назад', unread: true },
+  {
+    id: '1',
+    who: 'Анна Соколова',
+    text: 'упомянула вас в проекте «Школа»',
+    time: '5 минут назад',
+    unread: true,
+  },
+  {
+    id: '2',
+    who: 'Ольга Демченко',
+    text: 'согласовала отчёт времени',
+    time: 'час назад',
+    unread: true,
+  },
   { id: '3', who: 'Павел Ефимов', text: 'загрузил модель', time: 'вчера' },
 ]
 
 describe('NotificationCenter', () => {
   it('колокольчик: счётчик и подпись с числом непрочитанных', () => {
     const { rerender } = render(<NotificationCenter items={ITEMS} />)
-    const bell = screen.getByRole('button', { name: 'Уведомления, непрочитанных: 2' })
+    const bell = screen.getByRole('button', {
+      name: 'Уведомления, непрочитанных: 2',
+    })
     expect(bell).toHaveAttribute('aria-expanded', 'false')
     expect(bell.parentElement).toHaveTextContent('2')
 
@@ -120,5 +135,75 @@ describe('NotificationCenter', () => {
     screen.getByRole('button', { name: 'Дальше' }).focus()
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
     expect(screen.getByRole('button', { name: 'Дальше' })).toHaveFocus()
+  })
+
+  it('без новых пропсов — ни «Удалить все», ни крестиков', async () => {
+    render(<NotificationCenter items={ITEMS} />)
+    await userEvent.click(screen.getByRole('button', { name: /Уведомления/ }))
+    const dialog = screen.getByRole('dialog', { name: 'Уведомления' })
+    expect(within(dialog).queryByRole('button', { name: 'Удалить все' })).not.toBeInTheDocument()
+    expect(within(dialog).queryByRole('button', { name: 'Убрать из ленты' })).not.toBeInTheDocument()
+  })
+
+  it('«Удалить все» и «Убрать из ленты» отдают действие хозяину', async () => {
+    const onClearAll = vi.fn()
+    const onDismiss = vi.fn()
+    const onItemClick = vi.fn()
+    function Host() {
+      const [items, setItems] = useState(ITEMS)
+      return (
+        <NotificationCenter
+          items={items}
+          onItemClick={onItemClick}
+          onClearAll={onClearAll}
+          onDismiss={(x) => {
+            onDismiss(x)
+            setItems((prev) => prev.filter((i) => i.id !== x.id))
+          }}
+          footer={<button type="button">Все уведомления</button>}
+        />
+      )
+    }
+    render(<Host />)
+    await userEvent.click(screen.getByRole('button', { name: /Уведомления/ }))
+    const dialog = screen.getByRole('dialog', { name: 'Уведомления' })
+    expect(within(dialog).getByRole('button', { name: 'Все уведомления' })).toBeInTheDocument()
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Удалить все' }))
+    expect(onClearAll).toHaveBeenCalledTimes(1)
+
+    const crosses = within(dialog).getAllByRole('button', {
+      name: 'Убрать из ленты',
+    })
+    expect(crosses).toHaveLength(3)
+    await userEvent.click(crosses[0]!)
+    expect(onDismiss).toHaveBeenCalledWith(expect.objectContaining({ id: '1' }))
+    // Крестик — не щелчок по самому уведомлению.
+    expect(onItemClick).not.toHaveBeenCalled()
+    expect(within(dialog).getAllByRole('button', { name: 'Убрать из ленты' })).toHaveLength(2)
+    // Фокус остался в списке — на следующем уведомлении.
+    expect(document.activeElement).toHaveTextContent('Ольга Демченко')
+  })
+
+  it('«Удалить все» недоступна при пустой ленте', async () => {
+    render(<NotificationCenter items={[]} onClearAll={() => {}} />)
+    await userEvent.click(screen.getByRole('button', { name: 'Уведомления' }))
+    expect(screen.getByRole('button', { name: 'Удалить все' })).toBeDisabled()
+  })
+
+  it('щелчок в окне подтверждения поверх списка его не закрывает', async () => {
+    render(
+      <>
+        <NotificationCenter items={ITEMS} />
+        <div role="alertdialog" aria-modal="true" aria-label="Подтверждение">
+          <button type="button">Да</button>
+        </div>
+        <p>Снаружи</p>
+      </>,
+    )
+    await userEvent.click(screen.getByRole('button', { name: /Уведомления/ }))
+    await userEvent.click(screen.getByRole('button', { name: 'Да' }))
+    expect(screen.getByRole('dialog', { name: 'Уведомления' })).toBeInTheDocument()
+    await userEvent.click(screen.getByText('Снаружи'))
+    await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Уведомления' })).not.toBeInTheDocument())
   })
 })

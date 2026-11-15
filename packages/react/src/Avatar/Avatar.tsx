@@ -11,8 +11,14 @@ export interface AvatarProps extends Omit<HTMLAttributes<HTMLElement>, 'onClick'
   name?: string
   /** Фотография. Не загрузилась — показываются инициалы. */
   src?: string | null
-  /** Диаметр, px. */
-  size?: AvatarSize
+  /**
+   * Диаметр, px: размеры макета 20–56 или любое число (крупное фото в
+   * карточке человека, плотная строка) — тогда шрифт инициалов в той же
+   * пропорции.
+   */
+  size?: AvatarSize | number
+  /** Квадрат со скруглением вместо круга — у компаний и организаций. */
+  square?: boolean
   /** Точка «в сети». */
   status?: 'online'
   /** Мягкий цвет по имени (пять тонов макета). По умолчанию — когда задано `name`. */
@@ -51,7 +57,7 @@ export function avatarTint(name: string | null | undefined): number {
 }
 
 const TINTS = [styles.c0, styles.c1, styles.c2, styles.c3, styles.c4]
-const SIZES: Record<AvatarSize, string | undefined> = {
+const SIZES: Record<number, string | undefined> = {
   20: styles.s20,
   24: styles.s24,
   32: undefined,
@@ -74,23 +80,35 @@ export const Avatar = forwardRef<HTMLElement, AvatarProps>(function Avatar(
     ariaLabel,
     statusLabel = 'в сети',
     onClick,
+    square,
     className,
+    style,
     ...rest
   },
   ref,
 ) {
+  const preset = size in SIZES
+  // Свой размер: инициалы — около 0,4 диаметра, как у размеров макета.
+  const dim: CSSProperties | undefined = preset
+    ? style
+    : {
+        width: size,
+        height: size,
+        fontSize: Math.max(9, Math.round(size * 0.38)),
+        ...style,
+      }
   const [failed, setFailed] = useState(false)
   // Новая ссылка — новая попытка: прежняя ошибка к ней не относится.
   useEffect(() => setFailed(false), [src])
 
   // Готовые инициалы режем до двух символов (по символам, а не половинкам
   // эмодзи): слово целиком вылезало из круга, пустая строка давала пустой круг.
-  const letters =
-    initials !== undefined ? Array.from(initials.trim()).slice(0, 2).join('') || '?' : initialsOf(name)
+  const letters = initials !== undefined ? Array.from(initials.trim()).slice(0, 2).join('') || '?' : initialsOf(name)
   const tinted = tint ?? Boolean(name)
   const cls = [
     styles.av,
     SIZES[size],
+    square ? styles.square : undefined,
     tinted ? TINTS[avatarTint(name ?? initials)] : undefined,
     status ? styles.hasStatus : undefined,
     className,
@@ -116,6 +134,7 @@ export const Avatar = forwardRef<HTMLElement, AvatarProps>(function Avatar(
         {...rest}
         ref={ref as Ref<HTMLButtonElement>}
         type="button"
+        style={dim}
         className={`${cls} ${styles.btn}`}
         aria-label={(ariaLabel ?? `Профиль ${name ?? letters}`) + online}
         onClick={onClick}
@@ -130,6 +149,7 @@ export const Avatar = forwardRef<HTMLElement, AvatarProps>(function Avatar(
       aria-label={(ariaLabel ?? name ?? letters) + online}
       {...rest}
       ref={ref as Ref<HTMLSpanElement>}
+      style={dim}
       className={cls}
     >
       {body}
@@ -142,7 +162,7 @@ export interface AvatarStackProps extends HTMLAttributes<HTMLSpanElement> {
   people: Array<Pick<AvatarProps, 'name' | 'src' | 'initials' | 'status'> & { id?: string }>
   /** Сколько показать; остальные — счётчиком «+N». */
   max?: number
-  size?: AvatarSize
+  size?: AvatarSize | number
   /** Подпись группы для читалки. */
   ariaLabel?: string
   style?: CSSProperties
@@ -178,7 +198,19 @@ export const AvatarStack = forwardRef<HTMLSpanElement, AvatarStackProps>(functio
         />
       ))}
       {more > 0 && (
-        <span className={[styles.av, SIZES[size], styles.more].filter(Boolean).join(' ')} aria-hidden="true">
+        <span
+          className={[styles.av, SIZES[size], styles.more].filter(Boolean).join(' ')}
+          style={
+            size in SIZES
+              ? undefined
+              : {
+                  width: size,
+                  height: size,
+                  fontSize: Math.max(9, Math.round(size * 0.38)),
+                }
+          }
+          aria-hidden="true"
+        >
           +{more}
         </span>
       )}

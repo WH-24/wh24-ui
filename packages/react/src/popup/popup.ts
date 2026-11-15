@@ -56,7 +56,12 @@ export function useAnchoredPlace(
     const raf = typeof requestAnimationFrame === 'function' ? requestAnimationFrame(update) : 0
     window.addEventListener('scroll', update, true)
     window.addEventListener('resize', update)
+    // Содержимое догрузилось (карточка выросла) — место пересчитываем, иначе
+    // она уходит за нижний край окна.
+    const ro = typeof ResizeObserver === 'function' && popRef.current ? new ResizeObserver(update) : null
+    if (ro && popRef.current) ro.observe(popRef.current)
     return () => {
+      ro?.disconnect()
       if (raf && typeof cancelAnimationFrame === 'function') cancelAnimationFrame(raf)
       window.removeEventListener('scroll', update, true)
       window.removeEventListener('resize', update)

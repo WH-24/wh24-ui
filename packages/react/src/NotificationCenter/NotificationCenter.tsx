@@ -37,6 +37,15 @@ export interface NotificationCenterProps extends Omit<HTMLAttributes<HTMLDivElem
   onItemClick?: (item: NotificationItem) => void
   /** «Прочитать все». Не задан — кнопки нет. */
   onMarkAllRead?: () => void
+  /**
+   * «Удалить все»: очистить ленту. Не задан — кнопки нет. Подтверждение
+   * спрашивает хозяин (окно подтверждения поверх списка его не закрывает).
+   */
+  onClearAll?: () => void
+  /** «Убрать из ленты» у одного уведомления. Не задан — крестика у строк нет. */
+  onDismiss?: (item: NotificationItem) => void
+  /** Низ окна под списком: например, ссылка «Все уведомления». */
+  footer?: ReactNode
   /** Число на колокольчике; по умолчанию — непрочитанные среди `items`. */
   unreadCount?: number
   /** Управляемое открытие. Не задано — компонент ведёт его сам. */
@@ -46,12 +55,25 @@ export interface NotificationCenterProps extends Omit<HTMLAttributes<HTMLDivElem
   closeOnItemClick?: boolean
   title?: string
   markAllLabel?: string
+  clearAllLabel?: string
+  dismissLabel?: string
   emptyText?: string
   /** Подпись колокольчика для читалки. */
   bellLabel?: (unread: number) => string
 }
 
 const EXIT_MS = 135
+
+/**
+ * Окно поверх страницы (подтверждение «Удалить все», модальное окно) или его
+ * подложка: щелчок и фокус туда — продолжение работы со списком, не уход.
+ */
+function inModalLayer(node: Node | null): boolean {
+  const el = node instanceof Element ? node : null
+  if (!el) return false
+  if (el.closest('[aria-modal="true"]')) return true
+  return Array.from(el.children).some((c) => c.getAttribute('aria-modal') === 'true')
+}
 const defaultBellLabel = (n: number) => (n ? `Уведомления, непрочитанных: ${n}` : 'Уведомления')
 
 /**
@@ -64,6 +86,9 @@ export const NotificationCenter = forwardRef<HTMLDivElement, NotificationCenterP
     items,
     onItemClick,
     onMarkAllRead,
+    onClearAll,
+    onDismiss,
+    footer,
     unreadCount,
     open: openProp,
     onOpenChange,
@@ -72,6 +97,8 @@ export const NotificationCenter = forwardRef<HTMLDivElement, NotificationCenterP
     closeOnItemClick = false,
     title = 'Уведомления',
     markAllLabel = 'Прочитать все',
+    clearAllLabel = 'Удалить все',
+    dismissLabel = 'Убрать из ленты',
     emptyText = 'Новых уведомлений нет',
     bellLabel = defaultBellLabel,
     className,
@@ -116,11 +143,13 @@ export const NotificationCenter = forwardRef<HTMLDivElement, NotificationCenterP
     if (!open) return
     const onDown = (e: PointerEvent | MouseEvent) => {
       const t = e.target as Node | null
-      if (popRef.current?.contains(t) || anchorRef.current?.contains(t)) return
+      if (popRef.current?.contains(t) || anchorRef.current?.contains(t) || inModalLayer(t)) return
       setOpen(false)
     }
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== 'Escape' || e.defaultPrevented) return
+      // Esc в окне подтверждения закрывает его, а не список.
+      if (inModalLayer(e.target as Node | null)) return
       e.preventDefault()
       setOpen(false)
       focusBell()
@@ -198,7 +227,7 @@ export const NotificationCenter = forwardRef<HTMLDivElement, NotificationCenterP
             onBlur={(e) => {
               onBlur?.(e)
               const to = e.relatedTarget as Node | null
-              if (!to || popRef.current?.contains(to) || anchorRef.current?.contains(to)) return
+              if (!to || popRef.current?.contains(to) || anchorRef.current?.contains(to) || inModalLayer(to)) return
               setOpen(false)
             }}
             data-flipped={place?.flipped || undefined}
@@ -213,39 +242,71 @@ export const NotificationCenter = forwardRef<HTMLDivElement, NotificationCenterP
               <b id={`${uid}-title`} className={styles.title}>
                 {title}
               </b>
-              {onMarkAllRead && (
-                <button type="button" className={styles.markAll} disabled={unread === 0} onClick={onMarkAllRead}>
-                  {markAllLabel}
-                </button>
-              )}
+              <span className={styles.actions}>
+                {onMarkAllRead && (
+                  <button type="button" className={styles.markAll} disabled={unread === 0} onClick={onMarkAllRead}>
+                    {markAllLabel}
+                  </button>
+                )}
+                {onClearAll && (
+                  <button type="button" className={styles.markAll} disabled={items.length === 0} onClick={onClearAll}>
+                    {clearAllLabel}
+                  </button>
+                )}
+              </span>
             </div>
             <div className={styles.list} style={place ? { maxHeight: Math.max(120, place.maxHeight - 48) } : undefined}>
               {items.length === 0 && <div className={styles.empty}>{emptyText}</div>}
-              {items.map((x) => (
-                <button
-                  key={x.id}
-                  type="button"
-                  className={styles.item}
-                  data-note-row=""
-                  data-unread={x.unread || undefined}
-                  onClick={() => {
-                    onItemClick?.(x)
-                    if (closeOnItemClick) setOpen(false)
-                  }}
-                >
-                  {x.who != null && <Avatar name={x.who} src={x.src} aria-hidden="true" />}
-                  <span className={styles.body}>
-                    <span className={styles.text}>
-                      {x.who != null && <b>{x.who} </b>}
-                      {x.text}
+              {items.map((x) => {
+                const row = (
+                  <button
+                    key={x.id}
+                    type="button"
+                    className={styles.item}
+                    data-note-row=""
+                    data-unread={x.unread || undefined}
+                    onClick={() => {
+                      onItemClick?.(x)
+                      if (closeOnItemClick) setOpen(false)
+                    }}
+                  >
+                    {x.who != null && <Avatar name={x.who} src={x.src} aria-hidden="true" />}
+                    <span className={styles.body}>
+                      <span className={styles.text}>
+                        {x.who != null && <b>{x.who} </b>}
+                        {x.text}
+                      </span>
+                      {x.time && <small className={styles.time}>{x.time}</small>}
                     </span>
-                    {x.time && <small className={styles.time}>{x.time}</small>}
-                  </span>
-                  <span className={styles.dot} aria-hidden="true" />
-                  {x.unread && <span className={styles.srOnly}>, не прочитано</span>}
-                </button>
-              ))}
+                    <span className={styles.dot} aria-hidden="true" />
+                    {x.unread && <span className={styles.srOnly}>, не прочитано</span>}
+                  </button>
+                )
+                if (!onDismiss) return row
+                return (
+                  <div key={x.id} className={styles.row}>
+                    {row}
+                    <IconButton
+                      size={24}
+                      className={styles.dismiss}
+                      ariaLabel={dismissLabel}
+                      onClick={() => {
+                        // Строка уйдёт из списка — фокус переносим на соседнюю,
+                        // иначе он падает в начало страницы.
+                        const rows = Array.from(popRef.current?.querySelectorAll<HTMLElement>('[data-note-row]') ?? [])
+                        const at = rows.findIndex((r) => r.closest(`.${styles.row}`)?.contains(document.activeElement))
+                        const next = at >= 0 ? (rows[at + 1] ?? rows[at - 1]) : undefined
+                        onDismiss(x)
+                        if (at >= 0) (next ?? popRef.current)?.focus()
+                      }}
+                    >
+                      <Icon name="close" size={12} />
+                    </IconButton>
+                  </div>
+                )
+              })}
             </div>
+            {footer != null && <div className={styles.foot}>{footer}</div>}
           </div>,
           document.body,
         )}
