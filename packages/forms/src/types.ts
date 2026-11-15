@@ -383,7 +383,13 @@ export type FieldStorage = 'native' | 'custom'
 
 /** Поле Pyrus, с которым связано поле формы (у любой формы). */
 export interface PyrusLink {
+  /** Поле формы Pyrus; 0 — связь со свойством задачи (`task`). */
   field_id: number
+  /**
+   * Свойство задачи Pyrus, а не поле её формы (15.11.2026):
+   * `responsible` — ответственный задачи, только у поля «Сотрудник».
+   */
+  task?: 'responsible'
 }
 
 /**
