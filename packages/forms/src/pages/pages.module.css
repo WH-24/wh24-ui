@@ -492,3 +492,17 @@
   height: 12px;
   border-radius: 50%;
 }
+
+/* ─── Виды и выбор строк (по желанию хоста) ─────────────────────── */
+.viewTabs {
+  margin-bottom: -4px;
+}
+.table th.selectCol,
+.table td.selectCol {
+  width: 40px;
+  padding-right: 0;
+  cursor: default;
+}
+.table tbody tr[data-selected='true'] {
+  background: var(--accent-50);
+}

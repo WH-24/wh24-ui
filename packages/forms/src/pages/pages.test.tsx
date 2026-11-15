@@ -190,6 +190,77 @@ describe("FormRecordsPage", () => {
     expect(onOpen).toHaveBeenCalledWith(expect.objectContaining({ id: "r2" }));
   });
 
+  it("виды: вкладка «На контроле» уходит на сервер, счётчик у выбранной", async () => {
+    const user = userEvent.setup();
+    const { api, list } = mockApi();
+    const onViewChange = vi.fn();
+    render(
+      <FormRecordsPage
+        form={form}
+        schema={schema}
+        api={api}
+        views={[
+          { id: "all", label: "Все записи", state: {} },
+          { id: "watch", label: "На контроле", state: { watching: true } },
+        ]}
+        onViewChange={onViewChange}
+      />,
+    );
+    await screen.findByText("Запись 1");
+    const tabs = screen.getAllByRole("tab");
+    expect(tabs.map((t) => t.textContent)).toEqual(["Все записи2", "На контроле"]);
+    await user.click(tabs[1]!);
+    expect(onViewChange).toHaveBeenCalledWith("watch");
+    await waitFor(() =>
+      expect(list).toHaveBeenLastCalledWith(
+        "form-1",
+        expect.objectContaining({ watching: true, page: 1 }),
+      ),
+    );
+  });
+
+  it("плашки: поиск и «На контроле» вместо поля и кнопки", async () => {
+    const user = userEvent.setup();
+    const { api, list } = mockApi();
+    render(<FormRecordsPage form={form} schema={schema} api={api} filterVariant="chips" />);
+    await screen.findByText("Запись 1");
+    expect(screen.queryByRole("button", { name: /На контроле/ })).not.toBeInTheDocument();
+    await user.type(screen.getByRole("textbox", { name: "Поиск по названию" }), "Ло");
+    await waitFor(() =>
+      expect(list).toHaveBeenLastCalledWith("form-1", expect.objectContaining({ search: "Ло" })),
+    );
+  });
+
+  it("выбор строк и массовое действие: флажки страницы, панель, снятие выбора", async () => {
+    const user = userEvent.setup();
+    const { api } = mockApi();
+    const onRun = vi.fn(async () => undefined);
+    const onOpen = vi.fn();
+    render(
+      <FormRecordsPage
+        form={form}
+        schema={schema}
+        api={api}
+        onOpen={onOpen}
+        selectable
+        bulkActions={[{ label: "Удалить", tone: "danger", onRun }]}
+      />,
+    );
+    await screen.findByText("Запись 1");
+    await user.click(screen.getByLabelText("Выбрать запись №1"));
+    expect(onOpen).not.toHaveBeenCalled();
+    expect(screen.getByRole("toolbar", { name: "Действия с выбранными" })).toHaveTextContent(
+      "Выбрано: 1",
+    );
+    await user.click(screen.getByLabelText("Выбрать все записи страницы"));
+    expect(screen.getByRole("status")).toHaveTextContent("Выбрано: 2");
+    await user.click(screen.getByRole("button", { name: "Удалить" }));
+    expect(onRun).toHaveBeenCalledWith(["r1", "r2"], undefined);
+    await waitFor(() =>
+      expect((screen.getByLabelText("Выбрать запись №1") as HTMLInputElement).checked).toBe(false),
+    );
+  });
+
   it("первая загрузка — переданный лоадер вместо скелета", async () => {
     const { api } = mockApi();
     render(

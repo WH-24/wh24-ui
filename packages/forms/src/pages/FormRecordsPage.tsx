@@ -5,11 +5,28 @@
  *
  * Данные — серверные: поиск, страница, размер, сортировка уходят в
  * GET /forms/:id/records. Фильтры по значению поля бэкенд в HTTP не проводит
- * (Этап 2+) — чипов фильтров здесь пока нет, а не «сделаны на клиенте по
+ * (Этап 2+) — плашки фильтра (`filterVariant="chips"`) несут только поиск и
+ * «На контроле», а не «сделаны на клиенте по
  * текущей странице»: такой фильтр врал бы про остальные 25 страниц.
  */
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
-import { Avatar, Icon, Input, Menu, MenuItem, type ListColumn } from '@wowhaus-24/ui-react'
+import {
+  Avatar,
+  BulkActionBar,
+  Checkbox,
+  FilterBar,
+  Icon,
+  Input,
+  Menu,
+  MenuItem,
+  Tabs,
+  type BulkAction,
+  type FilterBarConfig,
+  type FilterState,
+  type ListBulkLabels,
+  type ListColumn,
+  type ListSavedView,
+} from '@wowhaus-24/ui-react'
 
 import { FormsApiError, type FormsApi, type ListRecordsQuery } from '../api.js'
 import type { Field, Form, FormRecord, SchemaDocument } from '../types.js'
@@ -69,7 +86,41 @@ export interface FormRecordsPageProps {
    * загрузки не вызывается.
    */
   onRowsChange?: (rows: FormRecord[]) => void
+
+  // ── Виды, фильтр-плашки, массовые действия (всё по желанию; без них — как раньше) ──
+  /**
+   * Виды — вкладки над тулбаром. Сервер записей понимает только поиск и «На
+   * контроле», поэтому из условий вида берутся `q` (строка) и `watching`
+   * (любое непустое значение — «да»). Счётчик — только у выбранной вкладки:
+   * число остальных знает лишь сервер.
+   */
+  views?: ReadonlyArray<ListSavedView>
+  /** Выбранный вид (управляемо). Без него список ведёт выбор сам. */
+  viewId?: string | null
+  onViewChange?: (id: string) => void
+  /**
+   * `chips` — поиск и «На контроле» плашкой (общий `FilterBar variant="chips"`)
+   * вместо поля поиска и кнопки «На контроле».
+   */
+  filterVariant?: 'panel' | 'chips'
+  /** Флажки у строк текущей страницы (нужен для `bulkActions`). */
+  selectable?: boolean
+  /** Панель массовых действий снизу (общий `BulkActionBar`). */
+  bulkActions?: ReadonlyArray<BulkAction>
+  bulkLabels?: ListBulkLabels
+  onBulkError?: (error: unknown, action: BulkAction) => void
+  /** Сменился — список перечитывается с сервера (после массового действия хоста). */
+  reloadKey?: number
 }
+
+/** Ключ «На контроле» в условиях вида и плашек. */
+const WATCH_KEY = 'watching'
+const watchOf = (state: FilterState | undefined) => {
+  const v = state?.[WATCH_KEY]
+  return v != null && v !== false && v !== '' && !(Array.isArray(v) && v.length === 0)
+}
+const NO_FIELDS: string[] = []
+const noop = () => undefined
 
 type Sort = NonNullable<ListRecordsQuery['sort']>
 
@@ -220,14 +271,27 @@ export function FormRecordsPage({
   storageKey,
   extraColumns,
   onRowsChange,
+  views,
+  viewId: viewIdProp,
+  onViewChange,
+  filterVariant = 'panel',
+  selectable = false,
+  bulkActions,
+  bulkLabels,
+  onBulkError,
+  reloadKey = 0,
 }: FormRecordsPageProps) {
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(initialPageSize)
-  const [searchText, setSearchText] = useState('')
+  // Стартовые условия — из выбранного вида (если он задан).
+  const startView = views?.find((v) => v.id === viewIdProp) ?? views?.[0]
+  const [searchText, setSearchText] = useState(() =>
+    typeof startView?.state.q === 'string' ? startView.state.q : '',
+  )
   const search = useDebounced(searchText.trim(), 300)
   const [sort, setSort] = useState<Sort>('created_at_desc')
   // «На контроле» — записи, отмеченные флажком в ленте записи.
-  const [watching, setWatching] = useState(false)
+  const [watching, setWatching] = useState(() => watchOf(startView?.state))
   const [load, setLoad] = useState<Load>({ kind: 'loading' })
   const [reloadTick, setReloadTick] = useState(0)
 
@@ -249,7 +313,69 @@ export function FormRecordsPage({
         if (ticket !== abortRef.current) return
         setLoad({ kind: 'error', error: error instanceof Error ? error : new Error(String(error)) })
       })
-  }, [api, form.id, search, page, pageSize, sort, watching, reloadTick])
+  }, [api, form.id, search, page, pageSize, sort, watching, reloadTick, reloadKey])
+
+  // ─── Виды ───
+  const [ownView, setOwnView] = useState<string | null>(startView?.id ?? null)
+  const viewId = viewIdProp !== undefined ? viewIdProp : ownView
+  const selectView = (id: string) => {
+    const v = views?.find((x) => x.id === id)
+    if (!v) return
+    if (viewIdProp === undefined) setOwnView(id)
+    onViewChange?.(id)
+    setWatching(watchOf(v.state))
+    // Поиск — не часть вида, если вид его не задаёт: набранный текст остаётся.
+    if (typeof v.state.q === 'string') setSearchText(v.state.q)
+  }
+
+  // ─── Выбор строк ───
+  const [selected, setSelected] = useState<Set<string>>(() => new Set())
+  const pageIds = useMemo(() => (load.kind === 'ready' ? load.rows.map((r) => r.id) : []), [load])
+  // Выбор живёт в пределах страницы: ушедшие строки (другая страница, поиск, удаление) снимаются.
+  useEffect(() => {
+    setSelected((prev) => {
+      if (prev.size === 0) return prev
+      const keep = new Set(pageIds.filter((id) => prev.has(id)))
+      return keep.size === prev.size ? prev : keep
+    })
+  }, [pageIds])
+  const selectedIds = useMemo(() => pageIds.filter((id) => selected.has(id)), [pageIds, selected])
+  const toggleRow = (id: string) =>
+    setSelected((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  const allOnPage = pageIds.length > 0 && selectedIds.length === pageIds.length
+  const toggleAll = () => setSelected(allOnPage ? new Set() : new Set(pageIds))
+  const clearSelection = useCallback(() => setSelected(new Set()), [])
+
+  // ─── Фильтр плашками ───
+  const chipsConfig = useMemo<FilterBarConfig<FormRecord>>(
+    () => ({
+      scope: `wh24-forms:records:${storageKey ?? form.id}`,
+      search: { placeholder: 'Поиск по названию', get: (r) => r.title },
+      fields: [
+        {
+          key: WATCH_KEY,
+          label: 'На контроле',
+          type: 'select',
+          options: [{ value: 'yes', label: 'Да' }],
+          get: () => null,
+        },
+      ],
+    }),
+    [storageKey, form.id],
+  )
+  const chipsState = useMemo<FilterState>(
+    () => ({ q: searchText, [WATCH_KEY]: watching ? 'yes' : null }),
+    [searchText, watching],
+  )
+  const setChipsState = useCallback((st: FilterState) => {
+    setSearchText(typeof st.q === 'string' ? st.q : '')
+    setWatching(watchOf(st))
+  }, [])
 
   const retry = useCallback(() => {
     setLoad({ kind: 'loading' })
@@ -311,6 +437,7 @@ export function FormRecordsPage({
     writeHidden(colsKey, next)
   }
   const visibleCols = columns.filter((c) => !hidden.includes(c.key))
+  const withSelect = selectable && Boolean(bulkActions?.length)
 
   const toggleSort = () => setSort((s) => (s === 'number_desc' ? 'number_asc' : 'number_desc'))
 
@@ -378,7 +505,15 @@ export function FormRecordsPage({
           title="На контроле ничего нет"
           text="Отметьте запись флажком в её ленте — она появится здесь."
           action={
-            <button type="button" className="btn btn-secondary btn-sm" onClick={() => setWatching(false)}>
+            <button
+              type="button"
+              className="btn btn-secondary btn-sm"
+              onClick={() => {
+                const all = views?.find((v) => !watchOf(v.state))
+                if (all) selectView(all.id)
+                else setWatching(false)
+              }}
+            >
               Все записи
             </button>
           }
@@ -424,12 +559,23 @@ export function FormRecordsPage({
         <div className={styles.tableWrap}>
           <table className={styles.table}>
             <colgroup>
+              {withSelect && <col style={{ width: 40 }} />}
               {visibleCols.map((c) => (
                 <col key={c.key} style={c.width ? { width: c.width } : undefined} />
               ))}
             </colgroup>
             <thead>
               <tr>
+                {withSelect && (
+                  <th className={styles.selectCol}>
+                    <Checkbox
+                      checked={allOnPage}
+                      indeterminate={selectedIds.length > 0 && !allOnPage}
+                      onChange={toggleAll}
+                      aria-label="Выбрать все записи страницы"
+                    />
+                  </th>
+                )}
                 {visibleCols.map((c) =>
                   c.key === 'number' ? (
                     <th
@@ -479,7 +625,20 @@ export function FormRecordsPage({
             </thead>
             <tbody>
               {load.rows.map((r) => (
-                <tr key={r.id} onClick={onOpen ? () => onOpen(r) : undefined}>
+                <tr
+                  key={r.id}
+                  onClick={onOpen ? () => onOpen(r) : undefined}
+                  data-selected={withSelect ? String(selected.has(r.id)) : undefined}
+                >
+                  {withSelect && (
+                    <td className={styles.selectCol} onClick={(e) => e.stopPropagation()}>
+                      <Checkbox
+                        checked={selected.has(r.id)}
+                        onChange={() => toggleRow(r.id)}
+                        aria-label={`Выбрать запись №${r.number}`}
+                      />
+                    </td>
+                  )}
                   {visibleCols.map((c) => {
                     if (c.key === 'number')
                       return (
@@ -586,26 +745,54 @@ export function FormRecordsPage({
         <Banner tone="warn">Форма ещё не опубликована — записей в ней быть не может.</Banner>
       )}
 
+      {views && views.length > 0 && (
+        <Tabs
+          tabs={views.map((v) => ({
+            id: v.id,
+            label: v.label,
+            count: v.id === viewId && total != null ? total : undefined,
+          }))}
+          value={viewId ?? ''}
+          onChange={selectView}
+          ariaLabel="Виды списка"
+          idPrefix={`wh24-forms-views-${form.id}`}
+          className={styles.viewTabs}
+        />
+      )}
+
       <div className={styles.toolbar}>
-        <div className={styles.search}>
-          <span className={styles.searchIcon}>
-            <Icon name="search" size={14} />
-          </span>
-          <Input
-            aria-label="Поиск по названию"
-            placeholder="Поиск по названию"
-            value={searchText}
-            onChange={(e) => setSearchText(e.target.value)}
+        {filterVariant === 'chips' ? (
+          <FilterBar<FormRecord>
+            variant="chips"
+            config={chipsConfig}
+            state={chipsState}
+            setState={setChipsState}
+            fields={NO_FIELDS}
+            setFields={noop}
           />
-        </div>
-        <button
-          type="button"
-          className={['btn', 'btn-sm', watching ? 'btn-secondary' : 'btn-ghost'].join(' ')}
-          aria-pressed={watching}
-          onClick={() => setWatching((v) => !v)}
-        >
-          <Icon name="flag" size={14} /> На контроле
-        </button>
+        ) : (
+          <>
+            <div className={styles.search}>
+              <span className={styles.searchIcon}>
+                <Icon name="search" size={14} />
+              </span>
+              <Input
+                aria-label="Поиск по названию"
+                placeholder="Поиск по названию"
+                value={searchText}
+                onChange={(e) => setSearchText(e.target.value)}
+              />
+            </div>
+            <button
+              type="button"
+              className={['btn', 'btn-sm', watching ? 'btn-secondary' : 'btn-ghost'].join(' ')}
+              aria-pressed={watching}
+              onClick={() => setWatching((v) => !v)}
+            >
+              <Icon name="flag" size={14} /> На контроле
+            </button>
+          </>
+        )}
         <span className={styles.spacer} />
         <Menu
           label="Колонки"
@@ -630,6 +817,18 @@ export function FormRecordsPage({
       </div>
 
       {renderBody()}
+
+      {withSelect && (
+        <BulkActionBar
+          selectedIds={selectedIds}
+          actions={bulkActions!}
+          onClear={clearSelection}
+          onError={onBulkError}
+          countLabel={bulkLabels?.count}
+          clearLabel={bulkLabels?.clear}
+          ariaLabel={bulkLabels?.toolbar}
+        />
+      )}
     </div>
   )
 }
