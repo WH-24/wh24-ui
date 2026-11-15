@@ -45,3 +45,21 @@ describe('Avatar: худшие данные', () => {
     expect(screen.getByRole('img')).toHaveTextContent(/^🦊Л$/)
   })
 })
+
+describe('Avatar: свой размер и квадрат', () => {
+  it('размер вне макета — ширина, высота и шрифт в пропорции', () => {
+    render(<Avatar name="Анна Соколова" size={104} />)
+    const av = screen.getByRole('img', { name: 'Анна Соколова' })
+    expect(av).toHaveStyle({ width: '104px', height: '104px', fontSize: '40px' })
+  })
+
+  it('размер макета — без встроенных размеров', () => {
+    render(<Avatar name="Анна Соколова" size={44} />)
+    expect(screen.getByRole('img').style.width).toBe('')
+  })
+
+  it('квадрат для компании', () => {
+    render(<Avatar name="Ромашка" square />)
+    expect(screen.getByRole('img').className).toMatch(/square/)
+  })
+})

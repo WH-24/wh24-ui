@@ -226,3 +226,44 @@
     transform: none;
   }
 }
+
+/* Кнопки шапки: «Прочитать все», «Удалить все». */
+.actions {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 2px;
+}
+
+/* Строка с крестиком «Убрать из ленты»: крестик поверх правого края строки. */
+.row {
+  position: relative;
+}
+.row > .item {
+  padding-right: calc(var(--sp-3, 8px) + 24px + var(--sp-2, 6px));
+}
+.dismiss {
+  position: absolute;
+  top: var(--sp-2, 6px);
+  right: var(--sp-2, 6px);
+  color: var(--ink-3);
+}
+
+/* Мышь — крестик проявляется у строки под курсором или в фокусе. */
+@media (hover: hover) and (pointer: fine) {
+  .dismiss {
+    opacity: 0;
+    transition: opacity var(--dur-fast, 120ms) ease;
+  }
+  .row:hover .dismiss,
+  .row:focus-within .dismiss {
+    opacity: 1;
+  }
+}
+
+.foot {
+  display: flex;
+  justify-content: center;
+  padding: var(--sp-1, 4px);
+  border-top: var(--bd-w, 1px) solid var(--bd-soft);
+}
