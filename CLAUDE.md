@@ -92,6 +92,13 @@ npm run dev -w @wowhaus-24/ui-styleguide     # живой styleguide → http://
 Платформенный контекст и память — в зонтике `../CLAUDE.md` и `../memory/` (см. `memory/wh24_ui_design_system.md`, `ui_styleguide.md`).
 
 
+- **Конфига prettier в репозитории НЕТ** (15.11.2026): `npx prettier --write` с настройками
+  по умолчанию переписывает файл в чужой стиль (двойные кавычки, `;`) — так в #117 случайно
+  переформатированы `pyrusMapping.ts` и его тест (исправлено в #120). Форматировать только
+  `npx prettier --single-quote --no-semi --print-width 120 --trailing-comma all --write <файлы>`
+  (воспроизводит файлы байт в байт) и смотреть `git diff --stat`: сотни строк на маленькую
+  правку — стиль сломан.
+
 ## Changelog (правило WH-24)
 
 Все заметные пользовательские изменения фиксируй в `CHANGELOG.md` по мере работы,
