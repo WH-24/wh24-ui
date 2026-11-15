@@ -3,7 +3,7 @@ import path from 'node:path'
 import { describe, expect, it } from 'vitest'
 
 import type { ConditionGroup, FormRule } from '../types'
-import { applyFills, applyFillsOnChange, checkRules } from './rules'
+import { applyFills, applyFillsOnChange, checkRules, ruleViolationMessage } from './rules'
 
 interface Fixture {
   name: string
@@ -61,5 +61,22 @@ describe('applyFillsOnChange — подстановка при вводе', () =
   it('без правил значения те же', () => {
     const next = { a: 1 }
     expect(applyFillsOnChange(undefined, {}, {}, next).values).toBe(next)
+  })
+})
+
+describe('выключенное правило и свой текст (15.11.2026)', () => {
+  it('выключенное правило не подставляет и при вводе', () => {
+    const off = { ...owner, disabled: true }
+    const prev = { resp: 'X' }
+    expect(applyFillsOnChange([off], {}, prev, { resp: 'T' })).toEqual({ values: { resp: 'T' }, filled: [] })
+    expect(checkRules([off], {}, { resp: 'T', obs: 'B' })).toEqual([])
+  })
+
+  it('нарушение несёт текст правила, сообщение — он, а не общий', () => {
+    const r = { ...owner, fill: false, message: 'Выберите А' }
+    const [v] = checkRules([r], {}, { resp: 'T', obs: 'B' })
+    expect(v).toEqual({ ruleId: 'r1', name: 'Наблюдатель у лидов Т', field: 'obs', message: 'Выберите А' })
+    expect(ruleViolationMessage(v!, [])).toBe('Выберите А')
+    expect(ruleViolationMessage({ ...v!, message: '  ' }, [])).toBe('не выполнено правило «Наблюдатель у лидов Т»')
   })
 })

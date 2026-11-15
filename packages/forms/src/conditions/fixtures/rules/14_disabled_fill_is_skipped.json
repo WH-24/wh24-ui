@@ -1,0 +1,24 @@
+{
+  "name": "выключенная подстановка не подставляет, включённая проверка рядом работает",
+  "visible_if": {},
+  "rules": [
+    {
+      "id": "r1",
+      "name": "Наблюдатель у лидов Т",
+      "when": { "all": [{ "field": "responsible", "op": "eq", "value": "T" }] },
+      "then": { "all": [{ "field": "observer", "op": "eq", "value": "A" }] },
+      "fill": true,
+      "disabled": true
+    },
+    {
+      "id": "r2",
+      "name": "У лидов Т есть срок",
+      "when": { "all": [{ "field": "responsible", "op": "eq", "value": "T" }] },
+      "then": { "all": [{ "field": "due", "op": "not_empty" }] },
+      "message": "Укажите срок"
+    }
+  ],
+  "values": { "responsible": "T" },
+  "filled": { "responsible": "T" },
+  "violations": ["r2"]
+}

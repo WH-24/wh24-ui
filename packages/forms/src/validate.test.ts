@@ -305,9 +305,28 @@ describe('validateRecord — правила формы', () => {
         field_id: 'obs',
         code: 'rule',
         message: 'не выполнено правило «Наблюдатель у лидов Т»: проверьте поле «Наблюдатель»',
+        rule_id: 'r1',
       },
     ])
     expect(validateRecord(d, { resp: 'T', obs: 'A' })).toEqual([])
     expect(validateRecord(d, { resp: 'X' })).toEqual([])
+  })
+
+  it('свой текст правила — вместо общего; выключенное правило не проверяется', () => {
+    const rule = {
+      id: 'r1',
+      name: 'Наблюдатель у лидов Т',
+      when: { all: [{ field: 'resp', op: 'eq' as const, value: 'T' }] },
+      then: { all: [{ field: 'obs', op: 'eq' as const, value: 'A' }] },
+      message: '  У лидов Т наблюдатель — А  ',
+    }
+    const d: SchemaDocument = {
+      ...doc(f({ id: 'resp', type: 'user', label: 'Ответственный' }), f({ id: 'obs', type: 'user', label: 'Наблюдатель' })),
+      rules: [rule],
+    }
+    expect(validateRecord(d, { resp: 'T', obs: 'B' })).toEqual([
+      { field_id: 'obs', code: 'rule', message: 'У лидов Т наблюдатель — А', rule_id: 'r1' },
+    ])
+    expect(validateRecord({ ...d, rules: [{ ...rule, disabled: true }] }, { resp: 'T', obs: 'B' })).toEqual([])
   })
 })

@@ -133,3 +133,15 @@ describe('ruleStatuses', () => {
     expect(ruleStatuses(doc, {}).map((s) => s.state)).toEqual(['off', 'off', 'hidden', 'optional'])
   })
 })
+
+describe('ruleScenarios — выключенное правило', () => {
+  it('сценариев и пар по выключенному правилу нет', () => {
+    const off: SchemaDocument = {
+      ...doc,
+      rules: (doc.rules ?? []).map((r) => (r.id === 'r1' ? { ...r, disabled: true } : r)),
+    }
+    const ids = ruleScenarios(off, { sample }).map((s) => s.id)
+    expect(ids.some((id) => id.startsWith('r1'))).toBe(false)
+    expect(ids).toContain('r2:wrong')
+  })
+})
