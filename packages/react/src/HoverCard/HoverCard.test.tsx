@@ -145,6 +145,16 @@ describe('HoverCard', () => {
       expect(onOpenChange).toHaveBeenLastCalledWith(false)
     })
 
+    it('открытую касанием не закрывает «уход курсора», который досылает браузер', () => {
+      const { btn } = setupTap()
+      fireEvent.touchStart(btn)
+      fireEvent.mouseEnter(btn)
+      fireEvent.click(btn)
+      fireEvent.mouseLeave(btn)
+      tick(1000)
+      expect(card()).toBeInTheDocument()
+    })
+
     it('касание мимо закрывает, касание по карточке — нет', () => {
       const { btn } = setupTap()
       fireEvent.click(btn)

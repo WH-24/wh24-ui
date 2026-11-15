@@ -59,6 +59,9 @@
 }
 
 .title {
+  /* Заголовок не сжимается в «Уведомл…» ради кнопок: тесно — переносятся кнопки. */
+  flex: none;
+  max-width: 60%;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -230,9 +233,15 @@
 /* Кнопки шапки: «Прочитать все», «Удалить все». */
 .actions {
   display: flex;
-  flex: none;
+  flex: 0 1 auto;
+  flex-wrap: wrap;
+  justify-content: flex-end;
   align-items: center;
   gap: 2px;
+  min-width: 0;
+}
+.actions > .markAll {
+  padding: 0 var(--sp-3, 8px);
 }
 
 /* Строка с крестиком «Убрать из ленты»: крестик поверх правого края строки. */

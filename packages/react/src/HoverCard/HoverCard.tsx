@@ -93,6 +93,9 @@ export const HoverCard = forwardRef<HTMLDivElement, HoverCardProps>(function Hov
   const cardRef = useRef<HTMLDivElement | null>(null)
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const touched = useRef(false)
+  // Открыта касанием: «мышиные» события, которые браузер досылает после тапа
+  // (уход курсора), её не закрывают — закрывает касание мимо или повторное.
+  const tapOpen = useRef(false)
   const pointerFocus = useRef(false)
   const notify = useRef(onOpenChange)
   notify.current = onOpenChange
@@ -107,6 +110,7 @@ export const HoverCard = forwardRef<HTMLDivElement, HoverCardProps>(function Hov
     openRef.current = next
     if (next) openCards += 1
     else {
+      tapOpen.current = false
       openCards = Math.max(0, openCards - 1)
       lastClosedAt = Date.now()
     }
@@ -184,6 +188,7 @@ export const HoverCard = forwardRef<HTMLDivElement, HoverCardProps>(function Hov
     }),
     onMouseLeave: chain(p.onMouseLeave, () => {
       touched.current = false
+      if (tapOpen.current) return
       if (open) scheduleClose()
       else clear()
     }),
@@ -203,6 +208,7 @@ export const HoverCard = forwardRef<HTMLDivElement, HoverCardProps>(function Hov
             else {
               clear()
               set(true)
+              tapOpen.current = touched.current
             }
           }),
         }
@@ -245,7 +251,9 @@ export const HoverCard = forwardRef<HTMLDivElement, HoverCardProps>(function Hov
               visibility: place ? undefined : 'hidden',
             }}
             onMouseEnter={clear}
-            onMouseLeave={scheduleClose}
+            onMouseLeave={() => {
+              if (!tapOpen.current) scheduleClose()
+            }}
             onBlur={(e) => {
               const to = e.relatedTarget as Node | null
               if (cardRef.current?.contains(to) || anchorRef.current?.contains(to)) return
