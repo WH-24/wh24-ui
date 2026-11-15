@@ -233,11 +233,11 @@ function hasLeaves(g: ConditionGroup | undefined): g is ConditionGroup {
   return conditionLeaves(g).length > 0
 }
 
-/** Все правила формы, по которым есть что проверять. */
+/** Все правила формы, по которым есть что проверять (выключенные — нет). */
 export function allRules(doc: SchemaDocument): RuleRef[] {
   const out: RuleRef[] = []
   for (const r of doc.rules ?? []) {
-    if (hasLeaves(r.when) && hasLeaves(r.then)) out.push({ kind: 'rule', id: r.id, name: r.name })
+    if (!r.disabled && hasLeaves(r.when) && hasLeaves(r.then)) out.push({ kind: 'rule', id: r.id, name: r.name })
   }
   for (const f of doc.fields) {
     if (f.archived) continue
@@ -267,7 +267,7 @@ export function ruleScenarios(doc: SchemaDocument, opts: SimulateOptions = {}): 
   const out: RuleScenario[] = []
 
   for (const r of doc.rules ?? []) {
-    if (!hasLeaves(r.when) || !hasLeaves(r.then)) continue
+    if (r.disabled || !hasLeaves(r.when) || !hasLeaves(r.then)) continue
     const rule: RuleRef = { kind: 'rule', id: r.id, name: r.name }
     const when = { group: r.when, want: true, label: '«Если» выполнено' }
     const targets = fillTargets(r)
@@ -313,7 +313,7 @@ export function ruleScenarios(doc: SchemaDocument, opts: SimulateOptions = {}): 
   // должны выполняться разом, иначе правила противоречат друг другу («Т →
   // наблюдатель А» и «Москва → наблюдатель Б» при лиде Т из Москвы). Пары,
   // чьи «Если» вместе не выполнить, пропускаются.
-  const rules = (doc.rules ?? []).filter((r) => hasLeaves(r.when) && hasLeaves(r.then))
+  const rules = (doc.rules ?? []).filter((r) => !r.disabled && hasLeaves(r.when) && hasLeaves(r.then))
   const vif = visibleIfMap(doc.fields)
   for (let i = 0; i < rules.length; i++) {
     for (let j = i + 1; j < rules.length; j++) {

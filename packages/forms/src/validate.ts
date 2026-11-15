@@ -97,7 +97,12 @@ export function validateRecord(
   // Правила формы «если …, то …»: следствие не выполнено — ошибка с
   // названием правила (validate.Record в Go).
   for (const v of checkRules(doc.rules, visibleIfMap(doc.fields), values)) {
-    errs.push({ field_id: v.field, code: 'rule', message: ruleViolationMessage(v, doc.fields) })
+    errs.push({
+      field_id: v.field,
+      code: 'rule',
+      message: ruleViolationMessage(v, doc.fields),
+      rule_id: v.ruleId,
+    })
   }
   for (const f of doc.fields) {
     // Формулу считает сервер — присланное значение не проверяется.

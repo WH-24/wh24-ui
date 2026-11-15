@@ -215,6 +215,10 @@ export interface FormRule {
   when?: ConditionGroup
   then?: ConditionGroup
   fill?: boolean
+  /** Правило выключено, но не удалено: не проверяет и не подставляет. */
+  disabled?: boolean
+  /** Что увидит сотрудник, если правило не выполнено (вместо общего текста). */
+  message?: string
 }
 
 /** Все сравнения группы, включая вложенные. */
@@ -702,6 +706,8 @@ export interface RecordFieldError {
   code: RecordErrorCode | string
   /** По-русски, доходит до пользователя как есть. */
   message: string
+  /** Нарушенное правило формы (code «rule»), с 15.11.2026. */
+  rule_id?: string
 }
 
 // ─── Доступ ─────────────────────────────────────────────────────────────

@@ -136,5 +136,7 @@ describe('validateForPublish — правила формы', () => {
       'Правило №1: не задано название',
       'Правило №1: не задано, каким должно быть значение («То»)',
     ])
+    const off = { ...d, rules: [{ ...d.rules![0]!, disabled: true }] }
+    expect(validateForPublish(null, off)).toEqual([])
   })
 })

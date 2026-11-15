@@ -1,0 +1,17 @@
+{
+  "name": "выключенное правило проверки не нарушается",
+  "visible_if": {},
+  "rules": [
+    {
+      "id": "r1",
+      "name": "Наблюдатель у лидов Т",
+      "when": { "all": [{ "field": "responsible", "op": "eq", "value": "T" }] },
+      "then": { "all": [{ "field": "observer", "op": "eq", "value": "A" }] },
+      "disabled": true,
+      "message": "У лидов Т наблюдатель — А"
+    }
+  ],
+  "values": { "responsible": "T" },
+  "filled": { "responsible": "T" },
+  "violations": []
+}

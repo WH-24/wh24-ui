@@ -18,6 +18,8 @@ export interface RuleViolation {
   ruleId: string
   name: string
   field?: string
+  /** Свой текст правила для сотрудника (FormRule.message). */
+  message?: string
 }
 
 type VisibleIf = Record<string, ConditionGroup | null | undefined>
@@ -32,7 +34,7 @@ export function visibleIfMap(fields: readonly Pick<Field, 'id' | 'visible_if'>[]
 /** Что подставляет правило: «поле = значение» из eq верхнего уровня then.all. */
 export function fillTargets(r: FormRule): Record<string, unknown> {
   const out: Record<string, unknown> = {}
-  if (!r.fill || !r.then) return out
+  if (!r.fill || r.disabled || !r.then) return out
   for (const c of r.then.all ?? []) {
     if (!isNestedGroup(c) && c.op === 'eq' && c.field && c.value != null) out[c.field] = c.value
   }
@@ -69,7 +71,7 @@ function active(r: FormRule, masked: Values, env: Env): boolean {
 /**
  * Подставляет значения правил с fill в ПУСТЫЕ видимые поля (как сервер до
  * проверки). Подстановка может включить следующее правило, поэтому проходов
- * несколько. values не меняются.
+ * несколько; выключенное правило не подставляет. values не меняются.
  */
 export function applyFills(
   rules: readonly FormRule[] | undefined,
@@ -140,7 +142,7 @@ function fill(
 /**
  * Нарушенные правила при values. Правило без «если» или «то» ни к чему не
  * обязывает; невычислимое условие не нарушает; следствие со скрытым полем не
- * проверяется.
+ * проверяется; выключенное правило (disabled) пропускается.
  */
 export function checkRules(
   rules: readonly FormRule[] | undefined,
@@ -152,17 +154,23 @@ export function checkRules(
   const masked = maskHidden(values, vis)
   const out: RuleViolation[] = []
   for (const r of rules ?? []) {
-    if (!hasLeaves(r.then) || !active(r, masked, env)) continue
+    if (r.disabled || !hasLeaves(r.then) || !active(r, masked, env)) continue
     const refs = conditionLeaves(r.then).map((c) => c.field)
     if (refs.some((id) => vis[id] === false)) continue
     if (holds(r.then, masked, env) !== false) continue
-    out.push({ ruleId: r.id, name: r.name, field: refs[0] })
+    const v: RuleViolation = { ruleId: r.id, name: r.name, field: refs[0] }
+    if (r.message?.trim()) v.message = r.message.trim()
+    out.push(v)
   }
   return out
 }
 
-/** Сообщение об ошибке правила — как у сервера (validate.Record). */
+/**
+ * Сообщение об ошибке правила — как у сервера (validate.Record): свой текст
+ * правила, если задан, иначе общий.
+ */
 export function ruleViolationMessage(v: RuleViolation, fields: readonly Field[]): string {
+  if (v.message?.trim()) return v.message.trim()
   const name = v.name.trim()
   let msg = name ? `не выполнено правило «${name}»` : 'не выполнено правило формы'
   const f = fields.find((x) => x.id === v.field)
