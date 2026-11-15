@@ -282,7 +282,10 @@ export function validateForPublish(
 
   // --- Правила формы «если …, то …» (validateRulesForPublish в Go; операторы
   // и значения проверяет редактор условий и сервер) ---
+  // Выключенное правило ничего не делает — его недоделанность публикацию не
+  // держит (как на сервере); проверится, когда его включат.
   ;(next.rules ?? []).forEach((r, i) => {
+    if (r.disabled) return
     const name = r.name.trim()
     const owner = name ? `Правило «${name}»` : `Правило №${i + 1}`
     const fieldId = conditionFieldRefs(r.then)[0]
