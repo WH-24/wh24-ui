@@ -30,6 +30,7 @@ export function RouteBar({
   canManage,
   onSaved,
   onError,
+  plain,
 }: {
   api: FormsApi
   formId: string
@@ -38,6 +39,11 @@ export function RouteBar({
   canManage: boolean
   onSaved: () => void
   onError?: (message: string) => void
+  /**
+   * Маршрут формы без записи (настройка в редакторе формы): состояние этапов
+   * и решения не показываются — только этапы и их согласующие.
+   */
+  plain?: boolean
 }) {
   const [edit, setEdit] = useState<EditStep[] | null>(null)
   const [saving, setSaving] = useState(false)
@@ -185,11 +191,11 @@ export function RouteBar({
     <div className={styles.route} aria-label="Маршрут согласования">
       <ol className={styles.steps}>
         {route.steps.map((s) => (
-          <li key={s.id} className={[styles.step, styles[`st_${s.state}`]].join(' ')}>
+          <li key={s.id} className={[styles.step, plain ? '' : styles[`st_${s.state}`]].join(' ')}>
             <div className={styles.stepName}>
               {s.state === 'passed' && <Icon name="check" size={13} />}
               {s.name}
-              <span className={styles.stepState}>{STEP_STATE_LABEL[s.state]}</span>
+              {!plain && <span className={styles.stepState}>{STEP_STATE_LABEL[s.state]}</span>}
             </div>
             <div className={styles.approvers}>
               {s.approvers.map((a) => (

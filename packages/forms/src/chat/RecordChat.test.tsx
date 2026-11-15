@@ -4,6 +4,7 @@ import { describe, expect, it, vi } from 'vitest'
 
 import { FormsApiError, commentForm, type FormsApi } from '../api'
 import type { NewComment, OrgOption, RecordComment, RecordFeed, RecordRoute } from '../types'
+import { FormRouteEditor } from './FormRouteEditor'
 import { RecordChat } from './RecordChat'
 import { buildMeeting, draftToComment, EMPTY_DRAFT, parseMinutes, mentionsAi } from './logic'
 
@@ -406,5 +407,23 @@ describe('RecordChat — «@ИИ»', () => {
     await user.click(screen.getByRole('button', { name: 'Отправить' }))
     await waitFor(() => expect(sent).toHaveLength(1))
     expect(sent[0]?.approval).toEqual({ step_id: 'st1', choice: 'rejected', return_to: INIT })
+  })
+
+  it('FormRouteEditor: маршрут формы без записи — этапы и согласующие, без состояний; «Настроить» — у управляющего', async () => {
+    const steps = [{ id: 'st1', name: 'Руководитель', approvers: ['s1'] }]
+    const api = {
+      route: { get: vi.fn(async () => steps), put: vi.fn(async () => steps) },
+    } as unknown as FormsApi
+    const onSteps = vi.fn()
+    const { unmount } = render(<FormRouteEditor api={api} formId="f1" staff={staff} canManage onSteps={onSteps} />)
+    const bar = await screen.findByLabelText('Маршрут согласования')
+    expect(bar).toHaveTextContent('Руководитель')
+    expect(bar).not.toHaveTextContent('впереди')
+    expect(onSteps).toHaveBeenCalledWith(steps)
+    expect(screen.getByRole('button', { name: /Настроить/ })).toBeTruthy()
+    unmount()
+    render(<FormRouteEditor api={api} formId="f1" staff={staff} canManage={false} />)
+    await screen.findByLabelText('Маршрут согласования')
+    expect(screen.queryByRole('button', { name: /Настроить/ })).toBeNull()
   })
 })
