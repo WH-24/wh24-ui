@@ -96,7 +96,10 @@ export interface FormRecordsPageProps {
   /** Выбранный вид (управляемо). Без него список ведёт выбор сам. */
   viewId?: string | null
   onViewChange?: (id: string) => void
-  /** Вид фильтра; по умолчанию — плашки, как у всех списков (17.11.2026). */
+  /**
+   * Вид фильтра; по умолчанию — как у «Оборудования» и «Проектов» (владелец
+   * 17.11.2026): условия плашками в строке поиска, панель фильтра по щелчку.
+   */
   filterVariant?: 'panel' | 'chips'
   /** Флажки у строк текущей страницы (нужен для `bulkActions`). */
   selectable?: boolean
@@ -268,7 +271,7 @@ export function FormRecordsPage({
   views,
   viewId,
   onViewChange,
-  filterVariant = 'chips',
+  filterVariant = 'panel',
   selectable = false,
   bulkActions,
   bulkLabels,
