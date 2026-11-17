@@ -77,9 +77,21 @@ export interface ListRecordsQuery {
   search?: string
   page?: number
   limit?: number
-  sort?: 'created_at_desc' | 'created_at_asc' | 'number_desc' | 'number_asc'
+  sort?:
+    | 'created_at_desc'
+    | 'created_at_asc'
+    | 'number_desc'
+    | 'number_asc'
+    | 'updated_at_desc'
+    | 'updated_at_asc'
+    | 'title_asc'
+    | 'title_desc'
   /** Только записи «На контроле» у вызывающего. */
   watching?: boolean
+  /** Только эти статусы (любой из). */
+  status?: string[]
+  /** id поля → выбранные значения: подходит запись, где есть любое из них. */
+  filters?: Record<string, string[]>
 }
 
 export interface ListResult<T> {
@@ -239,6 +251,25 @@ function toQuery(q: Record<string, string | number | undefined>): string {
   const p = new URLSearchParams()
   for (const [k, v] of Object.entries(q)) {
     if (v !== undefined && v !== '') p.set(k, String(v))
+  }
+  const s = p.toString()
+  return s ? `?${s}` : ''
+}
+
+/** Строка запроса списка записей: статусы и значения полей — повтором параметра. */
+export function listQuery(q: ListRecordsQuery): string {
+  const p = new URLSearchParams()
+  const set = (k: string, v: string | number | undefined) => {
+    if (v !== undefined && v !== '') p.set(k, String(v))
+  }
+  set('search', q.search)
+  set('page', q.page)
+  set('limit', q.limit)
+  set('sort', q.sort)
+  if (q.watching) p.set('watching', 'true')
+  for (const st of q.status ?? []) if (st) p.append('status', st)
+  for (const [id, vals] of Object.entries(q.filters ?? {})) {
+    for (const v of vals) if (v) p.append(`f.${id}`, v)
   }
   const s = p.toString()
   return s ? `?${s}` : ''
@@ -422,13 +453,7 @@ export function createFormsApi(opts: FormsApiOptions) {
       list: (formId: string, q: ListRecordsQuery = {}) =>
         request<ListResult<FormRecord>>(
           'GET',
-          `/forms/${seg(formId)}/records${toQuery({
-            search: q.search,
-            page: q.page,
-            limit: q.limit,
-            sort: q.sort,
-            watching: q.watching ? 'true' : undefined,
-          })}`,
+          `/forms/${seg(formId)}/records${listQuery(q)}`,
           undefined,
           { raw: true },
         ),

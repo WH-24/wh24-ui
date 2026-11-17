@@ -439,6 +439,29 @@ export interface ListPageProps<T> {
    * движения нет. В карточном виде без папок карточка получает обёртку.
    */
   animateChanges?: boolean;
+  /**
+   * Данные с сервера (страницы записей форм, 17.11.2026): поиск, фильтр и
+   * сортировку считает сервер, а не список. В `data` — уже загруженные строки
+   * по текущим условиям; список зовёт `onQueryChange` при смене условий (поиск —
+   * с задержкой) и сразу при появлении, `onLoadMore` — когда низ таблицы или
+   * карточек виден. Счётчик вкладки вида — только у выбранной (`total`).
+   */
+  remote?: ListRemote;
+}
+
+/** Серверный режим `ListPage` (см. `remote`). */
+export interface ListRemote {
+  /** Сколько строк всего по текущим условиям. */
+  total: number;
+  /** На сервере есть ещё строки после загруженных. */
+  hasMore: boolean;
+  /** Идёт догрузка — повторно не просим. */
+  loadingMore?: boolean;
+  onLoadMore: () => void;
+  /** Сменились условия: хост перечитывает первую порцию и заменяет `data`. */
+  onQueryChange: (query: { filter: FilterState; sort: SortState }) => void;
+  /** Задержка перед запросом при наборе поиска, мс (по умолчанию 300). */
+  searchDelay?: number;
 }
 
 /**
@@ -488,6 +511,7 @@ export function ListPage<T>({
   onBulkError,
   onEditError,
   animateChanges = false,
+  remote,
 }: ListPageProps<T>) {
   const {
     state: filter,
@@ -518,9 +542,14 @@ export function ListPage<T>({
     setFilter(typeof q === "string" && q && v.state.q === undefined ? { ...v.state, q } : { ...v.state });
     if (v.fields) setFilterFields(v.fields);
   };
-  const viewCounts = useMemo(
-    () => views?.map((v) => data.reduce((n, r) => n + (matchItem(r, v.state, filterConfig) ? 1 : 0), 0)) ?? [],
-    [views, data, filterConfig],
+  const remoteTotal = remote?.total;
+  const viewCounts = useMemo<(number | undefined)[]>(
+    () =>
+      remote
+        ? (views?.map((v) => (v.id === viewId ? remoteTotal : undefined)) ?? [])
+        : (views?.map((v) => data.reduce((n, r) => n + (matchItem(r, v.state, filterConfig) ? 1 : 0), 0)) ?? []),
+    // Зависимости: remote важен только как флаг
+    [views, data, filterConfig, Boolean(remote), remoteTotal, viewId],
   );
   const canSaveView =
     Boolean(onSaveView) && filterKey !== "[]" && (!activeView || conditionsOf(activeView.state) !== filterKey);
@@ -877,6 +906,8 @@ export function ListPage<T>({
   const colByKey = useMemo(() => new Map(columns.map((c) => [c.key, c])), [columns]);
 
   const filtered = useMemo(() => {
+    // Серверный режим: условия уже применил сервер.
+    if (remote) return data;
     let list = data.filter((r) => matchItem(r, filter, filterConfig));
     const ext = externalSearch.trim().toLowerCase();
     if (ext && filterConfig.search) {
@@ -896,11 +927,34 @@ export function ListPage<T>({
       });
     }
     return list;
-  }, [data, filter, filterConfig, externalSearch, sort, colByKey]);
+    // Зависимости: remote важен только как флаг
+  }, [data, filter, filterConfig, externalSearch, sort, colByKey, Boolean(remote)]);
+
+  // Серверный режим: условия и сортировка — серверу. Набор поиска ждёт паузы,
+  // остальное (плашки, сортировка) уходит сразу; первый запрос — при появлении.
+  const remoteRef = useRef(remote);
+  remoteRef.current = remote;
+  const queryKey = remote ? JSON.stringify([filter, sort]) : "";
+  const lastQ = useRef<{ key: string; q: unknown } | null>(null);
+  useEffect(() => {
+    const r = remoteRef.current;
+    if (!r) return;
+    const prev = lastQ.current;
+    lastQ.current = { key: queryKey, q: filter.q };
+    const typing = prev !== null && prev.q !== filter.q;
+    const delay = typing ? (r.searchDelay ?? 300) : 0;
+    if (delay === 0) {
+      r.onQueryChange({ filter, sort });
+      return;
+    }
+    const t = window.setTimeout(() => remoteRef.current?.onQueryChange({ filter, sort }), delay);
+    return () => window.clearTimeout(t);
+    // Зависимости: queryKey собран из filter и sort
+  }, [queryKey]);
 
   // Срез от начала до shown — и для карточек, и для таблицы. Меняется состав (фильтр/сортировка/
   // сами данные) — начинаем показ заново с первой порции.
-  const visible = filtered.slice(0, shown);
+  const visible = remote ? filtered : filtered.slice(0, shown);
   const searching = filtered.length < data.length;
   const level = useMemo(
     () => (groups ? folderView(filtered, groups, openGroup?.key ?? null, searching) : null),
@@ -910,7 +964,8 @@ export function ListPage<T>({
   // в DOM подвешивали страницу.
   const levelRows = useMemo(() => (level ? level.rows.slice(0, shown) : []), [level, shown]);
   const totalRows = level ? level.rows.length : filtered.length;
-  const hasMore = shown < totalRows;
+  const hasMore = remote ? remote.hasMore : shown < totalRows;
+  const loadingMore = Boolean(remote?.loadingMore);
   const openGroupKey = openGroup?.key ?? null;
   useEffect(() => {
     setShown(pageSize);
@@ -930,7 +985,10 @@ export function ListPage<T>({
     if (!el || typeof IntersectionObserver === "undefined") return;
     const io = new IntersectionObserver(
       (entries) => {
-        if (entries.some((e) => e.isIntersecting)) {
+        if (!entries.some((e) => e.isIntersecting)) return;
+        if (remoteRef.current) {
+          if (!remoteRef.current.loadingMore) remoteRef.current.onLoadMore();
+        } else {
           setShown((n) => Math.min(n + pageSize, totalRows));
         }
       },
@@ -938,7 +996,7 @@ export function ListPage<T>({
     );
     io.observe(el);
     return () => io.disconnect();
-  }, [viewMode, hasMore, pageSize, totalRows, shown]);
+  }, [viewMode, hasMore, pageSize, totalRows, shown, loadingMore, data.length]);
 
   // Переезд оставшихся строк: повод — сменился НАБОР строк (удаление, фильтр,
   // массовое изменение), а не их порядок: сортировка движения не даёт.
@@ -1222,7 +1280,7 @@ export function ListPage<T>({
     Boolean(externalSearch?.trim());
   const empty = error ? (
     <ErrorState detail={error} onRetry={onRetry} />
-  ) : data.length > 0 ? (
+  ) : (remote ? filterActive : data.length > 0) ? (
     <EmptyState
       icon="search"
       title="Ничего не найдено"
@@ -1667,7 +1725,7 @@ export function ListPage<T>({
       {viewMode === "cards" && !level ? (
         <div className={styles.pager}>
           <div>
-            Показано {visible.length} из {filtered.length}
+            Показано {visible.length} из {remote ? remote.total : filtered.length}
           </div>
         </div>
       ) : null}
