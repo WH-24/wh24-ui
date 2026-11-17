@@ -323,7 +323,10 @@ describe("FormRecordsPage", () => {
     render(<FormRecordsPage form={form} schema={schema} api={api} pageSize={2} />);
     await screen.findByText("Запись 1");
     expect(screen.queryByRole("button", { name: "Следующая страница" })).toBeNull();
-    act(() => ioCallback?.([{ isIntersecting: true }]));
+    await waitFor(() => {
+      act(() => ioCallback?.([{ isIntersecting: true }]));
+      expect(list).toHaveBeenCalledWith("form-1", expect.objectContaining({ page: 2 }));
+    });
     expect(await screen.findByText("Запись 3")).toBeInTheDocument();
     expect(screen.getByText("Запись 1")).toBeInTheDocument();
     expect(list).toHaveBeenLastCalledWith("form-1", expect.objectContaining({ page: 2, limit: 2 }));
@@ -1000,7 +1003,11 @@ describe("FormRecordsPage — колонки хоста и onRowsChange (06.11.2
       <FormRecordsPage form={form} schema={schema} api={api} pageSize={2} onRowsChange={onRowsChange} />,
     );
     await screen.findByText("Запись 1");
-    act(() => ioCallback?.([{ isIntersecting: true }]));
+    // Наблюдатель пересоздаётся после загрузки — сигналим, пока не уйдёт запрос второй порции.
+    await waitFor(() => {
+      act(() => ioCallback?.([{ isIntersecting: true }]));
+      expect(list).toHaveBeenCalledWith("form-1", expect.objectContaining({ page: 2 }));
+    });
     await screen.findByText("Запись 3");
     expect(onRowsChange).toHaveBeenCalledTimes(2);
     expect(onRowsChange.mock.calls[1]![0].map((r: FormRecord) => r.id)).toEqual(["r1", "r2", "r3", "r4"]);
