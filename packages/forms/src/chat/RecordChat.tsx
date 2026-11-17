@@ -40,6 +40,8 @@ export interface RecordChatProps {
   recordId: string
   /** Справочник сотрудников: имена, @, ответственный, согласующие. */
   staff: OrgOption[]
+  /** Справочник отделов: согласующим этапа может быть отдел. */
+  departments?: OrgOption[]
   /** Может писать в ленту (роль «Редактирование» в модуле). */
   canWrite?: boolean
   /** Может настраивать маршрут формы (роль «Управление»). */
@@ -91,6 +93,7 @@ export function RecordChat({
   formId,
   recordId,
   staff,
+  departments,
   canWrite = true,
   canManageRoute = false,
   onRecordChange,
@@ -102,7 +105,7 @@ export function RecordChat({
   const [load, setLoad] = useState<Load>({ kind: 'loading' })
   const [replyTo, setReplyTo] = useState<RecordComment | null>(null)
   const listRef = useRef<HTMLDivElement>(null)
-  const people = useMemo(() => staffIndex(staff), [staff])
+  const people = useMemo(() => staffIndex(staff, departments), [staff, departments])
   const names = useMemo(() => staff.map((s) => s.label), [staff])
 
   // Правки записи для ленты. Сбой истории ленту не роняет: сообщения важнее.
@@ -265,6 +268,7 @@ export function RecordChat({
         formId={formId}
         route={feed.route}
         staff={staff}
+        departments={departments}
         canManage={canManageRoute}
         onSaved={() => void reload()}
         onError={onError}

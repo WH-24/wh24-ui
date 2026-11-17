@@ -659,3 +659,81 @@
   display: flex;
   border-bottom: 1px solid var(--bd-soft, var(--bd));
 }
+
+/* Согласующие этапа — плашками с фото из HR, справочник по «+ Согласующий». */
+.approverPicker {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.approverChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  padding: 2px 4px 2px 2px;
+  border: 1px solid var(--bd);
+  border-radius: var(--r-pill);
+  background: var(--surf);
+  font-size: var(--fs-ui);
+  color: var(--ink);
+}
+
+.approverChipName {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.approverChipX {
+  display: inline-grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--ink-3);
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.approverChipX:hover {
+  background: var(--surf-2);
+  color: var(--ink);
+}
+
+.approverChipX:focus-visible {
+  outline: 2px solid var(--terra);
+  outline-offset: 1px;
+}
+
+.deptMark {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--terra-bg);
+  color: var(--terra-text, var(--terra));
+}
+
+.deptMarkLg {
+  width: 28px;
+  height: 28px;
+}
+
+.approverSearch {
+  flex: 1 1 100%;
+  min-width: 0;
+}
+
+.approverAdd {
+  flex: none;
+}

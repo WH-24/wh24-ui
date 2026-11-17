@@ -50,12 +50,30 @@ export function parseMinutes(src: string): number | null {
 /** Быстрые варианты времени — как в Pyrus (от 5 минут до 10 часов). */
 export const SPENT_PRESETS = [5, 15, 30, 60, 120, 240, 480, 600]
 
-/** Сотрудники по id и по учётке IAM. */
-export function staffIndex(staff: OrgOption[]) {
+/**
+ * Согласующий-отдел этапа маршрута: «dept:<id отдела HR>» (wh24-forms-api,
+ * `route.DeptPrefix`). За отдел решает любой его сотрудник.
+ */
+export const DEPT_PREFIX = 'dept:'
+
+/** id отдела из ключа согласующего; пусто — это сотрудник. */
+export function deptOf(id: string): string {
+  return id.startsWith(DEPT_PREFIX) ? id.slice(DEPT_PREFIX.length) : ''
+}
+
+/** Сотрудники по id и по учётке IAM; согласующий-отдел — по справочнику отделов. */
+export function staffIndex(staff: OrgOption[], departments: OrgOption[] = []) {
   const byId = new Map(staff.map((s) => [s.id, s]))
   const byUser = new Map(staff.filter((s) => s.auth_user_id).map((s) => [s.auth_user_id as string, s]))
+  const depts = new Map(departments.map((d) => [d.id, d.label]))
   return {
-    name: (id: string | null | undefined) => (id ? (byId.get(id)?.label ?? 'Сотрудник') : '—'),
+    // Согласующий-отдел — «отдел «…»»: в ленте «за отдел «Бухгалтерия»».
+    name: (id: string | null | undefined) => {
+      if (!id) return '—'
+      const dept = deptOf(id)
+      if (dept) return `отдел «${depts.get(dept) ?? 'без названия'}»`
+      return byId.get(id)?.label ?? 'Сотрудник'
+    },
     author: (userId: string) => byUser.get(userId)?.label ?? 'Сотрудник',
     authorStaff: (userId: string) => byUser.get(userId),
   }

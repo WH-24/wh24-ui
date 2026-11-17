@@ -17,6 +17,8 @@ export interface FormRouteEditorProps {
   formId: string
   /** Справочник сотрудников: имена согласующих и выбор. */
   staff: OrgOption[]
+  /** Справочник отделов: отдел тоже может быть согласующим. */
+  departments?: OrgOption[]
   /** Может менять маршрут (роль «Управление» в модуле формы). */
   canManage: boolean
   /** Маршрут загружен или сохранён — хосту (сводка «Согласующие» и т.п.). */
@@ -26,7 +28,15 @@ export interface FormRouteEditorProps {
 
 type Load = { kind: 'loading' } | { kind: 'error'; message: string } | { kind: 'ready'; steps: FormRouteStep[] }
 
-export function FormRouteEditor({ api, formId, staff, canManage, onSteps, onError }: FormRouteEditorProps) {
+export function FormRouteEditor({
+  api,
+  formId,
+  staff,
+  departments,
+  canManage,
+  onSteps,
+  onError,
+}: FormRouteEditorProps) {
   const [load, setLoad] = useState<Load>({ kind: 'loading' })
   const reload = useCallback(async () => {
     try {
@@ -73,6 +83,7 @@ export function FormRouteEditor({ api, formId, staff, canManage, onSteps, onErro
       formId={formId}
       route={route}
       staff={staff}
+      departments={departments}
       canManage={canManage}
       onSaved={() => void reload()}
       onError={onError}
