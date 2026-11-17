@@ -511,3 +511,36 @@
 .table {
   min-width: 600px;
 }
+
+/* Создание и правка в карточке записи (layout="card", 17.11.2026): та же
+   RecordCard, что у готовой записи; обёртка — только высота под карточку. */
+.cardEditor {
+  flex: 1 1 auto;
+  min-height: 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.cardEditActions {
+  margin-left: auto;
+  display: inline-flex;
+  gap: 8px;
+}
+/* Лента новой записи: её ещё нет — пояснение по центру колонки. */
+.feedPending {
+  flex: 1 1 auto;
+  min-height: 240px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 32px 24px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--ink-3);
+}
+.feedPending b {
+  font-size: 14px;
+  color: var(--ink-2);
+}

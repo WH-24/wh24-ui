@@ -21,9 +21,9 @@ import type {
   RecordRoute,
   SchemaDocument,
 } from "../types.js";
-import { routeAllowsEdit, routeStages } from "../chat/logic.js";
+import { recordStages, routeAllowsEdit } from "../chat/logic.js";
 import { FormRenderer } from "../render/FormRenderer.js";
-import { withSystemValues } from "../render/system.js";
+import { actorLabel, withSystemValues } from "../render/system.js";
 import { formatDateTime, type FormatContext } from "../render/format.js";
 import type { RenderContext } from "../render/registry.js";
 import { RecordHistory } from "./RecordHistory.js";
@@ -98,8 +98,7 @@ export function FormRecordView({
     | { kind: "error" }
   >({ kind: "closed" });
   const s = statusLabel(record.status, statusLabels);
-  const who = (id: string | null) =>
-    id ? (actorName ? actorName(id) : id) : "—";
+  const who = (id: string | null) => actorLabel(id, actorName);
 
   const toggleHistory = async () => {
     if (history.kind === "open" || history.kind === "loading") {
@@ -144,8 +143,9 @@ export function FormRecordView({
       ? [{ id: "delete", label: "Удалить", danger: true, onSelect: onDelete }]
       : [];
     const created = `${who(record.created_by)}, ${formatDateTime(record.created_at)}`;
-    // Полоса стадий — только показ: стадию двигает согласование в ленте.
-    const strip = form.route_stages ? routeStages(route) : null;
+    // Полоса стадий — только показ: стадию двигает согласование в ленте; без
+    // маршрута — статусы записи (как у лида, 17.11.2026).
+    const strip = form.route_stages ? recordStages(route, record.status, statusLabels) : null;
     // Правка — только на «Инициализации»: после отправки на согласование
     // запись задним числом не меняют (владелец 14.11.2026). Сервер проверяет
     // то же; пока маршрут не пришёл из ленты, кнопки нет.

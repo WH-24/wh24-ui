@@ -1,5 +1,6 @@
 import type { RecordHistoryEntry, SchemaDocument } from '../types.js'
 import { formatDateTime, formatValue, type FormatContext } from '../render/format.js'
+import { actorLabel } from '../render/system.js'
 import styles from './pages.module.css'
 
 export interface RecordHistoryProps {
@@ -41,7 +42,7 @@ export function RecordHistoryEntryView({
     <div className={styles.histEntry}>
       <div className={styles.histHead}>
         <span className={styles.histAction}>{ACTION[e.action] ?? e.action}</span>
-        <span>{actorName ? actorName(e.actor) : e.actor}</span>
+        <span>{actorLabel(e.actor, actorName)}</span>
         <span className={styles.histAt}>{formatDateTime(e.at)}</span>
       </div>
       {changes.length > 0 && (

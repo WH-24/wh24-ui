@@ -105,6 +105,30 @@ export function routeStages(
 }
 
 /**
+ * Полоса стадий записи, как у лида (владелец 17.11.2026: «настройка включена —
+ * статус должен отображаться»): есть этапы маршрута — они; маршрута у формы нет
+ * (лента пришла, этапов ноль) — статусы записи «Открыта → Закрыта» с текущим.
+ * Маршрут ещё не загружен (`undefined`/`null`) — полосы нет, чтобы она не
+ * перескакивала со статусов на этапы.
+ */
+export function recordStages(
+  route: RecordRoute | null | undefined,
+  status: string,
+  labels: Record<string, { label: string }>,
+): { stages: { value: string; label: string }[]; stage: string } | null {
+  if (!route) return null
+  const byRoute = routeStages(route)
+  if (byRoute) return byRoute
+  const order = ['open', 'closed']
+  const cur = status || 'open'
+  const values = order.includes(cur) ? order : ['open', cur, 'closed']
+  return {
+    stages: values.map((v) => ({ value: v, label: labels[v]?.label ?? v })),
+    stage: cur,
+  }
+}
+
+/**
  * Можно ли сейчас править запись: у формы с маршрутом — только на
  * «Инициализации» (в том числе когда запись туда вернули); после отправки на
  * согласование правка задним числом закрыта (владелец 14.11.2026). Маршрут
