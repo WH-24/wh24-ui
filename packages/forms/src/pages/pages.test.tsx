@@ -299,10 +299,18 @@ describe("FormRecordsPage", () => {
     expect(list.mock.calls.some((c) => (c[1] as { search?: string }).search === "Л")).toBe(false);
   });
 
-  it("плашки: статус и поле-список уходят на сервер", async () => {
+  it("по умолчанию фильтр — как у «Оборудования»: условия в строке поиска, панель по щелчку", async () => {
+    const { api } = mockApi();
+    render(<FormRecordsPage form={form} schema={schema} api={api} ctx={ctx} />);
+    await screen.findByText("Запись 1");
+    expect(screen.getByPlaceholderText("Поиск по названию")).toHaveAttribute("aria-haspopup", "dialog");
+    expect(screen.queryByRole("button", { name: "Фильтр" })).toBeNull();
+  });
+
+  it("плашки (filterVariant=chips): статус и поле-список уходят на сервер", async () => {
     const user = userEvent.setup();
     const { api, list } = mockApi();
-    render(<FormRecordsPage form={form} schema={schema} api={api} ctx={ctx} />);
+    render(<FormRecordsPage form={form} schema={schema} api={api} ctx={ctx} filterVariant="chips" />);
     await screen.findByText("Запись 1");
     await user.click(screen.getByRole("button", { name: "Фильтр" }));
     await user.click(screen.getByRole("menuitem", { name: "Статус" }));
