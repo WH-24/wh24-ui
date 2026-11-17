@@ -13,10 +13,20 @@
  *  - guard несохранённых изменений: beforeunload + onDirtyChange для хоста.
  */
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
-import { Icon, Input } from '@wowhaus-24/ui-react'
+import { Icon, Input, RecordCard } from '@wowhaus-24/ui-react'
 
 import { FormsApiError, type FormsApi } from '../api.js'
-import type { Field, Form, FormFile, FormRecord, RecordData, RecordFieldError, SchemaDocument } from '../types.js'
+import type {
+  Field,
+  Form,
+  FormFile,
+  FormRecord,
+  RecordData,
+  RecordFieldError,
+  RecordRoute,
+  SchemaDocument,
+} from '../types.js'
+import { recordStages } from '../chat/logic.js'
 import { FormRenderer } from '../render/FormRenderer.js'
 import { withSystemValues } from '../render/system.js'
 import { formatValue, isBlank } from '../render/format.js'
@@ -46,6 +56,22 @@ export interface FormRecordEditorProps {
   backLabel?: string
   /** Дополнительные действия справа в шапке. */
   actions?: ReactNode
+  /**
+   * `card` — та же карточка записи (`RecordCard`), что у готовой записи с лентой
+   * (владелец 17.11.2026: «новая — как уже заполненная, с чатом, статусами»):
+   * слева лента (`discussion`; у новой — пустая с пояснением), справа поля в
+   * режиме правки, «Отмена» и «Сохранить» — у вкладки «Поля». По умолчанию —
+   * прежняя страница с полями.
+   */
+  layout?: 'page' | 'card'
+  /** Лента записи слева (только `layout="card"`); нет — пояснение «появится после создания». */
+  discussion?: ReactNode
+  /**
+   * Маршрут для полосы стадий (`form.route_stages`): у правимой записи — из её
+   * ленты, у новой хост может передать этапы формы (все `pending`). Без
+   * маршрута полоса — статусы записи.
+   */
+  route?: RecordRoute | null
 }
 
 function newFieldIdsOf(current: SchemaDocument, previous: SchemaDocument | undefined): string[] {
@@ -80,6 +106,9 @@ export function FormRecordEditor({
   onBack,
   backLabel,
   actions,
+  layout = 'page',
+  discussion,
+  route,
 }: FormRecordEditorProps) {
   const initial = useMemo<RecordData>(() => ({ ...(record?.data ?? {}) }), [record])
   const [values, setValues] = useState<RecordData>(initial)
@@ -211,56 +240,21 @@ export function FormRecordEditor({
   const s = record ? statusLabel(record.status, statusLabels) : null
   const generalErrors = errors.filter((e) => !e.field_id)
 
-  return (
-    <div className={[styles.page, styles.record].join(' ')} ref={topRef}>
-      {onBack && (
-        <div>
-          <button type="button" className={['btn', 'btn-ghost', 'btn-sm', styles.back].join(' ')} onClick={onBack}>
-            <Icon name="back" size={14} />
-            {backLabel ?? form.nav_label ?? form.name}
-          </button>
-        </div>
-      )}
-      <div className={styles.recHead}>
-        <div className={styles.recNum} aria-label={record ? `Запись № ${record.number}` : 'Новая запись'}>
-          {record ? `№${record.number}` : 'new'}
-        </div>
-        <div className={styles.recTitleWrap}>
-          <div className={styles.recTitleRow}>
-            {titleField ? (
-              <h1 className={styles.recTitle} title={title}>
-                {title || <span className={styles.muted}>{record ? 'Без названия' : 'Новая запись'}</span>}
-              </h1>
-            ) : (
-              <Input
-                className={styles.recTitleInput}
-                aria-label="Название записи"
-                placeholder="Название записи"
-                value={titleText}
-                invalid={generalErrors.length > 0}
-                onChange={(e) => {
-                  setTitleText(e.target.value)
-                  setErrors((prev) => prev.filter((x) => x.field_id))
-                }}
-              />
-            )}
-            {s && <StatusPill tone={s.tone}>{s.label}</StatusPill>}
-          </div>
-          {titleField && (
-            <div className={styles.recMeta}>Название — из поля «{titleField.label || titleField.key}»</div>
-          )}
-        </div>
-        <div className={styles.actions}>
-          {actions}
-          <button type="button" className="btn btn-ghost btn-sm" onClick={onCancel} disabled={saving}>
-            Отмена
-          </button>
-          <button type="button" className="btn btn-primary btn-sm" onClick={save} disabled={saving}>
-            {saving ? 'Сохраняем…' : 'Сохранить'}
-          </button>
-        </div>
-      </div>
-
+  const titleInput = !titleField && (
+    <Input
+      className={styles.recTitleInput}
+      aria-label="Название записи"
+      placeholder="Название записи"
+      value={titleText}
+      invalid={generalErrors.length > 0}
+      onChange={(e) => {
+        setTitleText(e.target.value)
+        setErrors((prev) => prev.filter((x) => x.field_id))
+      }}
+    />
+  )
+  const body = (
+    <>
       {banner && <Banner tone={banner.tone}>{banner.text}</Banner>}
       {generalErrors.length > 0 && (
         <Banner tone="bad">
@@ -298,6 +292,115 @@ export function FormRecordEditor({
         disabled={saving}
         newFieldIds={newIds}
       />
+
+    </>
+  )
+  const cancelBtn = (
+    <button type="button" className="btn btn-ghost btn-sm" onClick={onCancel} disabled={saving}>
+      Отмена
+    </button>
+  )
+  const saveBtn = (
+    <button type="button" className="btn btn-primary btn-sm" onClick={save} disabled={saving}>
+      {saving ? 'Сохраняем…' : record ? 'Сохранить' : 'Создать запись'}
+    </button>
+  )
+
+  if (layout === 'card') {
+    const strip = form.route_stages
+      ? recordStages(route ?? { steps: [], current_step_id: null, finished: false }, record?.status ?? 'open', statusLabels)
+      : null
+    return (
+      <div className={styles.cardEditor} ref={topRef}>
+        <RecordCard
+          crumbs={[
+            { label: backLabel ?? form.nav_label ?? form.name, onClick: onBack ?? onCancel },
+            { label: record ? 'Изменение записи' : 'Новая запись' },
+          ]}
+          title={title || (record ? 'Без названия' : 'Новая запись')}
+          idLabel={record ? `№${record.number}` : undefined}
+          stages={strip?.stages}
+          stage={strip?.stage}
+          headerAside={actions}
+          left={{
+            label: 'Обсуждение',
+            bare: true,
+            tabs: [{ id: 'feed', label: 'Обсуждение' }],
+            selfScroll: ['feed'],
+            render: () => (
+              <div className={styles.cardFeed} data-record-feed="">
+                {discussion ?? (
+                  <div className={styles.feedPending}>
+                    <Icon name="msgs" size={20} />
+                    <b>Лента начнётся после создания</b>
+                    <span>Здесь появятся сообщения, изменения полей и решения по маршруту.</span>
+                  </div>
+                )}
+              </div>
+            ),
+          }}
+          right={{
+            label: 'Поля',
+            tabs: [{ id: 'fields', label: 'Поля' }],
+            headAside: () => (
+              <span className={styles.cardEditActions}>
+                {cancelBtn}
+                {saveBtn}
+              </span>
+            ),
+            render: () => (
+              <div className={styles.cardTab}>
+                {titleInput}
+                {body}
+              </div>
+            ),
+          }}
+        />
+      </div>
+    )
+  }
+
+  return (
+    <div className={[styles.page, styles.record].join(' ')} ref={topRef}>
+      {onBack && (
+        <div>
+          <button type="button" className={['btn', 'btn-ghost', 'btn-sm', styles.back].join(' ')} onClick={onBack}>
+            <Icon name="back" size={14} />
+            {backLabel ?? form.nav_label ?? form.name}
+          </button>
+        </div>
+      )}
+      <div className={styles.recHead}>
+        <div className={styles.recNum} aria-label={record ? `Запись № ${record.number}` : 'Новая запись'}>
+          {record ? `№${record.number}` : 'new'}
+        </div>
+        <div className={styles.recTitleWrap}>
+          <div className={styles.recTitleRow}>
+            {titleField ? (
+              <h1 className={styles.recTitle} title={title}>
+                {title || <span className={styles.muted}>{record ? 'Без названия' : 'Новая запись'}</span>}
+              </h1>
+            ) : (
+              titleInput
+            )}
+            {s && <StatusPill tone={s.tone}>{s.label}</StatusPill>}
+          </div>
+          {titleField && (
+            <div className={styles.recMeta}>Название — из поля «{titleField.label || titleField.key}»</div>
+          )}
+        </div>
+        <div className={styles.actions}>
+          {actions}
+          <button type="button" className="btn btn-ghost btn-sm" onClick={onCancel} disabled={saving}>
+            Отмена
+          </button>
+          <button type="button" className="btn btn-primary btn-sm" onClick={save} disabled={saving}>
+            {saving ? 'Сохраняем…' : 'Сохранить'}
+          </button>
+        </div>
+      </div>
+
+      {body}
 
       <div className={styles.footer}>
         <button type="button" className="btn btn-ghost" onClick={onCancel} disabled={saving}>

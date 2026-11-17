@@ -297,6 +297,20 @@ describe('FormRenderer — контролы пишут значения нужн
     expect(screen.getByText('u1')).toBeInTheDocument()
   })
 
+  it('user: фото из HR — в поле просмотра и в списке выбора (правило владельца: аватары из HR)', async () => {
+    const user = userEvent.setup()
+    const d = doc([f({ id: 'u', type: 'user', label: 'Ответственный' })])
+    const ctx = { staff: [{ id: 'u1', label: 'Иван Петров', photo: 'https://s3/u1.jpg' }] }
+    const { container, rerender } = render(
+      <FormRenderer doc={d} values={{ u: 'u1' }} mode="view" ctx={ctx} />,
+    )
+    expect(container.querySelector('img')?.getAttribute('src')).toBe('https://s3/u1.jpg')
+    rerender(<FormRenderer doc={d} values={{}} mode="edit" ctx={ctx} onChange={vi.fn()} />)
+    await user.click(screen.getByLabelText('Ответственный'))
+    const opt = screen.getByRole('option', { name: /Иван Петров/ })
+    expect(opt.querySelector('img')?.getAttribute('src')).toBe('https://s3/u1.jpg')
+  })
+
   it('table: добавление строки, ввод ячейки, Σ по деньгам, лимит строк, удаление последней → undefined', async () => {
     const user = userEvent.setup()
     const d = doc([

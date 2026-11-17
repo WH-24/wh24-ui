@@ -323,7 +323,10 @@ describe("FormRecordsPage", () => {
     render(<FormRecordsPage form={form} schema={schema} api={api} pageSize={2} />);
     await screen.findByText("Запись 1");
     expect(screen.queryByRole("button", { name: "Следующая страница" })).toBeNull();
-    act(() => ioCallback?.([{ isIntersecting: true }]));
+    await waitFor(() => {
+      act(() => ioCallback?.([{ isIntersecting: true }]));
+      expect(list).toHaveBeenCalledWith("form-1", expect.objectContaining({ page: 2 }));
+    });
     expect(await screen.findByText("Запись 3")).toBeInTheDocument();
     expect(screen.getByText("Запись 1")).toBeInTheDocument();
     expect(list).toHaveBeenLastCalledWith("form-1", expect.objectContaining({ page: 2, limit: 2 }));
@@ -586,13 +589,27 @@ describe("FormRecordView — полоса стадий согласования 
     );
   });
 
-  it("настройка выключена, нет маршрута или этапов — полосы нет", () => {
+  it("настройка выключена или маршрут ещё не загружен — полосы нет", () => {
     const { rerender } = render(view({ form }));
     expect(screen.queryByRole("navigation", { name: "Стадия" })).toBeNull();
     rerender(view({ route: null }));
     expect(screen.queryByRole("navigation", { name: "Стадия" })).toBeNull();
-    rerender(view({ route: { steps: [], current_step_id: null, finished: false } }));
-    expect(screen.queryByRole("navigation", { name: "Стадия" })).toBeNull();
+  });
+
+  it("включена, у формы нет маршрута — статусы записи, как у лида (17.11.2026)", () => {
+    const empty = { steps: [], current_step_id: null, finished: false };
+    const { rerender } = render(view({ route: empty, record: rec(1, { status: "closed" }) }));
+    const strip = screen.getByRole("navigation", { name: "Стадия" });
+    expect(within(strip).getAllByRole("button").map((b) => b.textContent)).toEqual(["Открыта", "Закрыта"]);
+    expect(within(strip).getByRole("button", { name: "Закрыта" })).toHaveAttribute("aria-current", "step");
+    // Строки «Статус · Создал · Изменено · Версия формы» в шапке нет (владелец 17.11.2026).
+    expect(screen.queryByText(/Версия формы|Создал/)).toBeNull();
+    rerender(view({ route: empty, record: rec(1, { status: "review" }) }));
+    expect(
+      within(screen.getByRole("navigation", { name: "Стадия" }))
+        .getAllByRole("button")
+        .map((b) => b.textContent),
+    ).toEqual(["Открыта", "На согласовании", "Закрыта"]);
   });
 });
 
@@ -643,6 +660,62 @@ describe("FormRecordView — правка только на «Инициализ
       "aria-current",
       "step",
     );
+  });
+});
+
+describe("FormRecordEditor — в карточке записи (layout=card, 17.11.2026)", () => {
+  it("новая запись — та же карточка: путь, заголовок из поля, без строки «Статус · Создал», лента с пояснением, «Создать запись» у полей", async () => {
+    const user = userEvent.setup();
+    const { api, create } = mockApi();
+    const onSaved = vi.fn();
+    render(
+      <FormRecordEditor
+        form={{ ...form, route_stages: true }}
+        schema={schema}
+        api={api}
+        ctx={ctx}
+        layout="card"
+        onSaved={onSaved}
+        onCancel={vi.fn()}
+        onBack={vi.fn()}
+      />,
+    );
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Новая запись");
+    expect(screen.queryByText(/Не сохранена|Версия формы/)).toBeNull();
+    expect(screen.getByText("Лента начнётся после создания")).toBeInTheDocument();
+    const strip = screen.getByRole("navigation", { name: "Стадия" });
+    expect(within(strip).getByRole("button", { name: "Открыта" })).toHaveAttribute("aria-current", "step");
+    await user.type(screen.getByRole("textbox", { name: /Название/ }), "Счёт 1");
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Счёт 1");
+    await user.click(screen.getByRole("button", { name: "Создать запись" }));
+    await waitFor(() => expect(create).toHaveBeenCalled());
+    expect(onSaved).toHaveBeenCalled();
+  });
+
+  it("правка — лента хоста слева, этапы маршрута в полосе", () => {
+    const { api } = mockApi();
+    render(
+      <FormRecordEditor
+        form={{ ...form, route_stages: true }}
+        schema={schema}
+        api={api}
+        record={rec(1)}
+        layout="card"
+        discussion={<div>Лента записи</div>}
+        route={{
+          steps: [{ id: "s1", name: "Руководитель", state: "pending", approvers: [] }],
+          current_step_id: null,
+          finished: false,
+        }}
+        onSaved={vi.fn()}
+        onCancel={vi.fn()}
+      />,
+    );
+    expect(screen.getByText("Лента записи")).toBeInTheDocument();
+    expect(screen.getByText("№1")).toBeInTheDocument();
+    const strip = screen.getByRole("navigation", { name: "Стадия" });
+    expect(within(strip).getAllByRole("button").map((b) => b.textContent)).toEqual(["Инициализация", "Руководитель"]);
+    expect(screen.getByRole("button", { name: "Сохранить" })).toBeInTheDocument();
   });
 });
 
@@ -930,7 +1003,11 @@ describe("FormRecordsPage — колонки хоста и onRowsChange (06.11.2
       <FormRecordsPage form={form} schema={schema} api={api} pageSize={2} onRowsChange={onRowsChange} />,
     );
     await screen.findByText("Запись 1");
-    act(() => ioCallback?.([{ isIntersecting: true }]));
+    // Наблюдатель пересоздаётся после загрузки — сигналим, пока не уйдёт запрос второй порции.
+    await waitFor(() => {
+      act(() => ioCallback?.([{ isIntersecting: true }]));
+      expect(list).toHaveBeenCalledWith("form-1", expect.objectContaining({ page: 2 }));
+    });
     await screen.findByText("Запись 3");
     expect(onRowsChange).toHaveBeenCalledTimes(2);
     expect(onRowsChange.mock.calls[1]![0].map((r: FormRecord) => r.id)).toEqual(["r1", "r2", "r3", "r4"]);

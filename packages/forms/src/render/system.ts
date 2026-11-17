@@ -20,6 +20,17 @@ export interface SystemSource {
 
 const NIL_UUID = '00000000-0000-0000-0000-000000000000'
 
+/**
+ * Подпись автора действия: пустой UUID — запись или правка пришла из Pyrus
+ * (сверка сервиса форм пишет автором `uuid.Nil`), а не человек — показывать
+ * «Pyrus», а не нули (владелец видел «Создал: 00000000-…», 17.11.2026).
+ */
+export function actorLabel(id: string | null | undefined, name?: (id: string) => string): string {
+  if (!id) return '—'
+  if (id === NIL_UUID) return 'Pyrus'
+  return name ? name(id) : id
+}
+
 /** Значение вычисляемого системного поля; undefined — у обычного поля или пока нечего показать. */
 export function systemValue(field: Pick<Field, 'system'>, src: SystemSource): unknown {
   switch (field.system) {
