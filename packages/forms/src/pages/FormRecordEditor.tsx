@@ -319,10 +319,6 @@ export function FormRecordEditor({
           ]}
           title={title || (record ? 'Без названия' : 'Новая запись')}
           idLabel={record ? `№${record.number}` : undefined}
-          kpis={[
-            { label: 'Статус', value: s ? s.label : 'Не сохранена' },
-            { label: 'Версия формы', value: `v${form.current_version}` },
-          ]}
           stages={strip?.stages}
           stage={strip?.stage}
           headerAside={actions}

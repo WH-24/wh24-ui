@@ -142,7 +142,6 @@ export function FormRecordView({
     const menu: MenuEntry[] = onDelete
       ? [{ id: "delete", label: "Удалить", danger: true, onSelect: onDelete }]
       : [];
-    const created = `${who(record.created_by)}, ${formatDateTime(record.created_at)}`;
     // Полоса стадий — только показ: стадию двигает согласование в ленте; без
     // маршрута — статусы записи (как у лида, 17.11.2026).
     const strip = form.route_stages ? recordStages(route, record.status, statusLabels) : null;
@@ -158,21 +157,8 @@ export function FormRecordView({
         ]}
         title={record.title || "Без названия"}
         idLabel={`№${record.number}`}
-        kpis={[
-          { label: "Статус", value: s.label },
-          { label: "Создал", value: created },
-          ...(record.updated_at !== record.created_at
-            ? [
-                {
-                  label: "Изменено",
-                  value: `${formatDateTime(record.updated_at)}${
-                    record.updated_by ? `, ${who(record.updated_by)}` : ""
-                  }`,
-                },
-              ]
-            : []),
-          { label: "Версия формы", value: `v${record.form_version}` },
-        ]}
+        // Строки «Статус · Создал · Изменено · Версия формы» в шапке нет (владелец
+        // 17.11.2026: «удали») — статус показывает полоса стадий.
         pyrusUrl={pyrusUrl}
         stages={strip?.stages}
         stage={strip?.stage}

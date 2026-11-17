@@ -599,6 +599,8 @@ describe("FormRecordView — полоса стадий согласования 
     const strip = screen.getByRole("navigation", { name: "Стадия" });
     expect(within(strip).getAllByRole("button").map((b) => b.textContent)).toEqual(["Открыта", "Закрыта"]);
     expect(within(strip).getByRole("button", { name: "Закрыта" })).toHaveAttribute("aria-current", "step");
+    // Строки «Статус · Создал · Изменено · Версия формы» в шапке нет (владелец 17.11.2026).
+    expect(screen.queryByText(/Версия формы|Создал/)).toBeNull();
     rerender(view({ route: empty, record: rec(1, { status: "review" }) }));
     expect(
       within(screen.getByRole("navigation", { name: "Стадия" }))
@@ -659,7 +661,7 @@ describe("FormRecordView — правка только на «Инициализ
 });
 
 describe("FormRecordEditor — в карточке записи (layout=card, 17.11.2026)", () => {
-  it("новая запись — та же карточка: путь, заголовок из поля, статус «Не сохранена», лента с пояснением, «Создать запись» у полей", async () => {
+  it("новая запись — та же карточка: путь, заголовок из поля, без строки «Статус · Создал», лента с пояснением, «Создать запись» у полей", async () => {
     const user = userEvent.setup();
     const { api, create } = mockApi();
     const onSaved = vi.fn();
@@ -676,7 +678,7 @@ describe("FormRecordEditor — в карточке записи (layout=card, 17
       />,
     );
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Новая запись");
-    expect(screen.getByText("Не сохранена")).toBeInTheDocument();
+    expect(screen.queryByText(/Не сохранена|Версия формы/)).toBeNull();
     expect(screen.getByText("Лента начнётся после создания")).toBeInTheDocument();
     const strip = screen.getByRole("navigation", { name: "Стадия" });
     expect(within(strip).getByRole("button", { name: "Открыта" })).toHaveAttribute("aria-current", "step");
