@@ -164,7 +164,8 @@ function orgOptions(list: OrgOption[] | undefined, withAvatar: boolean): Combobo
     value: o.id,
     label: o.label,
     hint: o.hint ?? null,
-    ...(withAvatar ? { avatar: null } : {}),
+    // Фото из HR (правило владельца: у сотрудника везде фото, не только инициалы).
+    ...(withAvatar ? { avatar: o.photo ?? null } : {}),
   }))
 }
 
@@ -602,7 +603,12 @@ function PersonView({ field, value, ctx }: FieldRenderProps) {
   const label = optionLabel(field, str(value), ctx)
   return (
     <StaticValue className={styles.user}>
-      <Avatar size={24} name={label} aria-hidden="true" />
+      <Avatar
+        size={24}
+        name={label}
+        src={ctx.staff?.find((o) => o.id === str(value))?.photo}
+        aria-hidden="true"
+      />
       {label}
     </StaticValue>
   )
