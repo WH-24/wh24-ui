@@ -4,12 +4,13 @@
  * рабочем интерфейсе, а не на отдельной странице настроек.
  */
 import { useState } from 'react'
-import { Icon, Input, MultiCombobox } from '@wowhaus-24/ui-react'
+import { Icon, Input } from '@wowhaus-24/ui-react'
 
 import type { FormsApi } from '../api.js'
 import { FormsApiError } from '../api.js'
 import type { OrgOption, RecordRoute } from '../types.js'
-import { CHOICE_LABEL, STEP_STATE_LABEL, isInitStep, staffIndex } from './logic.js'
+import { ApproverPicker } from './ApproverPicker.js'
+import { CHOICE_LABEL, STEP_STATE_LABEL, deptOf, isInitStep, staffIndex } from './logic.js'
 import styles from './chat.module.css'
 
 interface EditStep {
@@ -27,6 +28,7 @@ export function RouteBar({
   formId,
   route,
   staff,
+  departments = [],
   canManage,
   onSaved,
   onError,
@@ -36,6 +38,8 @@ export function RouteBar({
   formId: string
   route: RecordRoute
   staff: OrgOption[]
+  /** Справочник отделов: отдел тоже может быть согласующим этапа. */
+  departments?: OrgOption[]
   canManage: boolean
   onSaved: () => void
   onError?: (message: string) => void
@@ -48,8 +52,7 @@ export function RouteBar({
   const [edit, setEdit] = useState<EditStep[] | null>(null)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const people = staffIndex(staff)
-  const options = staff.map((s) => ({ value: s.id, label: s.label, hint: s.hint }))
+  const people = staffIndex(staff, departments)
 
   const start = () => {
     setError(null)
@@ -113,12 +116,12 @@ export function RouteBar({
                 placeholder="Название этапа"
                 onChange={(e) => patch(s.key, { name: e.target.value })}
               />
-              <MultiCombobox
+              <ApproverPicker
                 ariaLabel={`Согласующие этапа ${i + 1}`}
-                options={options}
+                staff={staff}
+                departments={departments}
                 values={s.approvers}
                 onChange={(v) => patch(s.key, { approvers: v })}
-                placeholder="Согласующие"
               />
               <span className={styles.rowBtns}>
                 <button
@@ -204,7 +207,11 @@ export function RouteBar({
                   className={[styles.approver, a.choice ? styles[`ch_${a.choice}`] : ''].join(' ')}
                   title={a.choice ? CHOICE_LABEL[a.choice] : 'Ещё не решал(а)'}
                 >
-                  {a.staff_id ? people.name(a.staff_id) : 'Автор записи'}
+                  {!a.staff_id
+                    ? 'Автор записи'
+                    : deptOf(a.staff_id)
+                      ? people.name(a.staff_id).replace(/^о/, 'О')
+                      : people.name(a.staff_id)}
                   {a.choice && ` · ${CHOICE_LABEL[a.choice]}`}
                 </span>
               ))}
