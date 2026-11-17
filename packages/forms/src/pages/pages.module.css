@@ -512,6 +512,18 @@
   min-width: 600px;
 }
 
+/* Список записей — общий ListPage (единый вид списков, 17.11.2026). Обёртка
+   несёт шрифт портала и плашки состояния формы над списком; прокручивается
+   сам список. */
+.recordsPage {
+  flex: 1 1 auto;
+  min-height: 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  font-family: var(--font-sans);
+  color: var(--ink);
+}
 /* Создание и правка в карточке записи (layout="card", 17.11.2026): та же
    RecordCard, что у готовой записи; обёртка — только высота под карточку. */
 .cardEditor {
@@ -520,6 +532,17 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
+}
+.recordsPage > [role='status'],
+.recordsPage > [role='alert'] {
+  margin: 8px 28px 0;
+}
+/* Кнопки страницы — строкой слева, как у «Проектов». */
+.listActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
 }
 .cardEditActions {
   margin-left: auto;

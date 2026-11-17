@@ -687,6 +687,8 @@ export interface OrgOption {
   id: string
   label: string
   hint?: string
+  /** Фото сотрудника из HR — кружок в списке записей (правило владельца: аватары из HR). */
+  photo?: string
   /** Учётка IAM сотрудника: по ней системное поле «Автор» (created_by) находит человека. */
   auth_user_id?: string
 }

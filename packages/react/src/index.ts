@@ -83,6 +83,7 @@ export type {
   ListSavedView,
   ListViewLabels,
   ListBulkLabels,
+  ListRemote,
 } from './list/ListPage.js'
 export type { ListCellEdit } from './list/EditableCell.js'
 export type {

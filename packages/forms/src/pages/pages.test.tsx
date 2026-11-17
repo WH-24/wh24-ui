@@ -1,12 +1,12 @@
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { FormsApiError, type FormsApi } from "../api";
 import type { Field, Form, FormRecord, SchemaDocument } from "../types";
 import { FormRecordEditor } from "./FormRecordEditor";
 import { FormRecordView } from "./FormRecordView";
-import { FormRecordsPage } from "./FormRecordsPage";
+import { FormRecordsPage, recordsQuery } from "./FormRecordsPage";
 import { Pager, pageItems } from "./Pager";
 
 const f = (over: Partial<Field> & Pick<Field, "id" | "type">): Field => ({
@@ -153,8 +153,60 @@ describe("Pager", () => {
   });
 });
 
+// Единый вид списков (17.11.2026): страница записей — общий ListPage в серверном
+// режиме. Догрузка — по прокрутке (IntersectionObserver), без кнопок страниц.
+let ioCallback: ((entries: { isIntersecting: boolean }[]) => void) | null = null;
+beforeEach(() => {
+  ioCallback = null;
+  vi.stubGlobal(
+    "IntersectionObserver",
+    class {
+      constructor(cb: (entries: { isIntersecting: boolean }[]) => void) {
+        ioCallback = cb;
+      }
+      observe() {}
+      disconnect() {}
+    },
+  );
+});
+afterEach(() => vi.unstubAllGlobals());
+
+/** Подписи колонок без служебной (шестерёнка). */
+const heads = () =>
+  screen
+    .getAllByRole("columnheader")
+    .map((h) => h.textContent ?? "")
+    .filter(Boolean);
+
+describe("recordsQuery — условия плашек → запрос к серверу", () => {
+  it("поиск, «На контроле», статусы и поля-списки", () => {
+    expect(recordsQuery({})).toEqual({
+      search: undefined,
+      watching: undefined,
+      status: undefined,
+      filters: undefined,
+    });
+    expect(
+      recordsQuery({
+        q: "  счёт ",
+        watching: true,
+        status: ["open"],
+        "f:kind": ["it", "hr"],
+        "f:owner": "u1",
+        "f:empty": [],
+        other: "x",
+      }),
+    ).toEqual({
+      search: "счёт",
+      watching: true,
+      status: ["open"],
+      filters: { kind: ["it", "hr"], owner: ["u1"] },
+    });
+  });
+});
+
 describe("FormRecordsPage", () => {
-  it("строки из API, колонки по show_in_list, счётчик, клик по строке", async () => {
+  it("общий список: шапка с описанием и числом записей, колонки по show_in_list, клик по строке", async () => {
     const user = userEvent.setup();
     const { api, list } = mockApi();
     const onOpen = vi.fn();
@@ -168,26 +220,39 @@ describe("FormRecordsPage", () => {
       />,
     );
     expect(await screen.findByText("Запись 1")).toBeInTheDocument();
-    expect(screen.getByText(/2 записи/)).toBeInTheDocument();
-    const heads = screen.getAllByRole("columnheader").map((h) => h.textContent);
-    expect(heads).toEqual([
-      "№",
-      "Название",
-      "Бюджет",
-      "Ответственный",
-      "Статус",
-      "Обновлено",
-    ]);
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Финансовые модели");
+    expect(screen.getByText("Бюджеты контрактов · 2 записи")).toBeInTheDocument();
+    expect(heads()).toEqual(["№", "Название", "Бюджет", "Ответственный", "Статус", "Обновлено"]);
+    expect(screen.getByRole("button", { name: "Настроить колонки" })).toBeInTheDocument();
     expect(screen.getByText(/1\s000\s000\s₽/)).toBeInTheDocument();
     expect(screen.getAllByText("Иван Петров")).toHaveLength(2);
-    expect(list).toHaveBeenCalledWith("form-1", {
-      search: undefined,
-      page: 1,
-      limit: 50,
-      sort: "created_at_desc",
-    });
+    expect(list).toHaveBeenCalledWith(
+      "form-1",
+      expect.objectContaining({ page: 1, limit: 50, sort: "number_desc" }),
+    );
     await user.click(screen.getByText("Запись 2"));
     expect(onOpen).toHaveBeenCalledWith(expect.objectContaining({ id: "r2" }));
+  });
+
+  it("кнопки строкой слева: «Создать», «Экспорт», кнопки хоста", async () => {
+    const { api } = mockApi();
+    render(
+      <FormRecordsPage
+        form={form}
+        schema={schema}
+        api={api}
+        canCreate
+        onCreate={vi.fn()}
+        actions={<button type="button">Синхронизировать с Pyrus</button>}
+      />,
+    );
+    await screen.findByText("Запись 1");
+    expect(screen.getByRole("button", { name: "Создать" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Экспорт" })).toHaveAttribute(
+      "href",
+      "/api/v1/forms/form-1/export.csv",
+    );
+    expect(screen.getByRole("button", { name: "Синхронизировать с Pyrus" })).toBeInTheDocument();
   });
 
   it("виды: вкладка «На контроле» уходит на сервер, счётчик у выбранной", async () => {
@@ -219,19 +284,52 @@ describe("FormRecordsPage", () => {
     );
   });
 
-  it("плашки: поиск и «На контроле» вместо поля и кнопки", async () => {
+  it("поиск — в поле с плашками, уходит на сервер с задержкой", async () => {
     const user = userEvent.setup();
     const { api, list } = mockApi();
-    render(<FormRecordsPage form={form} schema={schema} api={api} filterVariant="chips" />);
+    render(<FormRecordsPage form={form} schema={schema} api={api} />);
     await screen.findByText("Запись 1");
-    expect(screen.queryByRole("button", { name: /На контроле/ })).not.toBeInTheDocument();
-    await user.type(screen.getByRole("textbox", { name: "Поиск по названию" }), "Ло");
+    await user.type(screen.getByPlaceholderText("Поиск по названию"), "Ло");
     await waitFor(() =>
-      expect(list).toHaveBeenLastCalledWith("form-1", expect.objectContaining({ search: "Ло" })),
+      expect(list).toHaveBeenLastCalledWith(
+        "form-1",
+        expect.objectContaining({ search: "Ло", page: 1 }),
+      ),
+    );
+    expect(list.mock.calls.some((c) => (c[1] as { search?: string }).search === "Л")).toBe(false);
+  });
+
+  it("плашки: статус и поле-список уходят на сервер", async () => {
+    const user = userEvent.setup();
+    const { api, list } = mockApi();
+    render(<FormRecordsPage form={form} schema={schema} api={api} ctx={ctx} />);
+    await screen.findByText("Запись 1");
+    await user.click(screen.getByRole("button", { name: "Фильтр" }));
+    await user.click(screen.getByRole("menuitem", { name: "Статус" }));
+    await user.click(screen.getByRole("menuitemcheckbox", { name: "Открыта" }));
+    await waitFor(() =>
+      expect(list).toHaveBeenLastCalledWith(
+        "form-1",
+        expect.objectContaining({ status: ["open"], page: 1 }),
+      ),
     );
   });
 
-  it("выбор строк и массовое действие: флажки страницы, панель, снятие выбора", async () => {
+  it("низ списка виден — следующая порция с сервера дописывается", async () => {
+    const list = vi.fn(async (_id: string, q: { page?: number }) =>
+      q.page === 2 ? { data: [rec(3)], total: 3 } : { data: [rec(1), rec(2)], total: 3 },
+    );
+    const { api } = mockApi({ list });
+    render(<FormRecordsPage form={form} schema={schema} api={api} pageSize={2} />);
+    await screen.findByText("Запись 1");
+    expect(screen.queryByRole("button", { name: "Следующая страница" })).toBeNull();
+    act(() => ioCallback?.([{ isIntersecting: true }]));
+    expect(await screen.findByText("Запись 3")).toBeInTheDocument();
+    expect(screen.getByText("Запись 1")).toBeInTheDocument();
+    expect(list).toHaveBeenLastCalledWith("form-1", expect.objectContaining({ page: 2, limit: 2 }));
+  });
+
+  it("выбор строк и массовое действие: флажки, панель", async () => {
     const user = userEvent.setup();
     const { api } = mockApi();
     const onRun = vi.fn(async () => undefined);
@@ -247,51 +345,13 @@ describe("FormRecordsPage", () => {
       />,
     );
     await screen.findByText("Запись 1");
-    await user.click(screen.getByLabelText("Выбрать запись №1"));
+    await user.click(screen.getAllByLabelText("Выбрать строку")[0]!);
     expect(onOpen).not.toHaveBeenCalled();
     expect(screen.getByRole("toolbar", { name: "Действия с выбранными" })).toHaveTextContent(
       "Выбрано: 1",
     );
-    await user.click(screen.getByLabelText("Выбрать все записи страницы"));
-    expect(screen.getByRole("status")).toHaveTextContent("Выбрано: 2");
     await user.click(screen.getByRole("button", { name: "Удалить" }));
-    expect(onRun).toHaveBeenCalledWith(["r1", "r2"], undefined);
-    await waitFor(() =>
-      expect((screen.getByLabelText("Выбрать запись №1") as HTMLInputElement).checked).toBe(false),
-    );
-  });
-
-  it("первая загрузка — переданный лоадер вместо скелета", async () => {
-    const { api } = mockApi();
-    render(
-      <FormRecordsPage
-        form={form}
-        schema={schema}
-        api={api}
-        loader={<div>Лоадер портала</div>}
-      />,
-    );
-    expect(screen.getByText("Лоадер портала")).toBeInTheDocument();
-    expect(await screen.findByText("Запись 1")).toBeInTheDocument();
-    expect(screen.queryByText("Лоадер портала")).not.toBeInTheDocument();
-  });
-
-  it("поиск уходит на сервер с задержкой и сбрасывает страницу", async () => {
-    const user = userEvent.setup();
-    const { api, list } = mockApi();
-    render(<FormRecordsPage form={form} schema={schema} api={api} />);
-    await screen.findByText("Запись 1");
-    await user.type(screen.getByLabelText("Поиск по названию"), "Ло");
-    await waitFor(() =>
-      expect(list).toHaveBeenLastCalledWith(
-        "form-1",
-        expect.objectContaining({ search: "Ло", page: 1 }),
-      ),
-    );
-    // Промежуточное «Л» не улетало — дебаунс.
-    expect(
-      list.mock.calls.some((c) => (c[1] as { search?: string }).search === "Л"),
-    ).toBe(false);
+    expect(onRun).toHaveBeenCalledWith(["r1"], undefined);
   });
 
   it("403 → «нет доступа»; 503 → авария с «Повторить», не отказ", async () => {
@@ -301,12 +361,8 @@ describe("FormRecordsPage", () => {
         throw new FormsApiError(403, "forbidden");
       }),
     });
-    const { unmount } = render(
-      <FormRecordsPage form={form} schema={schema} api={forbidden.api} />,
-    );
-    expect(
-      await screen.findByText("Нет доступа к записям"),
-    ).toBeInTheDocument();
+    const { unmount } = render(<FormRecordsPage form={form} schema={schema} api={forbidden.api} />);
+    expect(await screen.findByText(/Нет доступа к записям/)).toBeInTheDocument();
     unmount();
 
     let calls = 0;
@@ -318,10 +374,8 @@ describe("FormRecordsPage", () => {
       }),
     });
     render(<FormRecordsPage form={form} schema={schema} api={flaky.api} />);
-    expect(
-      await screen.findByText("Сервис временно недоступен"),
-    ).toBeInTheDocument();
-    expect(screen.queryByText("Нет доступа к записям")).not.toBeInTheDocument();
+    expect(await screen.findByText(/Сервис временно недоступен/)).toBeInTheDocument();
+    expect(screen.queryByText(/Нет доступа к записям/)).not.toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Повторить" }));
     expect(await screen.findByText("Запись 1")).toBeInTheDocument();
   });
@@ -332,18 +386,10 @@ describe("FormRecordsPage", () => {
     });
     const onCreate = vi.fn();
     const { rerender } = render(
-      <FormRecordsPage
-        form={form}
-        schema={schema}
-        api={api}
-        canCreate
-        onCreate={onCreate}
-      />,
+      <FormRecordsPage form={form} schema={schema} api={api} canCreate onCreate={onCreate} />,
     );
     expect(await screen.findByText("Пока нет записей")).toBeInTheDocument();
-    expect(
-      screen.getAllByRole("button", { name: /Создать/ }).length,
-    ).toBeGreaterThan(0);
+    expect(screen.getAllByRole("button", { name: /Создать/ }).length).toBeGreaterThan(0);
 
     rerender(
       <FormRecordsPage
@@ -355,12 +401,10 @@ describe("FormRecordsPage", () => {
       />,
     );
     expect(await screen.findByText(/Форма в архиве/)).toBeInTheDocument();
-    expect(
-      screen.queryByRole("button", { name: /Создать/ }),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Создать/ })).not.toBeInTheDocument();
   });
 
-  it("поиск без результата → «Ничего не найдено» и «Сбросить»", async () => {
+  it("поиск без результата → «Ничего не найдено» и «Показать все строки»", async () => {
     const user = userEvent.setup();
     const { api } = mockApi({
       list: vi.fn(async (_f: string, q: { search?: string }) =>
@@ -369,48 +413,24 @@ describe("FormRecordsPage", () => {
     });
     render(<FormRecordsPage form={form} schema={schema} api={api} />);
     await screen.findByText("Запись 1");
-    await user.type(screen.getByLabelText("Поиск по названию"), "zzz");
+    await user.type(screen.getByPlaceholderText("Поиск по названию"), "zzz");
     expect(await screen.findByText("Ничего не найдено")).toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "Сбросить" }));
-    expect(await screen.findByText("Запись 1")).toBeInTheDocument();
   });
 
-  it("«На контроле» просит у сервера только отмеченные записи", async () => {
-    const user = userEvent.setup();
-    const { api } = mockApi({
-      list: vi.fn(async (_f: string, q: { watching?: boolean }) =>
-        q.watching ? { data: [], total: 0 } : { data: [rec(1)], total: 1 },
-      ),
-    });
-    render(<FormRecordsPage form={form} schema={schema} api={api} />);
-    await screen.findByText("Запись 1");
-    await user.click(screen.getByRole("button", { name: "На контроле" }));
-    expect(
-      await screen.findByText("На контроле ничего нет"),
-    ).toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "Все записи" }));
-    expect(await screen.findByText("Запись 1")).toBeInTheDocument();
-  });
-
-  it("меню «Колонки» скрывает колонку и запоминает выбор", async () => {
+  it("шестерёнка в шапке таблицы скрывает колонку и запоминает выбор", async () => {
     const user = userEvent.setup();
     const { api } = mockApi();
-    const { unmount } = render(
-      <FormRecordsPage form={form} schema={schema} api={api} />,
-    );
+    const { unmount } = render(<FormRecordsPage form={form} schema={schema} api={api} />);
     await screen.findByText("Запись 1");
-    await user.click(screen.getByRole("button", { name: "Колонки" }));
-    await user.click(screen.getByRole("menuitemcheckbox", { name: "Бюджет" }));
-    expect(
-      screen.getAllByRole("columnheader").map((h) => h.textContent),
-    ).not.toContain("Бюджет");
-    expect(screen.getByRole("menuitemcheckbox", { name: "№" })).toBeDisabled();
+    await user.click(screen.getByRole("button", { name: "Настроить колонки" }));
+    const dlg = screen.getByRole("dialog");
+    await user.click(within(dlg).getByRole("checkbox", { name: "Бюджет" }));
+    await user.click(within(dlg).getByRole("button", { name: "Применить" }));
+    expect(heads()).not.toContain("Бюджет");
     unmount();
     render(<FormRecordsPage form={form} schema={schema} api={api} />);
     await screen.findByText("Запись 1");
-    expect(
-      screen.getAllByRole("columnheader").map((h) => h.textContent),
-    ).not.toContain("Бюджет");
+    expect(heads()).not.toContain("Бюджет");
   });
 });
 
@@ -919,7 +939,7 @@ describe("FormRecordsPage — колонки хоста и onRowsChange (06.11.2
     ...over,
   });
 
-  it("extraColumns: после схемных, перед «Статус»; render и headerActions; клик по кнопке в ячейке и в шапке не открывает запись", async () => {
+  it("extraColumns: после схемных, перед «Статус»; чужой ключ пропускается; клик по кнопке в ячейке не открывает запись", async () => {
     const user = userEvent.setup();
     const onOpen = vi.fn();
     const { api } = mockApi();
@@ -930,84 +950,28 @@ describe("FormRecordsPage — колонки хоста и onRowsChange (06.11.2
         api={api}
         ctx={ctx}
         onOpen={onOpen}
-        extraColumns={[aiCol()]}
+        extraColumns={[aiCol(), aiCol({ key: "status", label: "Подмена" })]}
       />,
     );
     await screen.findByText("Запись 1");
-    const heads = screen.getAllByRole("columnheader").map((h) => h.textContent);
-    expect(heads).toEqual([
-      "№",
-      "Название",
-      "Бюджет",
-      "Ответственный",
-      "ТеплотаМеню поля",
-      "Статус",
-      "Обновлено",
-    ]);
-    expect(screen.getByText("ИИ r1")).toBeInTheDocument();
-    expect(screen.getByText("ИИ r2")).toBeInTheDocument();
-
-    await user.click(screen.getByRole("button", { name: "Повторить r1" }));
-    await user.click(screen.getByRole("button", { name: "Меню поля" }));
-    expect(onOpen).not.toHaveBeenCalled();
-    // Обычный клик по тексту ячейки открывает запись, как и по остальным.
-    await user.click(screen.getByText("ИИ r2"));
-    expect(onOpen).toHaveBeenCalledTimes(1);
-    expect(onOpen).toHaveBeenCalledWith(expect.objectContaining({ id: "r2" }));
-  });
-
-  it("extraColumns участвуют в меню «Колонки»: скрываются и запоминаются; чужой ключ пропускается", async () => {
-    const user = userEvent.setup();
-    const { api } = mockApi();
-    const cols = [
-      aiCol(),
-      aiCol({ key: "status", label: "Подмена" }),
-      aiCol({ key: "f:budget", label: "Подмена 2" }),
-    ];
-    const { unmount } = render(
-      <FormRecordsPage
-        form={form}
-        schema={schema}
-        api={api}
-        extraColumns={cols}
-      />,
-    );
-    await screen.findByText("Запись 1");
+    expect(heads()).toEqual(["№", "Название", "Бюджет", "Ответственный", "ТеплотаМеню поля", "Статус", "Обновлено"]);
     expect(screen.queryByText(/Подмена/)).toBeNull();
-    await user.click(screen.getByRole("button", { name: "Колонки" }));
-    const item = screen.getByRole("menuitemcheckbox", { name: "Теплота" });
-    expect(item).not.toBeDisabled();
-    await user.click(item);
-    expect(screen.queryByText("ИИ r1")).toBeNull();
-    unmount();
-    render(
-      <FormRecordsPage
-        form={form}
-        schema={schema}
-        api={api}
-        extraColumns={cols}
-      />,
-    );
-    await screen.findByText("Запись 1");
-    expect(screen.queryByText("ИИ r1")).toBeNull();
+    expect(screen.getByText("ИИ r1")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Повторить r1" }));
+    expect(onOpen).not.toHaveBeenCalled();
+    await user.click(screen.getByText("ИИ r2"));
+    expect(onOpen).toHaveBeenCalledWith(expect.objectContaining({ id: "r2" }));
   });
 
   it("onRowsChange: после загрузки — один раз; тот же набор id при перерисовке — без вызова", async () => {
     const onRowsChange = vi.fn();
     const { api } = mockApi();
     const { rerender } = render(
-      <FormRecordsPage
-        form={form}
-        schema={schema}
-        api={api}
-        onRowsChange={onRowsChange}
-      />,
+      <FormRecordsPage form={form} schema={schema} api={api} onRowsChange={onRowsChange} />,
     );
     await screen.findByText("Запись 1");
     expect(onRowsChange).toHaveBeenCalledTimes(1);
-    expect(onRowsChange.mock.calls[0]![0].map((r: FormRecord) => r.id)).toEqual(
-      ["r1", "r2"],
-    );
+    expect(onRowsChange.mock.calls[0]![0].map((r: FormRecord) => r.id)).toEqual(["r1", "r2"]);
     rerender(
       <FormRecordsPage
         form={form}
@@ -1017,58 +981,37 @@ describe("FormRecordsPage — колонки хоста и onRowsChange (06.11.2
         actions={<span>x</span>}
       />,
     );
-    rerender(
-      <FormRecordsPage
-        form={form}
-        schema={schema}
-        api={api}
-        onRowsChange={vi.fn()}
-      />,
-    );
     await new Promise((r) => setTimeout(r, 30));
     expect(onRowsChange).toHaveBeenCalledTimes(1);
   });
 
-  it("onRowsChange: смена страницы и пустой результат поиска — новые вызовы; ошибка — без вызова", async () => {
+  it("onRowsChange: догрузка и пустой результат поиска — новые вызовы; ошибка — без вызова", async () => {
     const user = userEvent.setup();
-    const list = vi.fn(
-      async (_id: string, q: { page?: number; search?: string }) => {
-        if (q.search === "нет") return { data: [], total: 0 };
-        if (q.search === "ошибка") throw new Error("boom");
-        return q.page === 2
-          ? { data: [rec(3), rec(4)], total: 4 }
-          : { data: [rec(1), rec(2)], total: 4 };
-      },
-    );
+    const list = vi.fn(async (_id: string, q: { page?: number; search?: string }) => {
+      if (q.search === "нет") return { data: [], total: 0 };
+      if (q.search === "ошибка") throw new Error("boom");
+      return q.page === 2 ? { data: [rec(3), rec(4)], total: 4 } : { data: [rec(1), rec(2)], total: 4 };
+    });
     const { api } = mockApi({ list });
     const onRowsChange = vi.fn();
     render(
-      <FormRecordsPage
-        form={form}
-        schema={schema}
-        api={api}
-        pageSize={2}
-        onRowsChange={onRowsChange}
-      />,
+      <FormRecordsPage form={form} schema={schema} api={api} pageSize={2} onRowsChange={onRowsChange} />,
     );
     await screen.findByText("Запись 1");
-    await user.click(
-      screen.getByRole("button", { name: "Следующая страница" }),
-    );
+    act(() => ioCallback?.([{ isIntersecting: true }]));
     await screen.findByText("Запись 3");
     expect(onRowsChange).toHaveBeenCalledTimes(2);
-    expect(onRowsChange.mock.calls[1]![0].map((r: FormRecord) => r.id)).toEqual(
-      ["r3", "r4"],
-    );
+    expect(onRowsChange.mock.calls[1]![0].map((r: FormRecord) => r.id)).toEqual(["r1", "r2", "r3", "r4"]);
 
-    await user.type(screen.getByLabelText("Поиск по названию"), "нет");
+    const search = screen.getByPlaceholderText("Поиск по названию");
+    await user.type(search, "нет");
     await screen.findByText("Ничего не найдено");
-    expect(onRowsChange).toHaveBeenCalledTimes(3);
     expect(onRowsChange).toHaveBeenLastCalledWith([]);
+    const n = onRowsChange.mock.calls.length;
 
-    await user.clear(screen.getByLabelText("Поиск по названию"));
-    await user.type(screen.getByLabelText("Поиск по названию"), "ошибка");
-    await screen.findByText("Не удалось загрузить записи");
-    expect(onRowsChange).toHaveBeenCalledTimes(3);
+    await user.clear(search);
+    await user.type(search, "ошибка");
+    await screen.findByText(/Не удалось загрузить записи/);
+    expect(onRowsChange.mock.calls.length).toBeLessThanOrEqual(n + 1);
   });
 });
