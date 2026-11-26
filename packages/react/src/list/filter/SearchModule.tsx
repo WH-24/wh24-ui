@@ -582,8 +582,14 @@ export function SearchModule<T>({
               onKeyDown={(e) => {
                 if (e.key !== 'Escape') return
                 e.stopPropagation()
-                if (addQuery) setAddQuery('')
-                else setAddOpen(false)
+                if (addQuery) {
+                  setAddQuery('')
+                  return
+                }
+                // Строка поиска исчезнет вместе с окном — фокус на кнопку, иначе
+                // следующий Esc не дойдёт до панели фильтра (в окне закроет окно).
+                setAddOpen(false)
+                addBtnRef.current?.focus()
               }}
             />
             {addFields.length === 0 && <p className={styles.filterAddgridEmpty}>Ничего не найдено</p>}

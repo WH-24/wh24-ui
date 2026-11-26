@@ -84,6 +84,6 @@ describe('FilterBar: поиск в «Добавить поле»', () => {
     expect(screen.getByTitle('Статус')).toBeInTheDocument()
     await user.keyboard('{Escape}')
     expect(screen.queryByRole('searchbox', { name: 'Найти поле' })).not.toBeInTheDocument()
-    expect(screen.getByPlaceholderText('Фильтр и поиск')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Добавить поле/ })).toHaveFocus()
   })
 })
