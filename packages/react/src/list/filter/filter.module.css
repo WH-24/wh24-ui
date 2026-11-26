@@ -416,6 +416,22 @@
   background: var(--bg-hover);
   color: var(--fg-primary);
 }
+/* Поиск поля — во всю ширину сетки и не уезжает при прокрутке списка. */
+.filterAddgridSearch {
+  grid-column: 1 / -1;
+  position: sticky;
+  top: -12px;
+  z-index: 1;
+  margin-bottom: 6px;
+  box-shadow: 0 -12px 0 var(--bg-surface);
+}
+.filterAddgridEmpty {
+  grid-column: 1 / -1;
+  margin: 0;
+  padding: var(--sp-3) 6px;
+  font-size: var(--fs-ui);
+  color: var(--fg-tertiary, var(--fg-secondary));
+}
 .filterAddgridLabel {
   overflow: hidden;
   text-overflow: ellipsis;
