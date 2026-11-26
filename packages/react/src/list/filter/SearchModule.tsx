@@ -79,6 +79,9 @@ export function SearchModule<T>({
   const [saveForAll, setSaveForAll] = useState(false)
   const [presetName, setPresetName] = useState('')
   const [addOpen, setAddOpen] = useState(false)
+  // Поиск в «Добавить поле» (владелец, 26.11.2026): у модели десятки полей, глазами
+  // по двум колонкам не найти. Каждое открытие — с пустой строки.
+  const [addQuery, setAddQuery] = useState('')
   // Режим редактирования пресетов (включается шестерёнкой у «Сохранить фильтр»).
   const [editMode, setEditMode] = useState(false)
   // Какой пресет редактируется в режиме шестерёнки (по нему «Сохранить» пишет
@@ -127,6 +130,11 @@ export function SearchModule<T>({
     window.addEventListener('resize', fit)
     return () => window.removeEventListener('resize', fit)
   }, [])
+
+  const addFields = useMemo(() => {
+    const q = normFieldQuery(addQuery)
+    return q ? config.fields.filter((f) => normFieldQuery(f.label).includes(q)) : config.fields
+  }, [config.fields, addQuery])
 
   // Закрытие сетки «Добавить поле» по клику вне неё. Capture-фаза — потому что
   // .filterPop делает stopPropagation на mousedown (обычный листенер не сработал бы).
@@ -545,7 +553,10 @@ export function SearchModule<T>({
                 type="button"
                 className={styles.filterAddfield}
                 data-active={String(addOpen)}
-                onClick={() => setAddOpen((v) => !v)}
+                onClick={() => {
+                  setAddQuery('')
+                  setAddOpen((v) => !v)
+                }}
               >
                 <Icon name="plus" size={13} />
                 Добавить поле
@@ -560,7 +571,23 @@ export function SearchModule<T>({
         {/* Сетка всех полей модели: отметка = поле показано в фильтре. */}
         {addOpen && (
           <div className={styles.filterAddgrid} ref={addGridRef}>
-            {config.fields.map((f) => {
+            <input
+              className={`${styles.formInput} ${styles.filterAddgridSearch}`}
+              type="search"
+              placeholder="Найти поле"
+              aria-label="Найти поле"
+              autoFocus
+              value={addQuery}
+              onChange={(e) => setAddQuery(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key !== 'Escape') return
+                e.stopPropagation()
+                if (addQuery) setAddQuery('')
+                else setAddOpen(false)
+              }}
+            />
+            {addFields.length === 0 && <p className={styles.filterAddgridEmpty}>Ничего не найдено</p>}
+            {addFields.map((f) => {
               const on = fields.includes(f.key)
               return (
                 <button
@@ -677,6 +704,11 @@ export function SearchModule<T>({
       </div>
     </div>
   )
+}
+
+/** Без регистра, «ё» = «е», лишние пробелы не мешают. */
+function normFieldQuery(v: string): string {
+  return v.toLowerCase().replace(/ё/g, 'е').replace(/\s+/g, ' ').trim()
 }
 
 export default SearchModule
