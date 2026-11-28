@@ -156,10 +156,12 @@ export function FormRecordEditor({
   // ─── Файлы ───
   const uploadFiles = useCallback(
     async (field: Field, picked: File[]) => {
-      if (!record) return
       for (const file of picked) {
         try {
-          const saved = await api.records.uploadFile(form.id, record.id, field.id, file)
+          // Новая запись — файл уходит заранее и привяжется при создании.
+          const saved = record
+            ? await api.records.uploadFile(form.id, record.id, field.id, file)
+            : await api.uploads.upload(form.id, field.id, file)
           setFiles((prev) => ({ ...prev, [saved.id]: saved }))
           setValues((prev) => {
             const cur = Array.isArray(prev[field.id]) ? (prev[field.id] as unknown[]) : []
@@ -184,9 +186,10 @@ export function FormRecordEditor({
   }, [])
   const openFile = useCallback(
     async (_field: Field, fileId: string) => {
-      if (!record) return
       try {
-        const { url } = await api.records.fileUrl(form.id, record.id, fileId)
+        const { url } = record
+          ? await api.records.fileUrl(form.id, record.id, fileId)
+          : await api.uploads.fileUrl(form.id, fileId)
         window.open(url, '_blank', 'noopener')
       } catch (e) {
         setBanner({ text: `Не удалось открыть файл: ${describeError(e).text}`, tone: 'bad' })
@@ -198,9 +201,9 @@ export function FormRecordEditor({
   const renderCtx: RenderContext = {
     ...ctx,
     filesById: { ...(ctx.filesById ?? {}), ...files },
-    onUploadFiles: record ? uploadFiles : undefined,
-    onRemoveFile: record ? removeFile : undefined,
-    onOpenFile: record ? openFile : undefined,
+    onUploadFiles: uploadFiles,
+    onRemoveFile: removeFile,
+    onOpenFile: openFile,
   }
 
   // ─── Сохранение ───

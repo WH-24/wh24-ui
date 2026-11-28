@@ -1032,3 +1032,30 @@ describe("FormRecordsPage — колонки хоста и onRowsChange (06.11.2
     expect(onRowsChange.mock.calls.length).toBeLessThanOrEqual(n + 1);
   });
 });
+
+describe("FormRecordEditor — файлы новой записи до сохранения (28.11.2026)", () => {
+  it("файл грузится сразу через uploads, его id уходит в создание записи", async () => {
+    const user = userEvent.setup();
+    const { api, create } = mockApi();
+    const upload = vi.fn(async () => ({
+      id: "file-1", record_id: "", field_id: "scan", name: "счёт.pdf", size: 3, mime: "application/pdf",
+      uploaded_by: "u1", uploaded_at: "2026-11-28T10:00:00Z", deleted_at: null,
+    }));
+    (api as unknown as { uploads: unknown }).uploads = { upload, fileUrl: vi.fn() };
+    const withFile: SchemaDocument = {
+      ...schema,
+      fields: [...schema.fields, f({ id: "scan", type: "file", label: "Скан-копия счета" })],
+    };
+    const { container } = render(
+      <FormRecordEditor form={form} schema={withFile} api={api} onSaved={vi.fn()} onCancel={vi.fn()} />,
+    );
+    expect(screen.queryByText(/после сохранения записи/)).not.toBeInTheDocument();
+    await user.type(screen.getByLabelText("Название*"), "Счёт");
+    const input = container.querySelector('input[type="file"]') as HTMLInputElement;
+    await user.upload(input, new File(["abc"], "счёт.pdf", { type: "application/pdf" }));
+    await waitFor(() => expect(upload).toHaveBeenCalledWith("form-1", "scan", expect.any(File)));
+    await user.click(screen.getByRole("button", { name: "Создать запись" }));
+    await waitFor(() => expect(create).toHaveBeenCalled());
+    expect(create.mock.calls[0][1]).toMatchObject({ data: { name: "Счёт", scan: ["file-1"] } });
+  });
+});
