@@ -348,7 +348,7 @@ export function validateForPublish(
   return errs
 }
 
-const FORMULA_REF_EXCLUDED = new Set<string>(['section', 'note', 'file', 'contact', 'lookup'])
+const FORMULA_REF_EXCLUDED = new Set<string>(['section', 'note', 'file', 'contact', 'counterparty', 'lookup'])
 
 /**
  * Блокеры формул и подстановок (schema.validateComputedForPublish в Go,

@@ -26,6 +26,7 @@ import {
 } from '@wowhaus-24/ui-react'
 
 import type {
+  CounterpartyCard,
   DateRangeValue,
   Field,
   FieldType,
@@ -76,6 +77,17 @@ export interface RenderContext extends FormatContext {
    */
   ContactsControl?: ComponentType<ContactsControlProps>
   /**
+   * Выбор контрагента справочника для поля «Контрагент»: поиск, «найти по
+   * ИНН», завести вручную. Живёт в портале; без него поле только показывает
+   * название.
+   */
+  CounterpartyControl?: ComponentType<CounterpartyControlProps>
+  /**
+   * Реквизиты выбранного контрагента в поля fill (ставит FormRenderer, хосту
+   * задавать не нужно): сервер всё равно перезапишет их при сохранении.
+   */
+  onCounterpartyPicked?: (field: Field, card: CounterpartyCard) => void
+  /**
    * Иконка варианта поля «Выбор» по имени (SelectOption.icon): библиотека иконок
    * у хоста. Нет — варианты показываются без иконок (цвет остаётся).
    */
@@ -85,6 +97,18 @@ export interface RenderContext extends FormatContext {
    * /forms/:id/fields/:field_id/tags?q=). Нет — свободный ввод без подсказок.
    */
   loadTags?: (field: Field, q: string) => Promise<string[]>
+}
+
+/** Что хост получает от поля «Контрагент». */
+export interface CounterpartyControlProps {
+  /** id выбранного контрагента. */
+  value?: string
+  /** Выбор (card — карточка выбранного) или очистка (undefined). */
+  onChange: (id: string | undefined, card?: CounterpartyCard) => void
+  readOnly?: boolean
+  id?: string
+  label?: string
+  invalid?: boolean
 }
 
 /** Что хост получает от поля «Контакт». */
@@ -1178,6 +1202,41 @@ const contact: FieldRenderer = {
   },
 }
 
+// ─── Контрагент ─────────────────────────────────────────────────────────
+
+const counterparty: FieldRenderer = {
+  Edit: ({ field, value, onChange, id, invalid, disabled, ctx }) => {
+    const cur = typeof value === 'string' && value ? value : undefined
+    const Control = ctx.CounterpartyControl
+    if (!Control) {
+      return <StaticValue>{cur ? formatValue(field, cur, ctx) : 'Контрагент выбирается в карточке записи в портале'}</StaticValue>
+    }
+    return (
+      <Control
+        id={id}
+        label={field.label}
+        value={cur}
+        invalid={invalid}
+        readOnly={disabled}
+        onChange={(v, card) => {
+          onChange(v || undefined)
+          if (v && card) ctx.onCounterpartyPicked?.(field, card)
+        }}
+      />
+    )
+  },
+  View: ({ field, value, ctx }) => {
+    const cur = typeof value === 'string' && value ? value : undefined
+    if (!cur) return <StaticValue>—</StaticValue>
+    const Control = ctx.CounterpartyControl
+    return Control ? (
+      <Control label={field.label} value={cur} onChange={() => undefined} readOnly />
+    ) : (
+      <StaticValue>{formatValue(field, cur, ctx)}</StaticValue>
+    )
+  },
+}
+
 // ─── Презентационные ───────────────────────────────────────────────────
 
 const section: FieldRenderer = {
@@ -1761,6 +1820,7 @@ export const fieldRegistry: Record<FieldType, FieldRenderer> = {
   file,
   record_ref: recordRef,
   contact,
+  counterparty,
   rating,
   time,
   date_range: dateRange,

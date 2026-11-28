@@ -54,6 +54,7 @@ export function conditionOps(type: FieldType, field?: Pick<Field, 'config'>): Op
     case 'table':
     case 'record_ref':
     case 'contact':
+    case 'counterparty':
     case 'date_range':
     case 'location':
       return FILLED

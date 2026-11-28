@@ -542,3 +542,31 @@ describe('список с вариантами из справочника', () 
     expect(screen.queryByText('Своё')).toBeNull()
   })
 })
+
+describe('поле «Контрагент» (counterparty)', () => {
+  const cp = f({ id: 'cp', type: 'counterparty', label: 'Контрагент',
+    config: { fill: { name: 'n', inn: 'i' } } })
+  const d = doc([cp, f({ id: 'n', type: 'text', label: 'Название' }), f({ id: 'i', type: 'text', label: 'ИНН' })])
+
+  it('без компонента хоста — название из counterpartyNames', () => {
+    expect(formatValue(cp, 'id-1', { counterpartyNames: { 'id-1': 'ООО «Ромашка»' } })).toBe('ООО «Ромашка»')
+    expect(formatValue(cp, 'id-1')).toBe('Контрагент')
+  })
+
+  it('выбор в компоненте хоста ставит id и реквизиты в поля fill', () => {
+    const onChange = vi.fn()
+    const Control = ({ onChange: set }: { onChange: (id?: string, card?: { id: string; name: string; inn: string }) => void }) => (
+      <button type="button" onClick={() => set('id-1', { id: 'id-1', name: 'ООО «Ромашка»', inn: '7707083893' })}>выбрать</button>
+    )
+    render(<FormRenderer doc={d} values={{}} mode="edit" onChange={onChange} ctx={{ CounterpartyControl: Control }} />)
+    fireEvent.click(screen.getByText('выбрать'))
+    expect(onChange).toHaveBeenCalledWith('cp', 'id-1')
+    expect(onChange).toHaveBeenCalledWith('n', 'ООО «Ромашка»')
+    expect(onChange).toHaveBeenCalledWith('i', '7707083893')
+  })
+
+  it('поля fill только для чтения, пока контрагент выбран', () => {
+    render(<FormRenderer doc={d} values={{ cp: 'id-1', n: 'ООО «Ромашка»', i: '7707083893' }} mode="edit" onChange={vi.fn()} />)
+    expect((screen.getByDisplayValue('7707083893') as HTMLInputElement).disabled).toBe(true)
+  })
+})

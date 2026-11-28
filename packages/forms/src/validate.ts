@@ -236,6 +236,9 @@ function checkValue(f: Field, value: unknown): RecordFieldError[] {
         return toStringArray(value) ? [] : [typeErr(f, 'список записей')]
       return typeof value === 'string' ? [] : [typeErr(f, 'одна запись')]
     }
+    case 'counterparty':
+      // id контрагента справочника; что он есть, проверяет сервер при сохранении.
+      return typeof value === 'string' ? [] : [typeErr(f, 'id контрагента')]
     case 'contact': {
       // Список id контактов реестра ОУП; что они есть в реестре, проверяет
       // бэкенд (реестр в другом сервисе).

@@ -330,3 +330,12 @@ describe('validateRecord — правила формы', () => {
     expect(validateRecord({ ...d, rules: [{ ...rule, disabled: true }] }, { resp: 'T', obs: 'B' })).toEqual([])
   })
 })
+
+describe('validateRecord — поле «Контрагент»', () => {
+  const cp = f({ id: 'cp', type: 'counterparty' })
+  it('строка id — ок; список и число — ошибка типа', () => {
+    expect(validateRecord(doc(cp), { cp: 'id-1' })).toEqual([])
+    expect(codes(validateRecord(doc(cp), { cp: ['id-1'] }))).toEqual(['type'])
+    expect(codes(validateRecord(doc(cp), { cp: 5 }))).toEqual(['type'])
+  })
+})

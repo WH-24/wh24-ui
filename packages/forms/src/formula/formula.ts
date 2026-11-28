@@ -610,7 +610,7 @@ export function evaluateFormula(
 
 // ---------------------------------------------------------------- область и порядок (schema.FormulaScope / FormulaOrder)
 
-const SCOPE_EXCLUDED = new Set<string>(['section', 'note', 'file', 'contact', 'lookup', 'formula'])
+const SCOPE_EXCLUDED = new Set<string>(['section', 'note', 'file', 'contact', 'counterparty', 'lookup', 'formula'])
 
 /**
  * Значения записи по ключам полей; таблица — строки с ключами колонок. Поле,
