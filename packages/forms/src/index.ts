@@ -84,6 +84,7 @@ export type {
 export { fieldRegistry, FieldControl } from './render/registry.js'
 export type {
   ContactsControlProps,
+  CounterpartyControlProps,
   FieldRenderer,
   FieldRenderProps,
   RenderContext,
