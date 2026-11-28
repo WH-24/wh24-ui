@@ -446,6 +446,20 @@ export function createFormsApi(opts: FormsApiOptions) {
     fieldTags: (formId: string, fieldId: string, q: string) =>
       request<string[]>('GET', `/forms/${seg(formId)}/fields/${seg(fieldId)}/tags${toQuery({ q })}`),
 
+    /**
+     * Файлы новой записи до её сохранения (28.11.2026): файл загружается без
+     * записи, при создании сервер привязывает свои файлы этого поля.
+     */
+    uploads: {
+      upload: (formId: string, fieldId: string, file: File) => {
+        const fd = new FormData()
+        fd.append('file', file, file.name)
+        return request<FormFile>('POST', `/forms/${seg(formId)}/uploads/${seg(fieldId)}`, fd)
+      },
+      /** presigned-GET своего непривязанного файла; чужой — 404. */
+      fileUrl: (formId: string, fileId: string) =>
+        request<FileUrl>('GET', `/forms/${seg(formId)}/uploads/${seg(fileId)}/url`),
+    },
     records: {
       /** Метаданные вложений записи (имена, размеры) — ссылок здесь нет, только через fileUrl. */
       files: (formId: string, id: string) =>
