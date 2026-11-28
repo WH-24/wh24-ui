@@ -570,3 +570,13 @@ describe('поле «Контрагент» (counterparty)', () => {
     expect((screen.getByDisplayValue('7707083893') as HTMLInputElement).disabled).toBe(true)
   })
 })
+
+describe('поле «Контрагент»: пустой реквизит', () => {
+  it('поле fill без значения не блокируется — его вписывают руками', () => {
+    const cp = f({ id: 'cp', type: 'counterparty', config: { fill: { name: 'n', kpp: 'k' } } })
+    const d = doc([cp, f({ id: 'n', type: 'text', label: 'Название' }), f({ id: 'k', type: 'text', label: 'КПП' })])
+    render(<FormRenderer doc={d} values={{ cp: 'id-1', n: 'ИП Иванов' }} mode="edit" onChange={vi.fn()} />)
+    expect((screen.getByDisplayValue('ИП Иванов') as HTMLInputElement).disabled).toBe(true)
+    expect((screen.getByLabelText('КПП') as HTMLInputElement).disabled).toBe(false)
+  })
+})

@@ -136,7 +136,12 @@ export function FormRenderer({
   const lockedByCounterparty = new Set<string>()
   for (const f of doc.fields) {
     if (f.type === 'counterparty' && !f.archived && typeof values[f.id] === 'string' && values[f.id]) {
-      for (const [, target] of counterpartyTargets(f)) lockedByCounterparty.add(target)
+      // Пустое поле реквизита (у ИП нет КПП, у заведённого вручную — адреса)
+      // не блокируем: его вписывают руками.
+      for (const [, target] of counterpartyTargets(f)) {
+        const v = values[target]
+        if (v !== undefined && v !== null && v !== '') lockedByCounterparty.add(target)
+      }
     }
   }
 
