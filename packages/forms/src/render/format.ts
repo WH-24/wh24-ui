@@ -37,6 +37,8 @@ export interface FormatContext {
   recordRefs?: Record<string, RecordRefOption[]>
   /** id контакта реестра ОУП → ФИО (поле «Контакт»). */
   contactNames?: Record<string, string>
+  /** id контрагента справочника → название (поле «Контрагент»). */
+  counterpartyNames?: Record<string, string>
   /** id поля «Подстановка» → значение из записи-источника (record.lookups). */
   lookups?: Record<string, unknown>
 }
@@ -173,6 +175,8 @@ export function formatValue(field: Field, value: unknown, ctx: FormatContext = {
       return (Array.isArray(value) ? value : [value])
         .map((v) => optionLabel(field, String(v), ctx))
         .join(', ')
+    case 'counterparty':
+      return ctx.counterpartyNames?.[String(value)] ?? 'Контрагент'
     case 'contact':
       return (Array.isArray(value) ? value : [value])
         .map((v) => ctx.contactNames?.[String(v)] ?? 'Контакт')

@@ -122,6 +122,8 @@ function sampleValue(f: Field | undefined, opts: SimulateOptions, env: Env): unk
     case 'record_ref':
     case 'contact':
       return ['пример']
+    case 'counterparty':
+      return 'пример'
     case 'table':
       return [{}]
     default:

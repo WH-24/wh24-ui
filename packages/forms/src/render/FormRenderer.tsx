@@ -17,7 +17,7 @@ import { FieldGrid, FieldRow } from '@wowhaus-24/ui-react'
 
 import { applyFillsOnChange, visibleIfMap } from '../conditions/rules.js'
 import { fieldRequirement, fieldVisibility } from '../conditions/visibility.js'
-import type { Field, RecordData, RecordFieldError, SchemaDocument, Section } from '../types.js'
+import type { CounterpartyCard, CounterpartyConfig, Field, RecordData, RecordFieldError, SchemaDocument, Section } from '../types.js'
 import { isComputedField, isPresentation, sectionColorHex } from '../types.js'
 import { computeFormulas } from '../formula/formula.js'
 import { isBlank } from './format.js'
@@ -87,6 +87,23 @@ export function ruleFillsAfterChange(
   return patch
 }
 
+type CounterpartyFillKey = keyof NonNullable<CounterpartyConfig['fill']>
+
+/** Пары «реквизит → id поля» из config.fill поля «Контрагент». */
+function counterpartyTargets(f: Field): Array<[CounterpartyFillKey, string]> {
+  const fill = (f.config as CounterpartyConfig | undefined)?.fill ?? {}
+  const out: Array<[CounterpartyFillKey, string]> = []
+  for (const k of ['name', 'inn', 'kpp', 'ogrn', 'address'] as const) {
+    const id = fill[k]
+    if (id) out.push([k, id])
+  }
+  return out
+}
+
+function counterpartyCardValue(card: CounterpartyCard, what: CounterpartyFillKey): string {
+  return (what === 'address' ? card.legal_address : card[what]) ?? ''
+}
+
 export function FormRenderer({
   doc,
   values,
@@ -101,7 +118,27 @@ export function FormRenderer({
   const prefix = useId()
   const errMap = useMemo(() => errorsByField(errors), [errors])
   const newSet = useMemo(() => new Set(newFieldIds ?? []), [newFieldIds])
-  const context: RenderContext = ctx ?? {}
+  const base: RenderContext = ctx ?? {}
+  // Поле «Контрагент»: выбор ставит реквизиты в поля fill (сервер при
+  // сохранении запишет то же самое из справочника), а пока контрагент выбран,
+  // поля fill только для чтения.
+  const context: RenderContext = onChange
+    ? {
+        ...base,
+        onCounterpartyPicked: (field, card) => {
+          for (const [what, target] of counterpartyTargets(field)) {
+            const v = counterpartyCardValue(card, what)
+            onChange(target, v || undefined)
+          }
+        },
+      }
+    : base
+  const lockedByCounterparty = new Set<string>()
+  for (const f of doc.fields) {
+    if (f.type === 'counterparty' && !f.archived && typeof values[f.id] === 'string' && values[f.id]) {
+      for (const [, target] of counterpartyTargets(f)) lockedByCounterparty.add(target)
+    }
+  }
 
   const sections = useMemo(
     () => [...doc.sections].sort((a, b) => a.sort - b.sort || a.title.localeCompare(b.title, 'ru')),
@@ -145,7 +182,7 @@ export function FormRenderer({
         }
         id={id}
         invalid={Boolean(err)}
-        disabled={disabled}
+        disabled={disabled || lockedByCounterparty.has(f.id)}
         ctx={context}
       />
     )

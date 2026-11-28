@@ -31,6 +31,9 @@ export const FIELD_TYPES = [
   'file',
   'record_ref',
   'contact',
+  // Контрагент из общего справочника wowhaus-api (28.11.2026): значение — id,
+  // config.fill — текстовые поля под реквизиты (их пишет сервер).
+  'counterparty',
   // Типы «до уровня Monday», шаг 1 (06.11.2026, спека в wh24-forms-api
   // docs/superpowers/specs/2026-11-06-field-types-monday-design.md).
   'rating',
@@ -846,4 +849,19 @@ export interface NewComment {
   spent_minutes?: number
   meeting?: Meeting
   files?: File[]
+}
+
+/** Поле «Контрагент»: текстовые поля формы под реквизиты (id полей). */
+export interface CounterpartyConfig {
+  fill?: { name?: string; inn?: string; kpp?: string; ogrn?: string; address?: string }
+}
+
+/** Карточка контрагента, которую отдаёт компонент хоста при выборе. */
+export interface CounterpartyCard {
+  id: string
+  name: string
+  inn: string
+  kpp?: string
+  ogrn?: string
+  legal_address?: string
 }
